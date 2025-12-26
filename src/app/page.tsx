@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { HomeContent, HeroConfig } from "@/components/home/HomeContent";
-import { getStoreConfig } from "@/lib/actions/config";
+import { HomeContent } from "@/components/home/HomeContent";
 
 export const metadata: Metadata = {
   title: "Legacy Store | Luxury Watches in Egypt",
@@ -8,10 +7,6 @@ export const metadata: Metadata = {
   keywords: "watches, luxury watches, men's watches, legacy store, egypt watches",
 };
 
-export default async function Home() {
-  const config = await getStoreConfig('homepage_hero');
-  // Cast Prisma JSON to our interface. Safe because we validate structure elsewhere or treat as partial.
-  const heroConfig = config ? (config as unknown as HeroConfig) : undefined;
-  
-  return <HomeContent heroConfig={heroConfig} />;
+export default function Home() {
+  return <HomeContent />;
 }

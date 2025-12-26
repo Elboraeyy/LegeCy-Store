@@ -7,28 +7,17 @@ import { motion } from "framer-motion";
 import { fadeUpSlow, staggerContainerSlow } from "@/lib/motion";
 import { Reveal } from "@/components/ui/Reveal";
 
-export interface HeroConfig {
-  title?: string;
-  subtitle?: string;
-  ctaText?: string;
-  ctaLink?: string;
-  imageUrl?: string;
-}
-
-export function HomeContent({ heroConfig }: { heroConfig?: HeroConfig }) {
-  // Use config or fallbacks
-  const title = heroConfig?.title || (
+export function HomeContent() {
+  const title = (
     <>Built on Time.<br />Made for Legacy.</>
   );
-  const subtitle = heroConfig?.subtitle || 
-    "Since our inception, we've remained devoted to one pursuit — crafting timepieces that honour tradition while embracing innovation.";
-  const ctaText = heroConfig?.ctaText || "Unveil Our Legacy";
-  const ctaLink = heroConfig?.ctaLink || "/shop";
-  const bgStyle = heroConfig?.imageUrl ? { backgroundImage: `url('${heroConfig.imageUrl}')` } : undefined;
+  const subtitle = "Since our inception, we've remained devoted to one pursuit — crafting timepieces that honour tradition while embracing innovation.";
+  const ctaText = "Unveil Our Legacy";
+  const ctaLink = "/shop";
 
   return (
     <main>
-      <section className="hero container" style={bgStyle}>
+      <section className="hero container">
         <div className="hero-content">
           <Reveal delay={0.1}>
             <h1 className="hero-title">
