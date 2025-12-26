@@ -1,4 +1,6 @@
 import Link from 'next/link';
+
+export const dynamic = 'force-dynamic';
 import { getAnalyticsSummary, DateRange } from '@/lib/actions/analytics';
 import { validateAdminSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
