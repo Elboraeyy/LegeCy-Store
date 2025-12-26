@@ -1,0 +1,1201 @@
+/* Admin Dashboard Styles - Premium Theme */
+:root {
+  /* Core Palette (Matching globals.css) */
+  --admin-radius: 20px;
+    /* Standardized Large Radius */
+    --admin-radius-sm: 12px;
+  --admin-bg-dark: #1a3c34;       /* Deep Green */
+  --admin-bg-light: #e8e6e1;      /* Beige */
+  --admin-surface-light: #f4f3f0; /* Light Surface */
+  --admin-surface-white: #ffffff;
+  
+  --admin-text-on-dark: #e8e6e1;
+  --admin-text-on-light: #1a3c34;
+  --admin-text-muted: #5c6b66;
+  
+  --admin-accent: #d4af37;        /* Gold */
+  --admin-border: #d1cfca;
+  
+  /* Semantic Variables */
+  --sidebar-bg: #1a3c34;
+    /* Matches --bg-dark */
+      --sidebar-bg-gradient: #1a3c34;
+      /* Flat Deep Green */
+      --sidebar-text: #e8e6e1;
+    /* Matches --text-on-dark */
+  --sidebar-hover: rgba(255, 255, 255, 0.04);
+  --sidebar-active: #e8e6e1;
+    /* Matches Main BG exactly for seamless blend */
+    --sidebar-active-text: #1a3c34;
+    /* Matches --text-on-light */
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+
+  --main-bg: #e8e6e1;
+    /* Darker Beige to match store global background */
+  --card-bg: #ffffff;
+  --card-border: #e2e0dd;
+  
+  --shadow-sm: 0 1px 2px rgba(26, 60, 52, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(26, 60, 52, 0.05), 0 2px 4px -1px rgba(26, 60, 52, 0.03);
+  --shadow-lg: 0 20px 25px -5px rgba(26, 60, 52, 0.1), 0 10px 10px -5px rgba(26, 60, 52, 0.04);
+}
+
+body.admin-body {
+  background-color: var(--main-bg);
+  color: var(--admin-text-on-light);
+  overflow-y: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Typography */
+.font-heading { font-family: 'Playfair Display', serif; }
+.font-body { font-family: 'Inter', sans-serif; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+
+/* Structural Shell */
+.admin-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--main-bg);
+}
+
+/* Sidebar */
+.admin-sidebar {
+  width: 260px;
+  background: var(--sidebar-bg-gradient);
+  color: var(--sidebar-text);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0 24px 16px;
+  position: relative;
+  z-index: 20;
+  box-shadow: none;
+    /* Removed global sidebar shadow for seamless flat integration */
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+    margin-right: 20px;
+    /* Give space for the content to start, creating visual separation via white space instead of shadow */
+}
+
+/* Brand */
+.admin-brand {
+    padding: 0 16px 24px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--admin-accent), #f0cf65);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1a3c34;
+      font-weight: 800;
+      font-size: 20px;
+      font-family: 'Playfair Display', serif;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.brand-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+      letter-spacing: 0.5px;
+      color: #fff;
+    font-weight: 600;
+      line-height: 1;
+      display: block;
+}
+
+.brand-badge {
+  font-size: 10px;
+  text-transform: uppercase;
+    letter-spacing: 2px;
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 600;
+      margin-top: 4px;
+      display: block;
+    }
+    
+    /* User Profile Section */
+    .sidebar-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin-right: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .profile-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--admin-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1a3c34;
+  font-weight: 700;
+  font-size: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+  }
+        .profile-name {
+          font-size: 12px;
+          font-weight: 600;
+          color: #fff;
+        }
+    
+        .profile-role {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.6);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+    
+        /* Navigation */
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.nav-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 12px 0 6px 12px;
+  font-weight: 600;
+}
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+    padding: 12px 24px;
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
+    color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: -16px;
+    /* Extend to edge */
+  position: relative;
+  /* transition: none; Removed animation */
+  
+    /* For ripple or fill effects if added */
+  }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                /* Use a span or inner element for the text slide effect if we want to be very specific, 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             but transforming the whole item works too if we are careful. 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             Here we will slide the content slightly. */
+
+.admin-nav-item:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+    /* padding-left: 24px; Removed slide effect */
+}
+  
+
+.admin-nav-item.active {
+  background: var(--admin-bg-light);
+    /* Explicitly match main BG */
+    color: var(--sidebar-active-text);
+    font-weight: 700;
+    box-shadow: none !important;
+    /* Force remove any shadow */
+    z-index: 30;
+    /* Ensure on top of sidebar shadow */
+    margin-right: -24px;
+    /* Extend FURTHER to cover sidebar edge completely */
+    padding-right: 48px;
+    /* Compensate for margin */
+}
+
+/* The Curved Connector Effect - Smoother & Larger */
+.admin-nav-item.active::before {
+    content: '';
+      position: absolute;
+    right: 24px;
+      /* Align with visual edge */
+      top: -50px;
+      /* Match height */
+      width: 50px;
+      height: 50px;
+      background: transparent;
+      border-radius: 50%;
+      box-shadow: 25px 25px 0 var(--admin-bg-light);
+      /* Larger shadow offset for larger curve */
+      pointer-events: none;
+      z-index: 25;
+    }
+        .admin-nav-item.active::after {
+          content: '';
+          position: absolute;
+          right: 24px;
+          bottom: -50px;
+          width: 50px;
+          height: 50px;
+          background: transparent;
+          border-radius: 50%;
+          box-shadow: 25px -25px 0 var(--admin-bg-light);
+          pointer-events: none;
+          z-index: 25;
+        }
+    
+        /* Logout Section */
+        .admin-logout-wrapper {
+          padding: 24px 16px;
+          margin-top: auto;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          justify-content: center;
+        }
+    
+        .admin-logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 28px;
+  
+    /* Glassy Deep Green Background for better visibility on dark sidebar */
+    background: rgba(26, 60, 52, 0.4);
+  
+    /* Subtle Gold Border */
+    border: 1px solid rgba(212, 175, 55, 0.2);
+  
+    border-radius: 99px;
+  
+    /* Off-white text */
+    color: rgba(255, 255, 255, 0.9);
+  
+    cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: auto;
+    min-width: 140px;
+}
+
+.admin-logout-btn:hover {
+  /* Radiant Gold Gradient on Hover */
+  background: linear-gradient(135deg, var(--admin-accent), #f0cf65);
+
+  /* Deep Green Text for high contrast against Gold */
+  color: var(--admin-bg-dark);
+
+  border-color: transparent;
+
+  /* Gold Glow Effect */
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+
+  transform: translateY(-2px);
+}
+
+/* Main Content */
+.admin-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 48px;
+  width: 100%;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 40px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  color: var(--admin-text-on-light);
+  margin: 0 0 8px 0;
+  font-weight: 400;
+}
+
+.admin-subtitle {
+  color: var(--admin-text-muted);
+  font-size: 15px;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Cards */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.admin-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--admin-radius);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: #c0beba;
+}
+
+.stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--admin-text-muted);
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px;
+  color: var(--admin-text-on-light);
+  line-height: 1;
+}
+
+/* Tables */
+.admin-table-container {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--admin-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-table th {
+  background: rgba(26, 60, 52, 0.03);
+  text-align: left;
+  padding: 16px 24px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--admin-text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-table td {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  color: var(--admin-text-on-light);
+  vertical-align: middle;
+  background: #fff;
+  transition: background 0.2s;
+}
+
+.admin-table tr:hover td {
+  background: rgba(26, 60, 52, 0.02);
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Buttons */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.admin-btn-primary {
+  background: var(--admin-bg-dark);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(26, 60, 52, 0.15);
+}
+
+.admin-btn-primary:hover {
+  background: #142f29;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(26, 60, 52, 0.2);
+}
+
+.admin-btn-outline {
+  background: transparent;
+  color: var(--admin-text-on-light);
+  border-color: var(--admin-border);
+}
+
+.admin-btn-outline:hover {
+  background: var(--admin-bg-dark);
+    color: #ffffff;
+  border-color: var(--admin-bg-dark);
+  transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26, 60, 52, 0.15);
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-paid, .status-active, .status-delivered { 
+  background: rgba(22, 101, 52, 0.1); 
+  color: #166534; 
+  border: 1px solid rgba(22, 101, 52, 0.15);
+}
+
+.status-pending { 
+  background: rgba(183, 110, 0, 0.1); 
+  color: #b76e00; 
+  border: 1px solid rgba(183, 110, 0, 0.15);
+}
+
+.status-shipped { 
+  background: rgba(30, 64, 175, 0.1); 
+  color: #1e40af; 
+  border: 1px solid rgba(30, 64, 175, 0.15);
+}
+
+.status-cancelled { 
+  background: rgba(153, 27, 27, 0.08); 
+  color: #991b1b; 
+  border: 1px solid rgba(153, 27, 27, 0.15);
+}
+
+/* Tabs */
+.admin-tabs {
+  display: flex;
+  background: #fff;
+  padding: 4px;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+  gap: 2px;
+}
+
+.admin-tab-item {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.admin-tab-item:hover {
+  text-decoration: none;
+  color: var(--admin-text-on-light);
+  background: rgba(0,0,0,0.02);
+}
+
+.admin-tab-item.active {
+  background: var(--admin-bg-dark);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Forms */
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-text-on-light);
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--admin-bg-dark);
+  box-shadow: 0 0 0 3px rgba(26, 60, 52, 0.1);
+}
+/* Form Groups */
+.admin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-form-group label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--admin-text-muted);
+  font-weight: 600;
+}
+
+/* Textarea Styling */
+.form-input[type="textarea"],
+textarea.form-input {
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* Select Styling */
+select.form-input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c6b66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+select.form-input:focus {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231a3c34' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* Disabled States */
+.form-input:disabled {
+  background: var(--admin-surface-light);
+  color: var(--admin-text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Form Input Placeholder */
+.form-input::placeholder {
+  color: var(--admin-text-muted);
+  opacity: 0.6;
+}
+
+/* Number Input Arrows */
+input[type="number"].form-input::-webkit-outer-spin-button,
+input[type="number"].form-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"].form-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+/* --- Admin Toolbar (Luxury Redesign) --- */
+                                
+                                                                .admin-toolbar {
+                                                                  background: #fff;
+                                                                  border: 1px solid var(--admin-border);
+                                                                  border-radius: 99px;
+                                                                  /* Pill shape container for the whole bar */
+                                                                  padding: 8px 12px;
+                                                                  display: flex;
+                                                                  justify-content: space-between;
+                                                                  align-items: center;
+                                                                  box-shadow: var(--shadow-sm);
+                                                                  margin-bottom: 24px;
+                                                                }
+                                
+                                                                .admin-tabs-container {
+                                                                  display: flex;
+                                                                  background: var(--admin-surface-light);
+                                                                  padding: 4px;
+                                                                  border-radius: 99px;
+                                                                  border: 1px solid rgba(0, 0, 0, 0.05);
+                                                                  gap: 4px;
+                                                                }
+                                
+                                                                .admin-tab-pill {
+                                                                  border-radius: 99px;
+                                                                  padding: 8px 24px;
+                                                                  font-size: 12px;
+                                                                  letter-spacing: 0.5px;
+                                                                  text-transform: uppercase;
+                                                                  color: var(--admin-text-muted);
+                                                                  font-weight: 600;
+                                                                  text-decoration: none;
+                                                                  transition: all 0.3s ease;
+                                                                  white-space: nowrap;
+                                                                }
+                                
+                                                                .admin-tab-pill:hover {
+                                                                  background: rgba(0, 0, 0, 0.03);
+                                                                  color: var(--admin-text-on-light);
+                                                                  text-decoration: none;
+                                                                }
+                                
+                                                                .admin-tab-pill.active {
+                                                                  background: var(--admin-bg-dark);
+                                                                  /* Deep Green */
+                                                                  color: #fff;
+                                                                  box-shadow: 0 4px 12px rgba(26, 60, 52, 0.2);
+                                                                }
+                                
+                                                                .admin-search-wrapper {
+                                                                  position: relative;
+                                                                  width: 320px;
+                                                                }
+                                
+                                                                .admin-search-input {
+                                                                  width: 100%;
+                                                                  padding: 10px 16px 10px 42px;
+                                                                  /* Space for icon */
+                                                                  border-radius: 99px;
+                                                                  border: 1px solid transparent;
+                                                                  background: var(--admin-surface-light);
+                                                                  transition: all 0.3s ease;
+                                                                  font-size: 13px;
+                                                                  color: var(--admin-text-on-light);
+                                                                }
+                                
+                                                                .admin-search-input:focus {
+                                                                  background: #fff;
+                                                                  border-color: var(--admin-accent);
+                                                                  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+                                                                  outline: none;
+                                                                }
+                                
+                                                                .admin-search-icon {
+                                                                  position: absolute;
+                                                                  left: 16px;
+                                                                  top: 50%;
+                                                                  transform: translateY(-50%);
+                                                                  color: var(--admin-text-muted);
+                                                                  pointer-events: none;
+                                                                  font-size: 14px;
+                                                                }
+                                
+                                                                /* Skeleton Loaders */
+                                                                .skeleton {
+                                                                  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                                                                  background-size: 200% 100%;
+                                                                  animation: skeleton-shimmer 1.5s infinite;
+                                                                  border-radius: 4px;
+                                                                }
+                                
+                                                                .skeleton-text {
+                                                                  height: 16px;
+                                                                  width: 100%;
+                                                                }
+                                
+                                                                @keyframes skeleton-shimmer {
+                                                                  0% {
+                                                                    background-position: 200% 0;
+                                                                  }
+                                
+                                                                  100% {
+                                                                    background-position: -200% 0;
+                                                                  }
+                                                                }
+                                
+                                                                /* Confirm Dialog */
+                                                                .confirm-dialog-overlay {
+                                                                  position: fixed;
+                                                                  inset: 0;
+                                                                  background: rgba(0, 0, 0, 0.5);
+                                                                  display: flex;
+                                                                  align-items: center;
+                                                                  justify-content: center;
+                                                                  z-index: 1000;
+                                                                  backdrop-filter: blur(4px);
+                                                                }
+                                
+                                                                .confirm-dialog {
+                                                                  background: #fff;
+                                                                  border-radius: var(--admin-radius);
+                                                                  padding: 32px;
+                                                                  max-width: 400px;
+                                                                  width: 90%;
+                                                                  text-align: center;
+                                                                  box-shadow: var(--shadow-lg);
+                                                                  animation: dialog-enter 0.2s ease;
+                                                                }
+                                
+                                                                @keyframes dialog-enter {
+                                                                  from {
+                                                                    opacity: 0;
+                                                                    transform: scale(0.95);
+                                                                  }
+                                
+                                                                  to {
+                                                                    opacity: 1;
+                                                                    transform: scale(1);
+                                                                  }
+                                                                }
+                                
+                                                                .confirm-dialog-icon {
+                                                                  font-size: 48px;
+                                                                  margin-bottom: 16px;
+                                                                }
+                                
+                                                                .confirm-dialog-title {
+                                                                  font-family: 'Playfair Display', serif;
+                                                                  font-size: 22px;
+                                                                  margin: 0 0 12px 0;
+                                                                  color: var(--admin-text-on-light);
+                                                                }
+                                
+                                                                .confirm-dialog-message {
+                                                                  font-size: 14px;
+                                                                  color: var(--admin-text-muted);
+                                                                  margin: 0 0 24px 0;
+                                                                  line-height: 1.5;
+                                                                }
+                                
+                                                                .confirm-dialog-actions {
+                                                                  display: flex;
+                                                                  gap: 12px;
+                                                                  justify-content: center;
+                                                                }
+                                
+                                                                /* Checkbox for bulk actions */
+                                                                .admin-checkbox {
+                                                                  width: 18px;
+                                                                  height: 18px;
+                                                                  accent-color: var(--admin-bg-dark);
+                                                                  cursor: pointer;
+                                                                }
+                                
+                                                                /* Bulk Actions Bar */
+                                                                .bulk-actions-bar {
+                                                                  position: sticky;
+                                                                  top: 0;
+                                                                  background: var(--admin-bg-dark);
+                                                                  color: #fff;
+                                                                  padding: 12px 24px;
+                                                                  border-radius: var(--admin-radius-sm);
+                                                                  display: flex;
+                                                                  align-items: center;
+                                                                  justify-content: space-between;
+                                                                  margin-bottom: 16px;
+                                                                  z-index: 10;
+                                                                  animation: slide-down 0.2s ease;
+                                                                }
+                                
+                                                                @keyframes slide-down {
+                                                                  from {
+                                                                    opacity: 0;
+                                                                    transform: translateY(-10px);
+                                                                  }
+                                
+                                                                  to {
+                                                                    opacity: 1;
+                                                                    transform: translateY(0);
+                                                                  }
+                                                                }
+                                
+                                                                .bulk-actions-bar .count {
+                                                                  font-weight: 600;
+                                                                }
+                                
+                                                                .bulk-actions-bar .actions {
+                                                                  display: flex;
+                                                                  gap: 12px;
+                                                                }
+                                
+                                                                .bulk-actions-bar button {
+                                                                  background: rgba(255, 255, 255, 0.1);
+                                                                  border: 1px solid rgba(255, 255, 255, 0.2);
+                                                                  color: #fff;
+                                                                  padding: 8px 16px;
+                                                                  border-radius: 99px;
+                                                                  font-size: 12px;
+                                                                  cursor: pointer;
+                                                                  transition: all 0.2s;
+                                                                }
+                                
+                                                                .bulk-actions-bar button:hover {
+                                                                  background: rgba(255, 255, 255, 0.2);
+                                                                }
+                                
+                                                                /* Notification Dropdown */
+                                                                .notification-dropdown {
+                                                                  position: relative;
+                                                                }
+                                
+                                                                .notification-badge {
+                                                                  position: absolute;
+                                                                  top: -4px;
+                                                                  right: -4px;
+                                                                  background: #cc0000;
+                                                                  color: #fff;
+                                                                  font-size: 10px;
+                                                                  font-weight: 700;
+                                                                  min-width: 18px;
+                                                                  height: 18px;
+                                                                  border-radius: 99px;
+                                                                  display: flex;
+                                                                  align-items: center;
+                                                                  justify-content: center;
+                                                                  padding: 0 4px;
+                                                                }
+                                
+                                                                .notification-panel {
+                                                                  position: absolute;
+                                                                  top: 100%;
+                                                                  right: 0;
+                                                                  margin-top: 8px;
+                                                                  background: #fff;
+                                                                  border: 1px solid var(--admin-border);
+                                                                  border-radius: var(--admin-radius-sm);
+                                                                  box-shadow: var(--shadow-lg);
+                                                                  width: 320px;
+                                                                  max-height: 400px;
+                                                                  overflow-y: auto;
+                                                                  z-index: 100;
+                                                                }
+                                
+                                                                .notification-header {
+                                                                  padding: 16px;
+                                                                  border-bottom: 1px solid var(--admin-border);
+                                                                  font-weight: 600;
+                                                                  font-size: 14px;
+                                                                }
+                                
+                                                                .notification-item {
+                                                                  padding: 12px 16px;
+                                                                  border-bottom: 1px solid #f0f0f0;
+                                                                  display: flex;
+                                                                  gap: 12px;
+                                                                  align-items: flex-start;
+                                                                  transition: background 0.2s;
+                                                                }
+                                
+                                                                .notification-item:hover {
+                                                                  background: #fafafa;
+                                                                }
+                                
+                                                                .notification-item:last-child {
+                                                                  border-bottom: none;
+                                                                }
+                                
+                                                                .notification-icon {
+                                                                  font-size: 20px;
+                                                                  flex-shrink: 0;
+                                                                }
+                                
+                                                                .notification-content {
+                                                                  flex: 1;
+                                                                }
+                                
+                                                                .notification-title {
+                                                                  font-size: 13px;
+                                                                  font-weight: 600;
+                                                                  color: var(--admin-text-on-light);
+                                                                  margin-bottom: 2px;
+                                                                }
+                                
+                                                                .notification-time {
+                                                                  font-size: 11px;
+                                                                  color: var(--admin-text-muted);
+                                                                }
+                                
+                                                                /* Quick Search Modal */
+                                                                .quick-search-overlay {
+                                                                  position: fixed;
+                                                                  inset: 0;
+                                                                  background: rgba(0, 0, 0, 0.5);
+                                                                  display: flex;
+                                                                  align-items: flex-start;
+                                                                  justify-content: center;
+                                                                  padding-top: 15vh;
+                                                                  z-index: 1000;
+                                                                  backdrop-filter: blur(4px);
+                                                                }
+                                
+                                                                .quick-search-modal {
+                                                                  background: #fff;
+                                                                  border-radius: var(--admin-radius);
+                                                                  width: 90%;
+                                                                  max-width: 600px;
+                                                                  box-shadow: var(--shadow-lg);
+                                                                  overflow: hidden;
+                                                                }
+                                
+                                                                .quick-search-input-wrapper {
+                                                                  display: flex;
+                                                                  align-items: center;
+                                                                  padding: 16px 20px;
+                                                                  border-bottom: 1px solid var(--admin-border);
+                                                                  gap: 12px;
+                                                                }
+                                
+                                                                .quick-search-input {
+                                                                  flex: 1;
+                                                                  border: none;
+                                                                  outline: none;
+                                                                  font-size: 18px;
+                                                                  color: var(--admin-text-on-light);
+                                                                }
+                                
+                                                                .quick-search-input::placeholder {
+                                                                  color: var(--admin-text-muted);
+                                                                }
+                                
+                                                                .quick-search-results {
+                                                                  max-height: 400px;
+                                                                  overflow-y: auto;
+                                                                }
+                                
+                                                                .quick-search-section {
+                                                                  padding: 8px 0;
+                                                                }
+                                
+                                                                .quick-search-section-title {
+                                                                  padding: 8px 20px;
+                                                                  font-size: 11px;
+                                                                  text-transform: uppercase;
+                                                                  letter-spacing: 1px;
+                                                                  color: var(--admin-text-muted);
+                                                                  font-weight: 600;
+                                                                }
+                                
+                                                                .quick-search-item {
+                                                                  padding: 12px 20px;
+                                                                  display: flex;
+                                                                  align-items: center;
+                                                                  gap: 12px;
+                                                                  cursor: pointer;
+                                                                  transition: background 0.15s;
+                                                                }
+                                
+                                                                .quick-search-item:hover,
+                                                                .quick-search-item.active {
+                                                                  background: var(--admin-surface-light);
+                                                                }
+                                
+                                                                .quick-search-item-icon {
+                                                                  font-size: 18px;
+                                                                  opacity: 0.7;
+                                                                }
+                                
+                                                                .quick-search-item-label {
+                                                                  font-size: 14px;
+                                                                  color: var(--admin-text-on-light);
+                                                                }
+                                
+                                                                .quick-search-shortcut {
+                                                                  margin-left: auto;
+                                                                  font-size: 11px;
+                                                                  padding: 2px 6px;
+                                                                  background: #f0f0f0;
+                                                                  border-radius: 4px;
+                                                                  color: var(--admin-text-muted);
+                                                                }
+                                
+                                                                /* Shortcuts Help Modal */
+                                                                .shortcuts-modal {
+                                                                  background: #fff;
+                                                                  border-radius: var(--admin-radius);
+                                                                  padding: 32px;
+                                                                  max-width: 500px;
+                                                                  width: 90%;
+                                                                }
+                                
+                                                                .shortcuts-grid {
+                                                                  display: grid;
+                                                                  gap: 12px;
+                                                                  margin-top: 20px;
+                                                                }
+                                
+                                                                .shortcut-row {
+                                                                  display: flex;
+                                                                  justify-content: space-between;
+                                                                  align-items: center;
+                                                                  padding: 8px 0;
+                                                                  border-bottom: 1px solid #f0f0f0;
+                                                                }
+                                
+                                                                .shortcut-key {
+                                                                  display: inline-flex;
+                                                                  gap: 4px;
+                                                                }
+                                
+                                                                .shortcut-key kbd {
+                                                                  background: var(--admin-surface-light);
+                                                                  border: 1px solid var(--admin-border);
+                                                                  border-radius: 4px;
+                                                                  padding: 4px 8px;
+                                                                  font-family: monospace;
+                                                                  font-size: 12px;
+                                                                }
+                                
+                                                                /* Responsive Design */
+                                                                @media (max-width: 1024px) {
+                                                                  .admin-sidebar {
+                                                                    position: fixed;
+                                                                    left: -280px;
+                                                                    height: 100vh;
+                                                                    transition: left 0.3s ease;
+                                                                    z-index: 100;
+                                                                  }
+                                
+                                                                  .admin-sidebar.open {
+                                                                    left: 0;
+                                                                  }
+                                
+                                                                  .admin-main {
+                                                                    padding: 24px;
+                                                                    margin-left: 0;
+                                                                  }
+                                
+                                                                  .admin-header {
+                                                                    flex-direction: column;
+                                                                    align-items: flex-start;
+                                                                    gap: 16px;
+                                                                  }
+                                
+                                                                  .admin-grid {
+                                                                    grid-template-columns: 1fr !important;
+                                                                  }
+                                
+                                                                  .admin-toolbar {
+                                                                    flex-direction: column;
+                                                                    border-radius: var(--admin-radius-sm);
+                                                                    gap: 12px;
+                                                                  }
+                                
+                                                                  .admin-tabs-container {
+                                                                    width: 100%;
+                                                                    overflow-x: auto;
+                                                                    flex-wrap: nowrap;
+                                                                    padding-bottom: 4px;
+                                                                  }
+                                
+                                                                  .admin-search-wrapper {
+                                                                    width: 100%;
+                                                                  }
+                                                                }
+                                
+                                                                @media (max-width: 768px) {
+                                                                  .admin-table-container {
+                                                                    overflow-x: auto;
+                                                                  }
+                                
+                                                                  .admin-table {
+                                                                    min-width: 600px;
+                                                                  }
+                                
+                                                                  .admin-title {
+                                                                    font-size: 28px;
+                                                                  }
+                                
+                                                                  .stat-value {
+                                                                    font-size: 28px;
+                                                                  }
+                                
+                                                                  .confirm-dialog-actions {
+                                                                    flex-direction: column;
+                                                                  }
+                                
+                                                                  .confirm-dialog-actions button {
+                                                                    width: 100%;
+                                                                  }
+                                                                }
+                                
+                                                                /* Mobile Menu Toggle */
+                                                                .mobile-menu-toggle {
+                                                                  display: none;
+                                                                  position: fixed;
+                                                                  bottom: 24px;
+                                                                  right: 24px;
+                                                                  width: 56px;
+                                                                  height: 56px;
+                                                                  border-radius: 50%;
+                                                                  background: var(--admin-bg-dark);
+                                                                  color: #fff;
+                                                                  border: none;
+                                                                  cursor: pointer;
+                                                                  box-shadow: var(--shadow-lg);
+                                                                  z-index: 99;
+                                                                  font-size: 24px;
+                                                                }
+                                
+                                                                @media (max-width: 1024px) {
+                                                                  .mobile-menu-toggle {
+                                                                    display: flex;
+                                                                    align-items: center;
+                                                                    justify-content: center;
+                                                                  }
+                                                                }
+                                
+                                                                /* Sidebar Overlay */
+                                                                .sidebar-overlay {
+                                                                  display: none;
+                                                                  position: fixed;
+                                                                  inset: 0;
+                                                                  background: rgba(0, 0, 0, 0.5);
+                                                                  z-index: 99;
+                                                                }
+                                
+                                                                .sidebar-overlay.visible {
+                                                                  display: block;
+                                                                }
+                                
+                                                                /* Date Range Picker */
+                                                                .date-range-picker {
+                                                                  display: flex;
+                                                                  gap: 8px;
+                                                                  align-items: center;
+                                                                }
+                                
+                                                                .date-range-btn {
+                                                                  padding: 8px 16px;
+                                                                  background: #fff;
+                                                                  border: 1px solid var(--admin-border);
+                                                                  border-radius: 99px;
+                                                                  font-size: 12px;
+                                                                  cursor: pointer;
+                                                                  transition: all 0.2s;
+                                                                }
+                                
+                                                                .date-range-btn.active {
+                                                                  background: var(--admin-bg-dark);
+                                                                  color: #fff;
+                                                                  border-color: var(--admin-bg-dark);
+                                                                }
+                                
+                                                                .date-range-btn:hover:not(.active) {
+                                                                  border-color: var(--admin-bg-dark);
+                                                                }

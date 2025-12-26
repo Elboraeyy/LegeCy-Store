@@ -1,0 +1,117 @@
+.container {
+  margin-top: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--primary);
+  background: var(--bg-light);
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th {
+  text-align: left;
+  padding: 12px 24px;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--primary);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.adminName {
+  font-weight: 500;
+}
+
+.actionBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-family: monospace;
+  color: var(--primary);
+}
+
+.timeMap {
+  color: var(--text-muted);
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.metadata code {
+  font-family: monospace;
+  font-size: 12px;
+  background: var(--bg-light);
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-light);
+}
+
+.pageBtn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.pageInfo {
+  font-size: 13px;
+  color: var(--text-muted);
+}

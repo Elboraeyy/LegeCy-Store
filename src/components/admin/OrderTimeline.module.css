@@ -1,0 +1,78 @@
+.timelineContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 32px 0;
+  padding: 0 16px;
+}
+
+.timelineContainer::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--border);
+  z-index: 0;
+  transform: translateY(-50%);
+}
+
+.step {
+  position: relative;
+  z-index: 1;
+  background-color: var(--surface);
+  padding: 0 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--surface);
+  border: 2px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* States */
+.step.completed .dot {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.step.active .dot {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+  transform: scale(1.2);
+}
+
+.step.completed .label {
+  color: var(--primary);
+}
+
+.step.active .label {
+  color: var(--accent);
+}
+
+.step.cancelled .dot {
+  background-color: #c5221f;
+  border-color: #c5221f;
+}
+
+.step.cancelled .label {
+  color: #c5221f;
+}

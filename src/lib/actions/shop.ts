@@ -1,0 +1,185 @@
+'use server';
+
+import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
+
+export interface ShopProduct {
+    id: string;
+    name: string;
+    price: number;
+    compareAtPrice: number | null;
+    category: string | null;
+    imageUrl: string | null;
+    images: string[];
+    brand: string | null;
+    strap: string | null;
+    status: string;
+    variantCount: number;
+    inStock: boolean;
+    defaultVariantId: string | null; // For cart operations
+}
+
+export async function fetchShopProducts(): Promise<ShopProduct[]> {
+    const products = await prisma.product.findMany({
+        where: {
+            // Only show active products on the frontend
+            // status: 'active' // Uncomment when status field is available
+        },
+        orderBy: { createdAt: 'desc' },
+        include: {
+            variants: {
+                include: {
+                    inventory: true
+                }
+            },
+            images: true
+        }
+    });
+
+    return products.map(product => {
+        const mainVariant = product.variants[0];
+        const totalStock = product.variants.reduce((acc, v) => 
+            acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0
+        );
+
+        return {
+            id: product.id,
+            name: product.name,
+            price: mainVariant ? Number(mainVariant.price) : 0,
+            compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+            category: product.category,
+            imageUrl: product.imageUrl,
+            images: product.images.map(img => img.url),
+            brand: null, 
+            strap: null,
+            status: 'active',
+            variantCount: product.variants.length,
+            inStock: totalStock > 0,
+            defaultVariantId: mainVariant?.id || null
+        };
+    });
+}
+
+export async function fetchProductById(id: string) {
+    const product = await prisma.product.findUnique({
+        where: { id },
+        include: {
+            variants: {
+                include: {
+                    inventory: true
+                }
+            },
+            images: true
+        }
+    });
+
+    if (!product) return null;
+
+    const mainVariant = product.variants[0];
+    const totalStock = product.variants.reduce((acc, v) => 
+        acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0
+    );
+
+    return {
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: mainVariant ? Number(mainVariant.price) : 0,
+        compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+        category: product.category,
+        imageUrl: product.imageUrl,
+        images: product.images.map(img => img.url),
+        variants: product.variants.map(v => ({
+            id: v.id,
+            sku: v.sku,
+            price: Number(v.price),
+            stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
+        })),
+        inStock: totalStock > 0,
+        totalStock
+    };
+}
+
+export async function deleteAllProducts(): Promise<{ success: boolean; deletedCount: number }> {
+    try {
+        // Delete in order due to foreign key constraints
+        await prisma.inventory.deleteMany({});
+        await prisma.variant.deleteMany({});
+        await prisma.productImage.deleteMany({});
+        await prisma.product.deleteMany({});
+
+        return { success: true, deletedCount: 0 };
+    } catch (error) {
+        console.error('Failed to delete products:', error);
+        return { success: false, deletedCount: 0 };
+    }
+}
+
+export async function fetchRelatedProducts(productId: string, category: string | null): Promise<ShopProduct[]> {
+    const whereClause: Prisma.ProductWhereInput = {
+        id: { not: productId },
+        // status: 'active'
+    };
+
+    if (category) {
+        whereClause.category = category;
+    }
+
+    const products = await prisma.product.findMany({
+        where: whereClause,
+        take: 4,
+        orderBy: { createdAt: 'desc' },
+        include: {
+            variants: {
+                include: {
+                    inventory: true
+                }
+            },
+            images: true
+        }
+    });
+
+    // If we don't have enough related products by category, fetch latest products
+    if (products.length < 4 && category) {
+        const additionalProducts = await prisma.product.findMany({
+            where: {
+                id: { not: productId, notIn: products.map(p => p.id) },
+                // status: 'active'
+            },
+            take: 4 - products.length,
+            orderBy: { createdAt: 'desc' },
+            include: {
+                variants: {
+                    include: {
+                        inventory: true
+                    }
+                },
+                images: true
+            }
+        });
+        products.push(...additionalProducts);
+    }
+
+    return products.map(product => {
+        const mainVariant = product.variants[0];
+        const totalStock = product.variants.reduce((acc, v) => 
+            acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0
+        );
+
+        return {
+            id: product.id,
+            name: product.name,
+            price: mainVariant ? Number(mainVariant.price) : 0,
+            compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+            category: product.category,
+            imageUrl: product.imageUrl,
+            images: product.images.map(img => img.url),
+            brand: null, 
+            strap: null,
+            status: 'active',
+            variantCount: product.variants.length,
+            inStock: totalStock > 0,
+            defaultVariantId: mainVariant?.id || null
+        };
+    });
+}

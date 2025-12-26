@@ -1,0 +1,5 @@
+.next/dev/types/validator.ts(180,31): error TS2344: Type 'typeof import("E:/Dev/web/legecy-store/src/app/api/admin/orders/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/admin/orders/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: Request, context: Promise<{ params: { id: string; }; }>) => Promise<NextResponse<{ error: string; }> | NextResponse<{ items: { id: string; name: string; orderId: string; productId: string; price: number; quantity: number; }[]; history: { ...; }[]; } & { ...; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters 'context' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is missing the following properties from type 'Promise<{ params: { id: string; }; }>': then, catch, finally, [Symbol.toStringTag]
