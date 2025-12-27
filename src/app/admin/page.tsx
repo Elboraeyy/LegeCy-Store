@@ -47,24 +47,29 @@ export default async function AdminDashboard() {
     ]);
 
     // Process Sales Trend Data
-    const salesMap = new Map<string, number>();
+    const salesMap = new Map<string, { revenue: number; orders: number }>();
     // Initialize last 30 days with 0
     for (let i = 29; i >= 0; i--) {
         const date = subDays(new Date(), i);
-        salesMap.set(format(date, 'yyyy-MM-dd'), 0);
+        salesMap.set(format(date, 'yyyy-MM-dd'), { revenue: 0, orders: 0 });
     }
     
     // Fill with actual data
     last30DaysOrders.forEach(order => {
         const dateKey = format(order.createdAt, 'yyyy-MM-dd');
         if (salesMap.has(dateKey)) {
-            salesMap.set(dateKey, (salesMap.get(dateKey) || 0) + Number(order.totalPrice));
+            const current = salesMap.get(dateKey)!;
+            salesMap.set(dateKey, { 
+                revenue: current.revenue + Number(order.totalPrice),
+                orders: current.orders + 1
+            });
         }
     });
 
-    const salesTrend = Array.from(salesMap.entries()).map(([date, value]) => ({
+    const salesTrend = Array.from(salesMap.entries()).map(([date, data]) => ({
         date,
-        value
+        revenue: data.revenue,
+        orders: data.orders
     }));
 
     // Process Order Status Data
