@@ -4,7 +4,6 @@ import { validateAdminSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import DeleteProductButton from '@/components/admin/DeleteProductButton';
 import EmptyState from '@/components/admin/EmptyState';
-import { Decimal } from '@prisma/client/runtime/library';
 
 // Helper to format currency
 const formatCurrency = (amount: number) => {
@@ -25,7 +24,7 @@ interface ProductWithStock {
     variants: {
         id: string;
         sku: string;
-        price: Decimal;
+        price: number;
         inventory: { available: number }[];
     }[];
     totalStock: number;
@@ -67,7 +66,7 @@ export default async function ProductsPage({
         variants: product.variants.map(v => ({
             id: v.id,
             sku: v.sku,
-            price: v.price,
+            price: Number(v.price),
             inventory: v.inventory
         })),
         totalStock: product.variants.reduce((acc, v) => 

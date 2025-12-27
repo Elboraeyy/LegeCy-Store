@@ -68,10 +68,12 @@ export async function fetchOrderDetails(orderId: string) {
             ...item,
             price: Number(item.price), // Convert Decimal to number
             variant: item.variant ? {
-                ...item.variant,
+                id: item.variant.id,
                 sku: item.variant.sku,
                 price: Number(item.variant.price), // Convert Decimal to number
-                productName: item.variant.product.name // Convenience
+                productId: item.variant.productId,
+                productName: item.variant.product.name, // Convenience
+                // Do NOT include full product object as it contains Decimals (compareAtPrice)
             } : null
         })),
         history: order.history.map(h => ({

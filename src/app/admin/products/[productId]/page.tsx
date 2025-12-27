@@ -40,6 +40,9 @@ export default async function EditProductPage({ params }: PageProps) {
         name: product.name,
         description: product.description,
         imageUrl: product.imageUrl,
+        compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+        status: product.status,
+        categoryId: product.categoryId,
         images: product.images || [],
         stock: currentStock, // Pass stock
         variants: product.variants.map((v) => ({
