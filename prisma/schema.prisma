@@ -34,6 +34,12 @@ model User {
   // Loyalty & Profile
   points        Int       @default(0)
   addresses     Address[]
+
+  // CRM Fields
+  phone         String?
+  tags          String[]  @default([])
+  notes         String?
+  status        String    @default("active") // active, banned, archived
 }
 
 model Session {
