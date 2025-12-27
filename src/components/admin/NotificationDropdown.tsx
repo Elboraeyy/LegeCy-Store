@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { getNotifications, NotificationItem } from '@/lib/actions/notifications';
 import '@/app/admin/admin.css';
@@ -9,6 +9,8 @@ export default function NotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [count, setCount] = useState(0);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const sidebarRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
         let isMounted = true;
@@ -28,6 +30,9 @@ export default function NotificationDropdown() {
         fetchData();
         const interval = setInterval(fetchData, 30000);
         
+        // Get sidebar element
+        sidebarRef.current = document.querySelector('.admin-sidebar');
+        
         return () => {
             isMounted = false;
             clearInterval(interval);
@@ -44,6 +49,14 @@ export default function NotificationDropdown() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    // Calculate panel position to appear at sidebar right edge
+    const getSidebarWidth = () => {
+        if (sidebarRef.current) {
+            return sidebarRef.current.offsetWidth;
+        }
+        return 260; // fallback
+    };
 
     const formatTime = (dateStr: string) => {
         const date = new Date(dateStr);
@@ -66,87 +79,261 @@ export default function NotificationDropdown() {
         }
     };
 
+    const getPriorityColor = (type: NotificationItem['type']) => {
+        switch (type) {
+            case 'order': return '#d4af37';
+            case 'stock': return '#ea580c';
+            case 'system': return '#2563eb';
+            default: return '#6b7280';
+        }
+    };
+
     return (
-        <div className="notification-dropdown">
+        <div className="notification-dropdown" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 style={{
-                    background: 'transparent',
+                    background: isOpen ? 'rgba(212, 175, 55, 0.15)' : 'transparent',
                     border: 'none',
                     cursor: 'pointer',
-                    padding: '8px',
-                    borderRadius: '50%',
+                    padding: '10px',
+                    borderRadius: '10px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     position: 'relative',
-                    fontSize: '20px'
+                    fontSize: '20px',
+                    transition: 'all 0.2s ease'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = isOpen ? 'rgba(212, 175, 55, 0.15)' : 'transparent'}
             >
                 🔔
                 {count > 0 && (
-                    <span className="notification-badge">{count > 9 ? '9+' : count}</span>
+                    <span style={{
+                        position: 'absolute',
+                        top: '4px',
+                        right: '4px',
+                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                        color: '#fff',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        minWidth: '18px',
+                        height: '18px',
+                        borderRadius: '99px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)'
+                    }}>
+                        {count > 9 ? '9+' : count}
+                    </span>
                 )}
             </button>
 
             {isOpen && (
-                <div className="notification-panel">
-                    <div className="notification-header">
-                        Notifications
-                        {count > 0 && (
-                            <span style={{ 
-                                marginLeft: '8px', 
-                                fontSize: '11px', 
-                                background: '#fee2e2', 
-                                color: '#b91c1c', 
-                                padding: '2px 8px', 
-                                borderRadius: '99px' 
+                <div 
+                    style={{
+                        position: 'fixed',
+                        top: '80px',
+                        left: `${getSidebarWidth()}px`,
+                        width: '380px',
+                        maxHeight: 'calc(100vh - 120px)',
+                        background: '#fff',
+                        borderRadius: '16px',
+                        boxShadow: '0 8px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
+                        overflow: 'hidden',
+                        zIndex: 1001,
+                        animation: 'slideIn 0.2s ease'
+                    }}
+                >
+                    {/* Header */}
+                    <div style={{
+                        padding: '20px 20px 16px',
+                        background: 'linear-gradient(135deg, #1a3c34, #2d5a4e)',
+                        color: '#fff'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>Notifications</h3>
+                                <p style={{ margin: '4px 0 0', fontSize: '12px', opacity: 0.8 }}>
+                                    Stay updated with your store
+                                </p>
+                            </div>
+                            {count > 0 && (
+                                <span style={{ 
+                                    background: 'rgba(255,255,255,0.2)', 
+                                    padding: '6px 12px', 
+                                    borderRadius: '99px',
+                                    fontSize: '12px',
+                                    fontWeight: 600
+                                }}>
+                                    {count} new
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Notifications List */}
+                    <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                        {notifications.length > 0 ? (
+                            notifications.map((notif, index) => (
+                                <Link
+                                    key={notif.id}
+                                    href={notif.link || '#'}
+                                    onClick={() => setIsOpen(false)}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        gap: '14px',
+                                        padding: '16px 20px',
+                                        borderBottom: index < notifications.length - 1 ? '1px solid #f3f4f6' : 'none',
+                                        textDecoration: 'none',
+                                        color: 'inherit',
+                                        transition: 'background 0.15s'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    {/* Icon */}
+                                    <div style={{
+                                        width: '44px',
+                                        height: '44px',
+                                        borderRadius: '12px',
+                                        background: `${getPriorityColor(notif.type)}15`,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '20px',
+                                        flexShrink: 0
+                                    }}>
+                                        {getIcon(notif.type)}
+                                    </div>
+                                    
+                                    {/* Content */}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ 
+                                            fontSize: '14px', 
+                                            fontWeight: 600, 
+                                            color: '#1f2937',
+                                            marginBottom: '4px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}>
+                                            {notif.title}
+                                            <span style={{
+                                                width: '6px',
+                                                height: '6px',
+                                                borderRadius: '50%',
+                                                background: getPriorityColor(notif.type),
+                                                flexShrink: 0
+                                            }} />
+                                        </div>
+                                        <div style={{ 
+                                            fontSize: '13px', 
+                                            color: '#6b7280',
+                                            lineHeight: 1.4,
+                                            marginBottom: '6px'
+                                        }}>
+                                            {notif.message}
+                                        </div>
+                                        <div style={{ 
+                                            fontSize: '11px', 
+                                            color: '#9ca3af',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px'
+                                        }}>
+                                            <span>🕐</span>
+                                            {formatTime(notif.createdAt)}
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))
+                        ) : (
+                            <div style={{ 
+                                padding: '48px 20px', 
+                                textAlign: 'center' 
                             }}>
-                                {count} new
-                            </span>
+                                <div style={{ 
+                                    width: '64px', 
+                                    height: '64px', 
+                                    borderRadius: '50%',
+                                    background: '#f0fdf4',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    margin: '0 auto 16px',
+                                    fontSize: '28px'
+                                }}>
+                                    ✨
+                                </div>
+                                <div style={{ fontSize: '15px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                                    All caught up!
+                                </div>
+                                <div style={{ fontSize: '13px', color: '#9ca3af' }}>
+                                    No new notifications
+                                </div>
+                            </div>
                         )}
                     </div>
 
-                    {notifications.length > 0 ? (
-                        notifications.map((notif) => (
-                            <Link
-                                key={notif.id}
-                                href={notif.link || '#'}
-                                className="notification-item"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                <div className="notification-icon">{getIcon(notif.type)}</div>
-                                <div className="notification-content">
-                                    <div className="notification-title">{notif.title}</div>
-                                    <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '4px' }}>
-                                        {notif.message}
-                                    </div>
-                                    <div className="notification-time">{formatTime(notif.createdAt)}</div>
-                                </div>
-                            </Link>
-                        ))
-                    ) : (
-                        <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '8px', opacity: 0.5 }}>✨</div>
-                            <div style={{ fontSize: '13px' }}>All caught up!</div>
-                        </div>
-                    )}
-
+                    {/* Footer */}
                     <div style={{ 
-                        padding: '12px 16px', 
-                        borderTop: '1px solid var(--admin-border)', 
-                        textAlign: 'center' 
+                        padding: '14px 20px', 
+                        borderTop: '1px solid #f3f4f6',
+                        background: '#fafafa',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
                     }}>
                         <Link 
                             href="/admin/orders?status=pending"
-                            style={{ fontSize: '12px', color: 'var(--admin-accent)' }}
                             onClick={() => setIsOpen(false)}
+                            style={{ 
+                                fontSize: '13px', 
+                                color: '#1a3c34',
+                                fontWeight: 500,
+                                textDecoration: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                            }}
                         >
-                            View all pending orders →
+                            📋 View pending orders
                         </Link>
+                        <button
+                            onClick={() => setIsOpen(false)}
+                            style={{
+                                background: '#1a3c34',
+                                color: '#fff',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Close
+                        </button>
                     </div>
                 </div>
             )}
+
+            <style jsx>{`
+                @keyframes slideIn {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                }
+            `}</style>
         </div>
     );
 }

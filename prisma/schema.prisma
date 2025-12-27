@@ -66,9 +66,23 @@ model AdminUser {
   email         String    @unique
   passwordHash  String
   name          String
+  username      String?   @unique  // Display name for sidebar
   
   roleId        String?
   role          AdminRole? @relation(fields: [roleId], references: [id])
+  
+  // Extended Profile Fields
+  phone         String?
+  nationalId    String?   @unique  // National ID / SSN
+  idCardImage   String?            // URL to uploaded ID card image
+  avatar        String?            // Profile picture URL
+  birthDate     DateTime?
+  address       String?
+  emergencyContact String?         // Emergency contact info
+  position      String?            // Job title/position
+  salary        Decimal?           // Monthly salary
+  hireDate      DateTime?          // Date joined the team
+  notes         String?            // Internal notes about the team member
   
   // Security Fields
   isActive      Boolean   @default(true)

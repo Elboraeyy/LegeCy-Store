@@ -1,0 +1,8 @@
+{
+  "revenueTarget": 96000,
+  "ordersTarget": 500,
+  "customersTarget": 200,
+  "aovTarget": 500,
+  "fulfillmentRateTarget": 90,
+  "repeatCustomerRateTarget": 30
+}

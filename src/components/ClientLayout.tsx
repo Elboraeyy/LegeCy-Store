@@ -6,7 +6,6 @@ import Footer from "./Footer";
 import { StoreProvider } from "@/context/StoreContext";
 import { ComparisonProvider } from "@/context/ComparisonContext";
 import CartDrawer from "./CartDrawer";
-import PromoBanner from "./PromoBanner";
 import { Toaster } from "sonner";
 
 
@@ -52,7 +51,6 @@ function ClientLayoutContent({ children }: { children: React.ReactNode }) {
 
     return (
       <ComparisonProvider>
-        <PromoBanner />
         <Navbar />
         <CartDrawer />
         {children}
