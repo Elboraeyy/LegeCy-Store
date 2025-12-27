@@ -10,7 +10,6 @@ export default function NotificationDropdown() {
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [count, setCount] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const sidebarRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
         let isMounted = true;
@@ -30,9 +29,6 @@ export default function NotificationDropdown() {
         fetchData();
         const interval = setInterval(fetchData, 30000);
         
-        // Get sidebar element
-        sidebarRef.current = document.querySelector('.admin-sidebar');
-        
         return () => {
             isMounted = false;
             clearInterval(interval);
@@ -49,14 +45,6 @@ export default function NotificationDropdown() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    // Calculate panel position to appear at sidebar right edge
-    const getSidebarWidth = () => {
-        if (sidebarRef.current) {
-            return sidebarRef.current.offsetWidth;
-        }
-        return 260; // fallback
-    };
 
     const formatTime = (dateStr: string) => {
         const date = new Date(dateStr);
@@ -136,7 +124,7 @@ export default function NotificationDropdown() {
                     style={{
                         position: 'fixed',
                         top: '80px',
-                        left: `${getSidebarWidth()}px`,
+                        left: 'var(--sidebar-width, 260px)',
                         width: '380px',
                         maxHeight: 'calc(100vh - 120px)',
                         background: '#fff',
