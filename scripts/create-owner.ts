@@ -31,8 +31,6 @@ async function main() {
         where: { email },
         data: {
             passwordHash,
-            failedLoginAttempts: 0,
-            lockedUntil: null,
             isActive: true
         }
     });

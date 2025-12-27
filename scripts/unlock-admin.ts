@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const email = 'admin@legacystore.com';
-  console.log(`Unlocking account for ${email}...`);
+  console.log(`Checking account for ${email}...`);
 
   try {
     const user = await prisma.adminUser.findUnique({
@@ -17,21 +17,22 @@ async function main() {
       process.exit(1);
     }
 
+    // Note: failedLoginAttempts and lockedUntil fields no longer exist in schema
+    // Simply activate the user if needed
     const updated = await prisma.adminUser.update({
       where: { email },
       data: {
-        failedLoginAttempts: 0,
-        lockedUntil: null,
+        isActive: true,
       },
     });
 
-    console.log('Account unlocked successfully!');
-    console.log('New Status:', {
-      failedLoginAttempts: updated.failedLoginAttempts,
-      lockedUntil: updated.lockedUntil,
+    console.log('Account status:', {
+      id: updated.id,
+      email: updated.email,
+      isActive: updated.isActive,
     });
   } catch (error) {
-    console.error('Error unlocking account:', error);
+    console.error('Error:', error);
   } finally {
     await prisma.$disconnect();
   }

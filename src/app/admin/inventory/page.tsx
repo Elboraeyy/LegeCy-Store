@@ -1,263 +1,222 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAdminPermissions } from '@/hooks/useAdminPermissions';
-
-interface InventoryItem {
-    id: string;
-    sku: string;
-    productName: string;
-    available: number;
-    reserved: number;
-    warehouseId: string;
-    warehouseName: string;
-    variantId: string;
-    updatedAt: string;
-}
-
-interface InventoryMeta {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-}
+import { fetchInventoryPro, fetchAllWarehouses, InventoryItemPro } from '@/lib/actions/inventory-pro';
+import InventoryTablePro from '@/components/admin/inventory/InventoryTablePro';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function InventoryPage() {
     const { hasPermission, isLoading: permLoading } = useAdminPermissions();
-    const [inventory, setInventory] = useState<InventoryItem[]>([]);
-    const [meta, setMeta] = useState<InventoryMeta | null>(null);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    // State
+    const [data, setData] = useState<InventoryItemPro[]>([]);
+    const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 });
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [page, setPage] = useState(1);
 
-    // Adjustment Modal State
-    const [adjustItem, setAdjustItem] = useState<InventoryItem | null>(null);
-    const [adjustQty, setAdjustQty] = useState<number>(0);
-    const [adjustReason, setAdjustReason] = useState('');
-    const [adjustLoading, setAdjustLoading] = useState(false);
-    const [adjustError, setAdjustError] = useState<string | null>(null);
+    // Filters
+    const [warehouses, setWarehouses] = useState<{ id: string; name: string }[]>([]);
+    const [selectedWarehouse, setSelectedWarehouse] = useState(searchParams.get('warehouse') || 'ALL');
+    const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'ALL');
+    const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
 
-    const fetchInventory = useCallback(async (p: number) => {
+    const [stats, setStats] = useState({
+        totalItems: 0,
+        lowStockCount: 0,
+        outOfStockCount: 0,
+        totalQuantity: 0
+    });
+
+    // Initial Load
+    useEffect(() => {
+        fetchAllWarehouses().then(setWarehouses);
+    }, []);
+
+    const refreshData = useCallback(async () => {
         setLoading(true);
-        setError(null);
+        const page = parseInt(searchParams.get('page') || '1');
+        
         try {
-            const res = await fetch(`/api/admin/inventory?page=${p}&limit=20`);
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to fetch');
+            const res = await fetchInventoryPro({
+                page,
+                limit: 20,
+                search: searchQuery,
+                warehouseId: selectedWarehouse,
+                status: statusFilter === 'ALL' ? undefined : statusFilter as 'LOW_STOCK' | 'OUT_OF_STOCK'
+            }) as { data: InventoryItemPro[], meta: { total: number; page: number; totalPages: number } } | { error: string };
+
+            if ('data' in res) {
+                setData(res.data);
+                if (res.meta) setMeta(res.meta);
+                
+                const totalQty = res.data.reduce((sum: number, item: InventoryItemPro) => sum + item.available, 0);
+                const low = res.data.filter((i: InventoryItemPro) => i.status === 'LOW_STOCK').length;
+                const out = res.data.filter((i: InventoryItemPro) => i.status === 'OUT_OF_STOCK').length;
+                
+                setStats({
+                    totalItems: res.meta?.total || 0,
+                    lowStockCount: low,
+                    outOfStockCount: out,
+                    totalQuantity: totalQty
+                });
+            } else if ('error' in res) {
+                 console.error(res.error);
             }
-            const data = await res.json();
-            setInventory(data.data);
-            setMeta(data.meta);
-            setPage(p);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+        } catch (error) {
+            console.error(error);
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [searchParams, searchQuery, selectedWarehouse, statusFilter]);
 
     useEffect(() => {
         if (!permLoading && hasPermission('INVENTORY_MANAGE')) {
-            fetchInventory(1);
+            refreshData();
         }
-    }, [permLoading, hasPermission, fetchInventory]);
+    }, [permLoading, hasPermission, refreshData]);
 
-    const handleAdjust = async () => {
-        if (!adjustItem || adjustQty === 0 || !adjustReason.trim()) return;
-        
-        setAdjustLoading(true);
-        setAdjustError(null);
-        try {
-            const res = await fetch('/api/admin/inventory/adjust', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    variantId: adjustItem.variantId,
-                    warehouseId: adjustItem.warehouseId,
-                    quantity: adjustQty,
-                    reason: adjustReason.trim()
-                })
-            });
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Adjustment failed');
-            }
-            setAdjustItem(null);
-            setAdjustQty(0);
-            setAdjustReason('');
-            fetchInventory(page);
-        } catch (err) {
-            setAdjustError(err instanceof Error ? err.message : 'Unknown error');
-        } finally {
-            setAdjustLoading(false);
-        }
+    const updateFilters = (key: string, value: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (value && value !== 'ALL') params.set(key, value);
+        else params.delete(key);
+        params.set('page', '1');
+        router.push(`?${params.toString()}`);
     };
 
-    if (permLoading) {
-        return <div className="p-8 text-gray-400">Loading...</div>;
-    }
+    // Status filter tabs
+    const stockFilters = [
+        { value: 'ALL', label: 'All Stock', count: stats.totalItems },
+        { value: 'IN_STOCK', label: 'In Stock', count: stats.totalItems - stats.lowStockCount - stats.outOfStockCount },
+        { value: 'LOW_STOCK', label: 'Low Stock', count: stats.lowStockCount },
+        { value: 'OUT_OF_STOCK', label: 'Out of Stock', count: stats.outOfStockCount },
+    ];
 
-    if (!hasPermission('INVENTORY_MANAGE')) {
-        return <div className="p-8 text-red-500">Access Denied. You do not have permission to manage inventory.</div>;
-    }
+    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
+    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>Access Denied</div>;
 
     return (
-        <div className="p-8">
-            <h1 className="text-3xl font-bold tracking-tight mb-8" style={{ color: 'var(--text-on-dark)' }}>Inventory Management</h1>
-
-            {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {error}
+        <div>
+            {/* Header */}
+            <div className="admin-header">
+                <div>
+                    <h1 className="admin-title">Stock Inventory</h1>
+                    <p className="admin-subtitle">Manage stock levels across all warehouses</p>
                 </div>
-            )}
-
-            <div className="rounded-lg border shadow-sm overflow-hidden" style={{ 
-                backgroundColor: 'var(--surface-glass)', 
-                borderColor: 'var(--border)',
-                backdropFilter: 'blur(10px)'
-            }}>
-                <table className="w-full text-sm text-left">
-                    <thead className="border-b" style={{ borderColor: 'var(--border)', color: 'var(--text-muted-dark)' }}>
-                        <tr>
-                            <th className="px-6 py-4 font-medium">SKU</th>
-                            <th className="px-6 py-4 font-medium">Product</th>
-                            <th className="px-6 py-4 font-medium">Warehouse</th>
-                            <th className="px-6 py-4 font-medium text-right">Available</th>
-                            <th className="px-6 py-4 font-medium text-right">Reserved</th>
-                            <th className="px-6 py-4 font-medium text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted-dark)' }}>
-                                    Loading inventory...
-                                </td>
-                            </tr>
-                        ) : inventory.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted-dark)' }}>
-                                    No inventory found.
-                                </td>
-                            </tr>
-                        ) : (
-                            inventory.map((item) => (
-                                <tr key={item.id} className="transition hover:bg-white/5" style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <td className="px-6 py-4 font-mono text-xs" style={{ color: 'var(--text-on-dark)' }}>
-                                        {item.sku}
-                                    </td>
-                                    <td className="px-6 py-4" style={{ color: 'var(--text-on-dark)' }}>
-                                        {item.productName}
-                                    </td>
-                                    <td className="px-6 py-4" style={{ color: 'var(--text-muted-dark)' }}>
-                                        {item.warehouseName}
-                                    </td>
-                                    <td className="px-6 py-4 text-right font-semibold" style={{ color: item.available > 0 ? '#22c55e' : '#ef4444' }}>
-                                        {item.available}
-                                    </td>
-                                    <td className="px-6 py-4 text-right" style={{ color: 'var(--text-muted-dark)' }}>
-                                        {item.reserved}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button
-                                            onClick={() => { setAdjustItem(item); setAdjustQty(0); setAdjustReason(''); setAdjustError(null); }}
-                                            className="px-3 py-1 text-xs font-medium rounded"
-                                            style={{ backgroundColor: 'var(--primary)', color: '#fff' }}
-                                        >
-                                            Adjust
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                <button 
+                    onClick={refreshData} 
+                    className="admin-btn admin-btn-primary"
+                    disabled={loading}
+                >
+                    {loading ? 'Refreshing...' : '↻ Refresh'}
+                </button>
             </div>
 
-            {/* Pagination */}
-            {meta && meta.totalPages > 1 && (
-                <div className="flex justify-between items-center mt-4" style={{ color: 'var(--text-muted-dark)' }}>
-                    <span>Page {meta.page} of {meta.totalPages} ({meta.total} items)</span>
-                    <div className="flex gap-2">
-                        <button
-                            disabled={page <= 1}
-                            onClick={() => fetchInventory(page - 1)}
-                            className="px-3 py-1 rounded border disabled:opacity-50"
-                            style={{ borderColor: 'var(--border)' }}
-                        >
-                            Prev
-                        </button>
-                        <button
-                            disabled={page >= meta.totalPages}
-                            onClick={() => fetchInventory(page + 1)}
-                            className="px-3 py-1 rounded border disabled:opacity-50"
-                            style={{ borderColor: 'var(--border)' }}
-                        >
-                            Next
-                        </button>
+            {/* Stats Cards */}
+            <div className="admin-grid" style={{ marginBottom: '32px' }}>
+                <div className="admin-card">
+                    <div className="stat-label">Total SKUs</div>
+                    <div className="stat-value">{stats.totalItems}</div>
+                </div>
+                <div className="admin-card">
+                    <div className="stat-label">Total Units</div>
+                    <div className="stat-value">{stats.totalQuantity.toLocaleString()}</div>
+                </div>
+                <div className="admin-card">
+                    <div className="stat-label">Low Stock</div>
+                    <div className="stat-value" style={{ color: stats.lowStockCount > 0 ? '#b76e00' : 'inherit' }}>{stats.lowStockCount}</div>
+                </div>
+                <div className="admin-card">
+                    <div className="stat-label">Out of Stock</div>
+                    <div className="stat-value" style={{ color: stats.outOfStockCount > 0 ? '#991b1b' : 'inherit' }}>{stats.outOfStockCount}</div>
+                </div>
+            </div>
+
+            {/* Toolbar */}
+            <div className="admin-toolbar">
+                {/* Status Tabs */}
+                <div className="admin-tabs-container">
+                    {stockFilters.map((filter) => {
+                        const isActive = statusFilter === filter.value;
+                        return (
+                            <button
+                                key={filter.value}
+                                onClick={() => { setStatusFilter(filter.value); updateFilters('status', filter.value); }}
+                                className={`admin-tab-pill ${isActive ? 'active' : ''}`}
+                            >
+                                {filter.label}
+                                <span style={{ marginLeft: '6px', opacity: 0.7, fontSize: '11px' }}>
+                                    ({filter.count})
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Search & Filters */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <select 
+                        value={selectedWarehouse}
+                        onChange={(e) => { setSelectedWarehouse(e.target.value); updateFilters('warehouse', e.target.value); }}
+                        className="form-input"
+                        style={{ width: 'auto', minWidth: '180px', borderRadius: '99px', padding: '10px 16px', fontSize: '13px' }}
+                    >
+                        <option value="ALL">All Warehouses</option>
+                        {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                    </select>
+
+                    <div className="admin-search-wrapper">
+                        <span className="admin-search-icon">🔍</span>
+                        <input
+                            type="text"
+                            placeholder="Search SKU or Product..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && updateFilters('q', searchQuery)}
+                            className="admin-search-input"
+                        />
                     </div>
+                </div>
+            </div>
+
+            {/* Table */}
+            {loading ? (
+                <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
+                    Loading inventory data...
+                </div>
+            ) : data.length > 0 ? (
+                <InventoryTablePro data={data} onRefresh={refreshData} />
+            ) : (
+                <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
+                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', marginBottom: '8px', color: 'var(--admin-text-on-light)' }}>No inventory found</div>
+                    <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)' }}>Try adjusting your filters or add products to your inventory.</div>
                 </div>
             )}
 
-            {/* Adjustment Modal */}
-            {adjustItem && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-                        <h2 className="text-xl font-bold mb-4">Adjust Inventory</h2>
-                        <div className="mb-4">
-                            <p className="text-sm text-gray-600">SKU: <strong>{adjustItem.sku}</strong></p>
-                            <p className="text-sm text-gray-600">Current: <strong>{adjustItem.available}</strong> available</p>
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Quantity Change (+/-)</label>
-                            <input
-                                type="number"
-                                value={adjustQty}
-                                onChange={(e) => setAdjustQty(parseInt(e.target.value) || 0)}
-                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-black"
-                                placeholder="e.g. 10 or -5"
-                            />
-                            {adjustQty !== 0 && (
-                                <p className="text-sm mt-1" style={{ color: adjustQty > 0 ? 'green' : 'red' }}>
-                                    New total: {adjustItem.available + adjustQty}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Reason (Required)</label>
-                            <textarea
-                                value={adjustReason}
-                                onChange={(e) => setAdjustReason(e.target.value)}
-                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-black"
-                                placeholder="e.g. Received new shipment"
-                                rows={2}
-                            />
-                        </div>
-
-                        {adjustError && (
-                            <div className="text-red-600 text-sm mb-4">{adjustError}</div>
-                        )}
-
-                        <div className="flex gap-3 justify-end">
-                            <button
-                                onClick={() => setAdjustItem(null)}
-                                className="px-4 py-2 border rounded"
-                                disabled={adjustLoading}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleAdjust}
-                                disabled={adjustLoading || adjustQty === 0 || !adjustReason.trim()}
-                                className="px-4 py-2 bg-black text-white rounded disabled:opacity-50"
-                            >
-                                {adjustLoading ? 'Saving...' : 'Confirm Adjustment'}
-                            </button>
-                        </div>
-                    </div>
+            {/* Pagination */}
+            {meta.totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '40px' }}>
+                    <button
+                        onClick={() => updateFilters('page', (meta.page - 1).toString())}
+                        className="admin-btn admin-btn-outline"
+                        disabled={meta.page <= 1}
+                        style={{ opacity: meta.page <= 1 ? 0.5 : 1 }}
+                    >
+                        Previous
+                    </button>
+                    <span style={{ padding: '10px 16px', fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                        Page {meta.page} of {meta.totalPages}
+                    </span>
+                    <button
+                        onClick={() => updateFilters('page', (meta.page + 1).toString())}
+                        className="admin-btn admin-btn-outline"
+                        disabled={meta.page >= meta.totalPages}
+                        style={{ opacity: meta.page >= meta.totalPages ? 0.5 : 1 }}
+                    >
+                        Next
+                    </button>
                 </div>
             )}
         </div>

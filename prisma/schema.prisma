@@ -99,7 +99,16 @@ model AdminUser {
   
   sessions      AdminSession[]
   auditLogs     AuditLog[]
+  inventoryLogs InventoryLog[]
   orderNotes    OrderNote[]
+  
+  // WMS Relations
+  managedWarehouses    Warehouse[]
+  createdTransfers     StockTransfer[] @relation("TransferCreatedBy")
+  approvedTransfers    StockTransfer[] @relation("TransferApprovedBy")
+  resolvedAlerts       StockAlert[]
+  createdCounts        InventoryCount[] @relation("CountCreatedBy")
+  completedCounts      InventoryCount[] @relation("CountCompletedBy")
 }
 
 model AdminRole {
@@ -358,8 +367,15 @@ model Variant {
   price     Decimal  // @db.Decimal(10, 2)
   product   Product     @relation(fields: [productId], references: [id])
   inventory Inventory[]
+  inventoryLogs InventoryLog[]
   orderItems OrderItem[]
   cartItems CartItem[]
+  
+  // WMS Relations
+  stockTransferItems   StockTransferItem[]
+  stockAlerts          StockAlert[]
+  inventoryCountItems  InventoryCountItem[]
+  
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 }
@@ -367,7 +383,36 @@ model Variant {
 model Warehouse {
   id        String      @id @default(uuid())
   name      String      @unique
+  code      String?     @unique  // Short code like "WH-CAIRO-01"
+  
+  // Location
+  address   String?
+  city      String?
+  country   String      @default("Egypt")
+  
+  // Contact
+  phone     String?
+  email     String?
+  
+  // Management
+  managerId String?
+  manager   AdminUser?  @relation(fields: [managerId], references: [id])
+  
+  // Classification
+  type      String      @default("MAIN")  // MAIN, REGIONAL, DROPSHIP, RETURNS
+  isActive  Boolean     @default(true)
+  notes     String?
+  
+  // Relations
   inventory Inventory[]
+  inventoryLogs InventoryLog[]
+  stockTransfersFrom StockTransfer[] @relation("TransferFrom")
+  stockTransfersTo   StockTransfer[] @relation("TransferTo")
+  stockAlerts        StockAlert[]
+  inventoryCounts    InventoryCount[]
+  
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @default(now()) @updatedAt
 }
 
 model Inventory {
@@ -376,11 +421,181 @@ model Inventory {
   variantId   String
   available   Int       @default(0)
   reserved    Int       @default(0)
+  minStock    Int       @default(5)
   warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
   variant     Variant   @relation(fields: [variantId], references: [id])
   updatedAt   DateTime  @updatedAt
 
   @@unique([warehouseId, variantId])
+}
+
+model InventoryLog {
+  id          String    @id @default(uuid())
+  warehouseId String
+  variantId   String
+  
+  action      String    // ADJUST, TRANSFER_OUT, TRANSFER_IN, ORDER_ALLOCATE, ORDER_FULFILL, RETURN
+  quantity    Int       // The delta (+/-)
+  balanceAfter Int?     // Snapshot of available stock after change
+  reason      String?
+  referenceId String?   // Order ID or Transfer ID
+  
+  adminId     String?
+  admin       AdminUser? @relation(fields: [adminId], references: [id])
+  
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  variant     Variant   @relation(fields: [variantId], references: [id])
+  
+  createdAt   DateTime  @default(now())
+
+  @@index([warehouseId])
+  @@index([variantId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+// ==========================================
+// Stock Transfer System
+// ==========================================
+
+model StockTransfer {
+  id              String    @id @default(uuid())
+  transferNumber  String    @unique @default(uuid())  // Human-readable reference
+  
+  fromWarehouseId String
+  toWarehouseId   String
+  fromWarehouse   Warehouse @relation("TransferFrom", fields: [fromWarehouseId], references: [id])
+  toWarehouse     Warehouse @relation("TransferTo", fields: [toWarehouseId], references: [id])
+  
+  status          String    @default("PENDING")  // PENDING, APPROVED, IN_TRANSIT, RECEIVED, CANCELLED
+  
+  // Metadata
+  notes           String?
+  createdById     String?
+  createdBy       AdminUser? @relation("TransferCreatedBy", fields: [createdById], references: [id])
+  approvedById    String?
+  approvedBy      AdminUser? @relation("TransferApprovedBy", fields: [approvedById], references: [id])
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  approvedAt      DateTime?
+  shippedAt       DateTime?
+  receivedAt      DateTime?
+  cancelledAt     DateTime?
+  cancelReason    String?
+  
+  // Items
+  items           StockTransferItem[]
+  
+  @@index([status])
+  @@index([fromWarehouseId])
+  @@index([toWarehouseId])
+  @@index([createdAt])
+}
+
+model StockTransferItem {
+  id              String        @id @default(uuid())
+  transferId      String
+  transfer        StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  
+  variantId       String
+  variant         Variant       @relation(fields: [variantId], references: [id])
+  
+  requestedQty    Int           // Quantity requested to transfer
+  sentQty         Int?          // Quantity actually sent (may differ)
+  receivedQty     Int?          // Quantity received (may differ due to damage/loss)
+  
+  notes           String?       // Per-item notes (damage, discrepancy)
+  
+  @@index([transferId])
+  @@index([variantId])
+}
+
+// ==========================================
+// Stock Alerts System
+// ==========================================
+
+model StockAlert {
+  id              String    @id @default(uuid())
+  
+  warehouseId     String
+  warehouse       Warehouse @relation(fields: [warehouseId], references: [id])
+  
+  variantId       String
+  variant         Variant   @relation(fields: [variantId], references: [id])
+  
+  alertType       String    // LOW_STOCK, OUT_OF_STOCK, OVERSTOCK
+  threshold       Int       // The threshold that was breached
+  currentStock    Int       // Stock level when alert was created
+  
+  status          String    @default("NEW")  // NEW, ACKNOWLEDGED, RESOLVED
+  
+  // Resolution
+  resolvedById    String?
+  resolvedBy      AdminUser? @relation(fields: [resolvedById], references: [id])
+  resolvedAt      DateTime?
+  resolvedNote    String?
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([status])
+  @@index([alertType])
+  @@index([warehouseId])
+  @@index([variantId])
+  @@index([createdAt])
+}
+
+// ==========================================
+// Stock Counting (Physical Inventory Audit)
+// ==========================================
+
+model InventoryCount {
+  id              String    @id @default(uuid())
+  countNumber     String    @unique @default(uuid())  // Human-readable reference
+  
+  warehouseId     String
+  warehouse       Warehouse @relation(fields: [warehouseId], references: [id])
+  
+  status          String    @default("DRAFT")  // DRAFT, IN_PROGRESS, COMPLETED, CANCELLED
+  
+  // Metadata
+  createdById     String?
+  createdBy       AdminUser? @relation("CountCreatedBy", fields: [createdById], references: [id])
+  completedById   String?
+  completedBy     AdminUser? @relation("CountCompletedBy", fields: [completedById], references: [id])
+  
+  countDate       DateTime  @default(now())  // Date of physical count
+  notes           String?
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  
+  // Items
+  items           InventoryCountItem[]
+  
+  @@index([status])
+  @@index([warehouseId])
+  @@index([countDate])
+}
+
+model InventoryCountItem {
+  id              String         @id @default(uuid())
+  countId         String
+  count           InventoryCount @relation(fields: [countId], references: [id], onDelete: Cascade)
+  
+  variantId       String
+  variant         Variant        @relation(fields: [variantId], references: [id])
+  
+  systemQty       Int            // System quantity at time of count
+  countedQty      Int?           // Physically counted quantity
+  variance        Int?           // Difference (countedQty - systemQty)
+  
+  notes           String?        // Reason for variance
+  countedAt       DateTime?      // When this item was counted
+  
+  @@index([countId])
+  @@index([variantId])
 }
 
 // ==========================================
