@@ -79,7 +79,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="nav-label">Main Menu</div>
                         <NavLink href="/admin" icon="📊" label="Dashboard" active={pathname === '/admin'} />
                         <NavLink href="/admin/orders" icon="🛍️" label="Orders" active={pathname?.startsWith('/admin/orders')} />
-                        <NavLink href="/admin/products" icon="📦" label="Inventory" active={pathname?.startsWith('/admin/products')} />
+                        <NavLink href="/admin/products" icon="📦" label="Products" active={pathname?.startsWith('/admin/products')} />
+                        <NavLink href="/admin/inventory" icon="📊" label="Inventory" active={pathname?.startsWith('/admin/inventory')} />
+                        {pathname?.startsWith('/admin/inventory') && (
+                            <div style={{ marginLeft: '24px', marginBottom: '8px' }}>
+                                <NavLink href="/admin/inventory/warehouses" icon="🏭" label="Warehouses" active={pathname === '/admin/inventory/warehouses'} />
+                                <NavLink href="/admin/inventory/transfers" icon="🔄" label="Transfers" active={pathname === '/admin/inventory/transfers'} />
+                                <NavLink href="/admin/inventory/alerts" icon="⚠️" label="Alerts" active={pathname === '/admin/inventory/alerts'} />
+                                <NavLink href="/admin/inventory/counts" icon="📋" label="Stock Counts" active={pathname === '/admin/inventory/counts'} />
+                                <NavLink href="/admin/inventory/reports" icon="📈" label="Reports" active={pathname === '/admin/inventory/reports'} />
+                            </div>
+                        )}
                         <NavLink href="/admin/customers" icon="👥" label="Customers" active={pathname?.startsWith('/admin/customers')} />
                         <NavLink href="/admin/categories" icon="📁" label="Categories" active={pathname?.startsWith('/admin/categories')} />
                         <NavLink href="/admin/reviews" icon="💬" label="Reviews" active={pathname?.startsWith('/admin/reviews')} />

@@ -1,6 +1,4 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 interface AdminPermissions {
   role: string | null;
@@ -46,13 +44,13 @@ export function useAdminPermissions(): AdminPermissions & {
 
   const isSuperAdmin = state.role === 'super_admin' || state.permissions.includes('ALL');
 
-  const hasPermission = (required: string | string[]): boolean => {
+  const hasPermission = useCallback((required: string | string[]): boolean => {
     if (state.isLoading) return false;
     if (isSuperAdmin) return true;
 
     const requirements = Array.isArray(required) ? required : [required];
     return requirements.some(r => state.permissions.includes(r));
-  };
+  }, [state.isLoading, isSuperAdmin, state.permissions]);
 
   return {
     ...state,
