@@ -77,11 +77,13 @@ body.admin-body {
   position: relative;
   z-index: 20;
   box-shadow: none;
-    /* Removed global sidebar shadow for seamless flat integration */
+  /* Removed global sidebar shadow for seamless flat integration */
     border-top-right-radius: 30px;
     border-bottom-right-radius: 30px;
     margin-right: 20px;
     /* Give space for the content to start, creating visual separation via white space instead of shadow */
+  overflow: hidden;
+    /* Prevent sidebar wrapper from scrolling */
 }
 
 /* Brand */
@@ -177,6 +179,22 @@ body.admin-body {
   flex-direction: column;
   gap: 4px;
   flex: 1;
+  overflow-y: auto;
+    overflow-x: hidden;
+    /* Enable scroll primarily on the nav */
+    padding-right: 0;
+    /* Keep flush with edge so active item connects */
+  
+    /* Hide Scrollbar */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+  
+  .admin-nav::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari and Opera */
 }
 
 .nav-label {
@@ -1199,3 +1217,198 @@ input[type="number"].form-input {
                                                                 .date-range-btn:hover:not(.active) {
                                                                   border-color: var(--admin-bg-dark);
                                                                 }
+
+/* ============================================
+   Analytics Dashboard Styles
+   ============================================ */
+
+/* KPI Grid - 4 columns */
+.analytics-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.analytics-kpi-grid.secondary {
+  gap: 16px;
+}
+
+/* KPI Card Enhancements */
+.kpi-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, var(--admin-accent) 0%, transparent 60%);
+  opacity: 0.05;
+  border-radius: 50%;
+  transform: translate(30%, -30%);
+}
+
+/* Mini KPI Card */
+.mini-kpi-card {
+  padding: 16px 20px;
+  transition: transform 0.2s ease;
+}
+
+.mini-kpi-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Section Title */
+.analytics-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: var(--admin-text-on-light);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--admin-border);
+}
+
+/* Charts Grid - 2 columns */
+.analytics-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+/* Chart Card Header */
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-period {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  background: var(--admin-surface-light);
+  padding: 4px 12px;
+  border-radius: 99px;
+}
+
+/* Bottom Grid - 2 columns for lists */
+.analytics-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 24px;
+}
+
+/* Chart Cards */
+.admin-card.chart-card {
+  min-height: 350px;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .analytics-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .analytics-charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .analytics-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-kpi-grid.secondary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* RTL Support for Arabic */
+[dir="rtl"] .analytics-charts-grid,
+[dir="rtl"] .analytics-bottom-grid,
+[dir="rtl"] .analytics-kpi-grid {
+  direction: rtl;
+}
+
+/* Trend Badge Animation */
+.trend-badge {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Heatmap Cell Hover */
+.heatmap-cell:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Export Button */
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--admin-surface-light);
+  border: 1px solid var(--admin-border);
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--admin-text-on-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-btn:hover {
+  background: var(--admin-bg-dark);
+  color: #fff;
+  border-color: var(--admin-bg-dark);
+}
+
+/* Empty State for Charts */
+.chart-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--admin-text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.chart-empty-state svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+  opacity: 0.3;
+}
+
+/* Legend Styling */
+.recharts-legend-wrapper {
+  font-size: 12px !important;
+}
+
+/* Tooltip Styling */
+.recharts-tooltip-wrapper {
+  outline: none;
+}
