@@ -12,6 +12,7 @@ export interface ShopProduct {
     imageUrl: string | null;
     images: string[];
     brand: string | null;
+    material: string | null; // Added material slug
     strap: string | null;
     status: string;
     variantCount: number;
@@ -32,7 +33,10 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
                     inventory: true
                 }
             },
-            images: true
+            images: true,
+            categoryRel: true,
+            brand: true,
+            material: true
         }
     });
 
@@ -47,11 +51,14 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
             name: product.name,
             price: mainVariant ? Number(mainVariant.price) : 0,
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
-            category: product.category,
+            // Prioritize category relation slug, fallback to legacy string
+            category: product.categoryRel?.slug || product.category,
+            brand: product.brand?.slug || null,
+            material: product.material?.slug || null, // Map to slug for filtering
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
-            brand: null, 
-            strap: null,
+            // Legacy fields mapped below or handled above
+            strap: product.material?.name || null, // for display if needed
             status: 'active',
             variantCount: product.variants.length,
             inStock: totalStock > 0,
@@ -175,6 +182,7 @@ export async function fetchRelatedProducts(productId: string, category: string |
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: null, 
+            material: null,
             strap: null,
             status: 'active',
             variantCount: product.variants.length,

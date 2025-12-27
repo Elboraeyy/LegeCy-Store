@@ -244,11 +244,43 @@ model Product {
 
   cartItems      CartItem[]
   stockNotifications StockNotification[]
+  
+  // New Relations
+  brandId        String?
+  brand          Brand?    @relation(fields: [brandId], references: [id])
+  
+  materialId     String?
+  material       Material? @relation(fields: [materialId], references: [id])
 
   @@index([name])
   @@index([category])
   @@index([status])
   @@index([categoryId])
+  @@index([brandId])
+  @@index([materialId])
+}
+
+// ==========================================
+// Brand & Material Management
+// ==========================================
+
+model Brand {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  imageUrl    String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Material {
+  id          String    @id @default(uuid())
+  name        String    @unique // e.g., "Leather", "Stainless Steel"
+  slug        String    @unique
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 // ==========================================

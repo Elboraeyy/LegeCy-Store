@@ -10,6 +10,9 @@ import { motion } from "framer-motion";
 import { useIsClient } from "@/hooks/useIsClient";
 import { fadeUpSlow, staggerContainerSlow } from "@/lib/motion";
 import { fetchShopProducts, ShopProduct } from "@/lib/actions/shop";
+import { fetchAllCategories } from "@/lib/actions/category";
+import { fetchAllBrands } from "@/lib/actions/brand";
+import { fetchAllMaterials } from "@/lib/actions/material";
 
 export default function ShopClient() {
   const router = useRouter();
@@ -19,38 +22,61 @@ export default function ShopClient() {
 
   // --- Product State (from Database) ---
   const [products, setProducts] = useState<ShopProduct[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string; parentId: string | null }[]>([]);
+  const [brands, setBrands] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [materials, setMaterials] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load products from database
+  // Load products and metadata from database
   useEffect(() => {
     let mounted = true;
     
-    const loadProducts = async () => {
+    const loadData = async () => {
       try {
-        const data = await fetchShopProducts();
+        const [productsData, categoriesData, brandsData, materialsData] = await Promise.all([
+             fetchShopProducts(),
+             fetchAllCategories(),
+             fetchAllBrands(),
+             fetchAllMaterials()
+        ]);
+
         if (mounted) {
-          setProducts(data);
+          setProducts(productsData);
+          setCategories(categoriesData);
+          setBrands(brandsData);
+          setMaterials(materialsData);
           setLoading(false);
+          
+          // Initialize filters from URL
+          const urlCategory = searchParams.get('category');
+          if (urlCategory) setCategory(urlCategory);
+
+          const urlBrand = searchParams.get('brand');
+          if (urlBrand) setBrand(urlBrand);
+
+          const urlMaterial = searchParams.get('material');
+          if (urlMaterial) setMaterial(urlMaterial);
         }
       } catch (error) {
-        console.error('Failed to load products:', error);
+        console.error('Failed to load shop data:', error);
         if (mounted) setLoading(false);
       }
     };
 
-    loadProducts();
+    loadData();
     return () => { mounted = false; };
-  }, []);
+  }, [searchParams]);
 
   // --- Filter States ---
   const [category, setCategory] = useState("all");
+  const [brand, setBrand] = useState("all");
+  const [material, setMaterial] = useState("all");
   const initialSearch = searchParams.get('search') || "";
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({ min: "", max: "" });
   const [sortOption, setSortOption] = useState("default");
-  const [visibleCount, setVisibleCount] = useState(9); // Initial 9
+  const [visibleCount, setVisibleCount] = useState(9);
 
-  // Sync state with URL param changes
   // Sync state with URL param changes
   useEffect(() => {
     const q = searchParams.get('search');
@@ -58,14 +84,48 @@ export default function ShopClient() {
         setSearchQuery(q);
         setVisibleCount(9); 
     }
+    
+    // Sync other params
+    const cat = searchParams.get('category');
+    if (cat && cat !== category) setCategory(cat);
+    else if (!cat && category !== "all") setCategory("all");
+
+    const br = searchParams.get('brand');
+    if (br && br !== brand) setBrand(br);
+    else if (!br && brand !== "all") setBrand("all");
+
+    const mat = searchParams.get('material');
+    if (mat && mat !== material) setMaterial(mat);
+    else if (!mat && material !== "all") setMaterial("all");
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // --- Derived Data ---
-  const uniqueCategories = useMemo(() => {
-    const cats = new Set(products.map((p) => p.category).filter(Boolean));
-    return Array.from(cats).sort();
-  }, [products]);
+  // Update URL helper
+  const updateFilters = (newFilters: { category?: string; brand?: string; material?: string }) => {
+      const params = new URLSearchParams(searchParams.toString());
+      
+      if (newFilters.category) {
+          if (newFilters.category === 'all') params.delete('category');
+          else params.set('category', newFilters.category);
+          setCategory(newFilters.category);
+      }
+      
+      if (newFilters.brand) {
+          if (newFilters.brand === 'all') params.delete('brand');
+          else params.set('brand', newFilters.brand);
+          setBrand(newFilters.brand);
+      }
+
+      if (newFilters.material) {
+          if (newFilters.material === 'all') params.delete('material');
+          else params.set('material', newFilters.material);
+          setMaterial(newFilters.material);
+      }
+
+      setVisibleCount(9);
+      router.push(`/shop?${params.toString()}`);
+  };
 
   // --- Filtering Logic ---
   const filteredProducts = useMemo(() => {
@@ -77,10 +137,20 @@ export default function ShopClient() {
 
       // 2. Category
       if (category !== "all" && p.category !== category) {
-        return false;
+           return false;
       }
 
-      // 3. Price Range
+      // 3. Brand
+      if (brand !== "all" && p.brand !== brand) {
+          return false;
+      }
+
+      // 4. Material
+      if (material !== "all" && p.material !== material) {
+          return false;
+      }
+
+      // 5. Price Range
       const min = priceRange.min ? parseFloat(priceRange.min) : 0;
       const max = priceRange.max ? parseFloat(priceRange.max) : Infinity;
       if (p.price < min || p.price > max) {
@@ -89,7 +159,7 @@ export default function ShopClient() {
 
       return true;
     });
-  }, [products, searchQuery, category, priceRange]);
+  }, [products, searchQuery, category, brand, material, priceRange]);
 
   // --- Sorting Logic ---
   const sortedProducts = useMemo(() => {
@@ -99,7 +169,8 @@ export default function ShopClient() {
     } else if (sortOption === "price-desc") {
       sorted.sort((a, b) => b.price - a.price);
     } else if (sortOption === "newest") {
-      // Already sorted by createdAt desc from database
+      // Already sorted by createdAt desc by default, but let's re-sort if needed (id comparisons or createdAt date if available)
+      // Assuming initial order is newest
     }
     return sorted;
   }, [filteredProducts, sortOption]);
@@ -113,7 +184,10 @@ export default function ShopClient() {
     setPriceRange({ min: "", max: "" });
     setSortOption("default");
     setCategory("all");
+    setBrand("all");
+    setMaterial("all");
     setVisibleCount(9);
+    router.push('/shop');
   };
 
   if (loading) {
@@ -173,31 +247,75 @@ export default function ShopClient() {
               <h3 className="filter-title">Categories</h3>
               <ul className="category-list">
                 <li>
-                  <a
-                    href="#"
-                    className={category === "all" ? "active" : ""}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setCategory("all");
-                      setVisibleCount(9);
-                    }}
+                  <button
+                    className={`category-btn ${category === "all" ? "active" : ""}`}
+                    onClick={() => updateFilters({ category: "all" })}
                   >
-                    All Watches
-                  </a>
+                    All Types
+                  </button>
                 </li>
-                {uniqueCategories.map((cat) => (
-                  <li key={cat}>
-                    <a
-                      href="#"
-                      className={category === cat ? "active" : ""}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCategory(cat!);
-                        setVisibleCount(9);
-                      }}
+                {categories.map((cat) => (
+                  <li key={cat.id}>
+                    <button
+                      className={`category-btn ${category === cat.slug ? "active" : ""}`}
+                      onClick={() => updateFilters({ category: cat.slug })}
                     >
-                      {cat}
-                    </a>
+                      {cat.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+
+          {/* Brands */}
+          <Reveal width="100%" delay={0.15}>
+            <div className="filter-group filter-section">
+              <h3 className="filter-title">Brands</h3>
+              <ul className="category-list">
+                <li>
+                  <button
+                    className={`category-btn ${brand === "all" ? "active" : ""}`}
+                    onClick={() => updateFilters({ brand: "all" })}
+                  >
+                    All Brands
+                  </button>
+                </li>
+                {brands.map((b) => (
+                  <li key={b.id}>
+                    <button
+                      className={`category-btn ${brand === b.slug ? "active" : ""}`}
+                      onClick={() => updateFilters({ brand: b.slug })}
+                    >
+                      {b.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+
+          {/* Materials */}
+          <Reveal width="100%" delay={0.2}>
+            <div className="filter-group filter-section">
+              <h3 className="filter-title">Strap Material</h3>
+              <ul className="category-list">
+                <li>
+                  <button
+                    className={`category-btn ${material === "all" ? "active" : ""}`}
+                    onClick={() => updateFilters({ material: "all" })}
+                  >
+                    All Materials
+                  </button>
+                </li>
+                {materials.map((m) => (
+                  <li key={m.id}>
+                    <button
+                      className={`category-btn ${material === m.slug ? "active" : ""}`}
+                      onClick={() => updateFilters({ material: m.slug })}
+                    >
+                      {m.name}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -205,7 +323,7 @@ export default function ShopClient() {
           </Reveal>
 
           {/* Price Filter */}
-          <Reveal width="100%" delay={0.2}>
+          <Reveal width="100%" delay={0.25}>
             <div className="filter-group filter-section">
               <h3 className="filter-title">Price Range (EGP)</h3>
               <div className="price-range-inputs">
@@ -264,7 +382,7 @@ export default function ShopClient() {
             initial="hidden"
             animate="visible"
             variants={staggerContainerSlow}
-            key={visibleCount + category + searchQuery + sortOption} 
+            key={visibleCount + category + brand + material + searchQuery + sortOption} 
           >
             {visibleProducts.map((p) => (
               <motion.div key={p.id} className="product-card premium" variants={fadeUpSlow}>
@@ -316,6 +434,11 @@ export default function ShopClient() {
                   >
                     {p.name}
                   </h3>
+                  <div className="product-meta" style={{ display: 'flex', gap: '8px', fontSize: '11px', color: '#888', marginBottom: '8px' }}>
+                     {p.brand && <span>{brands.find(b => b.slug === p.brand)?.name || p.brand}</span>}
+                     {p.brand && p.material && <span>•</span>}
+                     {p.material && <span>{materials.find(m => m.slug === p.material)?.name || p.material}</span>}
+                  </div>
                   <p className="product-price">{formatPrice(p.price)}</p>
                   <div className="product-actions">
                     <Link
@@ -411,6 +534,28 @@ export default function ShopClient() {
           )}
         </div>
       </section>
+      <style jsx>{`
+        .category-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted, #666);
+            padding: 6px 0;
+            cursor: pointer;
+            font-size: 14px;
+            transition: color 0.2s;
+            text-align: left;
+            width: 100%;
+            display: block;
+        }
+        .category-btn:hover {
+            color: var(--primary-color, #1a3c34);
+        }
+        .category-btn.active {
+            color: var(--primary-color, #1a3c34);
+            font-weight: 600;
+        }
+      `}</style>
     </main>
   );
 }
+
