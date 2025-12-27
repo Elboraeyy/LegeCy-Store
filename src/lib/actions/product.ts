@@ -19,6 +19,8 @@ export interface ProductInput {
     stock?: number;
     status?: string;
     categoryId?: string;
+    brandId?: string;
+    materialId?: string;
 }
 
 // Fetch categories for dropdown
@@ -46,6 +48,8 @@ export async function createProductAction(data: ProductInput) {
                 compareAtPrice: data.compareAtPrice ? new Decimal(data.compareAtPrice) : null,
                 status: data.status || 'active',
                 categoryId: data.categoryId || null,
+                brandId: data.brandId || null,
+                materialId: data.materialId || null,
                 images: {
                     create: data.gallery?.map(url => ({ url })) || []
                 }

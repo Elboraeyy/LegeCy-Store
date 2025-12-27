@@ -51,7 +51,7 @@ export async function createCategoryAction(data: CategoryInput) {
 
     await auditService.logAction(admin.id, 'CREATE_CATEGORY', 'CATEGORY', category.id, { name: data.name });
 
-    revalidatePath('/admin/categories');
+    revalidatePath('/', 'layout');
     return category;
 }
 
@@ -71,7 +71,7 @@ export async function updateCategoryAction(id: string, data: CategoryInput) {
 
     await auditService.logAction(admin.id, 'UPDATE_CATEGORY', 'CATEGORY', id, { changes: data });
 
-    revalidatePath('/admin/categories');
+    revalidatePath('/', 'layout');
 }
 
 export async function deleteCategoryAction(id: string): Promise<{ success: boolean; error?: string }> {
@@ -92,12 +92,35 @@ export async function deleteCategoryAction(id: string): Promise<{ success: boole
 
         await prisma.category.delete({ where: { id } });
 
-        await auditService.logAction(admin.id, 'DELETE_CATEGORY', 'CATEGORY', id);
+    await auditService.logAction(admin.id, 'DELETE_CATEGORY', 'CATEGORY', id);
 
-        revalidatePath('/admin/categories');
+        revalidatePath('/', 'layout'); // Update storefront immediately
         return { success: true };
     } catch (error) {
         console.error("Delete Category Error:", error);
         return { success: false, error: "Failed to delete category." };
+    }
+}
+
+export async function reorderCategoriesAction(items: { id: string; sortOrder: number }[]) {
+    try {
+        const admin = await requireAdminPermission(AdminPermissions.PRODUCTS.MANAGE);
+
+        await prisma.$transaction(
+            items.map(item =>
+                prisma.category.update({
+                    where: { id: item.id },
+                    data: { sortOrder: item.sortOrder }
+                })
+            )
+        );
+
+        await auditService.logAction(admin.id, 'UPDATE_CATEGORY', 'CATEGORY', 'BATCH', { action: 'reorder', count: items.length });
+        
+        revalidatePath('/', 'layout'); // Update storefront immediately
+        return { success: true };
+    } catch (error) {
+        console.error("Reorder Error:", error);
+        return { success: false, error: "Failed to reorder categories." };
     }
 }

@@ -21,7 +21,7 @@ interface CategoryFormProps {
 export default function CategoryForm({ initialData }: CategoryFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+    const [categories, setCategories] = useState<{ id: string; name: string; sortOrder: number }[]>([]);
 
     const [name, setName] = useState(initialData?.name || "");
     const [slug, setSlug] = useState(initialData?.slug || "");
@@ -32,7 +32,7 @@ export default function CategoryForm({ initialData }: CategoryFormProps) {
     useEffect(() => {
         fetchAllCategories().then(cats => {
             // Filter out current category to prevent self-reference
-            setCategories(cats.filter(c => c.id !== initialData?.id).map(c => ({ id: c.id, name: c.name })));
+            setCategories(cats.filter(c => c.id !== initialData?.id).map(c => ({ id: c.id, name: c.name, sortOrder: c.sortOrder })));
         });
     }, [initialData?.id]);
 
@@ -172,6 +172,42 @@ export default function CategoryForm({ initialData }: CategoryFormProps) {
                         <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
                             Lower numbers appear first
                         </div>
+                    </div>
+
+                    {/* Reference List */}
+                    <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #eee' }}>
+                         <h4 className="stat-label" style={{ fontSize: '12px', marginBottom: '12px', color: 'var(--admin-text-muted)' }}>Reference: Existing Categories</h4>
+                         <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '8px' }}>
+                            {categories.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {categories
+                                        .sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0))
+                                        .map(cat => (
+                                            <div key={cat.id} style={{ 
+                                                fontSize: '12px', 
+                                                padding: '8px', 
+                                                background: '#f8f8f8', 
+                                                borderRadius: '6px',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                            }}>
+                                                <span>{cat.name}</span>
+                                                <span style={{ 
+                                                    fontFamily: 'monospace', 
+                                                    background: '#fff', 
+                                                    padding: '2px 6px', 
+                                                    borderRadius: '4px',
+                                                    border: '1px solid #eee',
+                                                    color: 'var(--admin-text-muted)'
+                                                }}>{cat.sortOrder}</span>
+                                            </div>
+                                        ))}
+                                </div>
+                            ) : (
+                                <div style={{ fontSize: '12px', color: '#999', fontStyle: 'italic' }}>No categories yet</div>
+                            )}
+                         </div>
                     </div>
                 </div>
             </div>

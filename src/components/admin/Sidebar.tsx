@@ -70,6 +70,9 @@ const mainNavItems: NavItem[] = [
 ];
 
 const secondaryNavItems: NavItem[] = [
+    { href: '/admin/categories', label: 'Categories', icon: 'settings' }, // Used 'settings' icon tentatively
+    { href: '/admin/brands', label: 'Brands', icon: 'settings' },
+    { href: '/admin/materials', label: 'Materials', icon: 'inventory' },
     { href: '/admin/customers', label: 'Customers', icon: 'customers' },
     { href: '/admin/settings', label: 'Settings', icon: 'settings' },
 ];

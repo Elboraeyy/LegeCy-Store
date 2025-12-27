@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { useIsClient } from "@/hooks/useIsClient";
 import { getCurrentUser, logoutAction } from "@/lib/actions/auth";
+import { fetchAllCategories } from "@/lib/actions/category";
 import { toast } from "sonner";
 import SearchBar from "@/components/SearchBar";
 
@@ -19,17 +20,25 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string; parentId: string | null }[]>([]);
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { cart, fav, openCart } = useStore();
   const isClient = useIsClient();
 
+
   const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
   const favCount = fav.length;
 
-  // Fetch user on mount
+  // Fetch user and categories on mount
   useEffect(() => {
     getCurrentUser().then(setUser).catch(() => setUser(null));
+    fetchAllCategories().then(cats => {
+         // Filter for parents (parentId is null)
+         const parents = cats.filter(c => !c.parentId);
+         setCategories(parents);
+    });
   }, []);
 
   const handleLogout = async () => {
@@ -83,15 +92,44 @@ export default function Navbar() {
               Home
             </Link>
           </li>
-          <li role="none">
+          <li role="none" 
+              className="nav-item-dropdown"
+              onMouseEnter={() => setShowCategoryMenu(true)}
+              onMouseLeave={() => setShowCategoryMenu(false)}
+          >
             <Link
               role="menuitem"
               href="/shop"
               className={isActive("/shop") ? "active" : ""}
               onClick={() => setIsOpen(false)}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
             >
               Shop
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.7 }}>
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
             </Link>
+            
+            {/* Dropdown Menu */}
+            <div className={`nav-dropdown-menu ${showCategoryMenu ? 'visible' : ''}`}>
+                 <Link href="/shop" className="dropdown-item" onClick={() => setIsOpen(false)}>
+                    All Products
+                 </Link>
+                 <div className="dropdown-divider"></div>
+                 {categories.map(cat => (
+                     <Link 
+                        key={cat.id} 
+                        href={`/shop?category=${cat.slug}`} 
+                        className="dropdown-item"
+                        onClick={() => setIsOpen(false)}
+                     >
+                        {cat.name}
+                     </Link>
+                 ))}
+                 {categories.length === 0 && (
+                    <span className="dropdown-item" style={{ color: '#999', cursor: 'default' }}>No categories</span>
+                 )}
+            </div>
           </li>
           <li role="none">
             <Link
@@ -348,33 +386,89 @@ export default function Navbar() {
           transform: translateY(-1px);
         }
 
-        @media (max-width: 768px) {
-          .nav-auth {
-            margin: 16px 0 0;
-            width: 100%;
-          }
-
-          .user-dropdown {
-            position: fixed;
-            top: auto;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            border-radius: 16px 16px 0 0;
-          }
-
-          .user-name {
-            display: none;
-          }
-
-          .auth-buttons {
-            width: 100%;
-          }
-
           .btn-login {
             width: 100%;
             text-align: center;
           }
+        }
+
+        /* Dropdown Styles */
+        .nav-item-dropdown {
+            position: relative;
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+        .nav-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #fff;
+            min-width: 200px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 8px 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+            z-index: 100;
+            border: 1px solid rgba(0,0,0,0.05);
+            /* Fix alignment */
+            margin-top: 10px; 
+        }
+
+        .nav-dropdown-menu.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: block;
+            padding: 10px 20px;
+            color: #1a3c34;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.1s;
+        }
+
+        .dropdown-item:hover {
+            background: #f5f5f5;
+            color: #d4af37;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: #eee;
+            margin: 4px 0;
+        }
+
+        @media (max-width: 768px) {
+            .nav-item-dropdown {
+                flex-direction: column;
+                align-items: flex-start;
+                height: auto;
+                width: 100%;
+            }
+            
+            .nav-dropdown-menu {
+                position: static;
+                box-shadow: none;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                padding-left: 16px;
+                border: none;
+                width: 100%;
+                background: transparent;
+                display: none;
+            }
+
+            .nav-links.open .nav-dropdown-menu {
+                display: block;
+            }
         }
       `}</style>
     </header>

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { createProductAction, updateProductAction, ProductInput, fetchCategories } from "@/lib/actions/product";
+import { fetchAllBrands } from "@/lib/actions/brand";
+import { fetchAllMaterials } from "@/lib/actions/material";
 import { toast } from "sonner";
 import Link from 'next/link';
 import '@/app/admin/admin.css';
@@ -25,6 +27,8 @@ interface ProductFormProps {
         compareAtPrice?: number | null;
         status?: string;
         categoryId?: string | null;
+        brandId?: string | null;
+        materialId?: string | null;
     } | null;
 }
 
@@ -32,10 +36,20 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+    const [materials, setMaterials] = useState<{ id: string; name: string }[]>([]);
 
-    // Load categories on mount
+    // Load categories, brands, materials on mount
     useEffect(() => {
-        fetchCategories().then(setCategories).catch(console.error);
+        Promise.all([
+            fetchCategories(),
+            fetchAllBrands(),
+            fetchAllMaterials()
+        ]).then(([cats, brs, mats]) => {
+            setCategories(cats);
+            setBrands(brs);
+            setMaterials(mats);
+        }).catch(console.error);
     }, []);
 
     // Initial State defaults
@@ -50,6 +64,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const [stock, setStock] = useState(initialData?.stock?.toString() || "");
     const [status, setStatus] = useState(initialData?.status || "active");
     const [categoryId, setCategoryId] = useState(initialData?.categoryId || "");
+    const [brandId, setBrandId] = useState(initialData?.brandId || "");
+    const [materialId, setMaterialId] = useState(initialData?.materialId || "");
     
     // Media State
     const [imageUrl, setImageUrl] = useState<string>(initialData?.imageUrl || "");
@@ -90,7 +106,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         try {
             const payload: ProductInput = {
                 name,
-                description,
+                description: description || undefined,
                 sku,
                 price: parseFloat(price),
                 compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
@@ -98,7 +114,9 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 gallery,
                 stock: stock ? parseInt(stock) : undefined,
                 status,
-                categoryId: categoryId || undefined
+                categoryId: categoryId || undefined,
+                brandId: brandId || undefined,
+                materialId: materialId || undefined
             };
 
             if (initialData) {
@@ -315,6 +333,48 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                                 style={{ fontSize: '11px', color: 'var(--admin-accent)', marginTop: '4px', display: 'inline-block' }}
                             >
                                 Manage Categories →
+                            </Link>
+                         </div>
+
+                         <div className="admin-form-group" style={{ marginTop: '16px' }}>
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Brand</label>
+                            <select 
+                                className="form-input"
+                                value={brandId}
+                                onChange={(e) => setBrandId(e.target.value)}
+                                disabled={loading}
+                            >
+                                <option value="">No Brand</option>
+                                {brands.map(b => (
+                                    <option key={b.id} value={b.id}>{b.name}</option>
+                                ))}
+                            </select>
+                            <Link 
+                                href="/admin/categories" 
+                                style={{ fontSize: '11px', color: 'var(--admin-accent)', marginTop: '4px', display: 'inline-block' }}
+                            >
+                                Manage Brands →
+                            </Link>
+                         </div>
+
+                         <div className="admin-form-group" style={{ marginTop: '16px' }}>
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Strap Material</label>
+                            <select 
+                                className="form-input"
+                                value={materialId}
+                                onChange={(e) => setMaterialId(e.target.value)}
+                                disabled={loading}
+                            >
+                                <option value="">No Material</option>
+                                {materials.map(m => (
+                                    <option key={m.id} value={m.id}>{m.name}</option>
+                                ))}
+                            </select>
+                            <Link 
+                                href="/admin/categories" 
+                                style={{ fontSize: '11px', color: 'var(--admin-accent)', marginTop: '4px', display: 'inline-block' }}
+                            >
+                                Manage Materials →
                             </Link>
                          </div>
                     </div>
