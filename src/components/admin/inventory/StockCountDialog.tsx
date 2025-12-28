@@ -17,7 +17,6 @@ export default function StockCountDialog({ countId, isReadOnly, onClose, onCompl
     const [completing, setCompleting] = useState(false);
 
     const loadCount = useCallback(async () => {
-        setLoading(true);
         const res = await fetchStockCountById(countId);
         if (res) {
             setCountInfo({ countNumber: res.count.countNumber, warehouseName: res.count.warehouseName });
@@ -27,7 +26,10 @@ export default function StockCountDialog({ countId, isReadOnly, onClose, onCompl
     }, [countId]);
 
     useEffect(() => {
-        loadCount();
+        const timer = setTimeout(() => {
+            void loadCount();
+        }, 0);
+        return () => clearTimeout(timer);
     }, [loadCount]);
 
     const handleUpdateItem = async (item: StockCountItemWithDetails, countedQty: number) => {

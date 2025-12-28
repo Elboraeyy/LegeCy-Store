@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CustomerProData } from '@/lib/actions/customer-pro';
 import '@/app/admin/admin.css';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface CustomerTableProps {
     data: CustomerProData[];
@@ -99,16 +100,16 @@ export default function CustomerTableClient({ data, totalPages, currentPage, sea
                 <div className="admin-card" style={{ marginBottom: '20px', padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
                     <div>
                         <label className="admin-label">Status</label>
-                        <select 
-                            className="form-input"
+                        <AdminDropdown
                             value={searchParams.status || 'all'}
-                            onChange={(e) => applyParams({ status: e.target.value, page: 1 })}
-                        >
-                            <option value="all">All Statuses</option>
-                            <option value="active">Active</option>
-                            <option value="banned">Banned</option>
-                            <option value="archived">Archived</option>
-                        </select>
+                            onChange={(val) => applyParams({ status: val, page: 1 })}
+                            options={[
+                                { value: 'all', label: 'All Statuses' },
+                                { value: 'active', label: 'Active' },
+                                { value: 'banned', label: 'Banned' },
+                                { value: 'archived', label: 'Archived' },
+                            ]}
+                        />
                     </div>
                 </div>
             )}

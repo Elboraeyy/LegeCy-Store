@@ -9,6 +9,7 @@ import {
     ReviewDTO 
 } from '@/lib/actions/reviews';
 import '@/app/admin/admin.css';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface ReviewsClientProps {
     reviews: ReviewDTO[];
@@ -119,17 +120,17 @@ export default function ReviewsClient({ reviews: initialReviews, products }: Rev
                             </div>
                             <div className="admin-form-group">
                                 <label className="stat-label" style={{ fontSize: '11px' }}>Rating</label>
-                                <select 
-                                    className="form-input"
-                                    value={rating}
-                                    onChange={e => setRating(Number(e.target.value))}
-                                >
-                                    <option value={5}>⭐⭐⭐⭐⭐ (5)</option>
-                                    <option value={4}>⭐⭐⭐⭐ (4)</option>
-                                    <option value={3}>⭐⭐⭐ (3)</option>
-                                    <option value={2}>⭐⭐ (2)</option>
-                                    <option value={1}>⭐ (1)</option>
-                                </select>
+                                <AdminDropdown
+                                    value={String(rating)}
+                                    onChange={(val) => setRating(Number(val))}
+                                    options={[
+                                        { value: '5', label: '⭐⭐⭐⭐⭐ (5)' },
+                                        { value: '4', label: '⭐⭐⭐⭐ (4)' },
+                                        { value: '3', label: '⭐⭐⭐ (3)' },
+                                        { value: '2', label: '⭐⭐ (2)' },
+                                        { value: '1', label: '⭐ (1)' },
+                                    ]}
+                                />
                             </div>
                         </div>
                         
@@ -148,16 +149,14 @@ export default function ReviewsClient({ reviews: initialReviews, products }: Rev
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
                             <div className="admin-form-group">
                                 <label className="stat-label" style={{ fontSize: '11px' }}>Product (Optional)</label>
-                                <select 
-                                    className="form-input"
+                                <AdminDropdown
                                     value={productId}
-                                    onChange={e => setProductId(e.target.value)}
-                                >
-                                    <option value="">General Review</option>
-                                    {products.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
+                                    onChange={setProductId}
+                                    options={[
+                                        { value: '', label: 'General Review' },
+                                        ...products.map(p => ({ value: p.id, label: p.name }))
+                                    ]}
+                                />
                             </div>
                             <div className="admin-form-group">
                                 <label className="stat-label" style={{ fontSize: '11px' }}>Featured</label>

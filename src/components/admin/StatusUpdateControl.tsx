@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { updateOrderStatusAction } from '@/lib/actions/order';
 import { OrderStatus } from '@/lib/orderStatus';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface Props {
   orderId: string;
@@ -35,44 +36,16 @@ export default function StatusUpdateControl({ orderId, currentStatus }: Props) {
     });
   };
 
-  const getStatusColor = (status: string) => {
-      if (status === 'Pending') return '#eab308';
-      if (status === 'Paid') return '#166534';
-      if (status === 'Shipped') return '#2563eb';
-      if (status === 'Delivered') return '#166534';
-      return '#666';
-  };
-
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
       <div style={{ position: 'relative' }}>
-          <select
+          <AdminDropdown
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            onChange={setSelectedStatus}
             disabled={isPending}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '20px',
-              border: '1px solid var(--admin-border)',
-              outline: 'none',
-              background: '#fff',
-              fontSize: '13px',
-              cursor: isPending ? 'wait' : 'pointer',
-              fontWeight: 500,
-              paddingRight: '32px',
-              appearance: 'none',
-              color: getStatusColor(selectedStatus)
-            }}
-          >
-            {AVAILABLE_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-          <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '10px' }}>
-              ▼
-          </div>
+            variant="pill"
+            options={AVAILABLE_STATUSES.map(status => ({ value: status, label: status }))}
+          />
       </div>
 
       {selectedStatus !== currentStatus && (

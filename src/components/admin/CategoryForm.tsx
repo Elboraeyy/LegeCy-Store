@@ -6,6 +6,7 @@ import { createCategoryAction, updateCategoryAction, fetchAllCategories } from "
 import { toast } from "sonner";
 import Link from 'next/link';
 import '@/app/admin/admin.css';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface CategoryFormProps {
     initialData?: {
@@ -146,17 +147,15 @@ export default function CategoryForm({ initialData }: CategoryFormProps) {
 
                     <div className="admin-form-group">
                         <label className="stat-label" style={{ fontSize: '11px' }}>Parent Category</label>
-                        <select
-                            className="form-input"
+                        <AdminDropdown
                             value={parentId}
-                            onChange={(e) => setParentId(e.target.value)}
+                            onChange={setParentId}
                             disabled={loading}
-                        >
-                            <option value="">None (Top Level)</option>
-                            {categories.map(cat => (
-                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                            ))}
-                        </select>
+                            options={[
+                                { value: '', label: 'None (Top Level)' },
+                                ...categories.map(cat => ({ value: cat.id, label: cat.name }))
+                            ]}
+                        />
                     </div>
 
                     <div className="admin-form-group" style={{ marginTop: '16px' }}>

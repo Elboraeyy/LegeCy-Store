@@ -21,6 +21,7 @@ export interface ProductInput {
     categoryId?: string;
     brandId?: string;
     materialId?: string;
+    warehouseId?: string;
 }
 
 // Fetch categories for dropdown
@@ -66,8 +67,8 @@ export async function createProductAction(data: ProductInput) {
         });
 
         // 4. Initialize Inventory (Critical)
-        // We need a default warehouse.
-        const warehouseId = await getDefaultWarehouseId(tx);
+        // Use provided warehouse or default
+        const warehouseId = data.warehouseId || await getDefaultWarehouseId(tx);
         
         await tx.inventory.create({
             data: {
@@ -203,3 +204,187 @@ export async function deleteProductAction(id: string): Promise<{ success: boolea
         return { success: false, error: "System error: Failed to delete product." };
     }
 }
+
+// ========== Dashboard Stats ==========
+
+export type ProductStats = {
+    totalProducts: number;
+    activeProducts: number;
+    draftProducts: number;
+    archivedProducts: number;
+    totalStockValue: number;
+    lowStockCount: number;
+    outOfStockCount: number;
+    categories: { id: string; name: string; count: number }[];
+};
+
+export async function fetchProductStats(): Promise<ProductStats> {
+    try {
+        const [
+            totalProducts,
+            activeProducts,
+            draftProducts,
+            archivedProducts,
+            products,
+            categories
+        ] = await prisma.$transaction([
+            prisma.product.count(),
+            prisma.product.count({ where: { status: 'active' } }),
+            prisma.product.count({ where: { status: 'draft' } }),
+            prisma.product.count({ where: { status: 'archived' } }),
+            prisma.product.findMany({
+                include: {
+                    variants: {
+                        include: { inventory: true }
+                    }
+                }
+            }),
+            prisma.category.findMany({
+                select: { id: true, name: true, _count: { select: { products: true } } }
+            })
+        ]);
+
+        // Calculate stock value and alerts
+        let totalStockValue = 0;
+        let lowStockCount = 0;
+        let outOfStockCount = 0;
+
+        for (const product of products) {
+            let productStock = 0;
+            for (const variant of product.variants) {
+                const price = Number(variant.price);
+                for (const inv of variant.inventory) {
+                    totalStockValue += price * inv.available;
+                    productStock += inv.available;
+                }
+            }
+            if (productStock === 0) outOfStockCount++;
+            else if (productStock < 10) lowStockCount++;
+        }
+
+        return {
+            totalProducts,
+            activeProducts,
+            draftProducts,
+            archivedProducts,
+            totalStockValue: Math.round(totalStockValue),
+            lowStockCount,
+            outOfStockCount,
+            categories: categories.map(c => ({
+                id: c.id,
+                name: c.name,
+                count: c._count.products
+            }))
+        };
+    } catch (error) {
+        console.error('Failed to fetch product stats:', error);
+        return {
+            totalProducts: 0,
+            activeProducts: 0,
+            draftProducts: 0,
+            archivedProducts: 0,
+            totalStockValue: 0,
+            lowStockCount: 0,
+            outOfStockCount: 0,
+            categories: []
+        };
+    }
+}
+
+// ========== Bulk Actions ==========
+
+export async function bulkDeleteProducts(ids: string[]): Promise<{ success: boolean; deleted: number; errors: string[] }> {
+    const admin = await requireAdminPermission(AdminPermissions.PRODUCTS.MANAGE);
+    const errors: string[] = [];
+    let deleted = 0;
+
+    for (const id of ids) {
+        const result = await deleteProductAction(id);
+        if (result.success) deleted++;
+        else errors.push(`${id}: ${result.error}`);
+    }
+
+    await auditService.logAction(admin.id, 'BULK_DELETE_PRODUCTS', 'PRODUCT', null, { count: deleted });
+    revalidatePath('/admin/products');
+
+    return { success: errors.length === 0, deleted, errors };
+}
+
+export async function bulkUpdateStatus(ids: string[], status: string): Promise<{ success: boolean; updated: number }> {
+    const admin = await requireAdminPermission(AdminPermissions.PRODUCTS.MANAGE);
+
+    const result = await prisma.product.updateMany({
+        where: { id: { in: ids } },
+        data: { status }
+    });
+
+    await auditService.logAction(admin.id, 'BULK_UPDATE_STATUS', 'PRODUCT', null, { ids, status });
+    revalidatePath('/admin/products');
+
+    return { success: true, updated: result.count };
+}
+
+export async function duplicateProduct(id: string): Promise<{ success: boolean; newId?: string; error?: string }> {
+    try {
+        const admin = await requireAdminPermission(AdminPermissions.PRODUCTS.MANAGE);
+
+        const original = await prisma.product.findUnique({
+            where: { id },
+            include: {
+                variants: true,
+                images: true
+            }
+        });
+
+        if (!original) return { success: false, error: 'Product not found' };
+
+        const newProduct = await prisma.$transaction(async (tx) => {
+            const p = await tx.product.create({
+                data: {
+                    name: `${original.name} (Copy)`,
+                    description: original.description,
+                    imageUrl: original.imageUrl,
+                    compareAtPrice: original.compareAtPrice,
+                    status: 'draft',
+                    categoryId: original.categoryId,
+                    brandId: original.brandId,
+                    materialId: original.materialId,
+                    images: {
+                        create: original.images.map(img => ({ url: img.url }))
+                    }
+                }
+            });
+
+            for (const variant of original.variants) {
+                const v = await tx.variant.create({
+                    data: {
+                        productId: p.id,
+                        sku: `${variant.sku}-COPY`,
+                        price: variant.price
+                    }
+                });
+
+                const warehouseId = await getDefaultWarehouseId(tx);
+                await tx.inventory.create({
+                    data: {
+                        warehouseId,
+                        variantId: v.id,
+                        available: 0,
+                        reserved: 0
+                    }
+                });
+            }
+
+            return p;
+        });
+
+        await auditService.logAction(admin.id, 'DUPLICATE_PRODUCT', 'PRODUCT', newProduct.id, { originalId: id });
+        revalidatePath('/admin/products');
+
+        return { success: true, newId: newProduct.id };
+    } catch (error) {
+        console.error('Failed to duplicate product:', error);
+        return { success: false, error: 'Failed to duplicate product' };
+    }
+}
+

@@ -82,3 +82,47 @@ export async function fetchOrderDetails(orderId: string) {
         }))
     };
 }
+
+/**
+ * Fetch Order Statistics for the Dashboard
+ */
+export async function fetchOrderStats() {
+    await requireAdminPermission(AdminPermissions.ORDERS.READ);
+
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [
+        totalOrders,
+        pendingOrders,
+        monthlyRevenue,
+        recentOrders
+    ] = await Promise.all([
+        prisma.order.count(),
+        prisma.order.count({ where: { status: 'pending' } }),
+        prisma.order.aggregate({
+            _sum: { totalPrice: true },
+            where: {
+                createdAt: { gte: firstDayOfMonth },
+                status: { not: 'cancelled' }
+            }
+        }),
+        prisma.order.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            select: { id: true, createdAt: true, status: true, totalPrice: true, user: { select: { name: true } } }
+        })
+    ]);
+
+    return {
+        totalOrders,
+        pendingOrders,
+        monthlyRevenue: Number(monthlyRevenue._sum.totalPrice || 0),
+        recentOrders: recentOrders.map(o => ({
+            ...o,
+            totalPrice: Number(o.totalPrice),
+            createdAt: o.createdAt.toISOString(),
+            status: o.status as OrderStatus
+        }))
+    };
+}

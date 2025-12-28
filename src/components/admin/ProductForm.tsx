@@ -6,9 +6,11 @@ import ImageUpload from "@/components/admin/ImageUpload";
 import { createProductAction, updateProductAction, ProductInput, fetchCategories } from "@/lib/actions/product";
 import { fetchAllBrands } from "@/lib/actions/brand";
 import { fetchAllMaterials } from "@/lib/actions/material";
+import { fetchWarehouses } from "@/lib/actions/warehouse-actions";
 import { toast } from "sonner";
 import Link from 'next/link';
 import '@/app/admin/admin.css';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface Category {
     id: string;
@@ -29,6 +31,8 @@ interface ProductFormProps {
         categoryId?: string | null;
         brandId?: string | null;
         materialId?: string | null;
+        // Warehouse isn't usually stored on product directly for edit, but for create it's useful.
+        // For edit, we don't change initial warehouse placement.
     } | null;
 }
 
@@ -38,18 +42,27 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const [categories, setCategories] = useState<Category[]>([]);
     const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
     const [materials, setMaterials] = useState<{ id: string; name: string }[]>([]);
+    const [warehouses, setWarehouses] = useState<{ id: string; name: string }[]>([]);
 
-    // Load categories, brands, materials on mount
+    // Load categories, brands, materials, warehouses on mount
     useEffect(() => {
-        Promise.all([
-            fetchCategories(),
-            fetchAllBrands(),
-            fetchAllMaterials()
-        ]).then(([cats, brs, mats]) => {
-            setCategories(cats);
-            setBrands(brs);
-            setMaterials(mats);
-        }).catch(console.error);
+        const load = async () => {
+            try {
+                const [cats, brs, mats, whs] = await Promise.all([
+                    fetchCategories(),
+                    fetchAllBrands(),
+                    fetchAllMaterials(),
+                    fetchWarehouses()
+                ]);
+                setCategories(cats);
+                setBrands(brs);
+                setMaterials(mats);
+                setWarehouses(whs.map(w => ({ id: w.id, name: w.name })));
+            } catch (error) {
+                console.error("Failed to load form data", error);
+            }
+        };
+        load();
     }, []);
 
     // Initial State defaults
@@ -67,6 +80,12 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const [brandId, setBrandId] = useState(initialData?.brandId || "");
     const [materialId, setMaterialId] = useState(initialData?.materialId || "");
     
+    // New: Warehouse Selection (Only for creation mainly, or if we want to show where it is? 
+    // Actually for 'Create', it sets the initial inventory location. 
+    // For 'Edit', stock is managed via inventory tab, so this might be less relevant or read-only/hidden.
+    // For now, let's allow it but it only affects creation logic in backend typically unless we handle it.)
+    const [warehouseId, setWarehouseId] = useState("");
+
     // Media State
     const [imageUrl, setImageUrl] = useState<string>(initialData?.imageUrl || "");
     const [gallery, setGallery] = useState<string[]>(initialData?.images?.map(img => img.url) || []);
@@ -116,7 +135,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 status,
                 categoryId: categoryId || undefined,
                 brandId: brandId || undefined,
-                materialId: materialId || undefined
+                materialId: materialId || undefined,
+                warehouseId: warehouseId || undefined
             };
 
             if (initialData) {
@@ -142,6 +162,18 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         } finally {
             setLoading(false);
         }
+    };
+
+    const linkStyle = {
+        fontSize: '11px',
+        color: '#b76e00', // Gold color similar to image
+        textDecoration: 'none',
+        borderBottom: '1px solid rgba(183, 110, 0, 0.4)',
+        paddingBottom: '0px',
+        marginTop: '6px',
+        display: 'inline-block',
+        transition: 'all 0.2s ease',
+        fontWeight: 500
     };
 
     return (
@@ -250,7 +282,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                             </div>
 
                             <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Stock Quantity</label>
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Initial Stock</label>
                                 <input 
                                     className="form-input" 
                                     type="number"
@@ -266,7 +298,6 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                             </div>
                         </div>
                     </div>
-
                 </div>
 
                 {/* Right Column: Media & Organization */}
@@ -303,84 +334,85 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                          
                          <div className="admin-form-group">
                             <label className="stat-label" style={{ fontSize: '11px' }}>Status</label>
-                            <select 
-                                className="form-input" 
+                            <AdminDropdown
                                 value={status}
-                                onChange={(e) => setStatus(e.target.value)}
+                                onChange={setStatus}
                                 disabled={loading}
-                            >
-                                <option value="active">Active</option>
-                                <option value="draft">Draft</option>
-                                <option value="archived">Archived</option>
-                            </select>
+                                options={[
+                                    { value: 'active', label: 'Active' },
+                                    { value: 'draft', label: 'Draft' },
+                                    { value: 'archived', label: 'Archived' },
+                                ]}
+                            />
                          </div>
 
                          <div className="admin-form-group" style={{ marginTop: '16px' }}>
                             <label className="stat-label" style={{ fontSize: '11px' }}>Category</label>
-                            <select 
-                                className="form-input"
+                            <AdminDropdown
                                 value={categoryId}
-                                onChange={(e) => setCategoryId(e.target.value)}
+                                onChange={setCategoryId}
                                 disabled={loading}
-                            >
-                                <option value="">No Category</option>
-                                {categories.map(cat => (
-                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                ))}
-                            </select>
-                            <Link 
-                                href="/admin/categories" 
-                                style={{ fontSize: '11px', color: 'var(--admin-accent)', marginTop: '4px', display: 'inline-block' }}
-                            >
+                                options={[
+                                    { value: '', label: 'No Category' },
+                                    ...categories.map(cat => ({ value: cat.id, label: cat.name }))
+                                ]}
+                            />
+                            <Link href="/admin/categories" style={linkStyle}>
                                 Manage Categories →
                             </Link>
                          </div>
 
                          <div className="admin-form-group" style={{ marginTop: '16px' }}>
                             <label className="stat-label" style={{ fontSize: '11px' }}>Brand</label>
-                            <select 
-                                className="form-input"
+                            <AdminDropdown
                                 value={brandId}
-                                onChange={(e) => setBrandId(e.target.value)}
+                                onChange={setBrandId}
                                 disabled={loading}
-                            >
-                                <option value="">No Brand</option>
-                                {brands.map(b => (
-                                    <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                            </select>
-                            <Link 
-                                href="/admin/categories" 
-                                style={{ fontSize: '11px', color: 'var(--admin-accent)', marginTop: '4px', display: 'inline-block' }}
-                            >
+                                options={[
+                                    { value: '', label: 'No Brand' },
+                                    ...brands.map(b => ({ value: b.id, label: b.name }))
+                                ]}
+                            />
+                            <Link href="/admin/brands" style={linkStyle}>
                                 Manage Brands →
                             </Link>
                          </div>
 
                          <div className="admin-form-group" style={{ marginTop: '16px' }}>
                             <label className="stat-label" style={{ fontSize: '11px' }}>Strap Material</label>
-                            <select 
-                                className="form-input"
+                            <AdminDropdown
                                 value={materialId}
-                                onChange={(e) => setMaterialId(e.target.value)}
+                                onChange={setMaterialId}
                                 disabled={loading}
-                            >
-                                <option value="">No Material</option>
-                                {materials.map(m => (
-                                    <option key={m.id} value={m.id}>{m.name}</option>
-                                ))}
-                            </select>
-                            <Link 
-                                href="/admin/categories" 
-                                style={{ fontSize: '11px', color: 'var(--admin-accent)', marginTop: '4px', display: 'inline-block' }}
-                            >
+                                options={[
+                                    { value: '', label: 'No Material' },
+                                    ...materials.map(m => ({ value: m.id, label: m.name }))
+                                ]}
+                            />
+                            <Link href="/admin/materials" style={linkStyle}>
                                 Manage Materials →
                             </Link>
                          </div>
-                    </div>
+
+                         <div className="admin-form-group" style={{ marginTop: '16px' }}>
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Inventory Location</label>
+                            <AdminDropdown
+                                value={warehouseId}
+                                onChange={setWarehouseId}
+                                options={[
+                                    { value: '', label: 'Default Warehouse' },
+                                    ...warehouses.map(w => ({ value: w.id, label: w.name }))
+                                ]}
+                                placeholder="Target Warehouse"
+                            />
+                            <Link href="/admin/inventory/warehouses" style={linkStyle}>
+                                Manage Warehouses →
+                            </Link>
+                         </div>
 
                 </div>
             </div>
+        </div>
         </form>
     );
 }

@@ -26,7 +26,6 @@ export default function TransfersPage() {
     const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 });
 
     const loadTransfers = useCallback(async (page = 1) => {
-        setLoading(true);
         const res = await fetchTransfers({ 
             status: statusFilter !== 'ALL' ? statusFilter : undefined,
             page 
@@ -36,37 +35,35 @@ export default function TransfersPage() {
         setLoading(false);
     }, [statusFilter]);
 
-    const loadWarehouses = useCallback(async () => {
-        const data = await fetchWarehouses();
-        setWarehouses(data);
-    }, []);
-
     useEffect(() => {
         if (!permLoading && hasPermission('INVENTORY_MANAGE')) {
-            loadTransfers();
-            loadWarehouses();
+            const timer = setTimeout(() => {
+                void loadTransfers();
+                fetchWarehouses().then(setWarehouses);
+            }, 0);
+            return () => clearTimeout(timer);
         }
-    }, [permLoading, hasPermission, loadTransfers, loadWarehouses]);
+    }, [permLoading, hasPermission, loadTransfers]);
 
     const handleApprove = async (transfer: TransferWithDetails) => {
         if (!confirm('Approve this transfer? Stock will be reserved from source warehouse.')) return;
         const res = await approveTransfer(transfer.id);
         if ('error' in res) toast.error(res.error);
-        else { toast.success('Transfer approved'); loadTransfers(meta.page); }
+        else { toast.success('Transfer approved'); setLoading(true); loadTransfers(meta.page); }
     };
 
     const handleShip = async (transfer: TransferWithDetails) => {
         if (!confirm('Mark as shipped? Stock will be deducted from source warehouse.')) return;
         const res = await shipTransfer(transfer.id);
         if ('error' in res) toast.error(res.error);
-        else { toast.success('Transfer shipped'); loadTransfers(meta.page); }
+        else { toast.success('Transfer shipped'); setLoading(true); loadTransfers(meta.page); }
     };
 
     const handleReceive = async (transfer: TransferWithDetails) => {
         if (!confirm('Mark as received? Stock will be added to destination warehouse.')) return;
         const res = await receiveTransfer(transfer.id);
         if ('error' in res) toast.error(res.error);
-        else { toast.success('Transfer received'); loadTransfers(meta.page); }
+        else { toast.success('Transfer received'); setLoading(true); loadTransfers(meta.page); }
     };
 
     const handleCancel = async (transfer: TransferWithDetails) => {
@@ -74,14 +71,7 @@ export default function TransfersPage() {
         if (!reason) return;
         const res = await cancelTransfer(transfer.id, reason);
         if ('error' in res) toast.error(res.error);
-        else { toast.success('Transfer cancelled'); loadTransfers(meta.page); }
-    };
-
-    const formatDate = (date: Date | null) => {
-        if (!date) return '-';
-        return new Date(date).toLocaleDateString('en-GB', { 
-            day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
-        });
+        else { toast.success('Transfer cancelled'); setLoading(true); loadTransfers(meta.page); }
     };
 
     if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
@@ -99,7 +89,7 @@ export default function TransfersPage() {
                     onClick={() => setShowCreate(true)}
                     className="admin-btn admin-btn-primary"
                 >
-                    + New Transfer
+                    + Create Transfer
                 </button>
             </div>
 
@@ -111,12 +101,12 @@ export default function TransfersPage() {
             </div>
 
             {/* Toolbar */}
-            <div className="admin-toolbar">
+            <div className="admin-toolbar" style={{ marginBottom: '24px' }}>
                 <div className="admin-tabs-container">
                     {['ALL', 'PENDING', 'APPROVED', 'IN_TRANSIT', 'RECEIVED', 'CANCELLED'].map(status => (
                         <button
                             key={status}
-                            onClick={() => setStatusFilter(status)}
+                            onClick={() => { setLoading(true); setStatusFilter(status); }}
                             className={`admin-tab-pill ${statusFilter === status ? 'active' : ''}`}
                         >
                             {status === 'ALL' ? 'All' : statusConfig[status]?.label || status}
@@ -126,174 +116,137 @@ export default function TransfersPage() {
             </div>
 
             {/* Table */}
-            {loading ? (
-                <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                    Loading transfers...
-                </div>
-            ) : transfers.length > 0 ? (
-                <div className="admin-table-container">
-                    <table className="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Transfer #</th>
-                                <th>Route</th>
-                                <th style={{ textAlign: 'center' }}>Items</th>
-                                <th style={{ textAlign: 'center' }}>Qty</th>
-                                <th style={{ textAlign: 'center' }}>Status</th>
-                                <th>Created</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {transfers.map((transfer) => {
-                                const status = statusConfig[transfer.status] || statusConfig.PENDING;
-                                return (
-                                    <tr key={transfer.id}>
-                                        <td>
-                                            <div style={{ fontWeight: 600, fontFamily: 'monospace' }}>{transfer.transferNumber}</div>
-                                            {transfer.createdByName && (
-                                                <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)' }}>
-                                                    by {transfer.createdByName}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="admin-table-container">
+                {loading ? (
+                    <div style={{ padding: '60px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
+                        Loading transfers...
+                    </div>
+                ) : transfers.length > 0 ? (
+                    <>
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Source</th>
+                                    <th>Destination</th>
+                                    <th style={{ textAlign: 'center' }}>Items</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th style={{ textAlign: 'right' }}>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {transfers.map(transfer => {
+                                    const statusInfo = statusConfig[transfer.status] || statusConfig.PENDING;
+                                    return (
+                                        <tr key={transfer.id}>
+                                            <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                                                {transfer.transferNumber}
+                                            </td>
+                                            <td>{transfer.fromWarehouseName}</td>
+                                            <td>{transfer.toWarehouseName}</td>
+                                            <td style={{ textAlign: 'center' }}>{transfer.itemCount}</td>
+                                            <td>
                                                 <span style={{ 
-                                                    padding: '4px 8px', 
-                                                    borderRadius: '6px', 
-                                                    background: 'rgba(0,0,0,0.05)',
-                                                    fontSize: '12px'
+                                                    padding: '4px 10px', 
+                                                    borderRadius: '99px',
+                                                    fontSize: '11px',
+                                                    fontWeight: 600,
+                                                    background: statusInfo.bgColor,
+                                                    color: statusInfo.color
                                                 }}>
-                                                    {transfer.fromWarehouseName}
+                                                    {statusInfo.label}
                                                 </span>
-                                                <span style={{ color: 'var(--admin-text-muted)' }}>→</span>
-                                                <span style={{ 
-                                                    padding: '4px 8px', 
-                                                    borderRadius: '6px', 
-                                                    background: 'rgba(0,0,0,0.05)',
-                                                    fontSize: '12px'
-                                                }}>
-                                                    {transfer.toWarehouseName}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td style={{ textAlign: 'center', fontWeight: 600 }}>{transfer.itemCount}</td>
-                                        <td style={{ textAlign: 'center', fontWeight: 600 }}>{transfer.totalQuantity}</td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            <span style={{
-                                                display: 'inline-block',
-                                                padding: '4px 12px',
-                                                borderRadius: '99px',
-                                                fontSize: '11px',
-                                                fontWeight: 600,
-                                                textTransform: 'uppercase',
-                                                letterSpacing: '0.5px',
-                                                background: status.bgColor,
-                                                color: status.color,
-                                                border: `1px solid ${status.color}30`
-                                            }}>
-                                                {status.label}
-                                            </span>
-                                        </td>
-                                        <td style={{ fontSize: '13px', color: 'var(--admin-text-muted)' }}>
-                                            {formatDate(transfer.createdAt)}
-                                        </td>
-                                        <td style={{ textAlign: 'right' }}>
-                                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                                            </td>
+                                            <td style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
+                                                {new Date(transfer.createdAt).toLocaleDateString()}
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
                                                 {transfer.status === 'PENDING' && (
-                                                    <>
-                                                        <button
+                                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                        <button 
                                                             onClick={() => handleApprove(transfer)}
-                                                            className="admin-btn admin-btn-outline"
-                                                            style={{ padding: '6px 12px', fontSize: '11px' }}
+                                                            className="admin-btn admin-btn-primary"
+                                                            style={{ padding: '4px 10px', fontSize: '11px' }}
                                                         >
                                                             Approve
                                                         </button>
-                                                        <button
+                                                        <button 
                                                             onClick={() => handleCancel(transfer)}
                                                             className="admin-btn admin-btn-outline"
-                                                            style={{ padding: '6px 12px', fontSize: '11px', color: '#991b1b' }}
+                                                            style={{ padding: '4px 10px', fontSize: '11px', color: '#991b1b' }}
                                                         >
                                                             Cancel
                                                         </button>
-                                                    </>
+                                                    </div>
                                                 )}
                                                 {transfer.status === 'APPROVED' && (
-                                                    <button
+                                                    <button 
                                                         onClick={() => handleShip(transfer)}
                                                         className="admin-btn admin-btn-primary"
-                                                        style={{ padding: '6px 12px', fontSize: '11px' }}
+                                                        style={{ padding: '4px 10px', fontSize: '11px' }}
                                                     >
-                                                        Ship
+                                                        Mark Shipped
                                                     </button>
                                                 )}
                                                 {transfer.status === 'IN_TRANSIT' && (
-                                                    <button
+                                                    <button 
                                                         onClick={() => handleReceive(transfer)}
                                                         className="admin-btn admin-btn-primary"
-                                                        style={{ padding: '6px 12px', fontSize: '11px' }}
+                                                        style={{ padding: '4px 10px', fontSize: '11px' }}
                                                     >
                                                         Receive
                                                     </button>
                                                 )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            ) : (
-                <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔄</div>
-                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', marginBottom: '8px', color: 'var(--admin-text-on-light)' }}>
-                        No transfers found
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                        
+                        {/* Pagination */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', gap: '12px' }}>
+                            <button
+                                onClick={() => { setLoading(true); loadTransfers(meta.page - 1); }}
+                                className="admin-btn admin-btn-outline"
+                                disabled={meta.page <= 1}
+                                style={{ opacity: meta.page <= 1 ? 0.5 : 1 }}
+                            >
+                                Previous
+                            </button>
+                            <span style={{ padding: '10px 16px', fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                                Page {meta.page} of {meta.totalPages}
+                            </span>
+                            <button
+                                onClick={() => { setLoading(true); loadTransfers(meta.page + 1); }}
+                                className="admin-btn admin-btn-outline"
+                                disabled={meta.page >= meta.totalPages}
+                                style={{ opacity: meta.page >= meta.totalPages ? 0.5 : 1 }}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <div style={{ padding: '60px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚚</div>
+                        <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', marginBottom: '8px', color: 'var(--admin-text-on-light)' }}>
+                            No transfers found
+                        </div>
+                        <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)' }}>
+                            {statusFilter !== 'ALL' ? 'No transfers matching the selected status.' : 'Create your first stock transfer to move inventory.'}
+                        </div>
                     </div>
-                    <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)', marginBottom: '24px' }}>
-                        {statusFilter !== 'ALL' ? 'Try changing the filter or ' : ''}Create your first transfer to move stock between warehouses.
-                    </div>
-                    <button
-                        onClick={() => setShowCreate(true)}
-                        className="admin-btn admin-btn-primary"
-                    >
-                        + Create Transfer
-                    </button>
-                </div>
-            )}
-
-            {/* Pagination */}
-            {meta.totalPages > 1 && (
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '40px' }}>
-                    <button
-                        onClick={() => loadTransfers(meta.page - 1)}
-                        className="admin-btn admin-btn-outline"
-                        disabled={meta.page <= 1}
-                        style={{ opacity: meta.page <= 1 ? 0.5 : 1 }}
-                    >
-                        Previous
-                    </button>
-                    <span style={{ padding: '10px 16px', fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                        Page {meta.page} of {meta.totalPages}
-                    </span>
-                    <button
-                        onClick={() => loadTransfers(meta.page + 1)}
-                        className="admin-btn admin-btn-outline"
-                        disabled={meta.page >= meta.totalPages}
-                        style={{ opacity: meta.page >= meta.totalPages ? 0.5 : 1 }}
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Create Dialog */}
             {showCreate && (
                 <CreateTransferDialog
                     warehouses={warehouses}
                     onClose={() => setShowCreate(false)}
-                    onSuccess={() => { setShowCreate(false); loadTransfers(); }}
+                    onSuccess={() => { setShowCreate(false); setLoading(true); loadTransfers(); }}
                 />
             )}
         </div>

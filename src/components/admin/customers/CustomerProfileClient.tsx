@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { CustomerDetailsPro, updateCustomerProfile, addCustomerTag, removeCustomerTag } from '@/lib/actions/customer-pro';
 import { toast } from 'sonner';
 import '@/app/admin/admin.css';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface CustomerProfileProps {
     customer: CustomerDetailsPro;
@@ -141,15 +142,15 @@ export default function CustomerProfileClient({ customer }: CustomerProfileProps
                                 </div>
                                 <div>
                                     <label className="admin-label" style={{ fontSize: '11px' }}>Status</label>
-                                    <select 
-                                        className="form-input"
+                                    <AdminDropdown
                                         value={editForm.status}
-                                        onChange={e => setEditForm({...editForm, status: e.target.value})}
-                                    >
-                                        <option value="active">Active</option>
-                                        <option value="banned">Banned</option>
-                                        <option value="archived">Archived</option>
-                                    </select>
+                                        onChange={(val) => setEditForm({...editForm, status: val})}
+                                        options={[
+                                            { value: 'active', label: 'Active' },
+                                            { value: 'banned', label: 'Banned' },
+                                            { value: 'archived', label: 'Archived' },
+                                        ]}
+                                    />
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                                     <button type="submit" disabled={loading} className="admin-btn admin-btn-primary" style={{ flex: 1 }}>Save</button>
