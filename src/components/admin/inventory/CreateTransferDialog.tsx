@@ -5,6 +5,7 @@ import { createTransfer, fetchInventoryForTransfer } from '@/lib/actions/transfe
 import { WarehouseWithStats } from '@/lib/actions/warehouse-actions';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface CreateTransferDialogProps {
     warehouses: WarehouseWithStats[];
@@ -141,36 +142,38 @@ export default function CreateTransferDialog({ warehouses, onClose, onSuccess }:
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '16px', alignItems: 'center' }}>
                             <div className="admin-form-group">
                                 <label>From Warehouse</label>
-                                <select
+                                <AdminDropdown
                                     value={fromWarehouseId}
-                                    onChange={(e) => setFromWarehouseId(e.target.value)}
-                                    className="form-input"
-                                >
-                                    <option value="">Select source...</option>
-                                    {warehouses.map(w => (
-                                        <option key={w.id} value={w.id} disabled={w.id === toWarehouseId}>
-                                            {w.name} ({w.totalQuantity} units)
-                                        </option>
-                                    ))}
-                                </select>
+                                    onChange={setFromWarehouseId}
+                                    placeholder="Select source..."
+                                    options={[
+                                        { value: '', label: 'Select source...' },
+                                        ...warehouses.map(w => ({ 
+                                            value: w.id, 
+                                            label: `${w.name} (${w.totalQuantity} units)`,
+                                            disabled: w.id === toWarehouseId 
+                                        }))
+                                    ]}
+                                />
                             </div>
                             
                             <div style={{ fontSize: '24px', color: 'var(--admin-text-muted)', marginTop: '20px' }}>→</div>
                             
                             <div className="admin-form-group">
                                 <label>To Warehouse</label>
-                                <select
+                                <AdminDropdown
                                     value={toWarehouseId}
-                                    onChange={(e) => setToWarehouseId(e.target.value)}
-                                    className="form-input"
-                                >
-                                    <option value="">Select destination...</option>
-                                    {warehouses.map(w => (
-                                        <option key={w.id} value={w.id} disabled={w.id === fromWarehouseId}>
-                                            {w.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    onChange={setToWarehouseId}
+                                    placeholder="Select destination..."
+                                    options={[
+                                        { value: '', label: 'Select destination...' },
+                                        ...warehouses.map(w => ({ 
+                                            value: w.id, 
+                                            label: w.name,
+                                            disabled: w.id === fromWarehouseId 
+                                        }))
+                                    ]}
+                                />
                             </div>
                         </div>
 

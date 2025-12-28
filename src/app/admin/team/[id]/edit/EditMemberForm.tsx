@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { updateTeamMember, type TeamMember, type TeamMemberData } from '@/lib/actions/team';
 import ImageUpload from '@/components/admin/ImageUpload';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface Props {
     member: TeamMember;
@@ -224,18 +225,18 @@ export default function EditMemberForm({ member, roles }: Props) {
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
                             Role / Permissions
                         </label>
-                        <select
-                            value={formData.roleId}
-                            onChange={(e) => handleChange('roleId', e.target.value)}
-                            style={inputStyle}
-                        >
-                            <option value="">No Role</option>
-                            {roles.map(role => (
-                                <option key={role.id} value={role.id}>
-                                    {role.name} {role.description ? `- ${role.description}` : ''}
-                                </option>
-                            ))}
-                        </select>
+                        <AdminDropdown
+                            value={formData.roleId || ''}
+                            onChange={(val) => handleChange('roleId', val)}
+                            placeholder="No Role"
+                            options={[
+                                { value: '', label: 'No Role' },
+                                ...roles.map(role => ({ 
+                                    value: role.id, 
+                                    label: role.name + (role.description ? ` - ${role.description}` : '')
+                                }))
+                            ]}
+                        />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>

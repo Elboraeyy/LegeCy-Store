@@ -5,6 +5,7 @@ import { useAdminPermissions } from '@/hooks/useAdminPermissions';
 import { fetchInventoryPro, fetchAllWarehouses, InventoryItemPro } from '@/lib/actions/inventory-pro';
 import InventoryTablePro from '@/components/admin/inventory/InventoryTablePro';
 import { useRouter, useSearchParams } from 'next/navigation';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 export default function InventoryPage() {
     const { hasPermission, isLoading: permLoading } = useAdminPermissions();
@@ -156,15 +157,15 @@ export default function InventoryPage() {
 
                 {/* Search & Filters */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <select 
+                    <AdminDropdown
                         value={selectedWarehouse}
-                        onChange={(e) => { setSelectedWarehouse(e.target.value); updateFilters('warehouse', e.target.value); }}
-                        className="form-input"
-                        style={{ width: 'auto', minWidth: '180px', borderRadius: '99px', padding: '10px 16px', fontSize: '13px' }}
-                    >
-                        <option value="ALL">All Warehouses</option>
-                        {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                    </select>
+                        onChange={(val) => { setSelectedWarehouse(val); updateFilters('warehouse', val); }}
+                        variant="pill"
+                        options={[
+                            { value: 'ALL', label: 'All Warehouses' },
+                            ...warehouses.map(w => ({ value: w.id, label: w.name }))
+                        ]}
+                    />
 
                     <div className="admin-search-wrapper">
                         <span className="admin-search-icon">🔍</span>

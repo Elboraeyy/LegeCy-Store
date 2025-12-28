@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { transferStock, fetchAllWarehouses, InventoryItemPro } from '@/lib/actions/inventory-pro';
 import { toast } from 'sonner';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface StockTransferDialogProps {
     item: InventoryItemPro;
@@ -80,16 +81,15 @@ export default function StockTransferDialog({ item, onClose, onSuccess }: StockT
                 {/* Target Warehouse */}
                 <div className="admin-form-group" style={{ marginBottom: '16px' }}>
                     <label>Transfer To</label>
-                    <select
-                        className="form-input"
+                    <AdminDropdown
                         value={targetWarehouseId}
-                        onChange={(e) => setTargetWarehouseId(e.target.value)}
-                    >
-                        <option value="">Select destination warehouse...</option>
-                        {warehouses.map(w => (
-                            <option key={w.id} value={w.id}>{w.name}</option>
-                        ))}
-                    </select>
+                        onChange={setTargetWarehouseId}
+                        placeholder="Select destination warehouse..."
+                        options={[
+                            { value: '', label: 'Select destination warehouse...' },
+                            ...warehouses.map(w => ({ value: w.id, label: w.name }))
+                        ]}
+                    />
                 </div>
 
                 {/* Quantity */}

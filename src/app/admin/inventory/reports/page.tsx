@@ -15,6 +15,14 @@ import {
 } from '@/lib/actions/inventory-reports';
 import Link from 'next/link';
 
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-EG', {
+        style: 'currency',
+        currency: 'EGP',
+        maximumFractionDigits: 0,
+    }).format(amount);
+};
+
 export default function ReportsPage() {
     const { hasPermission, isLoading: permLoading } = useAdminPermissions();
     const [loading, setLoading] = useState(true);
@@ -25,7 +33,6 @@ export default function ReportsPage() {
     const [activity, setActivity] = useState({ recentAdjustments: 0, pendingTransfers: 0, activeAlerts: 0, activeCounts: 0 });
 
     const loadReports = useCallback(async () => {
-        setLoading(true);
         const [val, mov, low, comp, act] = await Promise.all([
             getInventoryValuation(),
             getStockMovementReport(7),
@@ -43,11 +50,13 @@ export default function ReportsPage() {
 
     useEffect(() => {
         if (!permLoading && hasPermission('INVENTORY_MANAGE')) {
-            loadReports();
+            const timer = setTimeout(() => {
+                void loadReports();
+            }, 0);
+            return () => clearTimeout(timer);
         }
     }, [permLoading, hasPermission, loadReports]);
 
-    const formatCurrency = (val: number) => `EGP ${val.toLocaleString('en-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
     if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>Access Denied</div>;
@@ -58,10 +67,10 @@ export default function ReportsPage() {
             <div className="admin-header">
                 <div>
                     <h1 className="admin-title">Inventory Reports</h1>
-                    <p className="admin-subtitle">Analytics and insights for your stock</p>
+                    <p className="admin-subtitle">Deep dive into your inventory health and value</p>
                 </div>
                 <button 
-                    onClick={loadReports}
+                    onClick={() => { setLoading(true); loadReports(); }}
                     className="admin-btn admin-btn-primary"
                     disabled={loading}
                 >

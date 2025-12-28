@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createTeamMember, type TeamMemberData } from '@/lib/actions/team';
 import ImageUpload from '@/components/admin/ImageUpload';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface Props {
     roles: { id: string; name: string; description: string | null }[];
@@ -233,18 +234,18 @@ export default function AddMemberForm({ roles }: Props) {
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
                             Role / Permissions
                         </label>
-                        <select
-                            value={formData.roleId}
-                            onChange={(e) => handleChange('roleId', e.target.value)}
-                            style={inputStyle}
-                        >
-                            <option value="">Select a role</option>
-                            {roles.map(role => (
-                                <option key={role.id} value={role.id}>
-                                    {role.name} {role.description ? `- ${role.description}` : ''}
-                                </option>
-                            ))}
-                        </select>
+                        <AdminDropdown
+                            value={formData.roleId || ''}
+                            onChange={(val) => handleChange('roleId', val)}
+                            placeholder="Select a role"
+                            options={[
+                                { value: '', label: 'Select a role' },
+                                ...roles.map(role => ({ 
+                                    value: role.id, 
+                                    label: role.name + (role.description ? ` - ${role.description}` : '')
+                                }))
+                            ]}
+                        />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createWarehouse, updateWarehouse, fetchAdminUsersForDropdown, WarehouseFormData, WarehouseWithStats } from '@/lib/actions/warehouse-actions';
 import { toast } from 'sonner';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 interface WarehouseFormDialogProps {
     warehouse: WarehouseWithStats | null;
@@ -111,16 +112,11 @@ export default function WarehouseFormDialog({ warehouse, onClose, onSuccess }: W
                     {/* Type */}
                     <div className="admin-form-group">
                         <label>Type</label>
-                        <select
-                            name="type"
-                            value={form.type}
-                            onChange={handleChange}
-                            className="form-input"
-                        >
-                            {warehouseTypes.map(t => (
-                                <option key={t.value} value={t.value}>{t.label}</option>
-                            ))}
-                        </select>
+                        <AdminDropdown
+                            value={form.type || 'MAIN'}
+                            onChange={(val) => setForm(prev => ({ ...prev, type: val }))}
+                            options={warehouseTypes.map(t => ({ value: t.value, label: t.label }))}
+                        />
                     </div>
 
                     {/* Divider */}
@@ -197,17 +193,14 @@ export default function WarehouseFormDialog({ warehouse, onClose, onSuccess }: W
                     {/* Manager */}
                     <div className="admin-form-group" style={{ gridColumn: 'span 2' }}>
                         <label>Warehouse Manager</label>
-                        <select
-                            name="managerId"
-                            value={form.managerId}
-                            onChange={handleChange}
-                            className="form-input"
-                        >
-                            <option value="">No manager assigned</option>
-                            {admins.map(a => (
-                                <option key={a.id} value={a.id}>{a.name}</option>
-                            ))}
-                        </select>
+                        <AdminDropdown
+                            value={form.managerId || ''}
+                            onChange={(val) => setForm(prev => ({ ...prev, managerId: val }))}
+                            options={[
+                                { value: '', label: 'No manager assigned' },
+                                ...admins.map(a => ({ value: a.id, label: a.name }))
+                            ]}
+                        />
                     </div>
 
                     {/* Notes */}

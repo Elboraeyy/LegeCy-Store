@@ -599,20 +599,207 @@ textarea.form-input {
   line-height: 1.6;
 }
 
-/* Select Styling */
+/* ============================================
+   Premium Dropdown Styling
+   ============================================ */
+
+/* Base Select Styling */
 select.form-input {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c6b66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  /* Custom Styling */
+    background-color: #fff;
+    background-image:
+      /* Chevron Icon */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235c6b66' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
-  padding-right: 40px;
+  background-size: 14px;
+  
+    /* Spacing */
+    padding: 14px 48px 14px 18px;
+  
+    /* Typography */
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--admin-text-on-light);
+  
+    /* Border & Shape */
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-sm);
+  
+    /* Smooth Transitions */
+    transition:
+      border-color 0.25s ease,
+      box-shadow 0.25s ease,
+      background-color 0.25s ease,
+      transform 0.15s ease;
+  
+    /* Interaction */
   cursor: pointer;
+  position: relative;
 }
 
+/* Hover State */
+select.form-input:hover {
+  border-color: rgba(26, 60, 52, 0.3);
+  background-color: rgba(248, 248, 246, 0.8);
+  box-shadow: 0 2px 8px rgba(26, 60, 52, 0.06);
+}
+
+/* Focus State - Premium Gold Accent */
 select.form-input:focus {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231a3c34' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  outline: none;
+    border-color: var(--admin-accent);
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    box-shadow:
+      0 0 0 4px rgba(212, 175, 55, 0.12),
+      0 4px 12px rgba(26, 60, 52, 0.08);
+  }
+  
+  /* Active/Open State */
+  select.form-input:active {
+    transform: scale(0.99);
+  }
+  
+  /* Disabled State */
+  select.form-input:disabled {
+    background-color: var(--admin-surface-light);
+    color: var(--admin-text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-color: transparent;
+  }
+  
+  /* Select Option Styling (Limited browser support but good for Chrome) */
+  select.form-input option {
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    background: #fff;
+    color: var(--admin-text-on-light);
+  }
+  
+  select.form-input option:hover,
+  select.form-input option:focus {
+    background: var(--admin-surface-light);
+  }
+  
+  select.form-input option:checked {
+    background: linear-gradient(135deg, var(--admin-bg-dark), #2d5a4a);
+    color: #fff;
+  }
+  
+  select.form-input option:disabled {
+    color: var(--admin-text-muted);
+    font-style: italic;
+  }
+  
+  /* Pill-shaped Dropdown Variant */
+  select.form-input.admin-select-pill {
+    border-radius: 99px;
+    padding: 10px 44px 10px 20px;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    min-width: 160px;
+  }
+  
+  /* Small Dropdown Variant */
+  select.form-input.admin-select-sm {
+    padding: 8px 36px 8px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+    background-position: right 12px center;
+    background-size: 12px;
+  }
+  
+  /* Large Dropdown Variant */
+  select.form-input.admin-select-lg {
+    padding: 16px 52px 16px 20px;
+    font-size: 15px;
+    border-radius: var(--admin-radius);
+    background-position: right 20px center;
+    background-size: 16px;
+  }
+  
+  /* Dark Theme Dropdown Variant */
+  select.form-input.admin-select-dark {
+    background-color: var(--admin-bg-dark);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.1);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+  
+  select.form-input.admin-select-dark:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background-color: #244a41;
+  }
+  
+  select.form-input.admin-select-dark:focus {
+    border-color: var(--admin-accent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    box-shadow:
+      0 0 0 4px rgba(212, 175, 55, 0.2),
+      0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Outline Style Dropdown */
+  select.form-input.admin-select-outline {
+    background-color: transparent;
+    border-width: 2px;
+  }
+  
+  select.form-input.admin-select-outline:hover {
+    background-color: rgba(26, 60, 52, 0.04);
+  }
+  
+  /* Dropdown with Icon Prefix - Use wrapper */
+  .admin-select-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .admin-select-wrapper .admin-select-icon {
+    position: absolute;
+    left: 16px;
+    pointer-events: none;
+    color: var(--admin-text-muted);
+    font-size: 16px;
+    z-index: 1;
+    transition: color 0.25s ease;
+  }
+  
+  .admin-select-wrapper select.form-input {
+    padding-left: 44px;
+  }
+  
+  .admin-select-wrapper:focus-within .admin-select-icon {
+    color: var(--admin-accent);
+  }
+  
+  /* Inline Toolbar Dropdown */
+  .admin-toolbar select.form-input {
+    border-radius: 99px;
+    padding: 10px 40px 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    min-width: 160px;
+    border-color: transparent;
+    background-color: var(--admin-surface-light);
+  }
+  
+  .admin-toolbar select.form-input:hover {
+    background-color: rgba(26, 60, 52, 0.08);
+    border-color: transparent;
+  }
+  
+  .admin-toolbar select.form-input:focus {
+    background-color: #fff;
+    border-color: var(--admin-accent);
 }
 
 /* Disabled States */
@@ -657,37 +844,37 @@ input[type="number"].form-input {
                                 
                                                                 .admin-tabs-container {
                                                                   display: flex;
-                                                                  background: var(--admin-surface-light);
                                                                   padding: 4px;
-                                                                  border-radius: 99px;
-                                                                  border: 1px solid rgba(0, 0, 0, 0.05);
-                                                                  gap: 4px;
+                                                                  gap: 6px;
+                                                                    flex-wrap: wrap;
                                                                 }
-                                
+                
                                                                 .admin-tab-pill {
                                                                   border-radius: 99px;
-                                                                  padding: 8px 24px;
+                                                                  padding: 8px 20px;
                                                                   font-size: 12px;
-                                                                  letter-spacing: 0.5px;
+                                                                  letter-spacing: 0.3px;
                                                                   text-transform: uppercase;
                                                                   color: var(--admin-text-muted);
                                                                   font-weight: 600;
                                                                   text-decoration: none;
-                                                                  transition: all 0.3s ease;
+                                                                  transition: all 0.2s ease;
                                                                   white-space: nowrap;
+                                                                  background: transparent;
+                                                                    border: none;
+                                                                    cursor: pointer;
                                                                 }
-                                
+                
                                                                 .admin-tab-pill:hover {
-                                                                  background: rgba(0, 0, 0, 0.03);
-                                                                  color: var(--admin-text-on-light);
+                                                                  background: rgba(26, 60, 52, 0.08);
+                                                                    color: var(--admin-bg-dark);
                                                                   text-decoration: none;
                                                                 }
-                                
+                
                                                                 .admin-tab-pill.active {
                                                                   background: var(--admin-bg-dark);
-                                                                  /* Deep Green */
                                                                   color: #fff;
-                                                                  box-shadow: 0 4px 12px rgba(26, 60, 52, 0.2);
+                                                                  box-shadow: 0 2px 8px rgba(26, 60, 52, 0.25);
                                                                 }
                                 
                                                                 .admin-search-wrapper {
@@ -1411,4 +1598,296 @@ input[type="number"].form-input {
 /* Tooltip Styling */
 .recharts-tooltip-wrapper {
   outline: none;
+}
+/* ============================================
+   Custom Admin Dropdown Component
+   ============================================ */
+
+/* Base Container */
+.admin-dropdown {
+  position: relative;
+  display: inline-flex;
+  min-width: 160px;
+}
+
+/* Trigger Button */
+.admin-dropdown__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--admin-text-on-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.admin-dropdown__trigger:hover {
+  border-color: rgba(26, 60, 52, 0.25);
+  background: rgba(248, 248, 246, 0.6);
+}
+
+.admin-dropdown--open .admin-dropdown__trigger {
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
+}
+
+/* Icon */
+.admin-dropdown__icon {
+  display: flex;
+  align-items: center;
+  color: var(--admin-text-muted);
+  font-size: 16px;
+}
+
+/* Label */
+.admin-dropdown__label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chevron Arrow */
+.admin-dropdown__chevron {
+  color: var(--admin-accent);
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.admin-dropdown__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu Panel */
+.admin-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  min-width: 100%;
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  box-shadow:
+    0 10px 40px rgba(26, 60, 52, 0.12),
+    0 4px 12px rgba(26, 60, 52, 0.08);
+  z-index: 1000;
+  animation: adminDropdownSlide 0.2s ease;
+  overflow: hidden;
+}
+
+@keyframes adminDropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-dropdown__menu-inner {
+  padding: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* Option Item */
+.admin-dropdown__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--admin-text-on-light);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.admin-dropdown__option:hover {
+  background: var(--admin-surface-light);
+}
+
+.admin-dropdown__option--selected {
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--admin-bg-dark);
+  font-weight: 600;
+}
+
+.admin-dropdown__option--selected:hover {
+  background: rgba(212, 175, 55, 0.18);
+}
+
+.admin-dropdown__option--disabled {
+  color: var(--admin-text-muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-dropdown__option--disabled:hover {
+  background: transparent;
+}
+
+/* Option Icon */
+.admin-dropdown__option-icon {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: var(--admin-text-muted);
+}
+
+.admin-dropdown__option--selected .admin-dropdown__option-icon {
+  color: var(--admin-accent);
+}
+
+/* Option Label */
+.admin-dropdown__option-label {
+  flex: 1;
+}
+
+/* Check Icon for Selected */
+.admin-dropdown__check {
+  color: var(--admin-accent);
+  flex-shrink: 0;
+}
+
+/* ============================================
+   Size Variants
+   ============================================ */
+
+/* Small */
+.admin-dropdown--sm .admin-dropdown__trigger {
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.admin-dropdown--sm .admin-dropdown__chevron {
+  width: 14px;
+  height: 14px;
+}
+
+.admin-dropdown--sm .admin-dropdown__menu {
+  border-radius: 8px;
+}
+
+.admin-dropdown--sm .admin-dropdown__option {
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+/* Large */
+.admin-dropdown--lg .admin-dropdown__trigger {
+  padding: 16px 20px;
+  font-size: 15px;
+  border-radius: var(--admin-radius);
+}
+
+.admin-dropdown--lg .admin-dropdown__chevron {
+  width: 18px;
+  height: 18px;
+}
+
+.admin-dropdown--lg .admin-dropdown__menu {
+  border-radius: var(--admin-radius);
+}
+
+.admin-dropdown--lg .admin-dropdown__option {
+  padding: 12px 16px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+
+/* ============================================
+   Style Variants
+   ============================================ */
+
+/* Pill Variant */
+.admin-dropdown--pill .admin-dropdown__trigger {
+  border-radius: 99px;
+  padding: 10px 18px;
+}
+
+.admin-dropdown--pill .admin-dropdown__menu {
+  border-radius: 16px;
+}
+
+.admin-dropdown--pill .admin-dropdown__option {
+  border-radius: 8px;
+}
+
+/* Outline Variant */
+.admin-dropdown--outline .admin-dropdown__trigger {
+  background: transparent;
+  border-width: 2px;
+}
+
+.admin-dropdown--outline .admin-dropdown__trigger:hover {
+  background: rgba(26, 60, 52, 0.04);
+}
+
+/* ============================================
+   Disabled State
+   ============================================ */
+
+.admin-dropdown--disabled .admin-dropdown__trigger {
+  background: var(--admin-surface-light);
+  color: var(--admin-text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.admin-dropdown--disabled .admin-dropdown__trigger:hover {
+  border-color: var(--admin-border);
+  background: var(--admin-surface-light);
+}
+
+.admin-dropdown--disabled .admin-dropdown__chevron {
+  color: var(--admin-text-muted);
+}
+
+/* ============================================
+   Toolbar Context
+   ============================================ */
+
+.admin-toolbar .admin-dropdown {
+  min-width: 140px;
+}
+
+.admin-toolbar .admin-dropdown__trigger {
+  border-color: transparent;
+  background: var(--admin-surface-light);
+  border-radius: 99px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.admin-toolbar .admin-dropdown__trigger:hover {
+  background: rgba(26, 60, 52, 0.08);
+}
+
+.admin-toolbar .admin-dropdown--open .admin-dropdown__trigger {
+  background: #fff;
+  border-color: var(--admin-accent);
 }

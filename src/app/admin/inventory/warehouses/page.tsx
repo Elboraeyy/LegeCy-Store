@@ -22,7 +22,6 @@ export default function WarehousesPage() {
     const [editingWarehouse, setEditingWarehouse] = useState<WarehouseWithStats | null>(null);
 
     const loadWarehouses = useCallback(async () => {
-        setLoading(true);
         const data = await fetchWarehouses();
         setWarehouses(data);
         setLoading(false);
@@ -30,7 +29,10 @@ export default function WarehousesPage() {
 
     useEffect(() => {
         if (!permLoading && hasPermission('INVENTORY_MANAGE')) {
-            loadWarehouses();
+            const timer = setTimeout(() => {
+                void loadWarehouses();
+            }, 0);
+            return () => clearTimeout(timer);
         }
     }, [permLoading, hasPermission, loadWarehouses]);
 
@@ -42,6 +44,7 @@ export default function WarehousesPage() {
             toast.error(res.error);
         } else {
             toast.success('Warehouse deleted successfully');
+            setLoading(true);
             loadWarehouses();
         }
     };
@@ -198,7 +201,7 @@ export default function WarehousesPage() {
                                         Edit
                                     </button>
                                     <Link
-                                        href={`/admin/inventory?warehouse=${warehouse.id}`}
+                                        href={`/admin/inventory/warehouses/${warehouse.id}/stock`}
                                         className="admin-btn admin-btn-outline"
                                         style={{ flex: 1, padding: '10px', fontSize: '12px', textAlign: 'center' }}
                                     >
@@ -240,7 +243,7 @@ export default function WarehousesPage() {
                 <WarehouseFormDialog
                     warehouse={editingWarehouse}
                     onClose={() => { setShowForm(false); setEditingWarehouse(null); }}
-                    onSuccess={() => { setShowForm(false); setEditingWarehouse(null); loadWarehouses(); }}
+                    onSuccess={() => { setShowForm(false); setEditingWarehouse(null); setLoading(true); loadWarehouses(); }}
                 />
             )}
         </div>

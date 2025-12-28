@@ -6,6 +6,7 @@ import { fetchAlerts, acknowledgeAlert, resolveAlert, bulkAcknowledgeAlerts, bul
 import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 
 const alertTypeConfig: Record<string, { label: string; color: string; bgColor: string; icon: string }> = {
     OUT_OF_STOCK: { label: 'Out of Stock', color: '#991b1b', bgColor: 'rgba(153, 27, 27, 0.1)', icon: '🚨' },
@@ -28,57 +29,59 @@ export default function AlertsPage() {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 });
 
-    const loadAlerts = useCallback(async (page = 1) => {
-        setLoading(true);
+    const loadAlerts = useCallback(async (page: number, status: string, type: string) => {
         const res = await fetchAlerts({ 
-            status: statusFilter !== 'ALL' ? statusFilter : undefined,
-            alertType: typeFilter !== 'ALL' ? typeFilter : undefined,
+            status: status !== 'ALL' ? status : undefined,
+            alertType: type !== 'ALL' ? type : undefined,
             page 
         });
         setAlerts(res.data);
         setMeta(res.meta);
         setSelectedIds([]);
         setLoading(false);
-    }, [statusFilter, typeFilter]);
+    }, []);
 
     // Data fetching in effect is the standard React pattern
     useEffect(() => {
         if (!permLoading && hasPermission('INVENTORY_MANAGE')) {
-            loadAlerts();
+            const timer = setTimeout(() => {
+                loadAlerts(1, statusFilter, typeFilter);
+            }, 0);
+            return () => clearTimeout(timer);
         }
-    }, [permLoading, hasPermission, loadAlerts]);
+    }, [permLoading, hasPermission, loadAlerts, statusFilter, typeFilter]);
 
     const handleAcknowledge = async (alert: AlertWithDetails) => {
         const res = await acknowledgeAlert(alert.id);
         if ('error' in res) toast.error(res.error);
-        else { toast.success('Alert acknowledged'); loadAlerts(meta.page); }
+        else { toast.success('Alert acknowledged'); loadAlerts(meta.page, statusFilter, typeFilter); }
     };
 
     const handleResolve = async (alert: AlertWithDetails) => {
         const note = prompt('Resolution note (optional):');
         const res = await resolveAlert(alert.id, note || undefined);
         if ('error' in res) toast.error(res.error);
-        else { toast.success('Alert resolved'); loadAlerts(meta.page); }
+        else { toast.success('Alert resolved'); loadAlerts(meta.page, statusFilter, typeFilter); }
     };
 
     const handleBulkAcknowledge = async () => {
         if (selectedIds.length === 0) return;
         const res = await bulkAcknowledgeAlerts(selectedIds);
         if ('error' in res) toast.error(res.error);
-        else { toast.success(`${res.count} alerts acknowledged`); loadAlerts(meta.page); }
+        else { toast.success(`${res.count} alerts acknowledged`); loadAlerts(meta.page, statusFilter, typeFilter); }
     };
 
     const handleBulkResolve = async () => {
         if (selectedIds.length === 0) return;
         const res = await bulkResolveAlerts(selectedIds);
         if ('error' in res) toast.error(res.error);
-        else { toast.success(`${res.count} alerts resolved`); loadAlerts(meta.page); }
+        else { toast.success(`${res.count} alerts resolved`); loadAlerts(meta.page, statusFilter, typeFilter); }
     };
 
     const handleGenerateAlerts = async () => {
         const res = await generateStockAlerts();
         if ('error' in res) toast.error(res.error);
-        else { toast.success(`${res.created} new alerts generated`); loadAlerts(); }
+        else { toast.success(`${res.created} new alerts generated`); loadAlerts(1, statusFilter, typeFilter); }
     };
 
     const toggleSelect = (id: string) => {
@@ -142,17 +145,18 @@ export default function AlertsPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <select
+                    <AdminDropdown
                         value={typeFilter}
-                        onChange={(e) => setTypeFilter(e.target.value)}
-                        className="form-input"
-                        style={{ width: 'auto', borderRadius: '99px', padding: '8px 16px', fontSize: '12px' }}
-                    >
-                        <option value="ALL">All Types</option>
-                        <option value="OUT_OF_STOCK">Out of Stock</option>
-                        <option value="LOW_STOCK">Low Stock</option>
-                        <option value="OVERSTOCK">Overstock</option>
-                    </select>
+                        onChange={setTypeFilter}
+                        variant="pill"
+                        size="sm"
+                        options={[
+                            { value: 'ALL', label: 'All Types' },
+                            { value: 'OUT_OF_STOCK', label: 'Out of Stock' },
+                            { value: 'LOW_STOCK', label: 'Low Stock' },
+                            { value: 'OVERSTOCK', label: 'Overstock' },
+                        ]}
+                    />
 
                     {selectedIds.length > 0 && (
                         <>
@@ -310,7 +314,7 @@ export default function AlertsPage() {
             {meta.totalPages > 1 && (
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '40px' }}>
                     <button
-                        onClick={() => loadAlerts(meta.page - 1)}
+                        onClick={() => loadAlerts(meta.page - 1, statusFilter, typeFilter)}
                         className="admin-btn admin-btn-outline"
                         disabled={meta.page <= 1}
                         style={{ opacity: meta.page <= 1 ? 0.5 : 1 }}
@@ -321,7 +325,7 @@ export default function AlertsPage() {
                         Page {meta.page} of {meta.totalPages}
                     </span>
                     <button
-                        onClick={() => loadAlerts(meta.page + 1)}
+                        onClick={() => loadAlerts(meta.page + 1, statusFilter, typeFilter)}
                         className="admin-btn admin-btn-outline"
                         disabled={meta.page >= meta.totalPages}
                         style={{ opacity: meta.page >= meta.totalPages ? 0.5 : 1 }}

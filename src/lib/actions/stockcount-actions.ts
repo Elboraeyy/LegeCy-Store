@@ -369,3 +369,97 @@ export async function cancelStockCount(id: string) {
         return { error: 'Failed to cancel stock count' };
     }
 }
+
+// Dashboard Stats
+export type StockCountStats = {
+    totalCountsThisMonth: number;
+    totalCountsAllTime: number;
+    activeInProgress: number;
+    draftCounts: number;
+    completedThisMonth: number;
+    accuracyRate: number;
+    totalPositiveVariance: number;
+    totalNegativeVariance: number;
+    topVarianceItems: { sku: string; productName: string; variance: number }[];
+};
+
+export async function fetchStockCountStats(): Promise<StockCountStats> {
+    try {
+        await validateAdminSession();
+        
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        // Get all counts
+        const [allCounts, monthCounts, inProgress, drafts] = await prisma.$transaction([
+            prisma.inventoryCount.count(),
+            prisma.inventoryCount.count({
+                where: { createdAt: { gte: startOfMonth } }
+            }),
+            prisma.inventoryCount.count({
+                where: { status: 'IN_PROGRESS' }
+            }),
+            prisma.inventoryCount.count({
+                where: { status: 'DRAFT' }
+            })
+        ]);
+        
+        // Completed this month
+        const completedThisMonth = await prisma.inventoryCount.count({
+            where: { 
+                status: 'COMPLETED',
+                completedAt: { gte: startOfMonth }
+            }
+        });
+        
+        // Calculate accuracy from completed counts
+        const completedCounts = await prisma.inventoryCount.findMany({
+            where: { status: 'COMPLETED' },
+            include: { items: { select: { variance: true, systemQty: true } } },
+            take: 100,
+            orderBy: { completedAt: 'desc' }
+        });
+        
+        let totalItems = 0;
+        let matchingItems = 0;
+        let positiveVariance = 0;
+        let negativeVariance = 0;
+        
+        for (const count of completedCounts) {
+            for (const item of count.items) {
+                totalItems++;
+                if (item.variance === 0) matchingItems++;
+                if (item.variance && item.variance > 0) positiveVariance += item.variance;
+                if (item.variance && item.variance < 0) negativeVariance += Math.abs(item.variance);
+            }
+        }
+        
+        
+        const accuracyRate = totalItems > 0 ? Math.round((matchingItems / totalItems) * 100) : 100;
+        
+        return {
+            totalCountsThisMonth: monthCounts,
+            totalCountsAllTime: allCounts,
+            activeInProgress: inProgress,
+            draftCounts: drafts,
+            completedThisMonth,
+            accuracyRate,
+            totalPositiveVariance: positiveVariance,
+            totalNegativeVariance: negativeVariance,
+            topVarianceItems: []
+        };
+    } catch (error) {
+        console.error('Failed to fetch stock count stats:', error);
+        return {
+            totalCountsThisMonth: 0,
+            totalCountsAllTime: 0,
+            activeInProgress: 0,
+            draftCounts: 0,
+            completedThisMonth: 0,
+            accuracyRate: 100,
+            totalPositiveVariance: 0,
+            totalNegativeVariance: 0,
+            topVarianceItems: []
+        };
+    }
+}

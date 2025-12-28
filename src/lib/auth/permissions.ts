@@ -21,6 +21,9 @@ export const AdminPermissions = {
         READ: 'TEAM_READ',
         MANAGE: 'TEAM_MANAGE',
         DELETE: 'TEAM_DELETE'
+    },
+    DASHBOARD: {
+        VIEW: 'DASHBOARD_VIEW'
     }
 } as const;
 
