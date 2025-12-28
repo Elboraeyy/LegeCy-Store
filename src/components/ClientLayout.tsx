@@ -1,8 +1,6 @@
 "use client";
 
 import React from "react";
-import Navbar from "./Navbar";
-import Footer from "./Footer";
 import { StoreProvider } from "@/context/StoreContext";
 import { ComparisonProvider } from "@/context/ComparisonContext";
 import CartDrawer from "./CartDrawer";
@@ -11,8 +9,12 @@ import { Toaster } from "sonner";
 
 export default function ClientLayout({
   children,
+  navbar,
+  footer,
 }: {
   children: React.ReactNode;
+  navbar: React.ReactNode;
+  footer: React.ReactNode;
 }) {
   return (
     <StoreProvider>
@@ -29,7 +31,7 @@ export default function ClientLayout({
             }
           }}
         />
-        <ClientLayoutContent>{children}</ClientLayoutContent>
+        <ClientLayoutContent navbar={navbar} footer={footer}>{children}</ClientLayoutContent>
     </StoreProvider>
   );
 }
@@ -37,7 +39,7 @@ export default function ClientLayout({
 // Inner component to use hooks safely
 import { usePathname } from "next/navigation";
 
-function ClientLayoutContent({ children }: { children: React.ReactNode }) {
+function ClientLayoutContent({ children, navbar, footer }: { children: React.ReactNode; navbar: React.ReactNode; footer: React.ReactNode }) {
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith('/admin');
 
@@ -51,10 +53,10 @@ function ClientLayoutContent({ children }: { children: React.ReactNode }) {
 
     return (
       <ComparisonProvider>
-        <Navbar />
+        {navbar}
         <CartDrawer />
         {children}
-        <Footer />
+        {footer}
       </ComparisonProvider>
     );
 }

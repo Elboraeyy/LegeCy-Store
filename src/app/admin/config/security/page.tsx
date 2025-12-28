@@ -5,6 +5,7 @@ import { getStoreConfig, updateStoreConfig, SecuritySettings } from '@/lib/actio
 import SettingsSection from '@/components/admin/settings/SettingsSection';
 import SettingsField from '@/components/admin/settings/SettingsField';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { toast } from 'sonner';
 
 const defaultSettings: SecuritySettings = {
@@ -97,17 +98,16 @@ export default function SecuritySettingsPage() {
                     label="Minimum Password Length"
                     htmlFor="minLength"
                 >
-                    <select
-                        id="minLength"
-                        value={settings.minPasswordLength}
-                        onChange={(e) => setSettings({ ...settings, minPasswordLength: Number(e.target.value) })}
-                        style={{ maxWidth: '200px' }}
-                    >
-                        <option value={6}>6 characters</option>
-                        <option value={8}>8 characters</option>
-                        <option value={10}>10 characters</option>
-                        <option value={12}>12 characters</option>
-                    </select>
+                    <AdminDropdown
+                        value={settings.minPasswordLength.toString()}
+                        onChange={(v) => setSettings({ ...settings, minPasswordLength: Number(v) })}
+                        options={[
+                            { value: '6', label: '6 characters' },
+                            { value: '8', label: '8 characters' },
+                            { value: '10', label: '10 characters' },
+                            { value: '12', label: '12 characters' }
+                        ]}
+                    />
                 </SettingsField>
 
                 <div className="settings-toggle-row">
@@ -300,6 +300,16 @@ export default function SecuritySettingsPage() {
             </SettingsSection>
 
             <div className="settings-actions">
+                <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={() => {
+                        setSettings(defaultSettings);
+                        toast.info('Settings reset to default values');
+                    }}
+                    type="button"
+                >
+                    Reset to Default
+                </button>
                 <button
                     className="admin-btn admin-btn-primary"
                     onClick={handleSave}

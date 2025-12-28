@@ -6,6 +6,7 @@ import SettingsSection from '@/components/admin/settings/SettingsSection';
 import SettingsField from '@/components/admin/settings/SettingsField';
 import ColorPicker from '@/components/admin/settings/ColorPicker';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { toast } from 'sonner';
 
 type AppearanceSettings = {
@@ -507,35 +508,30 @@ export default function AppearanceSettingsPage() {
                 <SettingsSection title="Typography Settings" description="Fonts and text styling" icon="✍️">
                     <div className="settings-grid settings-grid-3">
                         <SettingsField label="Heading Font">
-                            <select
+                            <AdminDropdown
                                 value={settings.fontFamilyHeading}
-                                onChange={(e) => setSettings({ ...settings, fontFamilyHeading: e.target.value })}
-                            >
-                                {fontOptions.map((font) => (
-                                    <option key={font.value} value={font.value}>{font.label}</option>
-                                ))}
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, fontFamilyHeading: v })}
+                                options={fontOptions}
+                            />
                         </SettingsField>
                         <SettingsField label="Body Font">
-                            <select
+                            <AdminDropdown
                                 value={settings.fontFamilyBody}
-                                onChange={(e) => setSettings({ ...settings, fontFamilyBody: e.target.value })}
-                            >
-                                {fontOptions.map((font) => (
-                                    <option key={font.value} value={font.value}>{font.label}</option>
-                                ))}
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, fontFamilyBody: v })}
+                                options={fontOptions}
+                            />
                         </SettingsField>
                         <SettingsField label="Monospace Font">
-                            <select
+                            <AdminDropdown
                                 value={settings.fontFamilyMono}
-                                onChange={(e) => setSettings({ ...settings, fontFamilyMono: e.target.value })}
-                            >
-                                <option value="JetBrains Mono">JetBrains Mono</option>
-                                <option value="Fira Code">Fira Code</option>
-                                <option value="Source Code Pro">Source Code Pro</option>
-                                <option value="Roboto Mono">Roboto Mono</option>
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, fontFamilyMono: v })}
+                                options={[
+                                    { value: 'JetBrains Mono', label: 'JetBrains Mono' },
+                                    { value: 'Fira Code', label: 'Fira Code' },
+                                    { value: 'Source Code Pro', label: 'Source Code Pro' },
+                                    { value: 'Roboto Mono', label: 'Roboto Mono' }
+                                ]}
+                            />
                         </SettingsField>
                     </div>
                     <div className="settings-grid settings-grid-3">
@@ -549,50 +545,54 @@ export default function AppearanceSettingsPage() {
                             />
                         </SettingsField>
                         <SettingsField label="Heading Weight">
-                            <select
-                                value={settings.headingFontWeight}
-                                onChange={(e) => setSettings({ ...settings, headingFontWeight: Number(e.target.value) })}
-                            >
-                                <option value={400}>Normal (400)</option>
-                                <option value={500}>Medium (500)</option>
-                                <option value={600}>Semibold (600)</option>
-                                <option value={700}>Bold (700)</option>
-                                <option value={800}>Extra Bold (800)</option>
-                            </select>
+                            <AdminDropdown
+                                value={settings.headingFontWeight.toString()}
+                                onChange={(v) => setSettings({ ...settings, headingFontWeight: Number(v) })}
+                                options={[
+                                    { value: '400', label: 'Normal (400)' },
+                                    { value: '500', label: 'Medium (500)' },
+                                    { value: '600', label: 'Semibold (600)' },
+                                    { value: '700', label: 'Bold (700)' },
+                                    { value: '800', label: 'Extra Bold (800)' }
+                                ]}
+                            />
                         </SettingsField>
                         <SettingsField label="Body Weight">
-                            <select
-                                value={settings.bodyFontWeight}
-                                onChange={(e) => setSettings({ ...settings, bodyFontWeight: Number(e.target.value) })}
-                            >
-                                <option value={300}>Light (300)</option>
-                                <option value={400}>Normal (400)</option>
-                                <option value={500}>Medium (500)</option>
-                            </select>
+                            <AdminDropdown
+                                value={settings.bodyFontWeight.toString()}
+                                onChange={(v) => setSettings({ ...settings, bodyFontWeight: Number(v) })}
+                                options={[
+                                    { value: '300', label: 'Light (300)' },
+                                    { value: '400', label: 'Normal (400)' },
+                                    { value: '500', label: 'Medium (500)' }
+                                ]}
+                            />
                         </SettingsField>
                     </div>
                     <div className="settings-grid">
                         <SettingsField label="Line Height">
-                            <select
-                                value={settings.lineHeightBase}
-                                onChange={(e) => setSettings({ ...settings, lineHeightBase: Number(e.target.value) })}
-                            >
-                                <option value={1.4}>Tight (1.4)</option>
-                                <option value={1.5}>Normal (1.5)</option>
-                                <option value={1.6}>Comfortable (1.6)</option>
-                                <option value={1.8}>Relaxed (1.8)</option>
-                            </select>
+                            <AdminDropdown
+                                value={settings.lineHeightBase.toString()}
+                                onChange={(v) => setSettings({ ...settings, lineHeightBase: Number(v) })}
+                                options={[
+                                    { value: '1.4', label: 'Tight (1.4)' },
+                                    { value: '1.5', label: 'Normal (1.5)' },
+                                    { value: '1.6', label: 'Comfortable (1.6)' },
+                                    { value: '1.8', label: 'Relaxed (1.8)' }
+                                ]}
+                            />
                         </SettingsField>
                         <SettingsField label="Letter Spacing">
-                            <select
+                            <AdminDropdown
                                 value={settings.letterSpacing}
-                                onChange={(e) => setSettings({ ...settings, letterSpacing: e.target.value })}
-                            >
-                                <option value="-0.02em">Tight</option>
-                                <option value="normal">Normal</option>
-                                <option value="0.02em">Wide</option>
-                                <option value="0.05em">Extra Wide</option>
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, letterSpacing: v })}
+                                options={[
+                                    { value: '-0.02em', label: 'Tight' },
+                                    { value: 'normal', label: 'Normal' },
+                                    { value: '0.02em', label: 'Wide' },
+                                    { value: '0.05em', label: 'Extra Wide' }
+                                ]}
+                            />
                         </SettingsField>
                     </div>
                 </SettingsSection>
@@ -753,16 +753,17 @@ export default function AppearanceSettingsPage() {
                                         />
                                     </SettingsField>
                                     <SettingsField label="Easing">
-                                        <select
+                                        <AdminDropdown
                                             value={settings.animationEasing}
-                                            onChange={(e) => setSettings({ ...settings, animationEasing: e.target.value })}
-                                        >
-                                            <option value="ease">Ease</option>
-                                            <option value="ease-in">Ease In</option>
-                                            <option value="ease-out">Ease Out</option>
-                                            <option value="ease-in-out">Ease In Out</option>
-                                            <option value="linear">Linear</option>
-                                        </select>
+                                            onChange={(v) => setSettings({ ...settings, animationEasing: v })}
+                                            options={[
+                                                { value: 'ease', label: 'Ease' },
+                                                { value: 'ease-in', label: 'Ease In' },
+                                                { value: 'ease-out', label: 'Ease Out' },
+                                                { value: 'ease-in-out', label: 'Ease In Out' },
+                                                { value: 'linear', label: 'Linear' }
+                                            ]}
+                                        />
                                     </SettingsField>
                                 </div>
                                 <div className="settings-toggle-row">
@@ -958,16 +959,16 @@ export default function AppearanceSettingsPage() {
                         </SettingsField>
                     </div>
                     <SettingsField label="Footer Columns">
-                        <select
-                            value={settings.footerColumns}
-                            onChange={(e) => setSettings({ ...settings, footerColumns: Number(e.target.value) })}
-                            style={{ maxWidth: '200px' }}
-                        >
-                            <option value={2}>2 Columns</option>
-                            <option value={3}>3 Columns</option>
-                            <option value={4}>4 Columns</option>
-                            <option value={5}>5 Columns</option>
-                        </select>
+                        <AdminDropdown
+                            value={settings.footerColumns.toString()}
+                            onChange={(v) => setSettings({ ...settings, footerColumns: Number(v) })}
+                            options={[
+                                { value: '2', label: '2 Columns' },
+                                { value: '3', label: '3 Columns' },
+                                { value: '4', label: '4 Columns' },
+                                { value: '5', label: '5 Columns' }
+                            ]}
+                        />
                     </SettingsField>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
@@ -1044,25 +1045,27 @@ export default function AppearanceSettingsPage() {
                             />
                         </SettingsField>
                         <SettingsField label="Font Weight">
-                            <select
-                                value={settings.buttonFontWeight}
-                                onChange={(e) => setSettings({ ...settings, buttonFontWeight: Number(e.target.value) })}
-                            >
-                                <option value={400}>Normal</option>
-                                <option value={500}>Medium</option>
-                                <option value={600}>Semibold</option>
-                                <option value={700}>Bold</option>
-                            </select>
+                            <AdminDropdown
+                                value={settings.buttonFontWeight.toString()}
+                                onChange={(v) => setSettings({ ...settings, buttonFontWeight: Number(v) })}
+                                options={[
+                                    { value: '400', label: 'Normal' },
+                                    { value: '500', label: 'Medium' },
+                                    { value: '600', label: 'Semibold' },
+                                    { value: '700', label: 'Bold' }
+                                ]}
+                            />
                         </SettingsField>
                         <SettingsField label="Text Transform">
-                            <select
+                            <AdminDropdown
                                 value={settings.buttonTextTransform}
-                                onChange={(e) => setSettings({ ...settings, buttonTextTransform: e.target.value })}
-                            >
-                                <option value="none">None</option>
-                                <option value="uppercase">UPPERCASE</option>
-                                <option value="capitalize">Capitalize</option>
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, buttonTextTransform: v })}
+                                options={[
+                                    { value: 'none', label: 'None' },
+                                    { value: 'uppercase', label: 'UPPERCASE' },
+                                    { value: 'capitalize', label: 'Capitalize' }
+                                ]}
+                            />
                         </SettingsField>
                     </div>
                     <div className="settings-grid settings-grid-3">
@@ -1208,16 +1211,16 @@ export default function AppearanceSettingsPage() {
             {activeTab === 'products' && (
                 <SettingsSection title="Product Card Settings" description="How products appear" icon="🛍️">
                     <SettingsField label="Image Aspect Ratio">
-                        <select
+                        <AdminDropdown
                             value={settings.productCardImageRatio}
-                            onChange={(e) => setSettings({ ...settings, productCardImageRatio: e.target.value })}
-                            style={{ maxWidth: '200px' }}
-                        >
-                            <option value="1/1">Square (1:1)</option>
-                            <option value="4/5">Portrait (4:5)</option>
-                            <option value="3/4">Portrait (3:4)</option>
-                            <option value="16/9">Landscape (16:9)</option>
-                        </select>
+                            onChange={(v) => setSettings({ ...settings, productCardImageRatio: v })}
+                            options={[
+                                { value: '1/1', label: 'Square (1:1)' },
+                                { value: '4/5', label: 'Portrait (4:5)' },
+                                { value: '3/4', label: 'Portrait (3:4)' },
+                                { value: '16/9', label: 'Landscape (16:9)' }
+                            ]}
+                        />
                     </SettingsField>
                     <div className="settings-grid">
                         <SettingsField label="Price Font Size (px)">
@@ -1228,14 +1231,15 @@ export default function AppearanceSettingsPage() {
                             />
                         </SettingsField>
                         <SettingsField label="Title Max Lines">
-                            <select
-                                value={settings.productCardTitleLines}
-                                onChange={(e) => setSettings({ ...settings, productCardTitleLines: Number(e.target.value) })}
-                            >
-                                <option value={1}>1 Line</option>
-                                <option value={2}>2 Lines</option>
-                                <option value={3}>3 Lines</option>
-                            </select>
+                            <AdminDropdown
+                                value={settings.productCardTitleLines.toString()}
+                                onChange={(v) => setSettings({ ...settings, productCardTitleLines: Number(v) })}
+                                options={[
+                                    { value: '1', label: '1 Line' },
+                                    { value: '2', label: '2 Lines' },
+                                    { value: '3', label: '3 Lines' }
+                                ]}
+                            />
                         </SettingsField>
                     </div>
                     <div className="settings-toggle-row">
@@ -1334,6 +1338,16 @@ export default function AppearanceSettingsPage() {
             )}
 
             <div className="settings-actions">
+                <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={() => {
+                        setSettings(defaultSettings);
+                        toast.info('Settings reset to default values');
+                    }}
+                    type="button"
+                >
+                    Reset to Default
+                </button>
                 <button
                     className="admin-btn admin-btn-primary"
                     onClick={handleSave}

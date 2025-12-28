@@ -6,6 +6,7 @@ import SettingsSection from '@/components/admin/settings/SettingsSection';
 import SettingsField from '@/components/admin/settings/SettingsField';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
 import ImageUploader from '@/components/admin/settings/ImageUploader';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { toast } from 'sonner';
 
 type GeneralSettings = {
@@ -562,15 +563,11 @@ export default function GeneralSettingsPage() {
                         </SettingsField>
 
                         <SettingsField label="Country" htmlFor="country">
-                            <select
-                                id="country"
+                            <AdminDropdown
                                 value={settings.country}
-                                onChange={(e) => setSettings({ ...settings, country: e.target.value })}
-                            >
-                                {countries.map((c) => (
-                                    <option key={c.value} value={c.value}>{c.label}</option>
-                                ))}
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, country: v })}
+                                options={countries}
+                            />
                         </SettingsField>
                     </div>
 
@@ -615,34 +612,26 @@ export default function GeneralSettingsPage() {
                 >
                     <div className="settings-grid">
                         <SettingsField label="Timezone" htmlFor="timezone">
-                            <select
-                                id="timezone"
+                            <AdminDropdown
                                 value={settings.timezone}
-                                onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
-                            >
-                                {timezones.map((tz) => (
-                                    <option key={tz.value} value={tz.value}>{tz.label}</option>
-                                ))}
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, timezone: v })}
+                                options={timezones}
+                            />
                         </SettingsField>
 
                         <SettingsField label="Currency" htmlFor="currency">
-                            <select
-                                id="currency"
+                            <AdminDropdown
                                 value={settings.currency}
-                                onChange={(e) => {
-                                    const currency = currencies.find(c => c.value === e.target.value);
+                                onChange={(v) => {
+                                    const currency = currencies.find(c => c.value === v);
                                     setSettings({ 
                                         ...settings, 
-                                        currency: e.target.value,
+                                        currency: v,
                                         currencySymbol: currency?.symbol || ''
                                     });
                                 }}
-                            >
-                                {currencies.map((c) => (
-                                    <option key={c.value} value={c.value}>{c.label}</option>
-                                ))}
-                            </select>
+                                options={currencies}
+                            />
                         </SettingsField>
                     </div>
 
@@ -659,53 +648,37 @@ export default function GeneralSettingsPage() {
                         </SettingsField>
 
                         <SettingsField label="Currency Position" htmlFor="currencyPosition">
-                            <select
-                                id="currencyPosition"
+                            <AdminDropdown
                                 value={settings.currencyPosition}
-                                onChange={(e) => setSettings({ ...settings, currencyPosition: e.target.value as 'before' | 'after' })}
-                            >
-                                <option value="before">Before amount (E£100)</option>
-                                <option value="after">After amount (100 E£)</option>
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, currencyPosition: v as 'before' | 'after' })}
+                                options={[{ value: 'before', label: 'Before amount (E£100)' }, { value: 'after', label: 'After amount (100 E£)' }]}
+                            />
                         </SettingsField>
                     </div>
 
                     <div className="settings-grid settings-grid-3">
                         <SettingsField label="Thousands Separator" htmlFor="thousandsSeparator">
-                            <select
-                                id="thousandsSeparator"
+                            <AdminDropdown
                                 value={settings.thousandsSeparator}
-                                onChange={(e) => setSettings({ ...settings, thousandsSeparator: e.target.value })}
-                            >
-                                <option value=",">Comma (1,000)</option>
-                                <option value=".">Period (1.000)</option>
-                                <option value=" ">Space (1 000)</option>
-                                <option value="">None (1000)</option>
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, thousandsSeparator: v })}
+                                options={[{ value: ',', label: 'Comma (1,000)' }, { value: '.', label: 'Period (1.000)' }, { value: ' ', label: 'Space (1 000)' }, { value: '', label: 'None (1000)' }]}
+                            />
                         </SettingsField>
 
                         <SettingsField label="Decimal Separator" htmlFor="decimalSeparator">
-                            <select
-                                id="decimalSeparator"
+                            <AdminDropdown
                                 value={settings.decimalSeparator}
-                                onChange={(e) => setSettings({ ...settings, decimalSeparator: e.target.value })}
-                            >
-                                <option value=".">Period (.99)</option>
-                                <option value=",">Comma (,99)</option>
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, decimalSeparator: v })}
+                                options={[{ value: '.', label: 'Period (.99)' }, { value: ',', label: 'Comma (,99)' }]}
+                            />
                         </SettingsField>
 
                         <SettingsField label="Decimal Places" htmlFor="decimalPlaces">
-                            <select
-                                id="decimalPlaces"
-                                value={settings.decimalPlaces}
-                                onChange={(e) => setSettings({ ...settings, decimalPlaces: Number(e.target.value) })}
-                            >
-                                <option value={0}>0 (100)</option>
-                                <option value={1}>1 (100.0)</option>
-                                <option value={2}>2 (100.00)</option>
-                                <option value={3}>3 (100.000)</option>
-                            </select>
+                            <AdminDropdown
+                                value={String(settings.decimalPlaces)}
+                                onChange={(v) => setSettings({ ...settings, decimalPlaces: Number(v) })}
+                                options={[{ value: '0', label: '0 (100)' }, { value: '1', label: '1 (100.0)' }, { value: '2', label: '2 (100.00)' }, { value: '3', label: '3 (100.000)' }]}
+                            />
                         </SettingsField>
                     </div>
                 </SettingsSection>
@@ -730,15 +703,11 @@ export default function GeneralSettingsPage() {
                         </SettingsField>
 
                         <SettingsField label="Business Type" htmlFor="businessType">
-                            <select
-                                id="businessType"
+                            <AdminDropdown
                                 value={settings.businessType}
-                                onChange={(e) => setSettings({ ...settings, businessType: e.target.value })}
-                            >
-                                {businessTypes.map((type) => (
-                                    <option key={type.value} value={type.value}>{type.label}</option>
-                                ))}
-                            </select>
+                                onChange={(v) => setSettings({ ...settings, businessType: v })}
+                                options={businessTypes}
+                            />
                         </SettingsField>
                     </div>
 
@@ -1004,6 +973,16 @@ export default function GeneralSettingsPage() {
             )}
 
             <div className="settings-actions">
+                <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={() => {
+                        setSettings(defaultSettings);
+                        toast.info('Settings reset to default values');
+                    }}
+                    type="button"
+                >
+                    Reset to Default
+                </button>
                 <button
                     className="admin-btn admin-btn-primary"
                     onClick={handleSave}
