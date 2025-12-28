@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { useIsClient } from "@/hooks/useIsClient";
@@ -10,13 +11,20 @@ import { fetchAllCategories } from "@/lib/actions/category";
 import { toast } from "sonner";
 import SearchBar from "@/components/SearchBar";
 
+import { GeneralSettings, HeaderSettings } from "@/lib/settings";
+
+interface NavbarProps {
+    generalSettings?: GeneralSettings;
+    headerSettings?: HeaderSettings;
+}
+
 interface UserData {
   id: string;
   name: string | null;
   email: string;
 }
 
-export default function Navbar() {
+export default function Navbar({ generalSettings, headerSettings }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -61,15 +69,38 @@ export default function Navbar() {
 
   return (
     <header className="site-header">
+        {headerSettings?.announcementEnabled && (
+            <div 
+                className="announcement-bar"
+                style={{ backgroundColor: headerSettings.announcementBgColor || '#1a3c34' }}
+            >
+                <div className="container">
+                    <p>{headerSettings.announcementText}</p>
+                </div>
+            </div>
+        )}
       <nav className="navbar container" aria-label="Primary navigation">
-        <Link href="/" className="brand" aria-label="Legacy Home">
-          Legacy
+        <Link href="/" className="brand" aria-label="Home">
+            {generalSettings?.logoUrl ? (
+                <Image 
+                    src={generalSettings.logoUrl} 
+                    alt={generalSettings.storeName} 
+                    className="brand-logo"
+                    width={120}
+                    height={40}
+                    style={{ maxHeight: '40px', width: 'auto' }}
+                />
+            ) : (
+                <span className="brand-text">{generalSettings?.storeName || 'Legacy'}</span>
+            )}
         </Link>
         
         {/* Search Bar - Desktop Only */}
-        <div className="nav-search-wrapper">
-          <SearchBar />
-        </div>
+        {(headerSettings?.showSearch ?? true) && (
+            <div className="nav-search-wrapper">
+            <SearchBar />
+            </div>
+        )}
         
         <button
           className="nav-toggle"
@@ -131,30 +162,34 @@ export default function Navbar() {
                  )}
             </div>
           </li>
-          <li role="none">
-            <Link
-              role="menuitem"
-              href="/wishlist"
-              className={isActive("/wishlist") ? "active" : ""}
-              onClick={() => setIsOpen(false)}
-            >
-              Wishlist {isClient && favCount > 0 && <span className="badge" id="fav-count">{favCount}</span>}
-            </Link>
-          </li>
-          <li role="none">
-            <Link
-              role="menuitem"
-              href="/cart"
-              className={isActive("/cart") ? "active" : ""}
-              onClick={(e) => {
-                e.preventDefault();
-                openCart();
-                setIsOpen(false);
-              }}
-            >
-              Cart {isClient && cartCount > 0 && <span className="badge" id="cart-count">{cartCount}</span>}
-            </Link>
-          </li>
+          {(headerSettings?.showWishlist ?? true) && (
+              <li role="none">
+                <Link
+                  role="menuitem"
+                  href="/wishlist"
+                  className={isActive("/wishlist") ? "active" : ""}
+                  onClick={() => setIsOpen(false)}
+                >
+                  Wishlist {isClient && favCount > 0 && <span className="badge" id="fav-count">{favCount}</span>}
+                </Link>
+              </li>
+          )}
+          {(headerSettings?.showCart ?? true) && (
+              <li role="none">
+                <Link
+                  role="menuitem"
+                  href="/cart"
+                  className={isActive("/cart") ? "active" : ""}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openCart();
+                    setIsOpen(false);
+                  }}
+                >
+                  Cart {isClient && cartCount > 0 && <span className="badge" id="cart-count">{cartCount}</span>}
+                </Link>
+              </li>
+          )}
           <li role="none">
             <Link
               role="menuitem"
@@ -177,7 +212,7 @@ export default function Navbar() {
           </li>
 
           {/* Auth Section */}
-          {isClient && (
+          {isClient && (headerSettings?.showAccount ?? true) && (
             <li role="none" className="nav-auth">
               {user ? (
                 <div className="user-menu-wrapper">
@@ -469,6 +504,19 @@ export default function Navbar() {
             .nav-links.open .nav-dropdown-menu {
                 display: block;
             }
+        }
+
+        .announcement-bar {
+            background-color: #1a3c34;
+            color: #fff;
+            padding: 8px 0;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .announcement-bar p {
+            margin: 0;
         }
       `}</style>
     </header>

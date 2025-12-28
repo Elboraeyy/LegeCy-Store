@@ -5,6 +5,7 @@ import { getStoreConfig, updateStoreConfig, NotificationSettings } from '@/lib/a
 import SettingsSection from '@/components/admin/settings/SettingsSection';
 import SettingsField from '@/components/admin/settings/SettingsField';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { toast } from 'sonner';
 
 const defaultSettings: NotificationSettings = {
@@ -161,16 +162,15 @@ export default function NotificationsSettingsPage() {
                     label="Encryption"
                     htmlFor="smtpEncryption"
                 >
-                    <select
-                        id="smtpEncryption"
+                    <AdminDropdown
                         value={settings.smtpEncryption}
-                        onChange={(e) => setSettings({ ...settings, smtpEncryption: e.target.value })}
-                        style={{ maxWidth: '300px' }}
-                    >
-                        <option value="none">None</option>
-                        <option value="tls">TLS (Recommended)</option>
-                        <option value="ssl">SSL</option>
-                    </select>
+                        onChange={(v) => setSettings({ ...settings, smtpEncryption: v })}
+                        options={[
+                            { value: 'none', label: 'None' },
+                            { value: 'tls', label: 'TLS (Recommended)' },
+                            { value: 'ssl', label: 'SSL' }
+                        ]}
+                    />
                 </SettingsField>
             </SettingsSection>
 
@@ -286,6 +286,16 @@ export default function NotificationsSettingsPage() {
             </SettingsSection>
 
             <div className="settings-actions">
+                <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={() => {
+                        setSettings(defaultSettings);
+                        toast.info('Settings reset to default values');
+                    }}
+                    type="button"
+                >
+                    Reset to Default
+                </button>
                 <button
                     className="admin-btn admin-btn-primary"
                     onClick={handleSave}

@@ -5,6 +5,7 @@ import { getStoreConfig, updateStoreConfig, LocalizationSettings } from '@/lib/a
 import SettingsSection from '@/components/admin/settings/SettingsSection';
 import SettingsField from '@/components/admin/settings/SettingsField';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
+import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { toast } from 'sonner';
 
 const defaultSettings: LocalizationSettings = {
@@ -96,18 +97,11 @@ export default function LocalizationSettingsPage() {
                     label="Default Language"
                     htmlFor="language"
                 >
-                    <select
-                        id="language"
+                    <AdminDropdown
                         value={settings.defaultLanguage}
-                        onChange={(e) => setSettings({ ...settings, defaultLanguage: e.target.value })}
-                        style={{ maxWidth: '300px' }}
-                    >
-                        {languages.map((lang) => (
-                            <option key={lang.value} value={lang.value}>
-                                {lang.label}
-                            </option>
-                        ))}
-                    </select>
+                        onChange={(v) => setSettings({ ...settings, defaultLanguage: v })}
+                        options={languages}
+                    />
                 </SettingsField>
 
                 <div className="settings-toggle-row">
@@ -134,31 +128,25 @@ export default function LocalizationSettingsPage() {
                         label="Date Format"
                         htmlFor="dateFormat"
                     >
-                        <select
-                            id="dateFormat"
+                        <AdminDropdown
                             value={settings.dateFormat}
-                            onChange={(e) => setSettings({ ...settings, dateFormat: e.target.value })}
-                        >
-                            {dateFormats.map((format) => (
-                                <option key={format.value} value={format.value}>
-                                    {format.label}
-                                </option>
-                            ))}
-                        </select>
+                            onChange={(v) => setSettings({ ...settings, dateFormat: v })}
+                            options={dateFormats}
+                        />
                     </SettingsField>
 
                     <SettingsField
                         label="Time Format"
                         htmlFor="timeFormat"
                     >
-                        <select
-                            id="timeFormat"
+                        <AdminDropdown
                             value={settings.timeFormat}
-                            onChange={(e) => setSettings({ ...settings, timeFormat: e.target.value })}
-                        >
-                            <option value="12h">12-hour (3:00 PM)</option>
-                            <option value="24h">24-hour (15:00)</option>
-                        </select>
+                            onChange={(v) => setSettings({ ...settings, timeFormat: v })}
+                            options={[
+                                { value: '12h', label: '12-hour (3:00 PM)' },
+                                { value: '24h', label: '24-hour (15:00)' }
+                            ]}
+                        />
                     </SettingsField>
                 </div>
             </SettingsSection>
@@ -172,18 +160,11 @@ export default function LocalizationSettingsPage() {
                     label="Number Format"
                     htmlFor="numberFormat"
                 >
-                    <select
-                        id="numberFormat"
+                    <AdminDropdown
                         value={settings.numberFormat}
-                        onChange={(e) => setSettings({ ...settings, numberFormat: e.target.value })}
-                        style={{ maxWidth: '350px' }}
-                    >
-                        {numberFormats.map((format) => (
-                            <option key={format.value} value={format.value}>
-                                {format.label}
-                            </option>
-                        ))}
-                    </select>
+                        onChange={(v) => setSettings({ ...settings, numberFormat: v })}
+                        options={numberFormats}
+                    />
                 </SettingsField>
 
                 <div className="settings-grid">
@@ -191,37 +172,47 @@ export default function LocalizationSettingsPage() {
                         label="Weight Unit"
                         htmlFor="weightUnit"
                     >
-                        <select
-                            id="weightUnit"
+                        <AdminDropdown
                             value={settings.weightUnit}
-                            onChange={(e) => setSettings({ ...settings, weightUnit: e.target.value })}
-                        >
-                            <option value="kg">Kilograms (kg)</option>
-                            <option value="g">Grams (g)</option>
-                            <option value="lb">Pounds (lb)</option>
-                            <option value="oz">Ounces (oz)</option>
-                        </select>
+                            onChange={(v) => setSettings({ ...settings, weightUnit: v })}
+                            options={[
+                                { value: 'kg', label: 'Kilograms (kg)' },
+                                { value: 'g', label: 'Grams (g)' },
+                                { value: 'lb', label: 'Pounds (lb)' },
+                                { value: 'oz', label: 'Ounces (oz)' }
+                            ]}
+                        />
                     </SettingsField>
 
                     <SettingsField
                         label="Dimension Unit"
                         htmlFor="dimensionUnit"
                     >
-                        <select
-                            id="dimensionUnit"
+                        <AdminDropdown
                             value={settings.dimensionUnit}
-                            onChange={(e) => setSettings({ ...settings, dimensionUnit: e.target.value })}
-                        >
-                            <option value="cm">Centimeters (cm)</option>
-                            <option value="m">Meters (m)</option>
-                            <option value="in">Inches (in)</option>
-                            <option value="ft">Feet (ft)</option>
-                        </select>
+                            onChange={(v) => setSettings({ ...settings, dimensionUnit: v })}
+                            options={[
+                                { value: 'cm', label: 'Centimeters (cm)' },
+                                { value: 'm', label: 'Meters (m)' },
+                                { value: 'in', label: 'Inches (in)' },
+                                { value: 'ft', label: 'Feet (ft)' }
+                            ]}
+                        />
                     </SettingsField>
                 </div>
             </SettingsSection>
 
             <div className="settings-actions">
+                <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={() => {
+                        setSettings(defaultSettings);
+                        toast.info('Settings reset to default values');
+                    }}
+                    type="button"
+                >
+                    Reset to Default
+                </button>
                 <button
                     className="admin-btn admin-btn-primary"
                     onClick={handleSave}

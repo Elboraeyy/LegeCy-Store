@@ -307,6 +307,17 @@ export default function HomepageSettingsPage() {
 
             <div className="settings-actions">
                 <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={() => {
+                        setHero(defaultHero);
+                        setHomepage(defaultHomepage);
+                        toast.info('Settings reset to default values');
+                    }}
+                    type="button"
+                >
+                    Reset to Default
+                </button>
+                <button
                     className="admin-btn admin-btn-primary"
                     onClick={handleSave}
                     disabled={saving}

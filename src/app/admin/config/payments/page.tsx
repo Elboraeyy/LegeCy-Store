@@ -262,6 +262,16 @@ export default function PaymentsSettingsPage() {
 
             <div className="settings-actions">
                 <button
+                    className="admin-btn admin-btn-outline"
+                    onClick={() => {
+                        setSettings(defaultSettings);
+                        toast.info('Settings reset to default values');
+                    }}
+                    type="button"
+                >
+                    Reset to Default
+                </button>
+                <button
                     className="admin-btn admin-btn-primary"
                     onClick={handleSave}
                     disabled={saving}

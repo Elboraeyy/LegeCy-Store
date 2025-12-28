@@ -196,3 +196,34 @@ export type MaintenanceSettings = {
   scheduledEnd: string | null;
   redirectUrl: string;
 };
+
+export type FooterSettings = {
+  companyName: string;
+  companyDescription: string;
+  copyrightText: string;
+  showPaymentIcons: boolean;
+  showSocialIcons: boolean;
+  showNewsletter: boolean;
+  newsletterTitle: string;
+  columns: Array<{
+    title: string;
+    links: Array<{ label: string; url: string }>;
+  }>;
+  addresses: Array<{
+    title: string;
+    address: string;
+    phone?: string;
+  }>;
+};
+
+export type HeaderSettings = {
+  logoPosition: string;
+  showSearch: boolean;
+  showCart: boolean;
+  showAccount: boolean;
+  showWishlist: boolean;
+  stickyHeader: boolean;
+  announcementEnabled: boolean;
+  announcementText: string;
+  announcementBgColor: string;
+};
