@@ -72,19 +72,17 @@ export default function OrdersClient({ initialOrders, stats }: OrdersClientProps
                     <h1 className="admin-title">Orders Management</h1>
                     <p className="admin-subtitle">Track and fulfill customer orders</p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <div className="admin-tabs-container" style={{ background: 'white', border: '1px solid var(--admin-border)', padding: '4px', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div className="admin-tabs">
                         <button 
                             onClick={() => setViewMode('list')}
-                            className={`admin-btn ${viewMode === 'list' ? 'admin-btn-primary' : 'admin-btn-ghost'}`}
-                            style={{ padding: '6px 12px', fontSize: '13px' }}
+                            className={`admin-tab-item ${viewMode === 'list' ? 'active' : ''}`}
                         >
                             List View
                         </button>
                         <button 
                             onClick={() => setViewMode('board')}
-                            className={`admin-btn ${viewMode === 'board' ? 'admin-btn-primary' : 'admin-btn-ghost'}`}
-                            style={{ padding: '6px 12px', fontSize: '13px' }}
+                            className={`admin-tab-item ${viewMode === 'board' ? 'active' : ''}`}
                         >
                             Board View
                         </button>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { formatCurrency } from "../../../../lib/utils";
 
 interface StatsData {
@@ -57,12 +58,12 @@ export default function OrdersStats({ stats }: OrdersStatsProps) {
                 </div>
             </div>
 
-            {/* Quick Action Placeholder (Optional) */}
-            <div className="admin-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--admin-bg-hover)', border: '1px dashed var(--admin-border)', cursor: 'pointer' }}>
-                <div style={{ textAlign: 'center', fontSize: '14px', fontWeight: 500, color: 'var(--admin-primary)' }}>
+            {/* Quick Action - Create Manual Order */}
+            <Link href="/admin/orders/create" className="admin-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--admin-bg-hover)', border: '1px dashed var(--admin-border)', cursor: 'pointer', textDecoration: 'none' }}>
+                <div style={{ textAlign: 'center', fontSize: '14px', fontWeight: 500, color: 'var(--admin-bg-dark)' }}>
                     + Create Manual Order
                 </div>
-            </div>
+            </Link>
         </div>
     );
 }
