@@ -104,6 +104,30 @@ export async function updateOrderStatus(
           return await internalCancelOrder(tx, orderId, `Cancelled by ${actor}`);
       }
 
+      // Commit inventory when order is paid (deduct from reserved)
+      if (newStatus === OrderStatus.Paid) {
+          const warehouseId = await getDefaultWarehouseId(tx);
+          for (const item of order.items) {
+              if (item.variantId) {
+                  // Commit stock: remove from reserved (already deducted from available during reservation)
+                  await inventoryService.commitStock(tx, warehouseId, item.variantId, item.quantity, newStatus);
+                  
+                  // Log the inventory change for tracking
+                  await tx.inventoryLog.create({
+                      data: {
+                          warehouseId,
+                          variantId: item.variantId,
+                          action: 'ORDER_FULFILL',
+                          quantity: -item.quantity,
+                          reason: `Online Order Paid: ${orderId}`,
+                          referenceId: orderId,
+                      }
+                  });
+              }
+          }
+          logger.info(`Inventory committed for order`, { orderId, itemCount: order.items.length });
+      }
+
       const updated = await tx.order.update({
         where: { id: orderId },
         data: { status: newStatus },
