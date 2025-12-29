@@ -42,8 +42,10 @@ import { usePathname } from "next/navigation";
 function ClientLayoutContent({ children, navbar, footer }: { children: React.ReactNode; navbar: React.ReactNode; footer: React.ReactNode }) {
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith('/admin');
+    const isPOS = pathname?.startsWith('/pos');
 
-    if (isAdmin) {
+    // Admin and POS pages don't show site navbar/footer
+    if (isAdmin || isPOS) {
         return (
             <ComparisonProvider>
                 {children}

@@ -48,8 +48,9 @@ async function main() {
       // If successful, break the loop
       break;
 
-    } catch (e: any) {
-      console.error(`Error on attempt ${i + 1}:`, e.message);
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      console.error(`Error on attempt ${i + 1}:`, errorMessage);
       if (i === maxRetries - 1) throw e;
       console.log('Retrying in 2 seconds...');
       await wait(2000);

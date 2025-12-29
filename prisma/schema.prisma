@@ -40,6 +40,9 @@ model User {
   tags          String[]  @default([])
   notes         String?
   status        String    @default("active") // active, banned, archived
+  
+  // POS Relations
+  posTransactions POSTransaction[]
 }
 
 model Session {
@@ -109,6 +112,9 @@ model AdminUser {
   resolvedAlerts       StockAlert[]
   createdCounts        InventoryCount[] @relation("CountCreatedBy")
   completedCounts      InventoryCount[] @relation("CountCompletedBy")
+  
+  // POS Relations
+  posSessions          POSSession[]
 }
 
 model AdminRole {
@@ -411,6 +417,9 @@ model Warehouse {
   stockAlerts        StockAlert[]
   inventoryCounts    InventoryCount[]
   
+  // POS Relations
+  posTerminals       POSTerminal[]
+  
   createdAt DateTime    @default(now())
   updatedAt DateTime    @default(now()) @updatedAt
 }
@@ -695,3 +704,275 @@ model StoreConfig {
   value     Json     // Flexible JSON payload
   updatedAt DateTime @updatedAt
 }
+
+// ==========================================
+// POS (Point of Sale) Domain
+// ==========================================
+
+// POS Terminal (Physical/Logical Terminal)
+model POSTerminal {
+  id              String   @id @default(uuid())
+  name            String   @unique // "Terminal 1", "Mobile POS"
+  code            String   @unique // "POS-01"
+  
+  // Location
+  warehouseId     String
+  warehouse       Warehouse @relation(fields: [warehouseId], references: [id])
+  
+  // Hardware Config
+  printerType     String?  // THERMAL_80MM, THERMAL_58MM, A4
+  printerAddress  String?  // IP or USB path
+  drawerEnabled   Boolean  @default(false)
+  scannerMode     String   @default("KEYBOARD") // KEYBOARD, SERIAL, USB
+  
+  // Display
+  customerDisplay Boolean  @default(false)
+  displayAddress  String?
+  
+  // Settings
+  isActive        Boolean  @default(true)
+  settings        Json?    // Terminal-specific settings
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  sessions        POSSession[]
+  quickKeys       POSQuickKey[]
+  
+  @@index([warehouseId])
+  @@index([isActive])
+}
+
+// POS Session (Shift Management)
+model POSSession {
+  id              String   @id @default(uuid())
+  sessionNo       String   @unique @default(uuid()) // Human-readable reference
+  
+  cashierId       String
+  cashier         AdminUser @relation(fields: [cashierId], references: [id])
+  terminalId      String
+  terminal        POSTerminal @relation(fields: [terminalId], references: [id])
+  
+  // Shift Times
+  startedAt       DateTime @default(now())
+  endedAt         DateTime?
+  
+  // Cash Management
+  openingBalance  Decimal  @default(0)
+  closingBalance  Decimal?
+  expectedBalance Decimal?
+  difference      Decimal?
+  
+  // Counters
+  salesCount      Int      @default(0)
+  refundsCount    Int      @default(0)
+  voidCount       Int      @default(0)
+  
+  // Totals
+  salesTotal      Decimal  @default(0)
+  refundsTotal    Decimal  @default(0)
+  discountsTotal  Decimal  @default(0)
+  taxTotal        Decimal  @default(0)
+  
+  // Status
+  status          String   @default("OPEN") // OPEN, PAUSED, CLOSED
+  closingNote     String?
+  
+  transactions    POSTransaction[]
+  cashMovements   CashMovement[]
+  heldTransactions POSHeldTransaction[]
+  
+  @@index([cashierId])
+  @@index([terminalId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+// POS Transaction (Every sale/refund/void)
+model POSTransaction {
+  id              String   @id @default(uuid())
+  transactionNo   String   @unique // POS-2024-000001
+  
+  sessionId       String
+  session         POSSession @relation(fields: [sessionId], references: [id])
+  
+  // Transaction Type
+  type            String   @default("SALE") // SALE, REFUND, EXCHANGE, VOID
+  
+  // Customer (optional for walk-in)
+  customerId      String?
+  customer        User?    @relation(fields: [customerId], references: [id])
+  customerName    String?
+  customerPhone   String?
+  
+  // Items
+  items           POSTransactionItem[]
+  
+  // Totals
+  subtotal        Decimal
+  discountAmount  Decimal  @default(0)
+  discountType    String?  // PERCENTAGE, FIXED, COUPON
+  discountReason  String?
+  couponId        String?
+  taxAmount       Decimal  @default(0)
+  total           Decimal
+  
+  // Payments
+  payments        POSPayment[]
+  changeDue       Decimal  @default(0)
+  
+  // Status
+  status          String   @default("COMPLETED") // PENDING, COMPLETED, VOIDED, REFUNDED
+  voidReason      String?
+  voidedById      String?
+  voidedAt        DateTime?
+  
+  // E-commerce link (optional)
+  linkedOrderId   String?
+  
+  // Receipt
+  receiptPrinted  Boolean  @default(false)
+  note            String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([sessionId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([customerId])
+  @@index([transactionNo])
+}
+
+// Transaction Items
+model POSTransactionItem {
+  id              String   @id @default(uuid())
+  transactionId   String
+  transaction     POSTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  
+  productId       String
+  variantId       String?
+  
+  // Snapshot at time of sale
+  name            String
+  sku             String
+  barcode         String?
+  imageUrl        String?
+  
+  quantity        Int
+  unitPrice       Decimal
+  discountAmount  Decimal  @default(0)
+  taxAmount       Decimal  @default(0)
+  totalPrice      Decimal
+  
+  // For returns
+  isReturn        Boolean  @default(false)
+  originalItemId  String?  // Link to original item if return
+  returnReason    String?
+  
+  @@index([transactionId])
+  @@index([productId])
+  @@index([variantId])
+  @@index([sku])
+}
+
+// Payment Methods for Transaction
+model POSPayment {
+  id              String   @id @default(uuid())
+  transactionId   String
+  transaction     POSTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  
+  method          String   // CASH, CARD, MOBILE_WALLET, VOUCHER
+  amount          Decimal
+  reference       String?  // Card last 4 digits, wallet number, voucher code
+  
+  // For card payments
+  cardType        String?  // VISA, MASTERCARD, MEEZA, etc.
+  approvalCode    String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([transactionId])
+  @@index([method])
+}
+
+// Cash Drawer Movements
+model CashMovement {
+  id              String   @id @default(uuid())
+  sessionId       String
+  session         POSSession @relation(fields: [sessionId], references: [id])
+  
+  type            String   // PAY_IN, PAY_OUT, FLOAT, DROP, SALE, REFUND
+  amount          Decimal
+  reason          String?
+  reference       String?  // Transaction ID if related to sale/refund
+  
+  balanceAfter    Decimal
+  
+  performedById   String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([sessionId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// Quick Keys / Favorites
+model POSQuickKey {
+  id              String   @id @default(uuid())
+  
+  // Can be global or per-terminal
+  terminalId      String?
+  terminal        POSTerminal? @relation(fields: [terminalId], references: [id])
+  
+  // What it points to
+  type            String   // PRODUCT, CATEGORY, DISCOUNT, ACTION
+  referenceId     String?  // Product/Category ID
+  
+  // Discount settings (when type is DISCOUNT)
+  discountType    String?  // PERCENTAGE, FIXED
+  discountValue   Decimal?
+  
+  // Display
+  label           String
+  color           String   @default("#3b82f6")
+  icon            String?
+  gridRow         Int      @default(0)
+  gridCol         Int      @default(0)
+  
+  // Shortcut
+  keyboardShortcut String?  // e.g., "F1", "Ctrl+1"
+  
+  isActive        Boolean  @default(true)
+  
+  @@index([terminalId])
+  @@index([type])
+  @@index([isActive])
+}
+
+// Held Transactions (Park & Retrieve)
+model POSHeldTransaction {
+  id              String   @id @default(uuid())
+  sessionId       String
+  session         POSSession @relation(fields: [sessionId], references: [id])
+  
+  // Customer info
+  customerName    String?
+  customerPhone   String?
+  
+  // Held items as JSON snapshot
+  items           Json
+  subtotal        Decimal
+  discountAmount  Decimal  @default(0)
+  
+  note            String?
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime // Auto-delete after X hours
+  
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([expiresAt])
+}
+

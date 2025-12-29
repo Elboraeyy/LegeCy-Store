@@ -86,6 +86,11 @@ async function main() {
   // 3. Seed Admin Roles
   const adminRoles = [
       { 
+        name: 'owner', 
+        description: 'Store owner with full access',
+        permissions: 'ALL' 
+      },
+      { 
         name: 'super_admin', 
         description: 'Full access to all resources',
         permissions: 'ALL' 
@@ -104,6 +109,11 @@ async function main() {
         name: 'manager', 
         description: 'Manager access with order and inventory management',
         permissions: 'ORDERS_READ,ORDERS_MANAGE,INVENTORY_MANAGE' 
+      },
+      { 
+        name: 'cashier', 
+        description: 'POS cashier access',
+        permissions: 'POS_ACCESS,ORDERS_CREATE' 
       }
   ];
 
@@ -124,31 +134,31 @@ async function main() {
     const { hashPassword } = await import('../src/lib/auth/password');
     const hashedPassword = await hashPassword('Admin123!');
     
-    // Fetch role to connect
-    const superRole = await prisma.adminRole.findUnique({ where: { name: 'super_admin' } });
+    // Fetch owner role to connect
+    const ownerRole = await prisma.adminRole.findUnique({ where: { name: 'owner' } });
     
-    if (superRole) {
+    if (ownerRole) {
         await prisma.adminUser.create({
           data: {
             email: adminEmail,
-            name: 'Super Admin',
+            name: 'Store Owner',
             passwordHash: hashedPassword,
-            roleId: superRole.id
+            roleId: ownerRole.id
           }
         });
-        console.log('🛡️ Super Admin created: admin@legecy.store / Admin123!');
+        console.log('👑 Owner Admin created: admin@legecy.store / Admin123!');
     }
   } else {
-    // Ensure existing super admin has the role (Migration backfill support)
-    const superRole = await prisma.adminRole.findUnique({ where: { name: 'super_admin' } });
-    if (superRole && !existingAdmin.roleId) {
+    // Ensure existing admin has the owner role (Migration backfill support)
+    const ownerRole = await prisma.adminRole.findUnique({ where: { name: 'owner' } });
+    if (ownerRole && !existingAdmin.roleId) {
         await prisma.adminUser.update({
             where: { id: existingAdmin.id },
-            data: { roleId: superRole.id }
+            data: { roleId: ownerRole.id }
         });
-        console.log('🛡️ Super Admin role backfilled.');
+        console.log('👑 Owner role backfilled.');
     }
-    console.log('🛡️ Super Admin verified.');
+    console.log('👑 Owner Admin verified.');
   }
 
   console.log('✅ Seeding completed.');
