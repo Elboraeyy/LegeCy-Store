@@ -18,6 +18,7 @@ export interface ShopProduct {
     variantCount: number;
     inStock: boolean;
     defaultVariantId: string | null; // For cart operations
+    isNew?: boolean;
 }
 
 export async function fetchShopProducts(): Promise<ShopProduct[]> {
@@ -62,7 +63,8 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
             status: 'active',
             variantCount: product.variants.length,
             inStock: totalStock > 0,
-            defaultVariantId: mainVariant?.id || null
+            defaultVariantId: mainVariant?.id || null,
+            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000)
         };
     });
 }
@@ -103,7 +105,8 @@ export async function fetchProductById(id: string) {
             stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
         })),
         inStock: totalStock > 0,
-        totalStock
+        totalStock,
+        isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000)
     };
 }
 
@@ -187,7 +190,100 @@ export async function fetchRelatedProducts(productId: string, category: string |
             status: 'active',
             variantCount: product.variants.length,
             inStock: totalStock > 0,
-            defaultVariantId: mainVariant?.id || null
+            defaultVariantId: mainVariant?.id || null,
+            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000)
+        };
+    });
+}
+
+// Fetch featured products (for homepage carousel)
+export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProduct[]> {
+    const products = await prisma.product.findMany({
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+            variants: {
+                include: {
+                    inventory: true
+                }
+            },
+            images: true,
+            brand: true,
+            material: true
+        }
+    });
+
+    return products.map(product => {
+        const mainVariant = product.variants[0];
+        const totalStock = product.variants.reduce((acc, v) => 
+            acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0
+        );
+
+        return {
+            id: product.id,
+            name: product.name,
+            price: mainVariant ? Number(mainVariant.price) : 0,
+            compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+            category: product.category,
+            imageUrl: product.imageUrl,
+            images: product.images.map(img => img.url),
+            brand: product.brand?.slug || null,
+            material: product.material?.slug || null,
+            strap: product.material?.name || null,
+            status: 'active',
+            variantCount: product.variants.length,
+            inStock: totalStock > 0,
+            defaultVariantId: mainVariant?.id || null,
+            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000)
+        };
+    });
+}
+
+// Fetch new arrivals (products created in last 30 days)
+export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const products = await prisma.product.findMany({
+        where: {
+            createdAt: { gte: thirtyDaysAgo }
+        },
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+            variants: {
+                include: {
+                    inventory: true
+                }
+            },
+            images: true,
+            brand: true,
+            material: true
+        }
+    });
+
+    return products.map(product => {
+        const mainVariant = product.variants[0];
+        const totalStock = product.variants.reduce((acc, v) => 
+            acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0
+        );
+
+        return {
+            id: product.id,
+            name: product.name,
+            price: mainVariant ? Number(mainVariant.price) : 0,
+            compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+            category: product.category,
+            imageUrl: product.imageUrl,
+            images: product.images.map(img => img.url),
+            brand: product.brand?.slug || null,
+            material: product.material?.slug || null,
+            strap: product.material?.name || null,
+            status: 'active',
+            variantCount: product.variants.length,
+            inStock: totalStock > 0,
+            defaultVariantId: mainVariant?.id || null,
+            isNew: true
         };
     });
 }

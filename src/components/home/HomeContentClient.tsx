@@ -6,14 +6,18 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { fadeUpSlow, staggerContainerSlow } from "@/lib/motion";
 import { Reveal } from "@/components/ui/Reveal";
+import ProductCarousel from "@/components/ProductCarousel";
 import type { HomepageSettings } from "@/lib/settings";
+import type { Product } from "@/types/product";
 
 type Props = {
   homepage: HomepageSettings;
   storeName: string;
+  featuredProducts: Product[];
+  newArrivals: Product[];
 };
 
-export function HomeContentClient({ homepage, storeName }: Props) {
+export function HomeContentClient({ homepage, storeName, featuredProducts, newArrivals }: Props) {
   return (
     <main>
       {/* Hero Section */}
@@ -48,6 +52,16 @@ export function HomeContentClient({ homepage, storeName }: Props) {
             </Reveal>
           </div>
         </section>
+      )}
+
+      {/* Featured Products Carousel */}
+      {featuredProducts && featuredProducts.length > 0 && (
+        <ProductCarousel
+          products={featuredProducts}
+          title="Featured Collection"
+          subtitle="Handpicked for You"
+          viewAllLink="/shop"
+        />
       )}
 
       {/* Collection Section */}
@@ -87,6 +101,70 @@ export function HomeContentClient({ homepage, storeName }: Props) {
         </motion.div>
       </section>
 
+      {/* New Arrivals Carousel */}
+      {newArrivals && newArrivals.length > 0 && (
+        <ProductCarousel
+          products={newArrivals}
+          title="New Arrivals"
+          subtitle="Just Dropped"
+          viewAllLink="/shop"
+        />
+      )}
+
+      {/* Trust Section */}
+      <section className="trust-section">
+        <div className="container">
+          <motion.div 
+            className="trust-grid"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={staggerContainerSlow}
+          >
+            <motion.div className="trust-item" variants={fadeUpSlow}>
+              <div className="trust-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </div>
+              <h4>100%</h4>
+              <p>Authentic Products</p>
+            </motion.div>
+            <motion.div className="trust-item" variants={fadeUpSlow}>
+              <div className="trust-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <h4>24/7</h4>
+              <p>Customer Support</p>
+            </motion.div>
+            <motion.div className="trust-item" variants={fadeUpSlow}>
+              <div className="trust-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="1" y="3" width="15" height="13"/>
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                  <circle cx="5.5" cy="18.5" r="2.5"/>
+                  <circle cx="18.5" cy="18.5" r="2.5"/>
+                </svg>
+              </div>
+              <h4>Free</h4>
+              <p>Fast Shipping</p>
+            </motion.div>
+            <motion.div className="trust-item" variants={fadeUpSlow}>
+              <div className="trust-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                </svg>
+              </div>
+              <h4>5000+</h4>
+              <p>Happy Customers</p>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Legacy Section */}
       <section className="container legacy-section">
         <div className="legacy-wrapper">
@@ -109,7 +187,7 @@ export function HomeContentClient({ homepage, storeName }: Props) {
               <span className="legacy-subtitle">Since 1839</span>
             </Reveal>
             <Reveal delay={0.3}>
-              <h2 className="legacy-title">A Legacy of <br /> Precision</h2>
+              <h2 className="legacy-title">A Legacy of <br />Precision</h2>
             </Reveal>
             <Reveal delay={0.4}>
               <p className="legacy-description">

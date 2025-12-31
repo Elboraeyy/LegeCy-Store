@@ -12,9 +12,10 @@ export const ORDER_POLICIES: { transitions: Partial<Record<OrderStatus, Transiti
   // Who can perform which transitions?
   transitions: {
     [OrderStatus.Pending]: {
-      allowedTo: [OrderStatus.Paid, OrderStatus.Cancelled],
+      allowedTo: [OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Cancelled],
       roles: {
         [OrderStatus.Paid]: ['system'], // Only system (webhook) can mark paid
+        [OrderStatus.Shipped]: ['admin'], // Admin can ship COD orders directly
         [OrderStatus.Cancelled]: ['admin', 'customer', 'system'],
       },
     },

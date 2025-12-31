@@ -17,7 +17,8 @@ interface ShippingForm {
   shippingAddress: string;
   shippingCity: string;
   shippingNotes: string;
-  paymentMethod: "cod" | "paymob";
+  paymentMethod: "cod" | "paymob" | "wallet";
+  walletNumber?: string;
 }
 
 export default function CheckoutClient() {
@@ -134,6 +135,12 @@ export default function CheckoutClient() {
       });
 
       if (result.success && result.orderId) {
+        if (result.paymentUrl) {
+           // Redirect to Paymob
+           window.location.href = result.paymentUrl;
+           return;
+        }
+
         setOrderId(result.orderId);
         setStep("confirmation");
         clearCart();
@@ -489,7 +496,7 @@ export default function CheckoutClient() {
                   <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "14px" }}>
                     Payment Method
                   </label>
-                  <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flexDirection: "column" }}>
                     <label style={{
                       flex: 1,
                       minWidth: "140px",
@@ -498,22 +505,103 @@ export default function CheckoutClient() {
                       borderRadius: "12px",
                       cursor: "pointer",
                       background: form.paymentMethod === "cod" ? "#f0fdf4" : "#fff",
-                      transition: "all 0.2s"
+                      transition: "all 0.2s",
+                      display: "block"
                     }}>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="cod"
-                        checked={form.paymentMethod === "cod"}
-                        onChange={handleChange}
-                        style={{ marginRight: "8px" }}
-                      />
-                      <span style={{ fontWeight: "600" }}>Cash on Delivery</span>
-                      <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px" }}>
-                        Pay cash when you receive
-                      </p>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="cod"
+                          checked={form.paymentMethod === "cod"}
+                          onChange={handleChange}
+                          style={{ marginRight: "12px", accentColor: "#1a3c34", transform: "scale(1.2)" }}
+                        />
+                        <div>
+                          <span style={{ fontWeight: "700", fontSize: "16px", display: "block", color: "#1f2937" }}>Cash on Delivery</span>
+                          <span style={{ fontSize: "14px", color: "#6b7280", marginTop: "4px", display: "block" }}>
+                            Pay cash when you receive your order
+                          </span>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label style={{
+                      flex: 1,
+                      minWidth: "140px",
+                      padding: "16px",
+                      border: form.paymentMethod === "paymob" ? "2px solid #1a3c34" : "1px solid #ddd",
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                      background: form.paymentMethod === "paymob" ? "#f0fdf4" : "#fff",
+                      transition: "all 0.2s",
+                      display: "block"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="paymob"
+                          checked={form.paymentMethod === "paymob"}
+                          onChange={handleChange}
+                          style={{ marginRight: "12px", accentColor: "#1a3c34", transform: "scale(1.2)" }}
+                        />
+                        <div>
+                          <span style={{ fontWeight: "700", fontSize: "16px", display: "block", color: "#1f2937" }}>Pay Online (Card)</span>
+                          <span style={{ fontSize: "14px", color: "#6b7280", marginTop: "4px", display: "block" }}>
+                            Visa / Mastercard
+                          </span>
+                        </div>
+                      </div>
+                    </label>
+
+                    <label style={{
+                      flex: 1,
+                      minWidth: "140px",
+                      padding: "16px",
+                      border: form.paymentMethod === "wallet" ? "2px solid #1a3c34" : "1px solid #ddd",
+                      borderRadius: "12px",
+                      cursor: "pointer",
+                      background: form.paymentMethod === "wallet" ? "#f0fdf4" : "#fff",
+                      transition: "all 0.2s",
+                      display: "block"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="wallet"
+                          checked={form.paymentMethod === "wallet"}
+                          onChange={handleChange}
+                          style={{ marginRight: "12px", accentColor: "#1a3c34", transform: "scale(1.2)" }}
+                        />
+                        <div>
+                          <span style={{ fontWeight: "700", fontSize: "16px", display: "block", color: "#1f2937" }}>Mobile Wallet</span>
+                          <span style={{ fontSize: "14px", color: "#6b7280", marginTop: "4px", display: "block" }}>
+                            Vodafone Cash, Etisalat, etc.
+                          </span>
+                        </div>
+                      </div>
                     </label>
                   </div>
+                  
+                  {form.paymentMethod === "wallet" && (
+                    <div style={{ marginTop: "16px" }}>
+                      <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px" }}>
+                        Wallet Number
+                      </label>
+                      <input
+                        type="text"
+                        name="walletNumber"
+                        placeholder="01xxxxxxxxx"
+                        value={form.walletNumber || ""}
+                        onChange={handleChange}
+                        className="w-full p-3 border rounded-lg"
+                        style={{ width: "100%", padding: "12px", border: "1px solid #ddd", borderRadius: "8px" }}
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 

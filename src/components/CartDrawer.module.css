@@ -301,4 +301,47 @@
     width: 100%;
     max-width: 100%;
   }
+    .body {
+      padding: 24px 16px;
+    }
+  
+    .header {
+      padding: 14px 16px;
+    }
+  
+    .footer {
+      padding: 16px;
+    }
+  
+    .actionButtons {
+      flex-direction: column;
+    }
+  
+    .viewCartBtn,
+    .checkoutBtn {
+      width: 100%;
+      flex: none;
+    }
+  
+    .item {
+      gap: 14px;
+      padding-bottom: 24px;
+    }
+  
+    .itemImage {
+      width: 70px;
+      height: 85px;
+    }
+  
+    .itemName {
+      font-size: 14px;
+    }
+  
+    .itemPrice {
+      font-size: 13px;
+    }
+  
+    .totalAmount {
+      font-size: 18px;
+    }
 }

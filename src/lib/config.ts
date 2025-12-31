@@ -24,6 +24,7 @@ const envSchema = z.object({
     PAYMOB_API_KEY: z.string().optional(),
     PAYMOB_HMAC_SECRET: z.string().optional(),
     PAYMOB_INTEGRATION_ID: z.string().optional(),
+    PAYMOB_IFRAME_ID: z.string().optional(),
     
     // Operational Config
     RESERVATION_TTL_MINUTES: z.string().transform(Number).pipe(z.number().min(1).max(60)).optional(),
@@ -67,6 +68,7 @@ function getDefaultConfig() {
         PAYMOB_API_KEY: undefined,
         PAYMOB_HMAC_SECRET: undefined,
         PAYMOB_INTEGRATION_ID: undefined,
+        PAYMOB_IFRAME_ID: undefined,
         RESERVATION_TTL_MINUTES: 15,
         ZOMBIE_THRESHOLD_MINUTES: 30,
         LOG_LEVEL: 'info' as const,
@@ -97,6 +99,8 @@ export const config = {
         apiKey: env.PAYMOB_API_KEY,
         hmacSecret: env.PAYMOB_HMAC_SECRET,
         integrationId: env.PAYMOB_INTEGRATION_ID,
+        walletIntegrationId: process.env.PAYMOB_WALLET_INTEGRATION_ID,
+        iframeId: env.PAYMOB_IFRAME_ID,
         isConfigured: !!(env.PAYMOB_API_KEY && env.PAYMOB_HMAC_SECRET),
     },
     

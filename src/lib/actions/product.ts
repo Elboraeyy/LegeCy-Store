@@ -186,6 +186,18 @@ export async function deleteProductAction(id: string): Promise<{ success: boolea
             };
         }
 
+        // 3. Check for POS transactions
+        const hasPOSTransactions = await prisma.pOSTransactionItem.findFirst({
+            where: { variantId: { in: variantIds } }
+        });
+
+        if (hasPOSTransactions) {
+            return { 
+                success: false, 
+                error: "Cannot delete product: It has POS transaction history. Archiving is recommended." 
+            };
+        }
+
         // 3. Perform Cascade Delete
         await prisma.$transaction(async (tx) => {
             await tx.inventory.deleteMany({ where: { variantId: { in: variantIds } } });

@@ -76,6 +76,7 @@ export default function ShopClient() {
   const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({ min: "", max: "" });
   const [sortOption, setSortOption] = useState("default");
   const [visibleCount, setVisibleCount] = useState(9);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Sync state with URL param changes
   useEffect(() => {
@@ -221,6 +222,141 @@ export default function ShopClient() {
       </section>
 
       <section className="container shop-layout">
+        {/* Mobile Filter Toggle */}
+        <button 
+          className="mobile-filter-btn"
+          onClick={() => setShowMobileFilters(true)}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filters
+        </button>
+
+        {/* Mobile Filter Overlay */}
+        {showMobileFilters && (
+          <div className="mobile-filter-overlay" onClick={() => setShowMobileFilters(false)}>
+            <div className="mobile-filter-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="mobile-filter-header">
+                <h3>Filters</h3>
+                <button onClick={() => setShowMobileFilters(false)} aria-label="Close filters">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div className="mobile-filter-body">
+                {/* Search */}
+                <div className="filter-group filter-section">
+                  <div className="search-container">
+                    <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input
+                      type="text"
+                      className="search-input"
+                      placeholder="Search watches..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setVisibleCount(9);
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Categories */}
+                <div className="filter-group filter-section">
+                  <h3 className="filter-title">Categories</h3>
+                  <ul className="category-list">
+                    <li>
+                      <button
+                        className={`category-btn ${category === "all" ? "active" : ""}`}
+                        onClick={() => { updateFilters({ category: "all" }); setShowMobileFilters(false); }}
+                      >
+                        All Types
+                      </button>
+                    </li>
+                    {categories.map((cat) => (
+                      <li key={cat.id}>
+                        <button
+                          className={`category-btn ${category === cat.slug ? "active" : ""}`}
+                          onClick={() => { updateFilters({ category: cat.slug }); setShowMobileFilters(false); }}
+                        >
+                          {cat.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Brands */}
+                <div className="filter-group filter-section">
+                  <h3 className="filter-title">Brands</h3>
+                  <ul className="category-list">
+                    <li>
+                      <button
+                        className={`category-btn ${brand === "all" ? "active" : ""}`}
+                        onClick={() => { updateFilters({ brand: "all" }); setShowMobileFilters(false); }}
+                      >
+                        All Brands
+                      </button>
+                    </li>
+                    {brands.map((b) => (
+                      <li key={b.id}>
+                        <button
+                          className={`category-btn ${brand === b.slug ? "active" : ""}`}
+                          onClick={() => { updateFilters({ brand: b.slug }); setShowMobileFilters(false); }}
+                        >
+                          {b.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Price Range */}
+                <div className="filter-group filter-section">
+                  <h3 className="filter-title">Price Range (EGP)</h3>
+                  <div className="price-range-inputs">
+                    <input
+                      type="number"
+                      className="price-input"
+                      placeholder="Min"
+                      value={priceRange.min}
+                      onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                    />
+                    <span className="price-separator">-</span>
+                    <input
+                      type="number"
+                      className="price-input"
+                      placeholder="Max"
+                      value={priceRange.max}
+                      onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => setShowMobileFilters(false)}
+                  style={{ width: '100%', marginTop: '16px' }}
+                >
+                  Apply Filters
+                </button>
+                <button 
+                  className="reset-btn" 
+                  onClick={() => { resetFilters(); setShowMobileFilters(false); }}
+                >
+                  Reset All Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <aside className="shop-sidebar">
           {/* Search Bar (Sidebar) */}
           <Reveal width="100%">

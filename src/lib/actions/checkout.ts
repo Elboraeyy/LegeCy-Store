@@ -22,10 +22,11 @@ interface CheckoutInput {
   shippingAddress: string;
   shippingCity: string;
   shippingNotes: string;
-  paymentMethod: 'cod' | 'paymob';
+  paymentMethod: 'cod' | 'paymob' | 'wallet';
   cartItems: CartItemInput[];
   totalPrice: number;
   couponCode?: string;
+  walletNumber?: string;
 }
 
 interface CheckoutResult {
@@ -85,6 +86,66 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
           });
       }
 
+      // Get default warehouse for inventory operations
+      const warehouse = await tx.warehouse.findFirst();
+      if (!warehouse) {
+          throw new Error('No warehouse configured');
+      }
+
+      // STEP 1: Verify all products are active and have sufficient stock BEFORE creating order
+      // Also collect SKUs for order item snapshot
+      const insufficientStockItems: string[] = [];
+      const unavailableProducts: string[] = [];
+      const variantSkuMap: Record<string, string> = {}; // Map variantId -> sku
+
+      for (const item of input.cartItems) {
+        // Check product status
+        const product = await tx.product.findUnique({
+          where: { id: item.id },
+          select: { status: true, name: true }
+        });
+
+        if (!product || product.status !== 'active') {
+          unavailableProducts.push(item.name);
+          continue;
+        }
+
+        // Check stock for items with variants and fetch SKU
+        if (item.variantId) {
+          const variant = await tx.variant.findUnique({
+            where: { id: item.variantId },
+            select: { sku: true }
+          });
+
+          if (variant) {
+            variantSkuMap[item.variantId] = variant.sku;
+          }
+
+          const inventory = await tx.inventory.findFirst({
+            where: {
+              warehouseId: warehouse.id,
+              variantId: item.variantId
+            }
+          });
+
+          if (!inventory || inventory.available < item.qty) {
+            const available = inventory?.available || 0;
+            insufficientStockItems.push(`${item.name} (available: ${available}, required: ${item.qty})`);
+          }
+        }
+      }
+
+      // Fail early if any products are unavailable
+      if (unavailableProducts.length > 0) {
+        throw new Error(`The following products are unavailable: ${unavailableProducts.join(', ')}`);
+      }
+
+      // Fail early if insufficient stock
+      if (insufficientStockItems.length > 0) {
+        throw new Error(`Insufficient stock for the following products: ${insufficientStockItems.join(', ')}`);
+      }
+
+      // STEP 2: Create the order
       const newOrder = await tx.order.create({
         data: {
           totalPrice: new Prisma.Decimal(finalTotal),
@@ -104,6 +165,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
               productId: item.id,
               variantId: item.variantId,
               name: item.name,
+              sku: item.variantId ? variantSkuMap[item.variantId] : null, // SKU snapshot
               price: new Prisma.Decimal(item.price),
               quantity: item.qty
             }))
@@ -114,7 +176,64 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         }
       });
 
+      // STEP 3: Deduct inventory with verification
+      for (const item of input.cartItems) {
+        if (!item.variantId) continue;
+
+        if (input.paymentMethod === 'cod') {
+          // COD: Deduct immediately from available (no reservation)
+          const result = await tx.inventory.updateMany({
+            where: {
+              warehouseId: warehouse.id,
+              variantId: item.variantId,
+              available: { gte: item.qty }
+            },
+            data: {
+              available: { decrement: item.qty }
+            }
+          });
+
+          // CRITICAL: Verify the update succeeded
+          if (result.count === 0) {
+            throw new Error(`Failed to deduct inventory for product: ${item.name}. Insufficient stock.`);
+          }
+
+          // Log the inventory change
+          await tx.inventoryLog.create({
+            data: {
+              warehouseId: warehouse.id,
+              variantId: item.variantId,
+              action: 'ORDER_FULFILL',
+              quantity: -item.qty,
+              reason: `COD Order Created: ${newOrder.id}`,
+              referenceId: newOrder.id,
+            }
+          });
+        } else {
+          // Online payment: Reserve stock until payment confirmed
+          const result = await tx.inventory.updateMany({
+            where: {
+              warehouseId: warehouse.id,
+              variantId: item.variantId,
+              available: { gte: item.qty }
+            },
+            data: {
+              available: { decrement: item.qty },
+              reserved: { increment: item.qty }
+            }
+          });
+
+          // CRITICAL: Verify the update succeeded
+          if (result.count === 0) {
+            throw new Error(`Failed to reserve inventory for product: ${item.name}. Insufficient stock.`);
+          }
+        }
+      }
+
       return newOrder;
+    }, {
+      maxWait: 5000, // default: 2000
+      timeout: 20000 // default: 5000
     });
 
     logger.info(`Order created with shipping: ${order.id}`, {
@@ -129,24 +248,35 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     // Handle Payment Method
     let paymentUrl: string | undefined;
 
-    if (input.paymentMethod === 'paymob') {
+    if (input.paymentMethod === 'paymob' || input.paymentMethod === 'wallet') {
         const { initiatePaymobPayment } = await import('@/lib/paymob');
-        const paymentResult = await initiatePaymobPayment({
-            id: order.id,
-            customerEmail: order.customerEmail || input.customerEmail || "",
-            customerName: order.customerName || input.customerName || "",
-            customerPhone: order.customerPhone || input.customerPhone || "",
-            shippingAddress: order.shippingAddress || input.shippingAddress || "",
-            shippingCity: order.shippingCity || input.shippingCity || ""
-        }, finalTotal);
-        if (paymentResult.success && paymentResult.paymentUrl) {
-            paymentUrl = paymentResult.paymentUrl;
-        } else {
-            // Log error but order is created. Access to dashboard logic to handle failed payments needed.
-            // For now, we might want to return success but with a note? 
-            // Or fail the whole thing? Ideally we shouldn't fail order creation if payment initiation fails, 
-            // but for user experience, maybe let them retry.
-            // For this implementation, we will assume success or return error.
+        console.log(`💳 Initiating Paymob (${input.paymentMethod}) for Order:`, order.id);
+        
+        try {
+            const paymentResult = await initiatePaymobPayment({
+                id: order.id,
+                customerEmail: order.customerEmail || input.customerEmail || "customer@example.com",
+                customerName: order.customerName || input.customerName || "Visitor",
+                customerPhone: order.customerPhone || input.customerPhone || "01000000000",
+                shippingAddress: order.shippingAddress || input.shippingAddress || "Cairo",
+                shippingCity: order.shippingCity || input.shippingCity || "Cairo"
+            }, finalTotal, input.paymentMethod === 'paymob' ? 'card' : 'wallet', input.walletNumber);
+
+            if (paymentResult.success && paymentResult.paymentUrl) {
+                paymentUrl = paymentResult.paymentUrl;
+            } else {
+                logger.error('Paymob initiation failed', { orderId: order.id, error: paymentResult.error });
+                return {
+                    success: false,
+                    error: `Payment initiation failed: ${paymentResult.error || 'Unknown error'}`
+                };
+            }
+        } catch (e) {
+             logger.error('Paymob initiation exception', { orderId: order.id, error: e });
+             return {
+                 success: false,
+                 error: 'System error during payment initiation.'
+             };
         }
     }
 

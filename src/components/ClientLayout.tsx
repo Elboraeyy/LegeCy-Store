@@ -4,6 +4,7 @@ import React from "react";
 import { StoreProvider } from "@/context/StoreContext";
 import { ComparisonProvider } from "@/context/ComparisonContext";
 import CartDrawer from "./CartDrawer";
+import SplashScreen from "./SplashScreen";
 import { Toaster } from "sonner";
 
 
@@ -43,6 +44,7 @@ function ClientLayoutContent({ children, navbar, footer }: { children: React.Rea
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith('/admin');
     const isPOS = pathname?.startsWith('/pos');
+    const isHomepage = pathname === '/';
 
     // Admin and POS pages don't show site navbar/footer
     if (isAdmin || isPOS) {
@@ -55,6 +57,8 @@ function ClientLayoutContent({ children, navbar, footer }: { children: React.Rea
 
     return (
       <ComparisonProvider>
+        {/* Show splash screen only on homepage */}
+        {isHomepage && <SplashScreen storeName="LegeCy" />}
         {navbar}
         <CartDrawer />
         {children}

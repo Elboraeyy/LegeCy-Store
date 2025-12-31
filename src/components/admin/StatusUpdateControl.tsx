@@ -18,9 +18,14 @@ const AVAILABLE_STATUSES = [
   OrderStatus.Cancelled,
 ];
 
+// Terminal states that cannot be changed
+const TERMINAL_STATES = [OrderStatus.Delivered, OrderStatus.Cancelled];
+
 export default function StatusUpdateControl({ orderId, currentStatus }: Props) {
   const [selectedStatus, setSelectedStatus] = useState<string>(currentStatus);
   const [isPending, startTransition] = useTransition();
+
+  const isTerminalState = TERMINAL_STATES.includes(currentStatus as OrderStatus);
 
   const handleUpdate = () => {
     if (selectedStatus === currentStatus) return;
@@ -35,6 +40,24 @@ export default function StatusUpdateControl({ orderId, currentStatus }: Props) {
       }
     });
   };
+
+  // For terminal states, show a static badge instead of dropdown
+  if (isTerminalState) {
+    const badgeStyle: React.CSSProperties = {
+      padding: '8px 16px',
+      borderRadius: '20px',
+      fontSize: '12px',
+      fontWeight: 600,
+      textTransform: 'uppercase',
+      background: currentStatus === OrderStatus.Delivered ? '#dcfce7' : '#fee2e2',
+      color: currentStatus === OrderStatus.Delivered ? '#166534' : '#991b1b',
+    };
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <span style={badgeStyle}>{currentStatus}</span>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -61,3 +84,4 @@ export default function StatusUpdateControl({ orderId, currentStatus }: Props) {
     </div>
   );
 }
+

@@ -68,7 +68,8 @@ async function main() {
             price: 100,
             quantity: 1
         }],
-        totalPrice: 100
+        totalPrice: 100,
+        paymentMethod: 'paymob' // Explicitly set to paymob so it gets cleaned up
     });
     console.log(`Created potential zombie order: ${order2.id}`);
 
@@ -91,7 +92,55 @@ async function main() {
     }
 
     console.log(`✅ PASS: Zombie order ${order2.id} crushed successfully.`);
-    console.log('🎉 Bug Fix Verification SUCCESS!');
+
+    // ====================================================
+    // TEST 3: COD Order Protection (Zombie Cleanup)
+    // ====================================================
+    console.log('\n🧪 Test 3: COD Order Protection');
+
+    // Create a COD order that is old enough to be a zombie
+    // Use prisma directly to bypass logic that might enforce other things
+    const codOrder = await prisma.order.create({
+        data: {
+            totalPrice: 100,
+            status: OrderStatus.Pending,
+            customerName: 'COD Survivor',
+            customerEmail: 'cod@survivor.com',
+            customerPhone: '1234567890',
+            shippingAddress: '123 Street',
+            shippingCity: 'Cairo',
+            paymentMethod: 'cod',
+            pointsEarned: 0,
+            createdAt: new Date(Date.now() - 60 * 60 * 1000), // 1 hour old
+            items: {
+                create: {
+                   productId: product.id,
+                   variantId: variant.id,
+                   name: product.name,
+                   price: 100,
+                   quantity: 1
+                }
+            }
+        }
+    });
+
+    console.log(`Created COD Zombie Candidate: ${codOrder.id}`);
+    
+    // Run cleanup again
+    const nukedCount2 = await processZombieOrders();
+    console.log(`Cleanup ran. Deleted: ${nukedCount2}`);
+
+    // Verify it still exists
+    const survivor = await prisma.order.findUnique({ where: { id: codOrder.id } });
+    
+    // Status should NOT be Cancelled (should be Pending or whatever it was)
+    if (survivor?.status === OrderStatus.Cancelled) {
+        throw new Error('❌ FAILED: COD Order was wrongly cancelled by zombie cleanup!');
+    }
+
+    console.log(`✅ PASS: COD Order ${codOrder.id} survived zombie apocalypse.`);
+
+    console.log('\n🎉 Bug Fix Verification SUCCESS!');
 }
 
 main()

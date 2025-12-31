@@ -110,10 +110,17 @@ export default function POSLoginPage() {
                 return;
             }
         } catch {
-            // Continue to demo mode
+            // Continue to demo mode only in development
         }
 
-        // Demo mode - create local session
+        // Demo mode - create local session (DEVELOPMENT ONLY)
+        // In production, this will not be reached if API is working correctly
+        if (process.env.NODE_ENV === 'production') {
+            setError('Unable to connect to POS server. Please try again.');
+            setLoading(false);
+            return;
+        }
+
         const terminal = terminals.find(t => t.id === selectedTerminal);
         localStorage.setItem('pos_session', JSON.stringify({
             id: `session-${Date.now()}`,
