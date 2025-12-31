@@ -53,6 +53,7 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
                 totalPrice: new Prisma.Decimal(data.totalPrice),
                 status: OrderStatus.Pending,
                 userId: data.userId, // Link order to user
+                paymentMethod: data.paymentMethod || 'cod',
                 items: {
                     create: data.items.map(item => ({
                         productId: item.productId,
@@ -104,8 +105,9 @@ export async function updateOrderStatus(
           return await internalCancelOrder(tx, orderId, `Cancelled by ${actor}`);
       }
 
-      // Commit inventory when order is paid (deduct from reserved)
-      if (newStatus === OrderStatus.Paid) {
+      // Commit inventory for online payment orders when paid
+      // Note: COD orders deduct inventory immediately at order creation (checkout.ts)
+      if (newStatus === OrderStatus.Paid && order.paymentMethod !== 'cod') {
           const warehouseId = await getDefaultWarehouseId(tx);
           for (const item of order.items) {
               if (item.variantId) {
@@ -125,7 +127,7 @@ export async function updateOrderStatus(
                   });
               }
           }
-          logger.info(`Inventory committed for order`, { orderId, itemCount: order.items.length });
+          logger.info(`Inventory committed for order`, { orderId, itemCount: order.items.length, paymentMethod: order.paymentMethod });
       }
 
       const updated = await tx.order.update({
@@ -185,15 +187,27 @@ export async function internalCancelOrder(tx: Prisma.TransactionClient, orderId:
     const warehouseId = await getDefaultWarehouseId(tx);
     const currentStatus = order.status as OrderStatus;
 
-    // 2. Release Stock
+    // 2. Release/Return Stock based on payment method and status
+    const isCOD = order.paymentMethod === 'cod';
+    
     if (currentStatus === OrderStatus.Pending) {
         for (const item of order.items) {
              if (item.variantId) {
-                 await inventoryService.releaseStock(tx, warehouseId, item.variantId, item.quantity);
+                 if (isCOD) {
+                     // COD orders: stock was deducted from available, return it
+                     await tx.inventory.update({
+                         where: { warehouseId_variantId: { warehouseId, variantId: item.variantId } },
+                         data: { available: { increment: item.quantity } }
+                     });
+                 } else {
+                     // Online orders: stock was reserved, release it
+                     await inventoryService.releaseStock(tx, warehouseId, item.variantId, item.quantity);
+                 }
              }
         }
     } 
     else if (currentStatus === OrderStatus.Paid || currentStatus === OrderStatus.Shipped) {
+        // Stock was committed (deducted), return to available
         for (const item of order.items) {
              if (item.variantId) {
                   await tx.inventory.update({

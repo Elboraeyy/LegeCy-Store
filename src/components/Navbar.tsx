@@ -113,6 +113,12 @@ export default function Navbar({ generalSettings, headerSettings }: NavbarProps)
           <span></span>
         </button>
         <ul className={`nav-links ${isOpen ? "open" : ""}`} role="menubar">
+          {/* Mobile Search - Only visible in mobile menu */}
+          {(headerSettings?.showSearch ?? true) && (
+            <li role="none" className="mobile-search-item">
+              <SearchBar />
+            </li>
+          )}
           <li role="none">
             <Link
               role="menuitem"
@@ -203,11 +209,11 @@ export default function Navbar({ generalSettings, headerSettings }: NavbarProps)
           <li role="none">
             <Link
               role="menuitem"
-              href="/contact"
-              className={isActive("/contact") ? "active" : ""}
+              href="/help"
+              className={isActive("/help") ? "active" : ""}
               onClick={() => setIsOpen(false)}
             >
-              Contact
+              Help
             </Link>
           </li>
 

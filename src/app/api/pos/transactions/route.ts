@@ -18,7 +18,8 @@ export async function POST(request: NextRequest) {
 
         // Validate session
         const session = await prisma.pOSSession.findUnique({
-            where: { id: sessionId }
+            where: { id: sessionId },
+            include: { cashier: { include: { role: true } } }
         });
 
         if (!session || session.status !== 'OPEN') {
@@ -26,6 +27,19 @@ export async function POST(request: NextRequest) {
                 { error: 'Invalid or closed session' },
                 { status: 400 }
             );
+        }
+
+        // SECURITY: Verify the admin is either the session owner or has elevated privileges
+        if (session.cashierId !== admin.id) {
+            const adminRole = admin.role;
+            const isElevated = adminRole?.name === 'owner' || adminRole?.name === 'super_admin';
+            
+            if (!isElevated) {
+                return NextResponse.json(
+                    { error: 'Not authorized to add transactions to this session' },
+                    { status: 403 }
+                );
+            }
         }
 
         // Calculate totals

@@ -236,6 +236,7 @@ model OrderItem {
   id        String @id @default(uuid())
   productId String
   name      String
+  sku       String? // SKU snapshot at time of order (for historical reference)
   price     Decimal // @db.Decimal(10, 2)
   quantity  Int
   orderId   String

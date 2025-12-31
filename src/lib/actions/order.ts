@@ -158,27 +158,86 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
         const totalPrice = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
         // 3. Create order directly with shipping info (matching Order schema)
-        const order = await prisma.order.create({
-            data: {
-                userId,
-                totalPrice,
-                status: 'pending',
-                customerName,
-                customerPhone,
-                customerEmail,
-                shippingAddress: input.shippingAddress.street,
-                shippingCity: input.shippingAddress.city,
-                shippingNotes: input.notes ? `[${input.source?.toUpperCase() || 'MANUAL'}] ${input.notes}` : `[${input.source?.toUpperCase() || 'MANUAL'}]`,
-                items: {
-                    create: orderItems.map(item => ({
-                        productId: item.productId,
-                        variantId: item.variantId,
-                        name: item.name,
-                        price: item.price,
-                        quantity: item.quantity
-                    }))
+        // Use transaction to ensure inventory deduction is atomic with order creation
+        const order = await prisma.$transaction(async (tx) => {
+            // Get default warehouse
+            const warehouse = await tx.warehouse.findFirst();
+            if (!warehouse) {
+                throw new Error('No warehouse configured');
+            }
+
+            // Verify stock availability BEFORE creating order
+            for (const item of orderItems) {
+                const inventory = await tx.inventory.findFirst({
+                    where: {
+                        warehouseId: warehouse.id,
+                        variantId: item.variantId
+                    }
+                });
+
+                if (!inventory || inventory.available < item.quantity) {
+                    const available = inventory?.available || 0;
+                    throw new Error(`Insufficient stock for product: ${item.name} (available: ${available}, required: ${item.quantity})`);
                 }
             }
+
+            // Create order
+            const newOrder = await tx.order.create({
+                data: {
+                    userId,
+                    totalPrice,
+                    status: 'pending',
+                    paymentMethod: 'cod', // Manual orders are typically COD
+                    customerName,
+                    customerPhone,
+                    customerEmail,
+                    shippingAddress: input.shippingAddress.street,
+                    shippingCity: input.shippingAddress.city,
+                    shippingNotes: input.notes ? `[${input.source?.toUpperCase() || 'MANUAL'}] ${input.notes}` : `[${input.source?.toUpperCase() || 'MANUAL'}]`,
+                    items: {
+                        create: orderItems.map(item => ({
+                            productId: item.productId,
+                            variantId: item.variantId,
+                            name: item.name,
+                            sku: item.name.match(/\((.*?)\)/)?.[1] || null, // Extract SKU from name format: Name (SKU)
+                            price: item.price,
+                            quantity: item.quantity
+                        }))
+                    }
+                }
+            });
+
+            // Deduct inventory (same as COD checkout)
+            for (const item of orderItems) {
+                const result = await tx.inventory.updateMany({
+                    where: {
+                        warehouseId: warehouse.id,
+                        variantId: item.variantId,
+                        available: { gte: item.quantity }
+                    },
+                    data: {
+                        available: { decrement: item.quantity }
+                    }
+                });
+
+                if (result.count === 0) {
+                    throw new Error(`Failed to deduct inventory for product: ${item.name}`);
+                }
+
+                // Log the inventory change
+                await tx.inventoryLog.create({
+                    data: {
+                        warehouseId: warehouse.id,
+                        variantId: item.variantId,
+                        action: 'ORDER_FULFILL',
+                        quantity: -item.quantity,
+                        reason: `Manual Order Created: ${newOrder.id}`,
+                        referenceId: newOrder.id,
+                    }
+                });
+            }
+
+            return newOrder;
         });
 
         revalidatePath('/admin/orders');

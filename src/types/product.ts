@@ -13,6 +13,7 @@ export interface Product {
     status?: string;
     description?: string | null;
     inStock?: boolean;
+    isNew?: boolean;
     totalStock?: number;
     cat?: string; // Legacy field
     specs?: {
@@ -40,6 +41,7 @@ export function normalizeProduct(product: Partial<Product>): Product {
         status: product.status || 'active',
         description: product.description,
         inStock: product.inStock ?? true,
+        isNew: product.isNew,
         totalStock: product.totalStock ?? 0,
         cat: product.cat || product.category || undefined,
         specs: product.specs,

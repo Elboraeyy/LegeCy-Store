@@ -6,7 +6,7 @@ async function main() {
   console.log('🌱 Starting seed...');
 
   // 0. Seed Enums
-  const orderStatuses = ['pending', 'paid', 'shipped', 'cancelled'];
+  const orderStatuses = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
   for (const status of orderStatuses) {
     await prisma.orderStatusEnum.upsert({
       where: { value: status },

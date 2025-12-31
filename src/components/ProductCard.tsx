@@ -25,9 +25,40 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const productImage = product.imageUrl || product.img || '/placeholder.jpg';
   const [imgSrc, setImgSrc] = React.useState(productImage);
 
+  // Calculate badges
+  const isOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
+  const isOutOfStock = product.inStock === false;
+  const isNew = product.isNew; // New logic based on createdAt
+
+  // Calculate sale percentage
+  const salePercent = isOnSale 
+    ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100) 
+    : 0;
+
   return (
     <div className="product-card premium fade-in">
       <div className="product-media" style={{ cursor: "pointer", position: "relative" }}>
+        {/* Product Badges */}
+        {(isOnSale || isOutOfStock) && (
+          <div className="product-badge-container">
+            {isOnSale && (
+              <span className="product-badge product-badge-sale">
+                -{salePercent}%
+              </span>
+            )}
+            {isNew && !isOutOfStock && (
+              <span className="product-badge product-badge-new">
+                New
+              </span>
+            )}
+            {isOutOfStock && (
+              <span className="product-badge product-badge-out">
+                Sold Out
+              </span>
+            )}
+          </div>
+        )}
+        
         <Link href={`/product/${product.id}`} style={{ display: "block", width: "100%", height: "100%" }}>
           <Image
             src={imgSrc}
@@ -48,7 +79,12 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         >
           {product.name}
         </h3>
-        <p className="product-price">{formatPrice(product.price)}</p>
+        <div className="product-price-wrapper">
+          <p className="product-price">{formatPrice(product.price)}</p>
+          {isOnSale && (
+            <p className="product-compare-price">{formatPrice(product.compareAtPrice!)}</p>
+          )}
+        </div>
         <div className="product-actions">
           <Link
             href={`/product/${product.id}`}
@@ -71,6 +107,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             className="btn-icon"
             title="Add to Cart"
             onClick={() => addToCart(String(product.id))}
+            disabled={isOutOfStock}
           >
             <svg
               width="20"

@@ -112,7 +112,7 @@ const defaultGeneral: GeneralSettings = {
   storeAddress: "Cairo, Egypt",
   timezone: "Africa/Cairo",
   currency: "EGP",
-  currencySymbol: "ج.م",
+  currencySymbol: "EGP",
   businessId: "",
   logoUrl: "",
   faviconUrl: "/favicon.ico",
