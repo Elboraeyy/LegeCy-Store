@@ -35,7 +35,7 @@ export default async function TeamPage() {
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 <div className="admin-card" style={{ textAlign: 'center', padding: '20px' }}>
-                    <div style={{ fontSize: '32px', fontWeight: 700, color: '#1a3c34' }}>{members.length}</div>
+                    <div style={{ fontSize: '32px', fontWeight: 700, color: '#12403C' }}>{members.length}</div>
                     <div style={{ fontSize: '12px', color: '#666' }}>Total Members</div>
                 </div>
                 <div className="admin-card" style={{ textAlign: 'center', padding: '20px' }}>

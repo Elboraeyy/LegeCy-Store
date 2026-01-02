@@ -66,7 +66,7 @@ export default async function AdminProfilePage() {
 
             {/* Profile Card */}
             <div className="admin-card" style={{ 
-                background: 'linear-gradient(135deg, #1a3c34, #2d5a4e)',
+                background: 'linear-gradient(135deg, #12403C, #2d5a4e)',
                 color: '#fff',
                 padding: '40px',
                 marginBottom: '24px',
@@ -96,7 +96,7 @@ export default async function AdminProfilePage() {
                         justifyContent: 'center',
                         fontSize: '40px',
                         fontWeight: 700,
-                        color: '#1a3c34',
+                        color: '#12403C',
                         boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
                     }}>
                         {(adminUser.name || adminUser.email).charAt(0).toUpperCase()}
@@ -294,7 +294,7 @@ function StatCard({ icon, label, value }: { icon: string; label: string; value: 
     return (
         <div className="admin-card" style={{ textAlign: 'center', padding: '24px' }}>
             <div style={{ fontSize: '28px', marginBottom: '8px' }}>{icon}</div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: '#1a3c34', marginBottom: '4px' }}>{value}</div>
+            <div style={{ fontSize: '24px', fontWeight: 700, color: '#12403C', marginBottom: '4px' }}>{value}</div>
             <div style={{ fontSize: '12px', color: '#666' }}>{label}</div>
         </div>
     );

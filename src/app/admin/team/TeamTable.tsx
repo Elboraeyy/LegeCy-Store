@@ -85,7 +85,7 @@ export default function TeamTable({ members }: Props) {
                                         justifyContent: 'center',
                                         fontSize: '16px',
                                         fontWeight: 600,
-                                        color: '#1a3c34'
+                                        color: '#12403C'
                                     }}>
                                         {!member.avatar && member.name.charAt(0).toUpperCase()}
                                     </div>
@@ -172,7 +172,7 @@ export default function TeamTable({ members }: Props) {
                                         href={`/admin/team/${member.id}/edit`}
                                         style={{
                                             padding: '6px 12px',
-                                            background: '#1a3c34',
+                                            background: '#12403C',
                                             color: '#fff',
                                             borderRadius: '6px',
                                             fontSize: '12px',

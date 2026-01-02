@@ -66,7 +66,7 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
         fontFamily: 'var(--font-heading)', 
         fontSize: '24px', 
         marginBottom: '24px',
-        color: '#1a3c34'
+        color: '#12403C'
       }}>
         Write a Review
       </h3>
@@ -79,7 +79,7 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
             marginBottom: '8px', 
             fontWeight: 600,
             fontSize: '14px',
-            color: '#1a3c34'
+            color: '#12403C'
           }}>
             Your Rating
           </label>
@@ -114,7 +114,7 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
             marginBottom: '8px', 
             fontWeight: 600,
             fontSize: '14px',
-            color: '#1a3c34'
+            color: '#12403C'
           }}>
             Your Name
           </label>
@@ -143,7 +143,7 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
             marginBottom: '8px', 
             fontWeight: 600,
             fontSize: '14px',
-            color: '#1a3c34'
+            color: '#12403C'
           }}>
             Your Review
           </label>
@@ -172,7 +172,7 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
           type="submit"
           disabled={isSubmitting}
           style={{
-            background: '#1a3c34',
+            background: '#12403C',
             color: '#fff',
             border: 'none',
             borderRadius: '30px',

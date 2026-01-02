@@ -83,7 +83,7 @@ export default function ChangePasswordPage() {
                                     marginBottom: '8px', 
                                     fontWeight: 600,
                                     fontSize: '14px',
-                                    color: '#1a3c34'
+                                    color: '#12403C'
                                 }}>
                                     Current Password
                                 </label>
@@ -110,7 +110,7 @@ export default function ChangePasswordPage() {
                                     marginBottom: '8px', 
                                     fontWeight: 600,
                                     fontSize: '14px',
-                                    color: '#1a3c34'
+                                    color: '#12403C'
                                 }}>
                                     New Password
                                 </label>
@@ -141,7 +141,7 @@ export default function ChangePasswordPage() {
                                     marginBottom: '8px', 
                                     fontWeight: 600,
                                     fontSize: '14px',
-                                    color: '#1a3c34'
+                                    color: '#12403C'
                                 }}>
                                     Confirm New Password
                                 </label>
@@ -168,7 +168,7 @@ export default function ChangePasswordPage() {
                                 style={{
                                     width: '100%',
                                     padding: '14px',
-                                    background: '#1a3c34',
+                                    background: '#12403C',
                                     color: '#fff',
                                     border: 'none',
                                     borderRadius: '30px',

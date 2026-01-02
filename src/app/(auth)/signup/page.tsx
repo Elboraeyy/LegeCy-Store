@@ -22,16 +22,16 @@ function SubmitButton() {
                 textTransform: 'uppercase',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                boxShadow: '0 4px 12px rgba(26, 60, 52, 0.2)'
+                boxShadow: '0 4px 12px rgba(18, 64, 60, 0.2)'
             }}
             onMouseOver={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(26, 60, 52, 0.3)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(18, 64, 60, 0.3)';
                 e.currentTarget.style.background = '#142f29';
             }}
             onMouseOut={(e) => {
                 e.currentTarget.style.transform = 'none';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(26, 60, 52, 0.2)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(18, 64, 60, 0.2)';
                 e.currentTarget.style.background = '#1a3c34';
             }}
         >
@@ -63,7 +63,7 @@ export default function SignupPage() {
                 
                 .auth-input:focus {
                     border-color: #1a3c34 !important;
-                    box-shadow: 0 0 0 4px rgba(26, 60, 52, 0.1) !important;
+                    box-shadow: 0 0 0 4px rgba(18, 64, 60, 0.1) !important;
                 }
 
                 @media (max-width: 900px) {
@@ -79,7 +79,7 @@ export default function SignupPage() {
                 display: 'flex', 
                 flexDirection: 'column', 
                 justifyContent: 'center',
-                color: '#e8e6e1',
+                color: '#F5F0E3',
                 position: 'relative',
                 overflow: 'hidden'
             }} className="auth-brand-side">

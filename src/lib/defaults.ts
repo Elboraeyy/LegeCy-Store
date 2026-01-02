@@ -22,11 +22,11 @@ export const defaultGeneral: GeneralSettings = {
 };
 
 export const defaultAppearance: AppearanceSettings = {
-  primaryColor: "#1a3c34",
-  secondaryColor: "#e8e6e1",
+  primaryColor: "#12403C",
+  secondaryColor: "#F5F0E3",
   accentColor: "#d4af37",
-  backgroundColor: "#e8e6e1",
-  textColor: "#1a3c34",
+  backgroundColor: "#F5F0E3",
+  textColor: "#12403C",
   fontFamily: "Inter",
   headingFont: "Playfair Display",
   borderRadius: 4,
@@ -99,5 +99,6 @@ export const defaultHeader: HeaderSettings = {
   stickyHeader: true,
   announcementEnabled: false,
   announcementText: "Free shipping on orders over 1000 EGP",
-  announcementBgColor: "#1a3c34",
+  announcementBgColor: "#12403C",
+  announcementTextColor: "#ffffff",
 };

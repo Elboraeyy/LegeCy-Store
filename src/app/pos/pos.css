@@ -10,17 +10,22 @@
   /* Core Palette (Matching Admin) */
   --pos-radius: 20px;
   --pos-radius-sm: 12px;
-  --pos-bg-dark: #1a3c34;       /* Deep Green */
-  --pos-bg-light: #e8e6e1;      /* Beige */
-  --pos-surface-light: #f4f3f0; /* Light Surface */
-  --pos-surface-white: #ffffff;
+  --pos-bg-dark: #12403C;
+    /* Deep Green */
+    --pos-bg-light: #F5F0E3;
+    /* Beige */
+    --pos-surface-light: #ffffff;
+    /* Reverted to white */
+    --pos-surface-white: #ffffff;
+    /* Reverted to white */
   
-  --pos-text-on-dark: #e8e6e1;
-  --pos-text-on-light: #1a3c34;
-  --pos-text-muted: #5c6b66;
+  --pos-text-on-dark: #F5F0E3;
+    --pos-text-on-light: #12403C;
+    --pos-text-muted: #4A6B68;
   
   --pos-accent: #d4af37;        /* Gold */
-  --pos-border: #d1cfca;
+  --pos-border: transparent;
+    /* Removed as requested */
   
   /* Semantic Colors */
   --pos-success: #166534;
@@ -29,9 +34,9 @@
   --pos-info: #1e40af;
   
   /* Shadows */
-  --pos-shadow-sm: 0 1px 2px rgba(26, 60, 52, 0.05);
-  --pos-shadow-md: 0 4px 6px -1px rgba(26, 60, 52, 0.05), 0 2px 4px -1px rgba(26, 60, 52, 0.03);
-  --pos-shadow-lg: 0 20px 25px -5px rgba(26, 60, 52, 0.1), 0 10px 10px -5px rgba(26, 60, 52, 0.04);
+  --pos-shadow-sm: 0 1px 2px rgba(18, 64, 60, 0.05);
+    --pos-shadow-md: 0 4px 6px -1px rgba(18, 64, 60, 0.05), 0 2px 4px -1px rgba(18, 64, 60, 0.03);
+    --pos-shadow-lg: 0 20px 25px -5px rgba(18, 64, 60, 0.1), 0 10px 10px -5px rgba(18, 64, 60, 0.04);
 }
 
 /* Override body to remove site layout */
@@ -301,7 +306,7 @@ body.pos-body {
   justify-content: center;
   gap: 12px;
   padding: 12px 20px;
-  background: rgba(26, 60, 52, 0.4);
+  background: rgba(18, 64, 60, 0.4);
   border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 99px;
   color: rgba(255, 255, 255, 0.9);
@@ -446,7 +451,7 @@ body.pos-body {
 .pos-form-input:focus {
   outline: none;
   border-color: var(--pos-bg-dark);
-  box-shadow: 0 0 0 3px rgba(26, 60, 52, 0.1);
+  box-shadow: 0 0 0 3px rgba(18, 64, 60, 0.1);
 }
 
 .pos-form-select {
@@ -559,13 +564,13 @@ body.pos-body {
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 10px rgba(26, 60, 52, 0.15);
+  box-shadow: 0 4px 10px rgba(18, 64, 60, 0.15);
 }
 
 .pos-btn-primary:hover {
   background: #142f29;
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(26, 60, 52, 0.2);
+  box-shadow: 0 6px 14px rgba(18, 64, 60, 0.2);
 }
 
 .pos-btn-primary:disabled {
@@ -743,7 +748,7 @@ body.pos-body {
   flex-direction: column;
   background: var(--pos-surface-white);
   border-left: 1px solid var(--pos-border);
-  box-shadow: -4px 0 20px rgba(26, 60, 52, 0.05);
+  box-shadow: -4px 0 20px rgba(18, 64, 60, 0.05);
 }
 
 /* ==========================================
@@ -779,7 +784,7 @@ body.pos-body {
   outline: none;
   border-color: var(--pos-bg-dark);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(26, 60, 52, 0.08);
+  box-shadow: 0 0 0 3px rgba(18, 64, 60, 0.08);
 }
 
 .pos-search-input::placeholder {

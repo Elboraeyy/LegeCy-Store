@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
                 display: 'flex', 
                 flexDirection: 'column', 
                 justifyContent: 'center',
-                color: '#e8e6e1',
+                color: '#F5F0E3',
                 position: 'relative',
                 overflow: 'hidden'
             }}>

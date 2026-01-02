@@ -155,7 +155,7 @@ const defaultSettings: AppearanceSettings = {
     primaryColor: '#1a3c34',
     primaryColorLight: '#2d5a4a',
     primaryColorDark: '#102520',
-    secondaryColor: '#e8e6e1',
+    secondaryColor: '#F5F0E3',
     accentColor: '#d4af37',
     accentColorHover: '#c9a22e',
     backgroundColor: '#ffffff',
@@ -241,7 +241,7 @@ const defaultSettings: AppearanceSettings = {
     primaryButtonBg: '#1a3c34',
     primaryButtonText: '#ffffff',
     primaryButtonHoverBg: '#2d5a4a',
-    secondaryButtonBg: '#e8e6e1',
+    secondaryButtonBg: '#F5F0E3',
     secondaryButtonText: '#1a3c34',
     outlineButtonBorder: '#1a3c34',
     

@@ -100,7 +100,7 @@ export default function InventoryTablePro({ data, onRefresh }: InventoryTablePro
                                         borderRadius: '99px', 
                                         fontSize: '11px', 
                                         fontWeight: 600,
-                                        background: 'rgba(26, 60, 52, 0.08)',
+                                        background: 'rgba(18, 64, 60, 0.08)',
                                         color: 'var(--admin-text-on-light)'
                                     }}>
                                         {item.warehouseName}
