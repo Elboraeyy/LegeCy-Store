@@ -642,7 +642,18 @@ select:disabled {
 }
 @media (max-width: 480px) {
   .hero .hero-title {
-    font-size: 32px
+    font-size: 28px;
+      /* Reduced from 32px */
+    }
+    
+    .hero .hero-sub {
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    
+    .hero {
+      padding: 60px 0 40px;
+      /* Reduced padding */
   }
 }
 .collection-section {
@@ -2610,6 +2621,26 @@ select:disabled {
   line-height: 1.2;
 }
 
+@media (max-width: 576px) {
+  .section-title {
+    font-size: 24px;
+    /* Reduced from 36px default/inherited */
+  }
+
+  .section-subtitle {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .section-header {
+    margin-bottom: 24px;
+    align-items: flex-start;
+  }
+
+  .view-all-link {
+    font-size: 11px;
+  }
+}
 .view-all-link {
   display: inline-flex;
   align-items: center;
@@ -2644,6 +2675,12 @@ select:disabled {
   overflow: hidden;
 }
 
+@media (max-width: 576px) {
+  .carousel-section {
+    padding: 40px 0;
+    /* Reduced from 60px */
+  }
+}
 .carousel-wrapper {
   position: relative;
 }
@@ -2670,6 +2707,16 @@ select:disabled {
   scroll-snap-align: start;
 }
 
+@media (max-width: 400px) {
+  .carousel-item {
+    flex: 0 0 240px;
+    /* Smaller cards for small screens */
+  }
+
+  .carousel-track {
+    gap: 16px;
+  }
+}
 /* Carousel Navigation Arrows */
 .carousel-arrow {
   position: absolute;
@@ -2787,6 +2834,19 @@ select:disabled {
   color: #1a1a1a;
 }
 
+@media (max-width: 576px) {
+  .product-badge {
+    padding: 4px 8px;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+
+  .product-badge-container {
+    top: 8px;
+    left: 8px;
+    gap: 4px;
+  }
+}
 .product-badge-out {
   background: #757575;
   color: #fff;
