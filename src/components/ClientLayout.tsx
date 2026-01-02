@@ -46,8 +46,10 @@ function ClientLayoutContent({ children, navbar, footer }: { children: React.Rea
     const isPOS = pathname?.startsWith('/pos');
     const isHomepage = pathname === '/';
 
-    // Admin and POS pages don't show site navbar/footer
-    if (isAdmin || isPOS) {
+    const isAuthPage = pathname?.startsWith('/login') || pathname?.startsWith('/signup') || pathname?.startsWith('/forgot-password') || pathname?.startsWith('/reset-password');
+
+    // Admin, POS, and Auth pages don't show site navbar/footer
+    if (isAdmin || isPOS || isAuthPage) {
         return (
             <ComparisonProvider>
                 {children}
