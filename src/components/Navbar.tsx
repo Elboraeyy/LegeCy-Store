@@ -36,6 +36,8 @@ export default function Navbar({
   >([]);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const lastScrollY = React.useRef(0); // Use ref to track scroll without re-rendering effect
 
   const pathname = usePathname();
   const router = useRouter();
@@ -55,11 +57,25 @@ export default function Navbar({
     });
 
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      const currentScrollY = window.scrollY;
+      
+      // Determine direction
+      // Downscroll AND past threshold -> Hide
+      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+        setVisible(false); 
+      } 
+      // Upscroll -> Show
+      else if (currentScrollY < lastScrollY.current) {
+        setVisible(true);
+      }
+
+      setScrolled(currentScrollY > 20);
+      lastScrollY.current = currentScrollY;
     };
-    window.addEventListener("scroll", handleScroll);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, []); // Empty dependency array = listener attached once
 
   const handleLogout = async () => {
     try {
@@ -85,29 +101,38 @@ export default function Navbar({
   // Gold: #d4af37
 
   return (
-    <div className="flex flex-col w-full z-50">
-      {/* Announcement Bar */}
-      {headerSettings?.announcementEnabled && (
-        <div
-          className="w-full py-2 text-center text-xs font-medium tracking-wider uppercase relative z-50"
-          style={{
-            backgroundColor: headerSettings.announcementBgColor || "#12403C",
-            color: headerSettings.announcementTextColor || "#ffffff",
-          }}
-        >
-          <div className="container mx-auto px-4">
-            {headerSettings.announcementText}
+    <div className="flex flex-col w-full z-50 relative">
+      {/* Announcement Bar - Hides on Scroll Down */}
+      <div 
+        className={`transition-transform duration-300 ${!visible ? '-translate-y-full absolute' : 'translate-y-0 relative'} z-50 w-full`}
+      >
+        {headerSettings?.announcementEnabled && (
+          <div
+            className="w-full py-2 text-center text-xs font-medium tracking-wider uppercase"
+            style={{
+              backgroundColor: headerSettings.announcementBgColor || "#12403C",
+              color: headerSettings.announcementTextColor || "#ffffff",
+            }}
+          >
+            <div className="container mx-auto px-4">
+              {headerSettings.announcementText}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Main Navbar */}
       <header
-        className={`w-full sticky top-0 z-40 transition-all duration-300 border-b ${
+        className={`w-full fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+          visible ? 'translate-y-0' : '-translate-y-full'
+        } ${
           scrolled
-            ? "bg-[#F5F0E3]/80 backdrop-blur-md border-[rgba(18,64,60,0.05)] shadow-sm py-2"
-            : "bg-[#F5F0E3] border-transparent py-4"
+            ? "bg-[#F5F0E3]/80 backdrop-blur-md border-b border-[rgba(18,64,60,0.05)] shadow-sm py-2" // Compact when scrolled
+            : "bg-[#F5F0E3] border-b border-transparent py-4 mt-[30px]" // Spaced when at top (accounting for announcement)
         }`}
+        style={{
+           marginTop: (visible && scrolled) ? 0 : (visible && headerSettings?.announcementEnabled ? 0 : 0) // Reset margin logic handling
+        } as React.CSSProperties}
       >
         <div className="container mx-auto px-4 lg:px-8">
           <nav className="flex items-center justify-between">

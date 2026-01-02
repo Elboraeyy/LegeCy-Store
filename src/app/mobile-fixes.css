@@ -1,0 +1,166 @@
+
+/* =========================================
+   MOBILE OPTIMIZATION & SPLASH SCREEN FIXES
+   ========================================= */
+
+/* 1. Prevent Horizontal Scroll Globally */
+html, body {
+  overflow-x: hidden;
+  position: relative;
+  width: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 2. Splash Screen Styles (Centering) */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg-dark);
+  color: var(--text-on-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  padding: 20px;
+}
+
+.splash-title {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  margin: 16px 0 8px;
+  letter-spacing: 2px;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.splash-tagline {
+  font-family: var(--font-body);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  opacity: 0.7;
+}
+
+.splash-loader {
+  width: 120px;
+  height: 2px;
+  background: var(--accent);
+  margin-top: 32px;
+  border-radius: 2px;
+}
+
+/* 3. Mobile Layout Refinements */
+@media (max-width: 576px) {
+  
+  /* Container Constraints */
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+    width: 100%;
+    overflow: hidden; /* Additional safety */
+  }
+
+  /* Hero Section Centering */
+  .hero {
+    text-align: center;
+    padding: 40px 0 60px;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero .hero-title {
+    font-size: 32px; /* Balanced size */
+    line-height: 1.2;
+  }
+  
+  .hero .hero-sub {
+    font-size: 15px;
+    padding: 0 10px; /* Prevent text touching edges */
+  }
+
+  /* Components: Center Everything */
+  .section-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .section-title-area {
+    align-items: center;
+  }
+
+  .view-all-link {
+    margin-top: 8px;
+  }
+
+  /* Legacy Section Fixes */
+  .legacy-section {
+    padding: 50px 12px;
+    margin-top: 32px;
+  }
+  
+  .legacy-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .legacy-image-wrapper {
+    max-width: 100%; /* Fix overflow */
+    margin: 0 auto;
+    width: 280px; /* Ideal mobile width */
+  }
+
+  .legacy-text-content {
+    padding: 0;
+    text-align: center;
+    align-items: center;
+  }
+
+  .legacy-description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Product Card Fixes */
+  .product-badge-container {
+    left: 8px;
+    top: 8px;
+  }
+  
+  .product-badge {
+    padding: 4px 8px; 
+    font-size: 10px;
+  }
+
+  .product-title {
+    font-size: 14px; /* Ensure readability */
+  }
+
+  /* Hide horizontal overflow items if any */
+  .carousel-wrapper {
+    margin: 0 -12px; /* Bleed to edge */
+    padding: 0 12px; /* Inner padding */
+  }
+  
+  .carousel-item {
+     flex: 0 0 260px; /* Good size for mobile */
+  }
+}
