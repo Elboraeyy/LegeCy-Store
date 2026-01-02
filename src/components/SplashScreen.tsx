@@ -5,32 +5,23 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface SplashScreenProps {
   storeName?: string;
+  onFinish?: () => void;
 }
 
-export default function SplashScreen({ storeName = "LegeCy" }: SplashScreenProps) {
+export default function SplashScreen({ storeName = "LegeCy", onFinish }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Check if splash was already shown in this session
-    const splashShown = sessionStorage.getItem("splash_shown");
-    
-    if (splashShown) {
-      // Use setTimeout to avoid "synchronous setState" warning in useEffect
-      const t = setTimeout(() => setIsVisible(false), 0);
-      return () => clearTimeout(t);
-    }
-
     // Hide splash after animation
     const timer = setTimeout(() => {
       setIsVisible(false);
-      sessionStorage.setItem("splash_shown", "true");
     }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={onFinish}>
       {isVisible && (
         <motion.div
           className="splash-screen"
