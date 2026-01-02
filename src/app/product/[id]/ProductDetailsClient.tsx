@@ -288,7 +288,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                     border: 'none',
                     background: 'transparent',
                     cursor: quantity <= 1 ? 'not-allowed' : 'pointer',
-                    color: quantity <= 1 ? '#ccc' : '#1a3c34',
+                    color: quantity <= 1 ? '#ccc' : '#12403C',
                     fontSize: '16px',
                     fontWeight: 600
                   }}

@@ -149,7 +149,7 @@ export default function TrackOrderClient({ order }: Props) {
                     <div style={{
                       width: `${Math.max(0, ((currentStatus.step - 1) / (steps.length - 1)) * 100)}%`,
                       height: "100%",
-                      background: "linear-gradient(90deg, #1a3c34, #2d5a4e)",
+                      background: "linear-gradient(90deg, #12403C, #2d5a4e)",
                       transition: "width 0.5s ease"
                     }} />
                   </div>
@@ -170,7 +170,7 @@ export default function TrackOrderClient({ order }: Props) {
                           width: "48px",
                           height: "48px",
                           borderRadius: "50%",
-                          background: isCompleted || isCurrent ? "#1a3c34" : "#e5e7eb",
+                          background: isCompleted || isCurrent ? "#12403C" : "#e5e7eb",
                           color: isCompleted || isCurrent ? "#fff" : "#9ca3af",
                           display: "flex",
                           alignItems: "center",
@@ -184,7 +184,7 @@ export default function TrackOrderClient({ order }: Props) {
                         </div>
                         <span style={{
                           fontSize: "13px",
-                          color: isCompleted || isCurrent ? "#1a3c34" : "#9ca3af",
+                          color: isCompleted || isCurrent ? "#12403C" : "#9ca3af",
                           fontWeight: isCurrent ? 600 : 400,
                           textAlign: "center"
                         }}>
@@ -286,7 +286,7 @@ export default function TrackOrderClient({ order }: Props) {
                         width: "8px",
                         height: "8px",
                         borderRadius: "50%",
-                        background: "#1a3c34",
+                        background: "#12403C",
                         marginTop: "6px"
                       }} />
                       <div>

@@ -121,7 +121,7 @@ export const HelpCenter = () => {
         }
         .video-mock {
           aspect-ratio: 16/9;
-          background: linear-gradient(45deg, #1a3c34, #2a4f45);
+          background: linear-gradient(45deg, #12403C, #2a4f45);
           border-radius: var(--radius);
           display: flex;
           flex-direction: column;

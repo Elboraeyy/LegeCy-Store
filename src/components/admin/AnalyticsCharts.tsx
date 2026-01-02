@@ -63,7 +63,7 @@ interface AnalyticsChartsProps {
 
 // Color Palettes
 const COLORS = {
-  primary: '#1a3c34',
+  primary: '#12403C',
   gold: '#d4af37',
   green: '#166534',
   red: '#b91c1c',
@@ -949,7 +949,7 @@ export function StatsGrid({ items }: { items: StatItem[] }) {
           textAlign: 'center'
         }}>
           {item.icon && <div style={{ fontSize: '20px', marginBottom: '8px' }}>{item.icon}</div>}
-          <div style={{ fontSize: '22px', fontWeight: 700, marginBottom: '4px', color: '#1a3c34' }}>{item.value}</div>
+          <div style={{ fontSize: '22px', fontWeight: 700, marginBottom: '4px', color: '#12403C' }}>{item.value}</div>
           <div style={{ fontSize: '11px', color: '#555' }}>{item.label}</div>
           {item.change !== undefined && (
             <div style={{ 
@@ -974,7 +974,7 @@ export function GaugeChart({
   value, 
   max = 100, 
   label,
-  color = '#1a3c34'
+  color = '#12403C'
 }: { 
   value: number; 
   max?: number; 
@@ -1028,7 +1028,7 @@ export function CircularProgress({
   strokeWidth = 12,
   label,
   sublabel,
-  color = '#1a3c34'
+  color = '#12403C'
 }: { 
   value: number; 
   max?: number; 
@@ -1119,8 +1119,8 @@ export function DualLineComparison({
       <AreaChart data={data}>
         <defs>
           <linearGradient id="currentGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#1a3c34" stopOpacity={0.2}/>
-            <stop offset="95%" stopColor="#1a3c34" stopOpacity={0}/>
+            <stop offset="5%" stopColor="#12403C" stopOpacity={0.2}/>
+            <stop offset="95%" stopColor="#12403C" stopOpacity={0}/>
           </linearGradient>
           <linearGradient id="previousGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="#d4af37" stopOpacity={0.1}/>
@@ -1138,7 +1138,7 @@ export function DualLineComparison({
         <Area 
           type="monotone" 
           dataKey="current" 
-          stroke="#1a3c34" 
+          stroke="#12403C" 
           strokeWidth={2}
           fill="url(#currentGrad)"
           name={currentLabel}
@@ -1286,7 +1286,7 @@ export function TargetProgressBar({
           width: `${percentage}%`,
           background: isAchieved 
             ? 'linear-gradient(90deg, #166534, #22c55e)'
-            : 'linear-gradient(90deg, #1a3c34, #4a8b7f)',
+            : 'linear-gradient(90deg, #12403C, #4a8b7f)',
           borderRadius: '12px',
           transition: 'width 0.5s ease',
           display: 'flex',
@@ -1325,7 +1325,7 @@ export function TargetProgressBar({
 
 export function MiniAreaChart({ 
   data, 
-  color = '#1a3c34',
+  color = '#12403C',
   height = 50,
   showValue = true
 }: { 
@@ -1497,7 +1497,7 @@ interface MetricCardData {
   color?: string;
 }
 
-export function MetricCardWithTrend({ value, label, trend, trendData, color = '#1a3c34' }: MetricCardData) {
+export function MetricCardWithTrend({ value, label, trend, trendData, color = '#12403C' }: MetricCardData) {
   return (
     <div style={{
       padding: '20px',
@@ -1548,7 +1548,7 @@ export function BulletChart({
   target, 
   max,
   label,
-  color = '#1a3c34'
+  color = '#12403C'
 }: { 
   value: number; 
   target: number; 

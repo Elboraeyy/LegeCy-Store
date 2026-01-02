@@ -4,40 +4,46 @@
   --admin-radius: 20px;
     /* Standardized Large Radius */
     --admin-radius-sm: 12px;
-  --admin-bg-dark: #1a3c34;       /* Deep Green */
-  --admin-bg-light: #e8e6e1;      /* Beige */
-  --admin-surface-light: #f4f3f0; /* Light Surface */
-  --admin-surface-white: #ffffff;
+  --admin-bg-dark: #12403C;
+    /* Deep Green */
+    --admin-bg-light: #F5F0E3;
+    /* Beige */
+    --admin-surface-light: #ffffff;
+    /* Reverted to white */
+    --admin-surface-white: #ffffff;
+    /* Reverted to white */
   
-  --admin-text-on-dark: #e8e6e1;
-  --admin-text-on-light: #1a3c34;
-  --admin-text-muted: #5c6b66;
+  --admin-text-on-dark: #F5F0E3;
+    --admin-text-on-light: #12403C;
+    --admin-text-muted: #4A6B68;
   
   --admin-accent: #d4af37;        /* Gold */
-  --admin-border: #d1cfca;
+  --admin-border: transparent;
+    /* Removed as requested */
   
   /* Semantic Variables */
-  --sidebar-bg: #1a3c34;
+  --sidebar-bg: #12403C;
     /* Matches --bg-dark */
-      --sidebar-bg-gradient: #1a3c34;
+      --sidebar-bg-gradient: #12403C;
       /* Flat Deep Green */
-      --sidebar-text: #e8e6e1;
+      --sidebar-text: #F5F0E3;
     /* Matches --text-on-dark */
   --sidebar-hover: rgba(255, 255, 255, 0.04);
-  --sidebar-active: #e8e6e1;
+  --sidebar-active: #F5F0E3;
     /* Matches Main BG exactly for seamless blend */
-    --sidebar-active-text: #1a3c34;
+    --sidebar-active-text: #12403C;
     /* Matches --text-on-light */
   --sidebar-border: rgba(255, 255, 255, 0.06);
 
-  --main-bg: #e8e6e1;
+  --main-bg: #F5F0E3;
     /* Darker Beige to match store global background */
   --card-bg: #ffffff;
-  --card-border: #e2e0dd;
+    --card-border: transparent;
+      /* Removed as requested */
   
-  --shadow-sm: 0 1px 2px rgba(26, 60, 52, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(26, 60, 52, 0.05), 0 2px 4px -1px rgba(26, 60, 52, 0.03);
-  --shadow-lg: 0 20px 25px -5px rgba(26, 60, 52, 0.1), 0 10px 10px -5px rgba(26, 60, 52, 0.04);
+  --shadow-sm: 0 1px 2px rgba(18, 64, 60, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(18, 64, 60, 0.05), 0 2px 4px -1px rgba(18, 64, 60, 0.03);
+    --shadow-lg: 0 20px 25px -5px rgba(18, 64, 60, 0.1), 0 10px 10px -5px rgba(18, 64, 60, 0.04);
 }
 
 body.admin-body {
@@ -297,7 +303,7 @@ body.admin-body {
   padding: 12px 28px;
   
     /* Glassy Deep Green Background for better visibility on dark sidebar */
-    background: rgba(26, 60, 52, 0.4);
+    background: rgba(18, 64, 60, 0.4);
   
     /* Subtle Gold Border */
     border: 1px solid rgba(212, 175, 55, 0.2);
@@ -417,7 +423,7 @@ body.admin-body {
 }
 
 .admin-table th {
-  background: rgba(26, 60, 52, 0.03);
+  background: rgba(18, 64, 60, 0.03);
   text-align: left;
   padding: 16px 24px;
   font-size: 11px;
@@ -439,7 +445,7 @@ body.admin-body {
 }
 
 .admin-table tr:hover td {
-  background: rgba(26, 60, 52, 0.02);
+  background: rgba(18, 64, 60, 0.02);
 }
 
 .admin-table tr:last-child td {
@@ -467,13 +473,13 @@ body.admin-body {
 .admin-btn-primary {
   background: var(--admin-bg-dark);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(26, 60, 52, 0.15);
+  box-shadow: 0 4px 10px rgba(18, 64, 60, 0.15);
 }
 
 .admin-btn-primary:hover {
   background: #142f29;
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(26, 60, 52, 0.2);
+  box-shadow: 0 6px 14px rgba(18, 64, 60, 0.2);
 }
 
 .admin-btn-outline {
@@ -487,7 +493,7 @@ body.admin-body {
     color: #ffffff;
   border-color: var(--admin-bg-dark);
   transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(26, 60, 52, 0.15);
+    box-shadow: 0 4px 12px rgba(18, 64, 60, 0.15);
 }
 
 /* Status Badges */
@@ -583,7 +589,7 @@ body.admin-body {
 .form-input:focus {
   outline: none;
   border-color: var(--admin-bg-dark);
-  box-shadow: 0 0 0 3px rgba(26, 60, 52, 0.1);
+  box-shadow: 0 0 0 3px rgba(18, 64, 60, 0.1);
 }
 /* Form Groups */
 .admin-form-group {
@@ -652,9 +658,9 @@ select.form-input {
 
 /* Hover State */
 select.form-input:hover {
-  border-color: rgba(26, 60, 52, 0.3);
+  border-color: rgba(18, 64, 60, 0.3);
   background-color: rgba(248, 248, 246, 0.8);
-  box-shadow: 0 2px 8px rgba(26, 60, 52, 0.06);
+  box-shadow: 0 2px 8px rgba(18, 64, 60, 0.06);
 }
 
 /* Focus State - Premium Gold Accent */
@@ -665,7 +671,7 @@ select.form-input:focus {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     box-shadow:
       0 0 0 4px rgba(212, 175, 55, 0.12),
-      0 4px 12px rgba(26, 60, 52, 0.08);
+      0 4px 12px rgba(18, 64, 60, 0.08);
   }
   
   /* Active/Open State */
@@ -761,7 +767,7 @@ select.form-input:focus {
   }
   
   select.form-input.admin-select-outline:hover {
-    background-color: rgba(26, 60, 52, 0.04);
+    background-color: rgba(18, 64, 60, 0.04);
   }
   
   /* Dropdown with Icon Prefix - Use wrapper */
@@ -802,7 +808,7 @@ select.form-input:focus {
   }
   
   .admin-toolbar select.form-input:hover {
-    background-color: rgba(26, 60, 52, 0.08);
+    background-color: rgba(18, 64, 60, 0.08);
     border-color: transparent;
   }
   
@@ -875,7 +881,7 @@ input[type="number"].form-input {
                                                                 }
                 
                                                                 .admin-tab-pill:hover {
-                                                                  background: rgba(26, 60, 52, 0.08);
+                                                                  background: rgba(18, 64, 60, 0.08);
                                                                     color: var(--admin-bg-dark);
                                                                   text-decoration: none;
                                                                 }
@@ -883,7 +889,7 @@ input[type="number"].form-input {
                                                                 .admin-tab-pill.active {
                                                                   background: var(--admin-bg-dark);
                                                                   color: #fff;
-                                                                  box-shadow: 0 2px 8px rgba(26, 60, 52, 0.25);
+                                                                  box-shadow: 0 2px 8px rgba(18, 64, 60, 0.25);
                                                                 }
                                 
                                                                 .admin-search-wrapper {

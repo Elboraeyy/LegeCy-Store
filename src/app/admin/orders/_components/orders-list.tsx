@@ -69,7 +69,7 @@ export function OrdersList({ orders, meta, search, status }: OrdersListProps) {
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+            <div className="rounded-lg shadow overflow-hidden" style={{ backgroundColor: 'var(--card-bg)' }}>
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -82,7 +82,7 @@ export function OrdersList({ orders, meta, search, status }: OrdersListProps) {
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-gray-200" style={{ backgroundColor: 'var(--card-bg)' }}>
                             {orders.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-10 text-center text-sm text-gray-500">
@@ -124,7 +124,7 @@ export function OrdersList({ orders, meta, search, status }: OrdersListProps) {
 
             {/* Pagination */}
             {meta.totalPages > 1 && (
-                <div className="flex justify-between items-center bg-white px-4 py-3 border-t border-gray-200 sm:px-6 rounded-b-lg">
+                <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200 sm:px-6 rounded-b-lg" style={{ backgroundColor: 'var(--card-bg)' }}>
                     <div className="text-sm text-gray-700">
                         Page <span className="font-medium">{meta.page}</span> of <span className="font-medium">{meta.totalPages}</span>
                     </div>

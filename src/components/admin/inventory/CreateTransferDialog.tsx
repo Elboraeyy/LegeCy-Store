@@ -216,7 +216,7 @@ export default function CreateTransferDialog({ warehouses, onClose, onSuccess }:
                                                 padding: '12px 16px',
                                                 borderBottom: '1px solid var(--admin-border)',
                                                 cursor: 'pointer',
-                                                background: isSelected ? 'rgba(26, 60, 52, 0.05)' : 'transparent',
+                                                background: isSelected ? 'rgba(18, 64, 60, 0.05)' : 'transparent',
                                                 transition: 'background 0.2s'
                                             }}
                                         >

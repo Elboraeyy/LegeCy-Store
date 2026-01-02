@@ -42,7 +42,7 @@ export default function PromoBanner({
 
       <style jsx>{`
         .promo-banner {
-          background: linear-gradient(135deg, #1a3c34, #2d5a4e);
+          background: linear-gradient(135deg, #12403C, #2d5a4e);
           color: #fff;
           padding: 12px 24px;
           display: flex;

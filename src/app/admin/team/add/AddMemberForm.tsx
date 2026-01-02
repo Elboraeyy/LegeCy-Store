@@ -316,7 +316,7 @@ export default function AddMemberForm({ roles }: Props) {
                             width: '50px',
                             height: '28px',
                             borderRadius: '14px',
-                            background: formData.isActive ? '#1a3c34' : '#d1d5db',
+                            background: formData.isActive ? '#12403C' : '#d1d5db',
                             border: 'none',
                             cursor: 'pointer',
                             position: 'relative',
@@ -359,7 +359,7 @@ export default function AddMemberForm({ roles }: Props) {
                     disabled={loading}
                     style={{
                         padding: '12px 32px',
-                        background: loading ? '#6b7280' : '#1a3c34',
+                        background: loading ? '#6b7280' : '#12403C',
                         color: '#fff',
                         border: 'none',
                         borderRadius: '8px',

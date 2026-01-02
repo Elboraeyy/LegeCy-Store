@@ -64,7 +64,7 @@ function ClientLayoutContent({ children, navbar, footer }: { children: React.Rea
         } else {
             // Ensure content is visible on other pages (if navigating back)
             if (!contentVisible) {
-                setContentVisible(true);
+                setTimeout(() => setContentVisible(true), 0);
             }
         }
     }, [isHomepage, contentVisible]);

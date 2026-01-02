@@ -50,7 +50,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationEmailDat
   <div style="max-width: 600px; margin: 0 auto; background: white;">
     
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, #1a3c34, #2d5a4e); padding: 40px 30px; text-align: center;">
+    <div style="background: linear-gradient(135deg, #12403C, #2d5a4e); padding: 40px 30px; text-align: center;">
       <h1 style="color: #d4af37; margin: 0; font-size: 28px; letter-spacing: 2px;">LegeCy</h1>
       <p style="color: #a3b8b0; margin: 10px 0 0; font-size: 14px;">Luxury Timepieces</p>
     </div>
@@ -65,7 +65,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationEmailDat
         </div>
       </div>
 
-      <h2 style="text-align: center; color: #1a3c34; margin: 0 0 10px; font-size: 24px;">
+      <h2 style="text-align: center; color: #12403C; margin: 0 0 10px; font-size: 24px;">
         Thank you for your order, ${data.customerName}!
       </h2>
       <p style="text-align: center; color: #666; margin: 0 0 30px;">
@@ -75,11 +75,11 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationEmailDat
       <!-- Order Number -->
       <div style="background: #f9f9f9; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 30px;">
         <p style="color: #888; margin: 0 0 5px; font-size: 13px;">Order Number</p>
-        <p style="color: #1a3c34; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: 2px;">#${orderNumber}</p>
+        <p style="color: #12403C; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: 2px;">#${orderNumber}</p>
       </div>
 
       <!-- Order Items -->
-      <h3 style="color: #1a3c34; margin: 0 0 15px; font-size: 18px;">Order Details</h3>
+      <h3 style="color: #12403C; margin: 0 0 15px; font-size: 18px;">Order Details</h3>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <thead>
           <tr style="background: #f5f5f5;">
@@ -94,21 +94,21 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationEmailDat
       </table>
 
       <!-- Total -->
-      <div style="background: #1a3c34; color: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="background: #12403C; color: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 16px;">Total</span>
         <span style="font-size: 22px; font-weight: bold; color: #d4af37;">${formatPrice(data.total)}</span>
       </div>
 
       <!-- Shipping Address -->
       <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 12px;">
-        <h3 style="color: #1a3c34; margin: 0 0 10px; font-size: 16px;">📍 Shipping Address</h3>
+        <h3 style="color: #12403C; margin: 0 0 10px; font-size: 16px;">📍 Shipping Address</h3>
         <p style="color: #666; margin: 0; line-height: 1.6;">${data.shippingAddress}</p>
       </div>
 
       <!-- CTA Button -->
       <div style="text-align: center; margin-top: 30px;">
         <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/track/${data.orderId}" 
-           style="display: inline-block; background: #1a3c34; color: white; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 14px;">
+           style="display: inline-block; background: #12403C; color: white; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 14px;">
           Track Order
         </a>
       </div>
@@ -186,7 +186,7 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f3f0;">
   <div style="max-width: 500px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
     
-    <div style="background: linear-gradient(135deg, #1a3c34, #2d5a4e); padding: 30px; text-align: center;">
+    <div style="background: linear-gradient(135deg, #12403C, #2d5a4e); padding: 30px; text-align: center;">
       <h1 style="color: #d4af37; margin: 0; font-size: 24px;">LegeCy</h1>
     </div>
 
@@ -195,7 +195,7 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
         <span style="font-size: 28px;">🔐</span>
       </div>
 
-      <h2 style="color: #1a3c34; margin: 0 0 15px;">Reset Your Password</h2>
+      <h2 style="color: #12403C; margin: 0 0 15px;">Reset Your Password</h2>
       
       <p style="color: #666; line-height: 1.6; margin-bottom: 30px;">
         ${data.userName ? `Hello ${data.userName},` : 'Hello,'}<br>
@@ -203,7 +203,7 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
       </p>
 
       <a href="${resetUrl}" 
-         style="display: inline-block; background: #1a3c34; color: white; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 600;">
+         style="display: inline-block; background: #12403C; color: white; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 600;">
         Reset Password
       </a>
 

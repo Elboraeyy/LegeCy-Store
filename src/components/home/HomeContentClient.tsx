@@ -112,54 +112,62 @@ export function HomeContentClient({ homepage, storeName, featuredProducts, newAr
       )}
 
       {/* Trust Section */}
-      <section className="trust-section">
-        <div className="container">
+      <section className="py-24 bg-[#12403C] text-[#F5F0E3]">
+        <div className="container mx-auto px-4">
           <motion.div 
-            className="trust-grid"
+            className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
             variants={staggerContainerSlow}
           >
-            <motion.div className="trust-item" variants={fadeUpSlow}>
-              <div className="trust-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
+              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
               </div>
-              <h4>100%</h4>
-              <p>Authentic Products</p>
+              <div>
+                <h4 className="text-2xl font-heading mb-1 text-white">100%</h4>
+                <p className="text-sm tracking-wide text-white/70 uppercase">Authentic Products</p>
+              </div>
             </motion.div>
-            <motion.div className="trust-item" variants={fadeUpSlow}>
-              <div className="trust-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
+              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <circle cx="12" cy="12" r="10"/>
                   <polyline points="12 6 12 12 16 14"/>
                 </svg>
               </div>
-              <h4>24/7</h4>
-              <p>Customer Support</p>
+              <div>
+                 <h4 className="text-2xl font-heading mb-1 text-white">24/7</h4>
+                 <p className="text-sm tracking-wide text-white/70 uppercase">Customer Support</p>
+              </div>
             </motion.div>
-            <motion.div className="trust-item" variants={fadeUpSlow}>
-              <div className="trust-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
+              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <rect x="1" y="3" width="15" height="13"/>
                   <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
                   <circle cx="5.5" cy="18.5" r="2.5"/>
                   <circle cx="18.5" cy="18.5" r="2.5"/>
                 </svg>
               </div>
-              <h4>Free</h4>
-              <p>Fast Shipping</p>
+              <div>
+                <h4 className="text-2xl font-heading mb-1 text-white">Fast</h4>
+                <p className="text-sm tracking-wide text-white/70 uppercase">Reliable Shipping</p>
+              </div>
             </motion.div>
-            <motion.div className="trust-item" variants={fadeUpSlow}>
-              <div className="trust-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
+              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
               </div>
-              <h4>5000+</h4>
-              <p>Happy Customers</p>
+              <div>
+                <h4 className="text-2xl font-heading mb-1 text-white">Premium</h4>
+                <p className="text-sm tracking-wide text-white/70 uppercase">Quality Materials</p>
+              </div>
             </motion.div>
           </motion.div>
         </div>
@@ -184,7 +192,7 @@ export function HomeContentClient({ homepage, storeName, featuredProducts, newAr
           </div>
           <div className="legacy-text-content">
             <Reveal delay={0.2}>
-              <span className="legacy-subtitle">Since 1839</span>
+              <span className="legacy-subtitle">Since 2025</span>
             </Reveal>
             <Reveal delay={0.3}>
               <h2 className="legacy-title">A Legacy of <br />Precision</h2>

@@ -684,10 +684,10 @@ export default function ShopClient() {
             display: block;
         }
         .category-btn:hover {
-            color: var(--primary-color, #1a3c34);
+            color: var(--primary-color, #12403C);
         }
         .category-btn.active {
-            color: var(--primary-color, #1a3c34);
+            color: var(--primary-color, #12403C);
             font-weight: 600;
         }
       `}</style>

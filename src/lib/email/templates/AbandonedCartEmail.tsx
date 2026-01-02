@@ -85,7 +85,7 @@ const h1 = {
   fontWeight: 'bold',
   textAlign: 'center' as const,
   margin: '30px 0',
-  color: '#1a3c34',
+  color: '#12403C',
 };
 
 const text = {
@@ -105,7 +105,7 @@ const btnContainer = {
 };
 
 const button = {
-  backgroundColor: '#1a3c34',
+  backgroundColor: '#12403C',
   borderRadius: '6px',
   color: '#fff',
   fontSize: '16px',

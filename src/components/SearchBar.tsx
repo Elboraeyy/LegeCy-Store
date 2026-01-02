@@ -163,21 +163,23 @@ export default function SearchBar() {
           border-radius: 30px;
           overflow: hidden;
           transition: all 0.2s;
+          height: 36px; /* Explicit thinner height */
         }
 
         .search-form:focus-within {
-          border-color: #1a3c34;
-          box-shadow: 0 0 0 3px rgba(26, 60, 52, 0.1);
+          border-color: #12403C;
+          box-shadow: 0 0 0 3px rgba(18, 64, 60, 0.1);
         }
 
         .search-input {
           flex: 1;
           border: none;
-          padding: 10px 16px;
-          font-size: 14px;
+          padding: 0 16px; /* Reduced padding */
+          font-size: 13px; /* Slightly smaller font */
           outline: none;
           background: transparent;
           direction: ltr;
+          height: 100%;
         }
 
         .search-input::placeholder {
@@ -185,7 +187,11 @@ export default function SearchBar() {
         }
 
         .search-btn {
-          padding: 10px 14px;
+          padding: 0 14px; /* Adjust padding */
+          height: 100%; /* Fill height */
+          display: flex; /* Centering */
+          align-items: center;
+          justify-content: center;
           background: none;
           border: none;
           cursor: pointer;
@@ -194,7 +200,7 @@ export default function SearchBar() {
         }
 
         .search-btn:hover {
-          color: #1a3c34;
+          color: #12403C;
         }
 
         .search-dropdown {
@@ -248,7 +254,7 @@ export default function SearchBar() {
           margin: 0;
           font-weight: 600;
           font-size: 14px;
-          color: #1a3c34;
+          color: #12403C;
         }
 
         .search-result-meta {
@@ -260,7 +266,7 @@ export default function SearchBar() {
         }
 
         .search-result-price {
-          color: #1a3c34;
+          color: #12403C;
           font-weight: 600;
         }
 
@@ -273,7 +279,7 @@ export default function SearchBar() {
           border-top: 1px solid #eee;
           cursor: pointer;
           font-size: 13px;
-          color: #1a3c34;
+          color: #12403C;
           font-weight: 600;
           transition: background 0.2s;
         }

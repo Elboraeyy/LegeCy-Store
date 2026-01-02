@@ -206,7 +206,7 @@ export default function CheckoutClient() {
               <div style={{ 
                 width: "80px", 
                 height: "80px", 
-                background: "linear-gradient(135deg, #1a3c34, #2d5a4e)", 
+                background: "linear-gradient(135deg, #12403C, #2d5a4e)", 
                 borderRadius: "50%", 
                 display: "flex", 
                 alignItems: "center", 
