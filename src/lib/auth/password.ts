@@ -31,7 +31,7 @@ export type PasswordPolicyResult = {
 
 /**
  * Enforces Strict Password Policy
- * - Min 12 chars
+ * - Min 7 chars
  * - At least 1 uppercase
  * - At least 1 lowercase
  * - At least 1 number
@@ -40,7 +40,7 @@ export type PasswordPolicyResult = {
 export function validatePasswordStrength(password: string): PasswordPolicyResult {
     const issues: string[] = [];
 
-    if (password.length < 12) issues.push('Password must be at least 12 characters long');
+    if (password.length < 7) issues.push('Password must be at least 7 characters long');
     if (!/[A-Z]/.test(password)) issues.push('Password must contain at least one uppercase letter');
     if (!/[a-z]/.test(password)) issues.push('Password must contain at least one lowercase letter');
     if (!/[0-9]/.test(password)) issues.push('Password must contain at least one number');

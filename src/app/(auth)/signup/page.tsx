@@ -12,7 +12,7 @@ function SubmitButton() {
                 width: '100%', 
                 marginTop: '24px',
                 padding: '14px 24px',
-                background: '#1a3c34',
+                background: '#12403C',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '999px',
@@ -27,12 +27,12 @@ function SubmitButton() {
             onMouseOver={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
                 e.currentTarget.style.boxShadow = '0 6px 16px rgba(18, 64, 60, 0.3)';
-                e.currentTarget.style.background = '#142f29';
+                e.currentTarget.style.background = '#0e3330';
             }}
             onMouseOut={(e) => {
                 e.currentTarget.style.transform = 'none';
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(18, 64, 60, 0.2)';
-                e.currentTarget.style.background = '#1a3c34';
+                e.currentTarget.style.background = '#12403C';
             }}
         >
             CREATE ACCOUNT
@@ -47,8 +47,8 @@ export default function SignupPage() {
         <div className="auth-container" style={{ 
             minHeight: '100vh', 
             display: 'grid', 
-            gridTemplateColumns: 'minmax(300px, 1.2fr) minmax(400px, 1.5fr)',
-            background: '#f4f3f0'
+            gridTemplateColumns: '1fr 2fr',
+            background: '#F5F0E3'
         }}>
              {/* Global Animations & Responsive Styles */}
              <style jsx global>{`
@@ -62,20 +62,37 @@ export default function SignupPage() {
                 .delay-3 { animation-delay: 0.3s; }
                 
                 .auth-input:focus {
-                    border-color: #1a3c34 !important;
+                    border-color: #12403C !important;
                     box-shadow: 0 0 0 4px rgba(18, 64, 60, 0.1) !important;
                 }
 
                 @media (max-width: 900px) {
-                    .auth-brand-side { display: none !important; }
-                    .auth-container { grid-template-columns: 1fr !important; }
+                    .auth-container { 
+                        grid-template-columns: 1fr 2fr !important;
+                        height: 100vh;
+                        overflow: hidden;
+                    }
+                    .auth-brand-side { 
+                        padding: 16px !important;
+                        min-height: auto !important;
+                    }
+                    .auth-brand-side > div { max-width: 100% !important; }
+                    .auth-brand-side .brand-title { font-size: 20px !important; line-height: 1.2 !important; margin-bottom: 8px !important; }
+                    .auth-brand-side .brand-subtitle { font-size: 9px !important; margin-bottom: 6px !important; }
+                    .auth-brand-side .brand-quote { display: none !important; }
+                    .auth-brand-side .brand-footer { display: none !important; }
+                    .auth-form-side { padding: 16px !important; overflow-y: auto; }
+                    .auth-form-side form { gap: 10px !important; }
+                    .auth-form-side input { padding: 10px !important; font-size: 14px !important; }
+                    .auth-form-side h2 { font-size: 24px !important; margin-bottom: 8px !important; }
+                    .auth-form-side .auth-header { margin-bottom: 16px !important; }
                 }
             `}</style>
 
             {/* Left: Brand Side (Green) */}
             <div style={{ 
-                background: '#1a3c34', 
-                padding: '80px', 
+                background: '#12403C', 
+                padding: '60px', 
                 display: 'flex', 
                 flexDirection: 'column', 
                 justifyContent: 'center',
@@ -105,7 +122,7 @@ export default function SignupPage() {
                         color: '#d4af37',
                         marginBottom: '20px',
                         opacity: 0.9
-                    }} className="fade-in">
+                    }} className="fade-in brand-subtitle">
                         Join the Legacy
                     </div>
 
@@ -115,7 +132,7 @@ export default function SignupPage() {
                         lineHeight: '1.1',
                         marginBottom: '32px',
                         color: '#f4f3f0'
-                    }} className="fade-in delay-1">
+                    }} className="fade-in delay-1 brand-title">
                         Begin Your<br/>Journey.
                     </div>
                     
@@ -125,7 +142,7 @@ export default function SignupPage() {
                         color: '#a3b8b0',
                         marginBottom: '56px',
                         fontWeight: 300
-                    }} className="fade-in delay-2">
+                    }} className="fade-in delay-2 brand-quote">
                        Create an account to track orders, manage your wishlist, and receive exclusive offers.
                     </p>
                     
@@ -139,7 +156,7 @@ export default function SignupPage() {
                         color: '#5c6b66',
                         borderTop: '1px solid rgba(255,255,255,0.1)',
                         paddingTop: '32px'
-                    }} className="fade-in delay-3">
+                    }} className="fade-in delay-3 brand-footer">
                         <span>Fast Checkout</span>
                         <div style={{width: 4, height: 4, background: '#d4af37', borderRadius: '50%'}} />
                         <span>Order Tracking</span>
@@ -148,8 +165,8 @@ export default function SignupPage() {
             </div>
 
             {/* Right: Signup Form (Beige/Light) */}
-            <div style={{ 
-                background: '#f4f3f0', 
+            <div className="auth-form-side" style={{ 
+                background: '#F5F0E3', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
@@ -159,7 +176,7 @@ export default function SignupPage() {
                     <div style={{ marginBottom: '48px', textAlign: 'center' }}>
                         <h2 style={{ 
                             fontSize: '32px', 
-                            color: '#1a3c34', 
+                            color: '#12403C', 
                             marginBottom: '12px', 
                             fontFamily: "'Playfair Display', serif" 
                         }}>
@@ -172,7 +189,7 @@ export default function SignupPage() {
 
                     <form action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#1a3c34', textTransform: 'uppercase', letterSpacing: '1px' }}>Full Name</label>
+                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>Full Name</label>
                             <input 
                                 name="name" 
                                 type="text" 
@@ -183,19 +200,19 @@ export default function SignupPage() {
                                 style={{
                                     width: '100%',
                                     padding: '16px',
-                                    background: '#fff',
+                                    background: '#ffffff',
                                     border: '1px solid #d1cfca',
                                     borderRadius: '8px',
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'all 0.2s',
-                                    color: '#1a3c34'
+                                    color: '#12403C'
                                 }}
                             />
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#1a3c34', textTransform: 'uppercase', letterSpacing: '1px' }}>Email</label>
+                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>Email</label>
                             <input 
                                 name="email" 
                                 type="email" 
@@ -206,36 +223,36 @@ export default function SignupPage() {
                                 style={{
                                     width: '100%',
                                     padding: '16px',
-                                    background: '#fff',
+                                    background: '#ffffff',
                                     border: '1px solid #d1cfca',
                                     borderRadius: '8px',
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'all 0.2s',
-                                    color: '#1a3c34'
+                                    color: '#12403C'
                                 }}
                             />
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#1a3c34', textTransform: 'uppercase', letterSpacing: '1px' }}>Password</label>
+                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>Password</label>
                             <input 
                                 name="password" 
                                 type="password" 
                                 autoComplete="new-password" 
                                 required 
-                                placeholder="Min. 8 characters"
+                                placeholder="Min. 7 characters"
                                 className="auth-input"
                                 style={{
                                     width: '100%',
                                     padding: '16px',
-                                    background: '#fff',
+                                    background: '#ffffff',
                                     border: '1px solid #d1cfca',
                                     borderRadius: '8px',
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'all 0.2s',
-                                    color: '#1a3c34'
+                                    color: '#12403C'
                                 }}
                             />
                         </div>

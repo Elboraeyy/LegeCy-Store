@@ -166,12 +166,14 @@ html, body {
   
   .carousel-item {
     flex: 0 0 220px;
-
-  /* Allow vertical scrolling to pass through carousels */
-  .carousel-track,
+/* Carousel touch behavior - allow horizontal scroll, prevent vertical bounce */
+.carousel-track {
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+}
+  }
   .product-card {
-      touch-action: pan-y;
-    }
+    touch-action: manipulation;
   }
 
   /* ========== FIX 1: Smaller Hero Button ========== */

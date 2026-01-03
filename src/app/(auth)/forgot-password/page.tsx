@@ -43,11 +43,11 @@ export default function ForgotPasswordPage() {
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                background: '#f4f3f0',
+                background: '#F5F0E3',
                 padding: '20px'
             }}>
                 <div style={{
-                    background: '#fff',
+                    background: '#ffffff',
                     borderRadius: '16px',
                     padding: '48px',
                     maxWidth: '420px',
@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
                     <div style={{
                         width: '70px',
                         height: '70px',
-                        background: '#dcfce7',
+                        background: 'rgba(18, 64, 60, 0.1)',
                         borderRadius: '50%',
                         display: 'flex',
                         alignItems: 'center',
@@ -68,23 +68,23 @@ export default function ForgotPasswordPage() {
                     }}>
                         ✉️
                     </div>
-                    <h2 style={{ color: '#1a3c34', marginBottom: '16px', fontSize: '24px' }}>
+                    <h2 style={{ color: '#12403C', marginBottom: '16px', fontSize: '24px', fontFamily: "'Playfair Display', serif" }}>
                         Check Your Email
                     </h2>
-                    <p style={{ color: '#666', lineHeight: 1.6, marginBottom: '24px' }}>
+                    <p style={{ color: '#5c6b66', lineHeight: 1.6, marginBottom: '24px' }}>
                         If an account exists for <strong>{email}</strong>, 
                         you will receive an email with a password reset link.
                     </p>
-                    <p style={{ color: '#999', fontSize: '14px', marginBottom: '24px' }}>
+                    <p style={{ color: '#a3b8b0', fontSize: '14px', marginBottom: '24px' }}>
                         Didn&apos;t receive the email? Check your spam folder.
                     </p>
                     <Link 
                         href="/login" 
                         style={{
                             display: 'inline-block',
-                            color: '#1a3c34',
+                            color: '#d4af37',
                             fontWeight: 600,
-                            textDecoration: 'underline'
+                            textDecoration: 'none'
                         }}
                     >
                         Back to Login
@@ -100,11 +100,11 @@ export default function ForgotPasswordPage() {
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
-            background: '#f4f3f0',
+            background: '#F5F0E3',
             padding: '20px'
         }}>
             <div style={{
-                background: '#fff',
+                background: '#ffffff',
                 borderRadius: '16px',
                 padding: '48px',
                 maxWidth: '420px',
@@ -115,8 +115,9 @@ export default function ForgotPasswordPage() {
                     <Link href="/" style={{ 
                         fontFamily: "'Playfair Display', serif",
                         fontSize: '28px',
-                        color: '#1a3c34',
-                        textDecoration: 'none'
+                        color: '#12403C',
+                        textDecoration: 'none',
+                        fontWeight: 600
                     }}>
                         Legacy
                     </Link>
@@ -124,15 +125,16 @@ export default function ForgotPasswordPage() {
 
                 <h2 style={{ 
                     textAlign: 'center', 
-                    color: '#1a3c34', 
+                    color: '#12403C', 
                     marginBottom: '12px',
-                    fontSize: '24px'
+                    fontSize: '24px',
+                    fontFamily: "'Playfair Display', serif"
                 }}>
                     Forgot Password?
                 </h2>
                 <p style={{ 
                     textAlign: 'center', 
-                    color: '#666', 
+                    color: '#5c6b66', 
                     marginBottom: '32px',
                     fontSize: '15px'
                 }}>
@@ -144,9 +146,11 @@ export default function ForgotPasswordPage() {
                         <label style={{ 
                             display: 'block', 
                             marginBottom: '8px', 
-                            fontWeight: 600,
-                            fontSize: '14px',
-                            color: '#1a3c34'
+                            fontWeight: 700,
+                            fontSize: '12px',
+                            color: '#12403C',
+                            textTransform: 'uppercase',
+                            letterSpacing: '1px'
                         }}>
                             Email Address
                         </label>
@@ -158,12 +162,14 @@ export default function ForgotPasswordPage() {
                             required
                             style={{
                                 width: '100%',
-                                padding: '14px 16px',
-                                border: '1px solid #ddd',
+                                padding: '16px',
+                                border: '1px solid #d1cfca',
                                 borderRadius: '8px',
-                                fontSize: '16px',
+                                fontSize: '15px',
                                 outline: 'none',
-                                transition: 'border-color 0.2s'
+                                transition: 'all 0.2s',
+                                background: '#ffffff',
+                                color: '#12403C'
                             }}
                         />
                     </div>
@@ -173,16 +179,19 @@ export default function ForgotPasswordPage() {
                         disabled={isLoading}
                         style={{
                             width: '100%',
-                            padding: '14px',
-                            background: '#1a3c34',
+                            padding: '14px 24px',
+                            background: '#12403C',
                             color: '#fff',
                             border: 'none',
-                            borderRadius: '30px',
-                            fontSize: '14px',
-                            fontWeight: 600,
+                            borderRadius: '999px',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            letterSpacing: '1.5px',
+                            textTransform: 'uppercase',
                             cursor: isLoading ? 'not-allowed' : 'pointer',
                             opacity: isLoading ? 0.7 : 1,
-                            transition: 'all 0.2s'
+                            transition: 'all 0.3s ease',
+                            boxShadow: '0 4px 12px rgba(18, 64, 60, 0.2)'
                         }}
                     >
                         {isLoading ? 'Sending...' : 'Send Reset Link'}
@@ -193,10 +202,10 @@ export default function ForgotPasswordPage() {
                     textAlign: 'center', 
                     marginTop: '24px', 
                     fontSize: '14px',
-                    color: '#666'
+                    color: '#5c6b66'
                 }}>
                     Remember your password?{' '}
-                    <Link href="/login" style={{ color: '#d4af37', fontWeight: 600 }}>
+                    <Link href="/login" style={{ color: '#d4af37', fontWeight: 600, textDecoration: 'none' }}>
                         Sign In
                     </Link>
                 </p>
