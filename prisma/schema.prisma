@@ -19,6 +19,7 @@ model User {
   emailVerified DateTime?
   image         String?   // Avatar from Google
   googleId      String?   @unique // Social Auth ID
+  facebookId    String?   @unique // Facebook Auth ID
   
   // Security Fields
   failedLoginAttempts Int      @default(0)
