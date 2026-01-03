@@ -84,7 +84,7 @@ export async function GET(request: Request) {
         path: '/'
     });
 
-    return NextResponse.redirect(new URL('/profile', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
 
   } catch (err: unknown) {
     console.error('Google Auth Error:', err);
