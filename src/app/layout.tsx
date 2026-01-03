@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: seo.metaDescription,
     keywords: seo.metaKeywords,
     icons: {
-      icon: "/image/Logoo.png",
+      icon: "/image/logoo.png",
     },
     openGraph: {
       title: seo.metaTitle || general.storeName,

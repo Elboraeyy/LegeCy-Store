@@ -163,7 +163,7 @@ export default function Navbar({
               ) : (
                 <>
                   <Image
-                    src="/image/Logoo.png"
+                    src="/image/logoo.png"
                     alt="Legacy"
                     width={24}
                     height={24}
