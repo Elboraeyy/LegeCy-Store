@@ -112,7 +112,7 @@ export function HomeContentClient({ homepage, storeName, featuredProducts, newAr
       )}
 
       {/* Trust Section */}
-      <section className="py-24 bg-[#12403C] text-[#F5F0E3]">
+      <section className="py-24 bg-[#12403C] text-[#F5F0E3] trust-badges-section">
         <div className="container mx-auto px-4">
           <motion.div 
             className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
@@ -122,7 +122,7 @@ export function HomeContentClient({ homepage, storeName, featuredProducts, newAr
             variants={staggerContainerSlow}
           >
             <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
-              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300">
+              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300 trust-badge-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
@@ -133,7 +133,7 @@ export function HomeContentClient({ homepage, storeName, featuredProducts, newAr
               </div>
             </motion.div>
             <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
-              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300">
+              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300 trust-badge-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <circle cx="12" cy="12" r="10"/>
                   <polyline points="12 6 12 12 16 14"/>
@@ -145,7 +145,7 @@ export function HomeContentClient({ homepage, storeName, featuredProducts, newAr
               </div>
             </motion.div>
             <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
-              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300">
+              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300 trust-badge-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <rect x="1" y="3" width="15" height="13"/>
                   <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
@@ -159,7 +159,7 @@ export function HomeContentClient({ homepage, storeName, featuredProducts, newAr
               </div>
             </motion.div>
             <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
-              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300">
+              <div className="w-16 h-16 rounded-full bg-[#F5F0E3]/5 flex items-center justify-center text-[#d4af37] mb-2 transform transition-transform hover:scale-110 duration-300 trust-badge-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>

@@ -37,6 +37,7 @@ export default function Navbar({
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const lastScrollY = React.useRef(0); // Use ref to track scroll without re-rendering effect
 
   const pathname = usePathname();
@@ -127,8 +128,8 @@ export default function Navbar({
           visible ? 'translate-y-0' : '-translate-y-full'
         } ${
           scrolled
-            ? "bg-[#F5F0E3]/80 backdrop-blur-md border-b border-[rgba(18,64,60,0.05)] shadow-sm py-2" // Compact when scrolled
-            : "bg-[#F5F0E3] border-b border-transparent py-4 mt-[30px]" // Spaced when at top (accounting for announcement)
+            ? "bg-[#F5F0E3]/95 backdrop-blur-md border-b border-[rgba(18,64,60,0.08)] shadow-sm py-2"
+            : "bg-[#F5F0E3] border-b border-transparent py-3"
         }`}
         style={{
            marginTop: (visible && scrolled) ? 0 : (visible && headerSettings?.announcementEnabled ? 0 : 0) // Reset margin logic handling
@@ -239,7 +240,7 @@ export default function Navbar({
               {/* Search Trigger (Mobile) */}
               <button
                 className="lg:hidden p-2 text-[#12403C] hover:text-[#d4af37] transition-colors"
-                onClick={() => setIsOpen(true)} // Open menu to search
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
               >
                 <svg
                   width="22"
@@ -448,6 +449,26 @@ export default function Navbar({
         </div>
       </header>
 
+      {/* Spacer to prevent content overlap */}
+      <div 
+        className="w-full relative -z-50 pointer-events-none" 
+        style={{ height: headerSettings?.announcementEnabled ? '90px' : '64px' }} 
+      />
+
+      {/* Mobile Search Dropdown */}
+      <AnimatePresence>
+        {showMobileSearch && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed top-[60px] left-0 right-0 z-[55] bg-[#F5F0E3] shadow-lg border-b border-[rgba(18,64,60,0.1)] p-4 lg:hidden"
+          >
+            <SearchBar />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Mobile Sidebar */}
       <AnimatePresence>
         {isOpen && (
@@ -461,21 +482,30 @@ export default function Navbar({
               className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
             />
 
-            {/* Drawer */}
+            {/* Drawer - Redesigned */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-white z-[70] shadow-2xl p-5 flex flex-col"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(_, info) => {
+                if (info.offset.x > 100) {
+                  setIsOpen(false);
+                }
+              }}
+              className="fixed top-0 right-0 bottom-0 w-[85%] max-w-[320px] bg-[#F5F0E3] z-[70] shadow-2xl flex flex-col"
             >
-              <div className="flex items-center justify-between mb-8">
-                <span className="text-xl font-bold font-heading text-[#12403C] uppercase">
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-[rgba(18,64,60,0.1)]">
+                <span className="text-lg font-bold font-heading text-[#12403C] uppercase tracking-wider">
                   Menu
                 </span>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-2 text-gray-400 hover:text-gray-800 bg-gray-50 rounded-full"
+                  className="p-2 text-[#12403C] hover:text-[#d4af37] bg-white/50 rounded-full transition-colors"
                 >
                   <svg
                     width="20"
@@ -493,25 +523,38 @@ export default function Navbar({
                 </button>
               </div>
 
-              {/* Mobile Search */}
-              <div className="mb-8">
-                <SearchBar />
-              </div>
+              {/* Profile Section - Moved to Top */}
+              {user && (
+                <div className="p-5 bg-[#12403C] text-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[#d4af37] text-[#12403C] flex items-center justify-center text-xl font-bold">
+                      {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-base">
+                        {user.name || 'User'}
+                      </p>
+                      <p className="text-xs opacity-70">{user.email}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-              <div className="flex-1 overflow-y-auto space-y-6">
-                <nav className="flex flex-col space-y-4">
+              {/* Navigation */}
+              <div className="flex-1 overflow-y-auto p-5">
+                <nav className="flex flex-col space-y-1">
                   <MobileNavLink href="/" onClick={() => setIsOpen(false)}>
                     Home
                   </MobileNavLink>
                   <MobileNavLink href="/shop" onClick={() => setIsOpen(false)}>
                     Shop
                   </MobileNavLink>
-                  <div className="pl-4 border-l-2 border-gray-100 ml-2 space-y-3">
+                  <div className="pl-4 border-l-2 border-[#12403C]/20 ml-3 space-y-2">
                     {categories.map((cat) => (
                       <Link
                         key={cat.id}
                         href={`/shop?category=${cat.slug}`}
-                        className="block text-sm text-gray-500 hover:text-[#12403C]"
+                        className="block text-sm text-[#12403C]/70 hover:text-[#12403C] py-1"
                         onClick={() => setIsOpen(false)}
                       >
                         {cat.name}
@@ -526,82 +569,51 @@ export default function Navbar({
                   </MobileNavLink>
                 </nav>
 
-                <div className="border-t border-gray-100 my-6 pt-6">
-                  {user ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-[#12403C] text-white flex items-center justify-center text-lg font-bold">
-                          {user.name?.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-[#12403C]">
-                            {user.name}
-                          </p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
-                        </div>
-                      </div>
-                      <MobileNavLink
-                        href="/account"
-                        onClick={() => setIsOpen(false)}
-                        icon={
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                          </svg>
-                        }
-                      >
-                        My Account
-                      </MobileNavLink>
-                      <MobileNavLink
-                        href="/account/orders"
-                        onClick={() => setIsOpen(false)}
-                        icon={
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <rect x="3" y="3" width="18" height="18" rx="2" />
-                            <path d="M3 9h18" />
-                            <path d="M9 21V9" />
-                          </svg>
-                        }
-                      >
-                        My Orders
-                      </MobileNavLink>
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setIsOpen(false);
-                        }}
-                        className="flex items-center gap-3 w-full text-left text-red-600 font-medium py-2 mt-2"
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                          <polyline points="16 17 21 12 16 7" />
-                          <line x1="21" y1="12" x2="9" y2="12" />
+                {/* Account Links */}
+                {user ? (
+                  <div className="border-t border-[#12403C]/10 pt-4 mt-4 space-y-1">
+                    <MobileNavLink
+                      href="/account"
+                      onClick={() => setIsOpen(false)}
+                      icon={
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
                         </svg>
-                        Sign Out
-                      </button>
-                    </div>
-                  ) : (
+                      }
+                    >
+                      My Account
+                    </MobileNavLink>
+                    <MobileNavLink
+                      href="/account/orders"
+                      onClick={() => setIsOpen(false)}
+                      icon={
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                          <path d="M3 9h18" />
+                          <path d="M9 21V9" />
+                        </svg>
+                      }
+                    >
+                      My Orders
+                    </MobileNavLink>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsOpen(false);
+                      }}
+                      className="flex items-center gap-3 w-full text-left text-red-500 font-medium py-3 px-1 hover:bg-red-50/50 rounded-lg transition-colors"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="border-t border-[#12403C]/10 pt-4 mt-4">
                     <Link
                       href="/login"
                       className="block w-full py-3 bg-[#12403C] text-white text-center rounded-xl font-medium shadow-lg shadow-[#12403C]/20"
@@ -609,8 +621,13 @@ export default function Navbar({
                     >
                       Sign In
                     </Link>
-                  )}
-                </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Swipe hint */}
+              <div className="p-4 text-center text-xs text-[#12403C]/50">
+                Swipe right to close
               </div>
             </motion.div>
           </>
@@ -663,9 +680,9 @@ function MobileNavLink({
     <Link
       href={href}
       onClick={onClick}
-      className="flex items-center gap-3 text-lg font-medium text-[#12403C] py-2 border-b border-gray-50 last:border-0 hover:pl-2 transition-all"
+      className="flex items-center gap-3 text-base font-medium text-[#12403C] py-3 px-1 rounded-lg hover:bg-[#12403C]/5 transition-all"
     >
-      {icon && <span className="text-gray-400">{icon}</span>}
+      {icon && <span className="text-[#12403C]/60">{icon}</span>}
       {children}
     </Link>
   );
