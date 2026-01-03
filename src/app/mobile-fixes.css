@@ -168,7 +168,7 @@ html, body {
     flex: 0 0 220px;
 /* Carousel touch behavior - allow horizontal scroll, prevent vertical bounce */
 .carousel-track {
-    touch-action: pan-x;
+    touch-action: manipulation;
     -webkit-overflow-scrolling: touch;
 }
   }
@@ -190,8 +190,8 @@ html, body {
         display: none;
     }
     
-    /* ========== FIX 4: Smaller Product Cards ========== */
-    .product-card .product-media {
+                /* ========== FIX 4: Smaller Product Cards - HANDLED BY COMPONENT NOW =========== */
+                /* .product-card .product-media {
         height: 180px;
     }
     
@@ -205,7 +205,7 @@ html, body {
     
     .product-card .product-price {
         font-size: 14px;
-    }
+    */
     
     /* ========== FIX 5: Collection Cards Full Width ========== */
     .collection-grid {

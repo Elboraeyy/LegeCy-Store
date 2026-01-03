@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>LegaCy Digital Universe</title>
+<link href="../../typography/fonts.css" rel="stylesheet">
+<style>
+    body { background-color: #1a1a1a; color: white; font-family: 'Montserrat', sans-serif; font-weight: 300; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+    h1 { font-family: 'Great Vibes', cursive; font-weight: 400; color: #F6E5C6; font-size: 50px; margin-bottom: 50px; border-bottom: 1px solid #12403C; padding-bottom: 20px; }
+    
+    .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; width: 100%; max-width: 1400px; }
+    
+    .concept-card {
+        background: #2a2a2a; border-radius: 10px; overflow: hidden;
+        transition: transform 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        display: flex; flex-direction: column;
+    }
+    .concept-card:hover { transform: translateY(-10px); }
+    
+    .screen {
+        height: 300px; width: 100%; position: relative; overflow: hidden;
+        background-size: cover; background-position: center;
+        display: flex; justify-content: center; align-items: center;
+    }
+    
+    .info { padding: 20px; }
+    .info h3 { margin: 0 0 10px 0; color: #F6E5C6; font-family: 'Great Vibes', cursive; font-size: 24px; font-weight: 400; }
+    .info p { font-size: 12px; color: #aaa; margin: 0; line-height: 1.5; font-weight: 300; }
+
+    /* --- MOCKUP CSS ART --- */
+    
+    /* 1. Website Hero */
+    .website-mock { width: 100%; height: 100%; background: #12403C; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+    .website-mock nav { width: 90%; height: 10px; background: rgba(255,255,255,0.1); position: absolute; top: 20px; border-radius: 5px; }
+    .web-title { font-family: 'Great Vibes'; font-size: 40px; transform: rotate(-3deg); color: #F6E5C6; }
+    
+    /* 2. Mobile App */
+    .mobile-mock { width: 140px; height: 250px; background: white; border-radius: 15px; border: 4px solid #333; display: flex; flex-direction: column; align-items: center; padding-top: 20px; position: relative; }
+    .notch { width: 50px; height: 10px; background: #333; border-radius: 0 0 10px 10px; position: absolute; top: 0; }
+    .app-card { width: 80%; height: 60px; background: #f0f0f0; margin-bottom: 10px; border-radius: 5px; }
+    
+    /* 3. Email Template */
+    .email-mock { width: 200px; height: 260px; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.2); padding: 15px; box-sizing: border-box; }
+    .email-header { background: #12403C; height: 40px; margin-bottom: 10px; }
+    .email-lines { height: 4px; background: #eee; margin-bottom: 6px; width: 100%; }
+    
+    /* 4. Social Story */
+    .story-mock { width: 140px; height: 250px; background: linear-gradient(135deg, #12403C, #000); border-radius: 15px; position: relative; display: flex; justify-content: center; align-items: center; color: #F6E5C6; font-family: 'Great Vibes'; font-size: 24px; }
+    .story-ring { position: absolute; top: 10px; left: 10px; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #F6E5C6; }
+    
+    /* 5. AR Try-On */
+    .ar-mock { width: 100%; height: 100%; background: url('https://placehold.co/400x300/333/666?text=Camera+View'); display: flex; justify-content: center; align-items: center; position: relative; }
+    .wrist-overlay { width: 100px; height: 40px; border: 2px dashed #F6E5C6; position: absolute; border-radius: 10px; display: flex; justify-content: center; align-items: center; color: #F6E5C6; font-size: 10px; background: rgba(18, 64, 60, 0.5); }
+    
+    /* 6. Metaverse NFT */
+    .nft-mock { width: 150px; height: 150px; background: #12403C; border: 4px solid #F6E5C6; transform: rotateY(20deg) rotateX(10deg); box-shadow: 10px 10px 0 rgba(246, 229, 198, 0.2); display: flex; justify-content: center; align-items: center; color: #F6E5C6; font-size: 40px; font-family: 'Great Vibes'; }
+
+</style>
+</head>
+<body>
+
+<h1>The Digital Universe | 15 Concepts</h1>
+
+<div class="gallery">
+    
+    <!-- 1. Luxury Website -->
+    <div class="concept-card">
+        <div class="screen">
+            <div class="website-mock">
+                <nav></nav>
+                <div class="web-title">LegaCy</div>
+                <div style="margin-top:10px; font-size:10px; letter-spacing:2px; color:white;">OFFICIAL BOUTIQUE</div>
+            </div>
+        </div>
+        <div class="info">
+            <h3>1. The Flagship Site</h3>
+            <p>Immersive, full-screen video background. Minimalist navigation. Dark mode only for premium feel.</p>
+        </div>
+    </div>
+
+    <!-- 2. Mobile Commerce App -->
+    <div class="concept-card">
+        <div class="screen">
+            <div class="mobile-mock">
+                <div class="notch"></div>
+                <div class="app-card" style="background:#12403C"></div>
+                <div class="app-card"></div>
+                <div class="app-card"></div>
+            </div>
+        </div>
+        <div class="info">
+            <h3>2. 'Timekeeper' App</h3>
+            <p>A native app for collectors. Features 'Vault' to track collection value and exclusive drops.</p>
+        </div>
+    </div>
+
+    <!-- 3. AR Try-On -->
+    <div class="concept-card">
+        <div class="screen">
+            <div class="ar-mock">
+                <div class="wrist-overlay">AR WATCH FIT</div>
+            </div>
+        </div>
+        <div class="info">
+            <h3>3. AR Virtual Mirror</h3>
+            <p>Allows users to see the watch on their wrist in real-time using phone camera.</p>
+        </div>
+    </div>
+
+    <!-- 4. The Golden Newsletter -->
+    <div class="concept-card">
+        <div class="screen" style="background:#ddd">
+            <div class="email-mock">
+                <div class="email-header"></div>
+                <div class="email-lines"></div>
+                <div class="email-lines"></div>
+                <div class="email-lines" style="width:60%"></div>
+                <div style="margin-top:20px; height:80px; background:#f9f9f9; display:flex; justify-content:center; align-items:center; color:#ccc;">Product</div>
+            </div>
+        </div>
+        <div class="info">
+            <h3>4. The 'Legacy Letter'</h3>
+            <p>Weekly editorial email. Not just sales, but stories about time, history, and craft.</p>
+        </div>
+    </div>
+
+    <!-- 5. Social Stories -->
+    <div class="concept-card">
+        <div class="screen">
+            <div class="story-mock">
+                <div class="story-ring"></div>
+                LegaCy<br>Live
+            </div>
+        </div>
+        <div class="info">
+            <h3>5. Instagram Filter Pack</h3>
+            <p>Custom filters adding a 'Vintage Gold' grain or placing a watch dial over the user's face.</p>
+        </div>
+    </div>
+
+    <!-- 6. NFT / Metaverse -->
+    <div class="concept-card">
+        <div class="screen" style="perspective: 800px;">
+            <div class="nft-mock">LC</div>
+        </div>
+        <div class="info">
+            <h3>6. The 'Digital Twin' NFT</h3>
+            <p>Every physical watch comes with a blockchain Digital Twin for authentication in the Metaverse.</p>
+        </div>
+    </div>
+
+    <!-- 7. Smartwatch Face -->
+     <div class="concept-card">
+        <div class="screen">
+            <div style="width:120px; height:120px; border-radius:50%; background:black; border:2px solid #555; display:flex; justify-content:center; align-items:center; color:#F6E5C6; font-family:'Great Vibes'; font-size:30px;">10:10</div>
+        </div>
+        <div class="info">
+            <h3>7. Smartwatch Face</h3>
+            <p>Digital downloadable watch face for Apple Watch / Samsung, branding the digital wrist.</p>
+        </div>
+    </div>
+
+    <!-- 8. Client Portal -->
+    <div class="concept-card">
+        <div class="screen" style="background:#12403C; align-items:flex-start; padding:20px;">
+            <div style="color:#F6E5C6; font-size:10px;">WELCOME BACK, AHMED</div>
+            <div style="width:100%; height:2px; background:#F6E5C6; opacity:0.3; margin:10px 0;"></div>
+            <div style="color:white; font-size:18px;">My Vault</div>
+        </div>
+        <div class="info">
+            <h3>8. VIP Client Portal</h3>
+            <p>Secure login area for warranty management and booking service appointments.</p>
+        </div>
+    </div>
+
+    <!-- 9. Ad Banners -->
+    <div class="concept-card">
+        <div class="screen" style="flex-direction:column; gap:10px;">
+            <div style="width:200px; height:50px; background:#12403C; display:flex; justify-content:center; align-items:center; color:#F6E5C6; font-size:10px;">Leaderboard Banner</div>
+            <div style="width:100px; height:100px; background:#F6E5C6; display:flex; justify-content:center; align-items:center; color:#12403C; font-size:10px;">Square Ad</div>
+        </div>
+        <div class="info">
+            <h3>9. Programmatic Ad Set</h3>
+            <p>Animated HTML5 banners re-targeting users who viewed specific collections.</p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

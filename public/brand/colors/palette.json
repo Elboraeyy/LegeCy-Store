@@ -1,0 +1,26 @@
+{
+  "primary": {
+    "name": "Legacy Teal",
+    "hex": "#12403C",
+    "rgb": "rgb(18, 64, 60)",
+    "usage": "Primary brand color, backgrounds, luxury feel"
+  },
+  "secondary": {
+    "name": "Legacy Gold",
+    "hex": "#F6E5C6",
+    "rgb": "rgb(246, 229, 198)",
+    "usage": "Secondary brand color, text on dark backgrounds, accents"
+  },
+  "tertiary": {
+    "name": "Teal Highlight",
+    "hex": "#1a524d",
+    "rgb": "rgb(26, 82, 77)",
+    "usage": "Borders, slight gradients"
+  },
+  "background": {
+    "name": "Off White",
+    "hex": "#f0f0f0",
+    "rgb": "rgb(240, 240, 240)",
+    "usage": "Page backgrounds"
+  }
+}

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="150" height="150">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&amp;display=swap');
+      .text {
+        font-family: 'Great Vibes', cursive;
+        fill: #12403C;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+    </style>
+  </defs>
+  <circle cx="75" cy="75" r="70" fill="#F6E5C6" />
+  <text x="75" y="75" class="text" font-size="80" transform="rotate(-3, 75, 75)">LC</text>
+</svg>

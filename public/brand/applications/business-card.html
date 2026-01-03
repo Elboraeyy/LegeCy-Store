@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>LegaCy Business Card Mockup</title>
+<link href="../typography/fonts.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    body { background-color: #e0e0e0; font-family: 'Montserrat', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    .card-container { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; perspective: 1000px; }
+    
+    .card { width: 400px; height: 230px; position: relative; border-radius: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); overflow: hidden; transition: transform 0.3s ease; }
+    .card:hover { transform: translateY(-5px); }
+
+    /* Front Side */
+    .card-front { background-color: #12403C; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #1a524d; }
+    .card-front img { width: 150px; }
+    .card-front .tagline { color: #F6E5C6; font-size: 10px; letter-spacing: 3px; margin-top: 15px; text-transform: uppercase; opacity: 0.8; }
+
+    /* Back Side */
+    .card-back { background-color: #F6E5C6; display: flex; flex-direction: column; justify-content: space-between; padding: 30px; box-sizing: border-box; color: #12403C; }
+    .card-back .header { display: flex; justify-content: space-between; align-items: center; }
+    .card-back .logo-small { height: 30px; }
+    
+    .contact-info { margin-top: 20px; }
+    .contact-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; font-weight: 500; }
+    .contact-item i { width: 20px; text-align: center; }
+
+    .name-title { margin-top: auto; }
+    .name-title h2 { margin: 0; font-family: 'Cinzel', serif; font-size: 22px; }
+    .name-title p { margin: 5px 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+
+    .pattern { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.05; background-image: url('../logos/logo-icon-gold.svg'); background-size: 50px; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<div class="card-container">
+    <!-- Front -->
+    <div class="card card-front">
+        <div class="pattern"></div>
+        <img src="../logos/logo-vertical-gold.svg" alt="Logo">
+        <div class="tagline">Built on Time. Made for Legacy.</div>
+    </div>
+
+    <!-- Back -->
+    <div class="card card-back">
+        <div class="header">
+            <img src="../logos/logo-horizontal-dark.svg" alt="Logo" class="logo-small">
+        </div>
+        
+        <div class="contact-info">
+            <div class="contact-item"><i class="fas fa-phone"></i> +20 123 456 7890</div>
+            <div class="contact-item"><i class="fas fa-envelope"></i> contact@legacy-watches.com</div>
+            <div class="contact-item"><i class="fas fa-globe"></i> www.legacy-watches.com</div>
+            <div class="contact-item"><i class="fas fa-map-marker-alt"></i> Cairo, Egypt</div>
+        </div>
+
+        <div class="name-title">
+            <h2>Ahmed Mohamed</h2>
+            <p>Founder & CEO</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

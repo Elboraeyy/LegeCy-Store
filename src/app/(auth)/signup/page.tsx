@@ -50,7 +50,7 @@ export default function SignupPage() {
             gridTemplateColumns: '1fr 2fr',
             background: '#F5F0E3'
         }}>
-             {/* Global Animations & Responsive Styles */}
+            {/* Global Animations & Responsive Styles */}
              <style jsx global>{`
                 @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(10px); }
@@ -66,26 +66,92 @@ export default function SignupPage() {
                     box-shadow: 0 0 0 4px rgba(18, 64, 60, 0.1) !important;
                 }
 
+                /* Default: Hidden on Desktop */
+                .scroll-indicator { display: none; }
+
                 @media (max-width: 900px) {
                     .auth-container { 
-                        grid-template-columns: 1fr 2fr !important;
+                        display: block !important;
+                        background: #12403C !important;
                         height: 100vh;
-                        overflow: hidden;
+                        overflow-y: auto !important; /* Page-level scroll */
+                        overflow-x: hidden;
                     }
+
+                    /* 1. Green Header (Top portion) */
                     .auth-brand-side { 
-                        padding: 16px !important;
-                        min-height: auto !important;
+                        height: 45vh !important; /* Occupy top 45% */
+                        width: 100% !important;
+                        padding: 40px 20px !important;
+                        
+                        display: flex !important;
+                        flex-direction: column !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        
+                        position: relative;
+                        z-index: 1;
                     }
-                    .auth-brand-side > div { max-width: 100% !important; }
-                    .auth-brand-side .brand-title { font-size: 20px !important; line-height: 1.2 !important; margin-bottom: 8px !important; }
-                    .auth-brand-side .brand-subtitle { font-size: 9px !important; margin-bottom: 6px !important; }
-                    .auth-brand-side .brand-quote { display: none !important; }
-                    .auth-brand-side .brand-footer { display: none !important; }
-                    .auth-form-side { padding: 16px !important; overflow-y: auto; }
-                    .auth-form-side form { gap: 10px !important; }
-                    .auth-form-side input { padding: 10px !important; font-size: 14px !important; }
-                    .auth-form-side h2 { font-size: 24px !important; margin-bottom: 8px !important; }
-                    .auth-form-side .auth-header { margin-bottom: 16px !important; }
+
+                    /* Content Scaling */
+                    .auth-brand-side .brand-title { 
+                        display: block !important; 
+                        font-size: 32px !important; 
+                        line-height: 1.1 !important;
+                        margin-bottom: 16px !important;
+                        text-align: center;
+                    }
+                    .auth-brand-side .brand-subtitle { 
+                        display: block !important; 
+                        font-size: 10px !important;
+                        margin-bottom: 12px !important;
+                        text-align: center;
+                    }
+                    /* Simplified content for mobile header space */
+                    .auth-brand-side .brand-quote { 
+                        display: none !important; 
+                    }
+                    .auth-brand-side .brand-footer { 
+                        display: none !important; 
+                    }
+                    
+                    /* Hide duplicate mobile header */
+                    .mobile-brand-header { display: none !important; }
+
+                    /* 2. White Form Sheet */
+                    .auth-form-side { 
+                        min-height: 100vh !important;
+                        width: 100% !important;
+                        
+                        background: #F5F0E3 !important;
+                        border-radius: 30px 30px 0 0 !important;
+                        margin-top: -30px !important; /* Overlap header */
+                        padding: 40px 24px !important;
+                        
+                        display: block !important;
+                        position: relative;
+                        z-index: 2;
+                        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+                    }
+                    
+                    .auth-form-side > div {
+                        max-width: 100% !important;
+                        width: 100% !important;
+                        margin: 0 auto;
+                    }
+
+                     /* Optional: Drag indicator handle */
+                    .auth-form-side::before {
+                        content: '';
+                        display: block;
+                        width: 40px;
+                        height: 4px;
+                        background: #d1cfca;
+                        border-radius: 2px;
+                        margin: -10px auto 30px auto; /* Centered top handle */
+                    }
+                    
+                    .auth-form-side h2 { display: block !important; text-align: center; font-size: 24px !important; }
                 }
             `}</style>
 
@@ -113,7 +179,15 @@ export default function SignupPage() {
                     zIndex: 0
                 }} />
 
-                <div style={{ position: 'relative', zIndex: 1, maxWidth: '440px' }}>
+                 {/* Mobile Scroll Indicator */}
+                <div className="scroll-indicator">
+                    <span style={{marginBottom: '8px'}}>Scroll to Sign Up</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M12 5v14M5 12l7 7 7-7"/>
+                    </svg>
+                </div>
+
+                <div style={{ position: 'relative', zIndex: 1, maxWidth: '440px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <div style={{ 
                         fontFamily: "'Playfair Display', serif", 
                         fontSize: '14px', 

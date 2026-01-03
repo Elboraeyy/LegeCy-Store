@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LegaCy Social Media Matrix</title>
+    <link href="../../typography/fonts.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0e0e0e;
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 300;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { font-family: 'Great Vibes', cursive; font-size: 60px; color: #F6E5C6; margin-bottom: 10px; }
+        h2 { font-family: 'Montserrat', sans-serif; font-size: 14px; letter-spacing: 5px; text-transform: uppercase; color: #666; margin-bottom: 50px; }
+
+        .matrix-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Instagram Grid Standard */
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .post {
+            background: #12403C;
+            aspect-ratio: 1 / 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s;
+            border: 1px solid rgba(246, 229, 198, 0.1);
+        }
+        .post:hover { transform: scale(1.02); z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-color: #F6E5C6; }
+
+        /* --- POST STYLES --- */
+        
+        /* Style 1: Quote */
+        .post-quote { background: #0f3532; padding: 40px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .quote-text { font-family: 'Montserrat', sans-serif; font-style: italic; font-size: 18px; line-height: 1.6; color: #fff; margin-bottom: 20px; }
+        .quote-author { font-family: 'Montserrat', sans-serif; font-size: 10px; letter-spacing: 2px; color: #F6E5C6; text-transform: uppercase; }
+
+        /* Style 2: Product Spotlight */
+        .post-product { background: #1a1a1a; position: relative; }
+        .product-circle { width: 70%; height: 70%; border: 1px solid #F6E5C6; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+        .product-name { position: absolute; bottom: 30px; font-family: 'Great Vibes', cursive; font-size: 30px; color: #F6E5C6; }
+
+        /* Style 3: Minimal Brand */
+        .post-brand { display: flex; flex-direction: column; justify-content: center; align-items: center; border: 10px solid #1a524d; }
+        .brand-lg { font-family: 'Great Vibes', cursive; font-size: 50px; color: #F6E5C6; }
+        
+        /* Style 4: Lifestyle Overlay */
+        .post-lifestyle { background: linear-gradient(rgba(18, 64, 60, 0.7), rgba(18, 64, 60, 0.7)), url('https://placehold.co/600x600/222/333'); background-size: cover; color: #F6E5C6; }
+        .lifestyle-tag { border: 1px solid #F6E5C6; padding: 10px 20px; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* Style 5: Announcement */
+        .post-announce { background: #F6E5C6; color: #12403C; }
+        .announce-title { font-size: 12px; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 10px; font-weight: 500; }
+        .announce-main { font-family: 'Great Vibes', cursive; font-size: 40px; }
+
+        /* Style 6: Detail Zoom */
+        .post-detail { background: #151515; position: relative; }
+        .detail-line { width: 1px; height: 100px; background: rgba(255,255,255,0.2); }
+        .detail-label { position: absolute; top: 20px; right: 20px; font-size: 10px; color: #888; letter-spacing: 1px; }
+
+        /* Style 7: Grid Puzzle Part */
+        .post-puzzle { background: #12403C; display: flex; justify-content: flex-end; align-items: flex-end; padding: 20px; }
+        .puzzle-text { font-size: 100px; font-family: 'Great Vibes'; color: rgba(246, 229, 198, 0.1); line-height: 0.8; }
+
+        /* Style 8: Review */
+        .post-review { background: #102e2b; padding: 30px; text-align: center; }
+        .stars { color: #F6E5C6; font-size: 12px; margin-bottom: 15px; }
+
+        /* Watermark */
+        .wm { position: absolute; bottom: 15px; width: 100%; text-align: center; font-size: 8px; letter-spacing: 2px; opacity: 0.5; color: #F6E5C6; }
+
+    </style>
+</head>
+<body>
+
+    <h1>LegaCy</h1>
+    <h2>Social Media Identity Matrix (50 Posts)</h2>
+
+    <div class="matrix-container">
+        
+        <!-- ROW 1: BRAND LAUNCH -->
+        <div class="post post-brand"><div class="brand-lg">LegaCy</div><div class="wm">EST. 2026</div></div>
+        <div class="post post-lifestyle"><div class="lifestyle-tag">The Beginning</div></div>
+        <div class="post post-quote"><div class="quote-text">"Time is the only true luxury."</div><div class="quote-author">- LegaCy Philosophy</div></div>
+        
+        <!-- ROW 2: PRODUCT -->
+        <div class="post post-product"><div class="product-circle"><i class="fas fa-clock fa-3x" style="color:#555"></i></div><div class="product-name">The Chrono</div></div>
+        <div class="post post-detail"><div class="detail-label">SAPPHIRE GLASS</div><div class="detail-line"></div></div>
+        <div class="post post-product"><div class="product-circle" style="border-radius:0; border:1px solid #F6E5C6"><i class="fas fa-wallet fa-3x" style="color:#555"></i></div><div class="product-name">Leather Fold</div></div>
+
+        <!-- ROW 3: EDUCATIONAL -->
+        <div class="post post-review"><div class="stars">★★★★★</div><div class="quote-text" style="font-size:14px">"Exceptional quality. Feels like a masterpiece."</div><div class="quote-author">Verified Buyer</div></div>
+        <div class="post post-quote"><div class="quote-text">"Leather ages. Style is timeless."</div></div>
+        <div class="post post-lifestyle" style="background-image:none; background:#181818;"><div style="font-size:80px; color:#222; font-family:'Great Vibes';">Details</div><div style="position:absolute; color:#F6E5C6;">MATTER</div></div>
+
+        <!-- ROW 4: ANNOUNCEMENTS -->
+        <div class="post post-announce"><div class="announce-title">NEW ARRIVAL</div><div class="announce-main">Midnight Green</div></div>
+        <div class="post post-brand" style="border:none; border-bottom:10px solid #F6E5C6;"><div class="brand-lg">LC</div></div>
+        <div class="post post-announce" style="background:#fff; color:#12403C;"><div class="announce-title">LIMITED EDITION</div><div class="announce-main">Gold Series</div></div>
+
+        <!-- ROW 5: LIFESTYLE & MOOD -->
+        <div class="post post-lifestyle"><i class="fas fa-glass-whiskey fa-2x" style="opacity:0.5"></i></div>
+        <div class="post post-puzzle"><div class="puzzle-text">Le</div></div>
+        <div class="post post-puzzle" style="justify-content:flex-start;"><div class="puzzle-text">ga</div></div>
+
+        <!-- ROW 6 -->
+        <div class="post post-puzzle"><div class="puzzle-text">Cy</div></div>
+        <div class="post post-quote" style="background:#000;"><div class="quote-text" style="color:#F6E5C6">"Elegance is not standing out, but being remembered."</div></div>
+        <div class="post post-product"><div class="product-circle" style="border: 2px dashed #444;"></div><div class="product-name">Coming Soon</div></div>
+
+        <!-- ROW 7 -->
+        <div class="post post-detail"><div class="detail-label">SWISS MOVEMENT</div><div class="detail-line" style="transform:rotate(45deg)"></div></div>
+        <div class="post post-quote"><div class="quote-text">"Define your legacy."</div><div class="wm">www.legacy.com</div></div>
+        <div class="post post-review"><div class="stars">★★★★★</div><div class="quote-text" style="font-size:14px">"The packaging alone is worth the price."</div></div>
+
+        <!-- ROW 8 -->
+        <div class="post post-lifestyle" style="background:#1a524d"><div class="lifestyle-tag" style="border-color:#000; color:#000">SUMMER 26</div></div>
+        <div class="post post-brand"><div style="font-size:12px; letter-spacing:5px; text-transform:uppercase;">Official</div></div>
+        <div class="post post-product"><div class="product-circle" style="border-color:rgba(255,255,255,0.1)"></div><div class="product-name" style="color:rgba(255,255,255,0.5)">Silhouette</div></div>
+
+        <!-- ROW 9 -->
+        <div class="post post-announce" style="background:#222; color:#F6E5C6"><div class="announce-title">FLASH SALE</div><div class="announce-main">24 Hours</div></div>
+        <div class="post post-quote"><div class="quote-text">"Gentlemen's Standard."</div></div>
+        <div class="post post-detail" style="background:#F6E5C6"><div class="detail-label" style="color:#12403C">STITCHING</div></div>
+
+        <!-- ROW 10 -->
+        <div class="post post-puzzle" style="justify-content:center; align-items:center; background:#000;"><div class="brand-lg">L</div></div>
+        <div class="post post-puzzle" style="justify-content:center; align-items:center; background:#000;"><div class="brand-lg">C</div></div>
+        <div class="post post-lifestyle"><div class="lifestyle-tag">Join the Club</div></div>
+
+        <!-- ROW 11 -->
+        <div class="post post-quote"><div class="quote-text">"Invest in yourself."</div></div>
+        <div class="post post-product"><div class="product-circle"></div><div class="product-name">The Classic</div></div>
+        <div class="post post-brand" style="border-radius:50%;"><div class="brand-lg">LegaCy</div></div>
+
+        <!-- ROW 12 -->
+        <div class="post post-detail"><div class="detail-label">ITALIAN LEATHER</div></div>
+        <div class="post post-review"><div class="stars">★★★★★</div></div>
+        <div class="post post-announce"><div class="announce-main">Thank You</div></div>
+
+        <!-- ROW 13 -->
+        <div class="post post-lifestyle" style="background:#0e2b28"></div>
+        <div class="post post-lifestyle" style="background:#0e2b28"></div>
+        <div class="post post-lifestyle" style="background:#0e2b28"></div>
+
+        <!-- ROW 14 -->
+        <div class="post post-brand"><div class="brand-lg" style="font-size:20px;">LegaCy Accessories</div></div>
+        <div class="post post-quote"><div class="quote-text">"Minimalism."</div></div>
+        <div class="post post-product"><div class="product-circle"></div></div>
+
+        <!-- ROW 15 -->
+        <div class="post post-announce" style="background:#fff; color:#000;"><div class="announce-title">RESTOCK</div></div>
+        <div class="post post-lifestyle"></div>
+        <div class="post post-brand"><div class="brand-lg">Fin.</div></div>
+
+    </div>
+
+</body>
+</html>

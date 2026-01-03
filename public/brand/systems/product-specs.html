@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LegaCy Product Branding Specs</title>
+    <link href="../../typography/fonts.css" rel="stylesheet">
+    <style>
+        body { background: #E0E0E0; color: #333; font-family: 'Montserrat', sans-serif; padding: 60px; }
+        .header { margin-bottom: 50px; border-bottom: 2px solid #12403C; padding-bottom: 20px; }
+        h1 { font-family: 'Great Vibes', cursive; font-size: 50px; color: #12403C; margin: 0; }
+        
+        .spec-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 50px; max-width: 1200px; margin: 0 auto; }
+        
+        .blueprint {
+            background: #fff; border: 1px solid #ccc; padding: 40px; position: relative;
+            background-image: 
+                linear-gradient(rgba(18, 64, 60, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(18, 64, 60, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .blueprint-title { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #12403C; font-weight: bold; margin-bottom: 30px; display: inline-block; background: #fff; padding: 5px 10px; border: 1px solid #12403C; }
+
+        /* 1. WATCH DIAL */
+        .watch-dial { 
+            width: 200px; height: 200px; border-radius: 50%; background: #12403C; margin: 0 auto; position: relative; 
+            border: 10px solid #d4af37; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .dial-logo { font-family: 'Great Vibes'; color: #F6E5C6; font-size: 24px; position: absolute; top: 40px; }
+        .dial-hands { width: 100px; height: 2px; background: #F6E5C6; transform: rotate(-45deg); transform-origin: left center; position: absolute; left: 50%; top: 50%; }
+        .dial-marker { width: 4px; height: 10px; background: #F6E5C6; position: absolute; top: 10px; }
+        
+        /* 2. CROWN ETCHING */
+        .watch-crown {
+            width: 120px; height: 120px; background: linear-gradient(135deg, #e6cfa5, #b89856); border-radius: 50%; margin: 0 auto;
+            display: flex; justify-content: center; align-items: center; border: 1px dashed #666;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        }
+        .crown-logo { font-family: 'Great Vibes'; font-size: 60px; color: rgba(18, 64, 60, 0.6); text-shadow: 1px 1px 0 rgba(255,255,255,0.4); }
+
+        /* 3. LEATHER DEBOSS */
+        .leather-patch {
+            width: 250px; height: 150px; background: #5D4037; margin: 0 auto;
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 5px; position: relative;
+        }
+        .leather-texture { position: absolute; width: 100%; height: 100%; opacity: 0.3; background: url('https://placehold.co/250x150/5D4037/4E342E?text=+'); }
+        .deboss-logo { 
+            font-family: 'Great Vibes'; font-size: 40px; color: #3E2723; 
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.2), inset 2px 2px 5px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        /* 4. METAL BUCKLE */
+        .buckle {
+            width: 200px; height: 80px; background: linear-gradient(0deg, #ccc, #eee, #ccc);
+            margin: 0 auto; border-radius: 5px; display: flex; justify-content: center; align-items: center;
+            border: 1px solid #999;
+        }
+        .laser-etch { font-family: 'Great Vibes'; font-size: 20px; color: #555; }
+
+        .notes { font-size: 10px; color: #666; margin-top: 20px; font-family: monospace; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>System 4: Product Branding Specifications</h1>
+    </div>
+
+    <div class="spec-container">
+        
+        <!-- WATCH DIAL -->
+        <div class="blueprint">
+            <div class="blueprint-title">A. Watch Dial Application</div>
+            <div class="watch-dial">
+                <div class="dial-marker"></div>
+                <div class="dial-logo">LegaCy</div>
+                <div class="dial-hands"></div>
+            </div>
+            <div class="notes">
+                TECH: Applied Index (Gold Plated)<br>
+                SIZE: 12mm Width<br>
+                POS: 12 O'clock Position<br>
+                FONT: Great Vibes (Modified)
+            </div>
+        </div>
+
+        <!-- CROWN -->
+        <div class="blueprint">
+            <div class="blueprint-title">B. Crown Engraving</div>
+            <div class="watch-crown">
+                <div class="crown-logo">L</div>
+            </div>
+            <div class="notes">
+                TECH: Deep Laser Etch (0.3mm)<br>
+                SIZE: 60% of Crown Diameter<br>
+                SYMBOL: 'L' Single Letter Mark
+            </div>
+        </div>
+
+        <!-- LEATHER -->
+        <div class="blueprint">
+            <div class="blueprint-title">C. Leather Debossing</div>
+            <div class="leather-patch">
+                <div class="deboss-logo">LegaCy</div>
+            </div>
+            <div class="notes">
+                TECH: Heat Stamp (Blind Deboss)<br>
+                TEMP: 140°C<br>
+                POS: Interior Right Panel (Wallets)
+            </div>
+        </div>
+
+        <!-- BUCKLE -->
+        <div class="blueprint">
+            <div class="blueprint-title">D. Buckle Laser Etch</div>
+            <div class="buckle">
+                <div class="laser-etch">LegaCy</div>
+            </div>
+            <div class="notes">
+                TECH: Fiber Laser (Annealing)<br>
+                COLOR: Dark Grey on Steel<br>
+                POS: Centered on Buckle Bridge
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

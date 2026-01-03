@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LegaCy Ultimate Logo Suite</title>
+    <link href="../../typography/fonts.css" rel="stylesheet">
+    <style>
+        body { background-color: #f5f5f5; color: #333; font-family: 'Montserrat', sans-serif; padding: 60px; }
+        
+        .header { margin-bottom: 60px; border-bottom: 2px solid #12403C; padding-bottom: 20px; }
+        h1 { font-family: 'Great Vibes', cursive; font-size: 50px; color: #12403C; margin: 0; }
+        .subtitle { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #666; margin-top: 10px; }
+
+        .section { margin-bottom: 80px; }
+        .section-title { font-size: 18px; text-transform: uppercase; letter-spacing: 2px; border-left: 5px solid #12403C; padding-left: 15px; margin-bottom: 30px; font-weight: 500; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 40px; }
+
+        .card { background: #fff; padding: 40px; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+        .card-dark { background: #12403C; color: #F6E5C6; }
+
+        .logo-display { height: 120px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
+        
+        .logo-main { font-family: 'Great Vibes'; font-size: 60px; transform: rotate(-3deg); }
+        .logo-stacked { font-family: 'Great Vibes'; font-size: 40px; text-align: center; line-height: 0.8; transform: rotate(-3deg); }
+        .logo-icon { font-family: 'Great Vibes'; font-size: 40px; border: 2px solid currentColor; border-radius: 50%; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; }
+        
+        .meta { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
+        .card-dark .meta { color: rgba(246, 229, 198, 0.5); }
+
+        /* SAFETY GUIDES */
+        .safe-zone-box { border: 1px dashed #f00; padding: 20px; display: inline-block; position: relative; }
+        .safe-zone-box::after { content: 'X'; position: absolute; top: 0; right: 0; background: #f00; color: white; font-size: 10px; padding: 2px 5px; }
+        
+        /* SCALES */
+        .scale-row { display: flex; align-items: center; gap: 30px; margin-bottom: 20px; }
+        
+        /* MATERIALS */
+        .foil-gold { 
+            background: linear-gradient(45deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
+        .emboss {
+            color: #e0e0e0; text-shadow: 2px 2px 5px rgba(0,0,0,0.2), -1px -1px 1px rgba(255,255,255,0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>LegaCy</h1>
+        <div class="subtitle">System 1: The Ultimate Logo Suite</div>
+    </div>
+
+    <!-- 1. PRIMARY LOGO SYSTEM -->
+    <div class="section">
+        <div class="section-title">1. Primary Configurations</div>
+        <div class="grid">
+            <div class="card card-dark">
+                <div class="logo-display"><div class="logo-main" style="color:#F6E5C6">LegaCy</div></div>
+                <div class="meta">Primary / Dark BG / Gold Text</div>
+            </div>
+            <div class="card">
+                <div class="logo-display"><div class="logo-main" style="color:#12403C">LegaCy</div></div>
+                <div class="meta">Primary / Light BG / Green Text</div>
+            </div>
+            <div class="card card-dark">
+                <div class="logo-display"><div class="logo-stacked" style="color:#F6E5C6">Lega<br>Cy</div></div>
+                <div class="meta">Stacked / Dark BG / Gold Text</div>
+            </div>
+            <div class="card">
+                <div class="logo-display"><div class="logo-stacked" style="color:#12403C">Lega<br>Cy</div></div>
+                <div class="meta">Stacked / Light BG / Green Text</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. ICONS & MARKS -->
+    <div class="section">
+        <div class="section-title">2. Icons & Marks</div>
+        <div class="grid">
+            <div class="card">
+                <div class="logo-display"><div class="logo-icon" style="color:#12403C">LC</div></div>
+                <div class="meta">Monogram Icon</div>
+            </div>
+            <div class="card">
+                <div class="logo-display"><div style="font-family:'Great Vibes'; font-size:60px; color:#12403C;">L</div></div>
+                <div class="meta">Single Letter Mark</div>
+            </div>
+            <div class="card card-dark">
+                <div class="logo-display"><div style="width:16px; height:16px; background:#F6E5C6; border-radius:2px;"></div></div>
+                <div class="meta">Favicon (16px)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. TECHNICAL RULES -->
+    <div class="section">
+        <div class="section-title">3. Clear Space & Protection</div>
+        <div class="grid">
+            <div class="card">
+                <div class="logo-display">
+                    <div class="safe-zone-box">
+                        <div class="logo-main" style="font-size:30px; color:#12403C;">LegaCy</div>
+                    </div>
+                </div>
+                <div class="meta">Clear Space (X = Height of 'L')</div>
+            </div>
+            <div class="card" style="text-align:left;">
+                <div class="scale-row"><div class="logo-main" style="font-size:16px; color:#12403C;">LegaCy</div> <span class="meta">16px (Min Digital)</span></div>
+                <div class="scale-row"><div class="logo-main" style="font-size:24px; color:#12403C;">LegaCy</div> <span class="meta">24px (Min Print)</span></div>
+                <div class="scale-row"><div class="logo-main" style="font-size:40px; color:#12403C;">LegaCy</div> <span class="meta">Standard</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. MATERIALS & PRODUCTION -->
+    <div class="section">
+        <div class="section-title">4. Production Finishes</div>
+        <div class="grid">
+            <div class="card" style="background:#111;">
+                <div class="logo-display"><div class="logo-main foil-gold">LegaCy</div></div>
+                <div class="meta">Hot Foil Stamping (Gold)</div>
+            </div>
+            <div class="card">
+                <div class="logo-display"><div class="logo-main emboss">LegaCy</div></div>
+                <div class="meta">Blind Emboss (Paper)</div>
+            </div>
+             <div class="card">
+                <div class="logo-display"><div class="logo-main" style="color:black; opacity:0.1;">LegaCy</div></div>
+                <div class="meta">Watermark (10% Opacity)</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
