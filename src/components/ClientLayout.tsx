@@ -87,16 +87,21 @@ function ClientLayoutContent({ children, navbar, footer }: { children: React.Rea
     return (
       <ComparisonProvider>
         {/* Show splash screen only on homepage */}
-        {showSplash && <SplashScreen onFinish={handleSplashFinish} storeName="LegeCy" />}
+        {showSplash && <SplashScreen onFinish={handleSplashFinish} storeName="Legacy" />}
         
-        <div style={{ 
+        <div 
+          className="flex flex-col min-h-screen"
+          style={{ 
             opacity: contentVisible ? 1 : 0, 
             transition: 'opacity 0.5s ease-in-out',
             visibility: contentVisible ? 'visible' : 'hidden'
-        }}>
+          }}
+        >
             {navbar}
             <CartDrawer />
-            {children}
+            <main className="flex-grow">
+              {children}
+            </main>
             {footer}
         </div>
       </ComparisonProvider>

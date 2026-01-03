@@ -112,8 +112,12 @@ html, body {
 
   /* Legacy Section Fixes */
   .legacy-section {
-    padding: 50px 12px;
+    padding: 50px 20px;
     margin-top: 32px;
+    width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+        border-radius: 16px;
   }
   
   .legacy-wrapper {
@@ -125,7 +129,7 @@ html, body {
   .legacy-image-wrapper {
     max-width: 100%;
     margin: 0 auto;
-    width: 280px;
+    width: 260px;
   }
 
   .legacy-text-content {
@@ -157,18 +161,26 @@ html, body {
   /* Carousel */
   .carousel-wrapper {
     margin: 0 -12px;
-        padding: 0 12px;
+    padding: 0 12px;
   }
   
   .carousel-item {
     flex: 0 0 220px;
+
+  /* Allow vertical scrolling to pass through carousels */
+  .carousel-track,
+  .product-card {
+      touch-action: pan-y;
     }
-    
-    /* ========== FIX 1: Smaller Hero Button ========== */
-    .hero .btn.btn-primary {
-        font-size: 13px;
-        padding: 12px 24px;
-        letter-spacing: 1px;
+  }
+
+  /* ========== FIX 1: Smaller Hero Button ========== */
+  .hero .btn.btn-primary {
+      font-size: 13px;
+    padding: 10px 20px;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        max-width: 200px;
     }
     
     /* ========== FIX 3: Hide Eye Icon on Product Cards ========== */
@@ -225,61 +237,69 @@ html, body {
         padding-top: 48px !important;
         padding-bottom: 48px !important;
     }
-    
-    .trust-badges-section .trust-badge-icon {
-        width: 48px !important;
-        height: 48px !important;
-    }
-    
-    .trust-badges-section svg {
-        width: 24px !important;
-        height: 24px !important;
-    }
-    
-    .trust-badges-section h4 {
-        font-size: 18px !important;
-    }
-    
-    .trust-badges-section p {
-        font-size: 10px !important;
-    }
-    
-    /* ========== FIX 9: About Page Image Visibility ========== */
-    .detail-split {
-        grid-template-columns: 1fr !important;
-        gap: 32px;
-    }
-    
-    .main-image-wrapper {
-        min-height: 280px !important;
-        width: 100% !important;
-        margin: 0 !important;
-        border-radius: 12px;
-        overflow: hidden;
-    }
-    
-    .about-img-full {
-        border-radius: 12px;
-    }
-    
-    /* ========== FIX 10: Help Page Tabs ========== */
-    .help-main-tabs {
-        display: inline-flex;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 30px;
-        padding: 4px;
-        gap: 4px;
-    }
-    
-    .help-main-tab {
-        padding: 10px 20px;
-        font-size: 13px;
-        border-radius: 24px;
-        gap: 6px;
-    }
-    
-    .help-main-tab svg {
-        width: 16px;
-        height: 16px;
+  .trust-badges-section>div {
+      display: flex;
+      justify-content: center;
+  }
+
+  .trust-badges-section .grid {
+      justify-items: center;
+      text-align: center;
+  }
+  .trust-badges-section .trust-badge-icon {
+      width: 48px !important;
+      height: 48px !important;
+  }
+
+  .trust-badges-section svg {
+      width: 24px !important;
+      height: 24px !important;
+  }
+
+  .trust-badges-section h4 {
+      font-size: 18px !important;
+  }
+
+  .trust-badges-section p {
+      font-size: 10px !important;
+  }
+
+  /* ========== FIX 9: About Page Image Visibility ========== */
+  .detail-split {
+      grid-template-columns: 1fr !important;
+      gap: 32px;
+  }
+
+  .main-image-wrapper {
+      min-height: 280px !important;
+      width: 100% !important;
+      margin: 0 !important;
+      border-radius: 12px;
+      overflow: hidden;
+  }
+
+  .about-img-full {
+      border-radius: 12px;
+  }
+
+  /* ========== FIX 10: Help Page Tabs ========== */
+  .help-main-tabs {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 30px;
+      padding: 4px;
+      gap: 4px;
+  }
+
+  .help-main-tab {
+      padding: 10px 20px;
+      font-size: 13px;
+      border-radius: 24px;
+      gap: 6px;
+  }
+
+  .help-main-tab svg {
+      width: 16px;
+      height: 16px;
   }
 }

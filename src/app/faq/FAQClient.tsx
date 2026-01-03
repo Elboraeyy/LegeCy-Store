@@ -198,7 +198,7 @@ export default function FAQClient() {
         <div className="faq-contact-box">
           <h3>Didn&apos;t find an answer to your question?</h3>
           <p>Contact us and we&apos;ll get back to you as soon as possible</p>
-          <a href="mailto:support@legecy.store" className="btn btn-primary">
+          <a href="mailto:support@Legacy.store" className="btn btn-primary">
             Contact Us
           </a>
         </div>

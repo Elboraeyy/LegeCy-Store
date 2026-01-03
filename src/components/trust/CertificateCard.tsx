@@ -8,7 +8,7 @@ interface CertificateCardProps {
 }
 
 export const CertificateCard: React.FC<CertificateCardProps> = ({
-  productName = "LegeCy Chronograph",
+  productName = "Legacy Chronograph",
   serialNumber = "LGC-2025-8842",
   date = "Dec 20, 2025",
 }) => {
@@ -23,7 +23,7 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({
           
           <div className="cert-body">
             <p className="cert-text">
-              This document certifies that the <strong>{productName}</strong> is an authentic LegeCy Timepiece, 
+              This document certifies that the <strong>{productName}</strong> is an authentic Legacy Timepiece, 
               crafted with precision and verified for excellence.
             </p>
             
@@ -45,7 +45,7 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({
           
           <div className="cert-footer">
             <div className="signature-line">
-              <span className="signature">Alexander LegeCy</span>
+              <span className="signature">Alexander Legacy</span>
               <span className="signature-label">Master Watchmaker</span>
             </div>
             <button className="download-btn">

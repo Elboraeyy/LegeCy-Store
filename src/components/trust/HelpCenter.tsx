@@ -22,7 +22,7 @@ const topics: HelpTopic[] = [
   {
     id: "warranty",
     title: "5-Year Warranty",
-    content: "Your LegeCy timepiece is protected against manufacturing defects for 5 years. This covers the movement, hands, and dial. External wear and tear or accidental damage is not covered.",
+    content: "Your Legacy timepiece is protected against manufacturing defects for 5 years. This covers the movement, hands, and dial. External wear and tear or accidental damage is not covered.",
   },
   {
     id: "service",
@@ -50,7 +50,7 @@ export const HelpCenter = () => {
                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             </div>
-            <span className="video-label">Watch: How to care for your LegeCy</span>
+            <span className="video-label">Watch: How to care for your Legacy</span>
           </div>
         </div>
 

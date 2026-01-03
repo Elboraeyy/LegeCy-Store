@@ -5,7 +5,7 @@ import MyOrdersClient from "./MyOrdersClient";
 import prisma from "@/lib/prisma";
 
 export const metadata: Metadata = {
-  title: "My Orders | LegeCy Store",
+  title: "My Orders | Legacy Store",
   description: "View and track all your orders",
 };
 

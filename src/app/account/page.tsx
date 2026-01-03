@@ -4,7 +4,7 @@ import { validateCustomerSession } from "@/lib/auth/session";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "My Account | LegeCy Store",
+  title: "My Account | Legacy Store",
   description: "Manage your account and view your orders",
 };
 

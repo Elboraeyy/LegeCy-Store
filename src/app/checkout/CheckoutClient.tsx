@@ -188,7 +188,7 @@ export default function CheckoutClient() {
               <h1 className="fade-in">Order Confirmed! 🎉</h1>
             </Reveal>
             <Reveal delay={0.2}>
-              <p className="fade-in">Thank you for choosing LegeCy. Your order is being prepared.</p>
+              <p className="fade-in">Thank you for choosing Legacy. Your order is being prepared.</p>
             </Reveal>
           </div>
         </section>

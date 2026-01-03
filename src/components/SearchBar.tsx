@@ -12,7 +12,11 @@ interface SearchResult {
   category: string | null;
 }
 
-export default function SearchBar() {
+interface SearchBarProps {
+  onProductSelect?: () => void;
+}
+
+export default function SearchBar({ onProductSelect }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -61,6 +65,7 @@ export default function SearchBar() {
       router.push(`/shop?search=${encodeURIComponent(query.trim())}`);
       setIsOpen(false);
       setQuery("");
+      onProductSelect?.();
     }
   };
 
@@ -68,6 +73,7 @@ export default function SearchBar() {
     router.push(`/product/${id}`);
     setIsOpen(false);
     setQuery("");
+    onProductSelect?.();
   };
 
   const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
