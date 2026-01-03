@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&amp;display=swap');
+      .text {
+        font-family: 'Great Vibes', cursive;
+        fill: #12403C;
+        text-anchor: middle;
+      }
+    </style>
+  </defs>
+  <g transform="rotate(-3, 150, 150)">
+    <text x="150" y="130" class="text" font-size="120">Lega</text>
+    <text x="170" y="220" class="text" font-size="140">Cy</text>
+  </g>
+</svg>

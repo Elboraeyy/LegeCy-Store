@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>LegaCy Instagram Profile Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+    body {
+        background-color: #fafafa;
+        font-family: 'Segoe UI', sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .phone-screen {
+        width: 375px;
+        background-color: white;
+        border: 1px solid #dbdbdb;
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    }
+    
+    /* --- Profile Header --- */
+    .profile-header {
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .profile-pic {
+        width: 80px;
+        height: 80px;
+        background-color: #12403C; /* خلفية غامقة للبروفايل */
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 2px solid #F6E5C6; /* إطار ذهبي */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    /* اللوجو داخل البروفايل */
+    .profile-logo-text {
+        font-family: 'Great Vibes', cursive;
+        color: #F6E5C6;
+        font-size: 26px; /* حجم مناسب للدائرة */
+        transform: rotate(-3deg);
+        line-height: 0.8;
+        text-align: center;
+        margin-top: 5px; /* تظبيط بصري */
+    }
+
+    .profile-info h3 { margin: 0; font-size: 16px; font-weight: 700; color: #000; }
+    .profile-info p { margin: 5px 0; font-size: 13px; color: #666; line-height: 1.4; }
+    .profile-info .link { color: #00376b; font-weight: 600; text-decoration: none; font-size: 13px; }
+
+    /* --- Highlights Bar (Optional decor) --- */
+    .highlights {
+        display: flex;
+        gap: 15px;
+        padding: 0 20px 20px 20px;
+        overflow-x: auto;
+    }
+    .highlight-circle {
+        width: 60px; height: 60px;
+        background-color: #f0f0f0;
+        border-radius: 50%;
+        border: 1px solid #dbdbdb;
+    }
+
+    /* --- The Grid --- */
+    .grid-options {
+        display: flex;
+        justify-content: space-around;
+        border-top: 1px solid #dbdbdb;
+        border-bottom: 1px solid #dbdbdb;
+        padding: 10px 0;
+        font-size: 20px;
+        color: #12403C;
+    }
+    
+    .grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 2px;
+        background-color: white; /* فواصل بيضاء */
+    }
+
+    .post {
+        aspect-ratio: 1/1;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        overflow: hidden;
+    }
+    .pin-icon {
+        position: absolute;
+        top: 8px; right: 8px;
+        font-size: 12px;
+        z-index: 10;
+    }
+
+    /* --- Post 3 (Left): Creative (Dark) --- */
+    .post-dark {
+        background-color: #12403C;
+        color: #F6E5C6;
+    }
+    .gear-visual {
+        width: 60px; height: 60px;
+        border: 1px dashed rgba(246, 229, 198, 0.5);
+        border-radius: 50%;
+        animation: spin 10s linear infinite;
+    }
+    
+    /* --- Post 2 (Middle): Identity (Dark) --- */
+    .post-identity {
+        background-color: #12403C;
+        color: #F6E5C6;
+    }
+    .logo-large {
+        font-family: 'Great Vibes', cursive;
+        font-size: 34px;
+        margin-bottom: 5px;
+        transform: rotate(-3deg);
+    }
+    .slogan {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 6px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* --- Post 1 (Right): Teaser (INVERTED COLORS) --- */
+    .post-light {
+        background-color: #F6E5C6; /* الخلفية فاتحة */
+        color: #12403C; /* الكتابة غامقة */
+    }
+    .post-light .pin-icon { color: #12403C; }
+    
+    .teaser-logo {
+        font-family: 'Great Vibes', cursive;
+        font-size: 30px;
+        transform: rotate(-3deg);
+    }
+    .teaser-word {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin-top: 5px;
+        font-weight: 700;
+        border-top: 1px solid #12403C;
+        padding-top: 5px;
+    }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+</style>
+</head>
+<body>
+
+<div class="label" style="text-align: center; margin-bottom: 20px; font-weight: bold;">
+    البروفايل النهائي (LegaCy Official)
+</div>
+
+<div class="phone-screen">
+    <div class="profile-header">
+        <div class="profile-pic">
+            <div class="profile-logo-text">Lega<br>Cy</div>
+        </div>
+        <div class="profile-info">
+            <h3>LegaCy Official</h3>
+            <p>Luxury Timepieces.<br>Built on Time. Made for Legacy.</p>
+            <a href="#" class="link">www.legacy-watches.com</a>
+        </div>
+    </div>
+    
+    <div class="highlights">
+        <div class="highlight-circle"></div>
+        <div class="highlight-circle"></div>
+        <div class="highlight-circle"></div>
+    </div>
+
+    <div class="grid-options">
+        <span>▦</span>
+        <span style="opacity:0.3">🎬</span>
+        <span style="opacity:0.3">👤</span>
+    </div>
+
+    <div class="grid-container">
+        
+        <div class="post post-dark">
+            <div class="pin-icon">📌</div>
+            <div class="gear-visual"></div>
+            <div style="font-size: 8px; margin-top: 10px; font-family: 'Montserrat';">PRECISION</div>
+        </div>
+
+        <div class="post post-identity">
+            <div class="pin-icon">📌</div>
+            <div class="logo-large">LegaCy</div>
+            <div class="slogan">Built on Time.<br>Made for Legacy.</div>
+        </div>
+
+        <div class="post post-light">
+            <div class="pin-icon">📌</div>
+            <div class="teaser-logo">LegaCy</div>
+            <div class="teaser-word">COMES</div>
+        </div>
+
+        <div class="post" style="background: #eee;"></div>
+        <div class="post" style="background: #eee;"></div>
+        <div class="post" style="background: #eee;"></div>
+
+    </div>
+</div>
+
+</body>
+</html>

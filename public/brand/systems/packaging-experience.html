@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LegaCy Packaging Experience</title>
+    <link href="../../typography/fonts.css" rel="stylesheet">
+    <style>
+        body { background: #121212; color: #fff; font-family: 'Montserrat', sans-serif; padding: 0; margin: 0; }
+        
+        .header { padding: 40px; text-align: center; border-bottom: 1px solid #333; }
+        h1 { font-family: 'Great Vibes', cursive; font-size: 40px; color: #F6E5C6; margin: 0; }
+        
+        .timeline { max-width: 800px; margin: 0 auto; padding: 60px 20px; border-left: 2px solid #333; margin-left: 50%; }
+        
+        .step { position: relative; padding-left: 40px; margin-bottom: 80px; }
+        .step::before { content: ''; position: absolute; left: -11px; top: 0; width: 20px; height: 20px; background: #12403C; border: 2px solid #F6E5C6; border-radius: 50%; }
+        
+        .step-title { color: #F6E5C6; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; margin-bottom: 20px; }
+        
+        .box-visualization { 
+            width: 100%; height: 200px; background: #222; border-radius: 10px; 
+            display: flex; justify-content: center; align-items: center; margin-bottom: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; overflow: hidden;
+        }
+
+        /* 1. SHIPPING BOX */
+        .shipping-box { width: 150px; height: 100px; background: #8d6e63; display: flex; justify-content: center; align-items: center; border: 2px solid #5d4037; }
+        .tape { width: 100%; height: 20px; background: #12403C; position: absolute; top: 40%; display: flex; justify-content: center; align-items: center; color: #F6E5C6; font-size: 10px; letter-spacing: 2px; }
+
+        /* 2. TISSUE */
+        .tissue-paper { width: 90%; height: 90%; background: #fff; opacity: 0.9; background-image: radial-gradient(#12403C 1px, transparent 1px); background-size: 20px 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 10px rgba(0,0,0,0.2); transform: rotate(2deg); }
+        .sticker-seal { width: 40px; height: 40px; background: #F6E5C6; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #12403C; font-family: 'Great Vibes'; }
+
+        /* 3. PRODUCT BOX */
+        .rigid-box { width: 140px; height: 140px; background: #12403C; border: 1px solid #F6E5C6; display: flex; justify-content: center; align-items: center; }
+        .foil-logo { color: #F6E5C6; font-family: 'Great Vibes'; font-size: 30px; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+
+        /* 4. FOAM */
+        .foam-insert { width: 140px; height: 140px; background: #000; display: flex; justify-content: center; align-items: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
+        .cutout { width: 80px; height: 80px; background: #111; border-radius: 50%; box-shadow: inset 0 0 10px rgba(0,0,0,1); }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>System 3: Packaging Unboxing Flow</h1>
+    </div>
+
+    <div class="timeline">
+        
+        <!-- STEP 1 -->
+        <div class="step">
+            <div class="step-title">01 / The Arrival (Shipping)</div>
+            <div class="box-visualization">
+                <div class="shipping-box">
+                    <div class="tape">LEGACY • LEGACY • LEGACY</div>
+                </div>
+            </div>
+            <p style="font-size:12px; color:#888;">Standard Kraft corrugated box. Branded ONLY by the custom water-activated security tape (Green/Gold).</p>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step">
+            <div class="step-title">02 / The Reveal (Wrapping)</div>
+            <div class="box-visualization">
+                <div class="tissue-paper">
+                    <div class="sticker-seal">LC</div>
+                </div>
+            </div>
+            <p style="font-size:12px; color:#888;">Crisp white tissue paper with repeating 'LC' monogram pattern. Sealed with a gold foil sticker.</p>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step">
+            <div class="step-title">03 / The Vessel (Rigid Box)</div>
+            <div class="box-visualization">
+                <div class="rigid-box">
+                    <div class="foil-logo">LegaCy</div>
+                </div>
+            </div>
+            <p style="font-size:12px; color:#888;">Soft-touch deep green rigid box (2mm thick). Hot stamped gold logo on lid.</p>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step">
+            <div class="step-title">04 / The Sanctuary (Interior)</div>
+            <div class="box-visualization">
+                <div class="foam-insert">
+                    <div class="cutout"></div>
+                </div>
+            </div>
+            <p style="font-size:12px; color:#888;">High-density black EVA foam insert, velvet flocked. Precision cutout for product.</p>
+        </div>
+
+    </div>
+</body>
+</html>

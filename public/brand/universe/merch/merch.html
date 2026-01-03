@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>LegaCy Merchandise</title>
+<link href="../../typography/fonts.css" rel="stylesheet">
+<style>
+    body { background-color: #fff; color: #333; font-family: 'Montserrat', sans-serif; font-weight: 300; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+    h1 { font-family: 'Great Vibes', cursive; font-size: 50px; font-weight: 400; color: #12403C; margin-bottom: 50px; }
+    .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; width: 100%; max-width: 1400px; }
+    .concept-card { background: #f9f9f9; border-radius: 10px; overflow: hidden; }
+    .info h3 { font-family: 'Great Vibes', cursive; font-size: 24px; font-weight: 400; margin-bottom: 5px; color: #12403C; }
+    .info p { font-size: 12px; font-weight: 300; }
+    .screen { height: 250px; width: 100%; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+    
+    .tshirt { width: 150px; height: 180px; background: #12403C; border-radius: 20px 20px 0 0; position: relative; }
+    .tshirt::after { content: 'LegaCy'; position: absolute; top: 40px; left: 35px; color: #F6E5C6; font-family: 'Great Vibes'; transform: rotate(-5deg); }
+    
+    .cap { width: 120px; height: 70px; background: #12403C; border-radius: 60px 60px 0 0; position: relative; }
+    .cap-visor { width: 140px; height: 10px; background: #F6E5C6; position: absolute; bottom: 0; left: -10px; }
+    
+    .mug { width: 80px; height: 100px; background: white; border: 2px solid #12403C; border-radius: 0 0 10px 10px; position: relative; display: flex; justify-content: center; align-items: center; }
+    .mug-handle { width: 30px; height: 50px; border: 4px solid #12403C; border-left: none; border-radius: 0 20px 20px 0; position: absolute; right: -30px; }
+    
+    .umbrella { width: 160px; height: 80px; background: #12403C; border-radius: 80px 80px 0 0; position: relative; }
+    .umb-pole { width: 4px; height: 80px; background: #333; position: absolute; bottom: -80px; left: 78px; }
+</style>
+</head>
+<body>
+<h1>Premium Merchandise | 15 Concepts</h1>
+<div class="gallery">
+    <div class="concept-card"><div class="screen"><div class="tshirt"></div></div><div class="info" style="padding:20px;"><h3>21. Signature Tee</h3><p>Heavyweight cotton with chest embroidery.</p></div></div>
+    <div class="concept-card"><div class="screen"><div class="cap"><div class="cap-visor"></div></div></div><div class="info" style="padding:20px;"><h3>22. Dad Hat</h3><p>Two-tone dad hat with contrast visor.</p></div></div>
+    <div class="concept-card"><div class="screen"><div class="mug"><div class="mug-handle"></div><span style="font-family:'Great Vibes'; color:#12403C;">LC</span></div></div><div class="info" style="padding:20px;"><h3>23. Ceramic Mug</h3><p>Minimalist white ceramic with logo decal.</p></div></div>
+    <div class="concept-card"><div class="screen"><div class="umbrella"><div class="umb-pole"></div></div></div><div class="info" style="padding:20px;"><h3>24. Golf Umbrella</h3><p>Wind-resistant canopy with subtle pattern.</p></div></div>
+</div>
+</body>
+</html>
