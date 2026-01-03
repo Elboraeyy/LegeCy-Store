@@ -12,7 +12,7 @@ function SubmitButton() {
                 width: '100%', 
                 marginTop: '24px',
                 padding: '14px 24px',
-                background: '#1a3c34',
+                background: '#12403C',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '999px',
@@ -27,12 +27,12 @@ function SubmitButton() {
             onMouseOver={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
                 e.currentTarget.style.boxShadow = '0 6px 16px rgba(18, 64, 60, 0.3)';
-                e.currentTarget.style.background = '#142f29';
+                e.currentTarget.style.background = '#0e3330';
             }}
             onMouseOut={(e) => {
                 e.currentTarget.style.transform = 'none';
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(18, 64, 60, 0.2)';
-                e.currentTarget.style.background = '#1a3c34';
+                e.currentTarget.style.background = '#12403C';
             }}
         >
             SIGN IN
@@ -47,8 +47,8 @@ export default function LoginPage() {
         <div className="auth-container" style={{ 
             minHeight: '100vh', 
             display: 'grid', 
-            gridTemplateColumns: 'minmax(300px, 1.2fr) minmax(400px, 1.5fr)',
-            background: '#f4f3f0'
+            gridTemplateColumns: '1fr 2fr',
+            background: '#F5F0E3'
         }}>
              {/* Global Animations & Responsive Styles */}
              <style jsx global>{`
@@ -62,20 +62,37 @@ export default function LoginPage() {
                 .delay-3 { animation-delay: 0.3s; }
                 
                 .auth-input:focus {
-                    border-color: #1a3c34 !important;
+                    border-color: #12403C !important;
                     box-shadow: 0 0 0 4px rgba(18, 64, 60, 0.1) !important;
                 }
 
                 @media (max-width: 900px) {
-                    .auth-brand-side { display: none !important; }
-                    .auth-container { grid-template-columns: 1fr !important; }
+                    .auth-container { 
+                        grid-template-columns: 1fr 2fr !important;
+                        height: 100vh;
+                        overflow: hidden;
+                    }
+                    .auth-brand-side { 
+                        padding: 16px !important;
+                        min-height: auto !important;
+                    }
+                    .auth-brand-side > div { max-width: 100% !important; }
+                    .auth-brand-side .brand-title { font-size: 20px !important; line-height: 1.2 !important; margin-bottom: 8px !important; }
+                    .auth-brand-side .brand-subtitle { font-size: 9px !important; margin-bottom: 6px !important; }
+                    .auth-brand-side .brand-quote { display: none !important; }
+                    .auth-brand-side .brand-footer { display: none !important; }
+                    .auth-form-side { padding: 16px !important; overflow-y: auto; }
+                    .auth-form-side form { gap: 10px !important; }
+                    .auth-form-side input { padding: 10px !important; font-size: 14px !important; }
+                    .auth-form-side h2 { font-size: 24px !important; margin-bottom: 8px !important; }
+                    .auth-form-side .auth-header { margin-bottom: 16px !important; }
                 }
             `}</style>
 
             {/* Left: Brand Side (Green) */}
             <div style={{ 
-                background: '#1a3c34', 
-                padding: '80px', 
+                background: '#12403C', 
+                padding: '60px', 
                 display: 'flex', 
                 flexDirection: 'column', 
                 justifyContent: 'center',
@@ -105,7 +122,7 @@ export default function LoginPage() {
                         color: '#d4af37',
                         marginBottom: '20px',
                         opacity: 0.9
-                    }} className="fade-in">
+                    }} className="fade-in brand-subtitle">
                         Welcome Back
                     </div>
 
@@ -115,7 +132,7 @@ export default function LoginPage() {
                         lineHeight: '1.1',
                         marginBottom: '32px',
                         color: '#f4f3f0'
-                    }} className="fade-in delay-1">
+                    }} className="fade-in delay-1 brand-title">
                         Curated<br/>Excellence.
                     </div>
                     
@@ -125,7 +142,7 @@ export default function LoginPage() {
                         color: '#a3b8b0',
                         marginBottom: '56px',
                         fontWeight: 300
-                    }} className="fade-in delay-2">
+                    }} className="fade-in delay-2 brand-quote">
                        &quot;Style is a way to say who you are, without having to speak.&quot;
                     </p>
                     
@@ -139,7 +156,7 @@ export default function LoginPage() {
                         color: '#5c6b66',
                         borderTop: '1px solid rgba(255,255,255,0.1)',
                         paddingTop: '32px'
-                    }} className="fade-in delay-3">
+                    }} className="fade-in delay-3 brand-footer">
                         <span>New Collections</span>
                         <div style={{width: 4, height: 4, background: '#d4af37', borderRadius: '50%'}} />
                         <span>Member Exclusive</span>
@@ -148,8 +165,8 @@ export default function LoginPage() {
             </div>
 
             {/* Right: Login Form (Beige/Light) */}
-            <div style={{ 
-                background: '#f4f3f0', 
+            <div className="auth-form-side" style={{ 
+                background: '#F5F0E3', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
@@ -189,7 +206,7 @@ export default function LoginPage() {
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'all 0.2s',
-                                    color: '#1a3c34'
+                                    color: '#12403C'
                                 }}
                             />
                         </div>
@@ -215,7 +232,7 @@ export default function LoginPage() {
                                     fontSize: '15px',
                                     outline: 'none',
                                     transition: 'all 0.2s',
-                                    color: '#1a3c34'
+                                    color: '#12403C'
                                 }}
                             />
                         </div>
@@ -258,7 +275,7 @@ export default function LoginPage() {
                             borderRadius: '999px',
                             fontSize: '14px',
                             fontWeight: '600',
-                            color: '#1a3c34',
+                            color: '#12403C',
                             textDecoration: 'none',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
