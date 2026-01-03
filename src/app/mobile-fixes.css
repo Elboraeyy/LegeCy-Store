@@ -68,7 +68,7 @@ html, body {
     padding-left: 12px;
     padding-right: 12px;
     width: 100%;
-    overflow: hidden; /* Additional safety */
+    overflow: hidden;
   }
 
   /* Hero Section Centering */
@@ -84,13 +84,13 @@ html, body {
   }
 
   .hero .hero-title {
-    font-size: 32px; /* Balanced size */
+    font-size: 32px;
     line-height: 1.2;
   }
   
   .hero .hero-sub {
     font-size: 15px;
-    padding: 0 10px; /* Prevent text touching edges */
+    padding: 0 10px;
   }
 
   /* Components: Center Everything */
@@ -123,9 +123,9 @@ html, body {
   }
 
   .legacy-image-wrapper {
-    max-width: 100%; /* Fix overflow */
+    max-width: 100%;
     margin: 0 auto;
-    width: 280px; /* Ideal mobile width */
+    width: 280px;
   }
 
   .legacy-text-content {
@@ -151,16 +151,135 @@ html, body {
   }
 
   .product-title {
-    font-size: 14px; /* Ensure readability */
+    font-size: 14px;
   }
 
-  /* Hide horizontal overflow items if any */
+  /* Carousel */
   .carousel-wrapper {
-    margin: 0 -12px; /* Bleed to edge */
-    padding: 0 12px; /* Inner padding */
+    margin: 0 -12px;
+        padding: 0 12px;
   }
   
   .carousel-item {
-     flex: 0 0 260px; /* Good size for mobile */
+    flex: 0 0 220px;
+    }
+    
+    /* ========== FIX 1: Smaller Hero Button ========== */
+    .hero .btn.btn-primary {
+        font-size: 13px;
+        padding: 12px 24px;
+        letter-spacing: 1px;
+    }
+    
+    /* ========== FIX 3: Hide Eye Icon on Product Cards ========== */
+    .product-actions .btn-icon:first-child {
+        display: none;
+    }
+    
+    /* ========== FIX 4: Smaller Product Cards ========== */
+    .product-card .product-media {
+        height: 180px;
+    }
+    
+    .product-card .product-body {
+        padding: 12px 10px;
+    }
+    
+    .product-card .product-title {
+        font-size: 13px;
+    }
+    
+    .product-card .product-price {
+        font-size: 14px;
+    }
+    
+    /* ========== FIX 5: Collection Cards Full Width ========== */
+    .collection-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
+    }
+    
+    .collection-card {
+        width: 100%;
+        max-width: 100%;
+        min-height: 200px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .collection-card.large {
+        min-height: 240px;
+    }
+    
+    .collection-overlay h3 {
+        font-size: 20px;
+    }
+    
+    .collection-overlay .btn-link {
+        font-size: 12px;
+        padding: 8px 16px;
+    }
+    
+    /* ========== FIX 6: Smaller Trust Badges ========== */
+    .trust-badges-section {
+        padding-top: 48px !important;
+        padding-bottom: 48px !important;
+    }
+    
+    .trust-badges-section .trust-badge-icon {
+        width: 48px !important;
+        height: 48px !important;
+    }
+    
+    .trust-badges-section svg {
+        width: 24px !important;
+        height: 24px !important;
+    }
+    
+    .trust-badges-section h4 {
+        font-size: 18px !important;
+    }
+    
+    .trust-badges-section p {
+        font-size: 10px !important;
+    }
+    
+    /* ========== FIX 9: About Page Image Visibility ========== */
+    .detail-split {
+        grid-template-columns: 1fr !important;
+        gap: 32px;
+    }
+    
+    .main-image-wrapper {
+        min-height: 280px !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .about-img-full {
+        border-radius: 12px;
+    }
+    
+    /* ========== FIX 10: Help Page Tabs ========== */
+    .help-main-tabs {
+        display: inline-flex;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 4px;
+        gap: 4px;
+    }
+    
+    .help-main-tab {
+        padding: 10px 20px;
+        font-size: 13px;
+        border-radius: 24px;
+        gap: 6px;
+    }
+    
+    .help-main-tab svg {
+        width: 16px;
+        height: 16px;
   }
 }
