@@ -21,6 +21,10 @@ export default async function Footer() {
             <span className="footer-copyright">
               {footer.copyrightText || `© ${currentYear} All rights reserved`}
             </span>
+            <div className="flex gap-3 text-xs opacity-70 mt-2">
+              <Link href="/privacy" className="hover:text-[#D4AF37] transition-colors">Privacy Policy</Link>
+              <Link href="/data-deletion" className="hover:text-[#D4AF37] transition-colors">Data Deletion</Link>
+            </div>
           </div>
 
           {/* Center: Quick Links */}

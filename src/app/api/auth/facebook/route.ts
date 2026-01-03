@@ -8,12 +8,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Facebook Client ID missing' }, { status: 500 });
   }
 
-  console.log('Distilled Facebook Client ID:', `"${clientId}"`); 
-  
   const scope = 'email,public_profile';
   const url = `https://www.facebook.com/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=facebook_auth`;
-  
-  console.log('Facebook Redirect URL:', url); // Debugging log
 
   return NextResponse.redirect(url);
 }
