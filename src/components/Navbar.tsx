@@ -76,7 +76,19 @@ export default function Navbar({
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []); // Empty dependency array = listener attached once
+  }, []);
+
+  // Lock body scroll when sidebar is open
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   const handleLogout = async () => {
     try {
@@ -138,7 +150,7 @@ export default function Navbar({
         <div className="container mx-auto px-4 lg:px-8">
           <nav className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="relative z-50 flex-shrink-0 group">
+            <Link href="/" className="relative z-50 flex-shrink-0 group flex items-center gap-2">
               {generalSettings?.logoUrl ? (
                 <Image
                   src={generalSettings.logoUrl}
@@ -149,9 +161,18 @@ export default function Navbar({
                   priority
                 />
               ) : (
-                <span className="text-2xl font-bold tracking-tight text-[#12403C] font-heading uppercase transition-colors">
-                  LEGECY
-                </span>
+                <>
+                  <Image
+                    src="/image/Logoo.png"
+                    alt="Legacy"
+                    width={24}
+                    height={24}
+                    className="h-6 w-6 object-contain transition-transform duration-300 group-hover:scale-110"
+                  />
+                  <span className="text-2xl font-bold tracking-wider text-[#12403C] font-heading uppercase transition-colors">
+                    LEGACY
+                  </span>
+                </>
               )}
             </Link>
 
@@ -277,7 +298,7 @@ export default function Navbar({
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                   </svg>
                   {isClient && favCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#d4af37] text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                    <span className="absolute top-0 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#d4af37] text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
                       {favCount}
                     </span>
                   )}
@@ -305,7 +326,7 @@ export default function Navbar({
                     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                   </svg>
                   {isClient && cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#12403C] text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                    <span className="absolute top-0 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#12403C] text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
                       {cartCount}
                     </span>
                   )}
@@ -452,20 +473,30 @@ export default function Navbar({
       {/* Spacer to prevent content overlap */}
       <div 
         className="w-full relative -z-50 pointer-events-none" 
-        style={{ height: headerSettings?.announcementEnabled ? '90px' : '64px' }} 
+        style={{ height: headerSettings?.announcementEnabled ? '80px' : '56px' }} 
       />
 
       {/* Mobile Search Dropdown */}
       <AnimatePresence>
         {showMobileSearch && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="fixed top-[60px] left-0 right-0 z-[55] bg-[#F5F0E3] shadow-lg border-b border-[rgba(18,64,60,0.1)] p-4 lg:hidden"
-          >
-            <SearchBar />
-          </motion.div>
+          <>
+            {/* Backdrop to close on click outside */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileSearch(false)}
+              className="fixed inset-0 z-[54] lg:hidden"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="fixed top-[60px] left-0 right-0 z-[55] bg-[#F5F0E3] shadow-lg border-b border-[rgba(18,64,60,0.1)] p-4 lg:hidden"
+            >
+              <SearchBar onProductSelect={() => setShowMobileSearch(false)} />
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
@@ -490,13 +521,15 @@ export default function Navbar({
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
+              dragElastic={{ left: 0.05, right: 0.3 }}
+              dragDirectionLock
               onDragEnd={(_, info) => {
-                if (info.offset.x > 100) {
+                // Close on swipe right (positive x direction) with lower threshold
+                if (info.offset.x > 50 || info.velocity.x > 300) {
                   setIsOpen(false);
                 }
               }}
-              className="fixed top-0 right-0 bottom-0 w-[85%] max-w-[320px] bg-[#F5F0E3] z-[70] shadow-2xl flex flex-col"
+              className="fixed top-0 right-0 bottom-0 w-[85%] max-w-[320px] bg-[#F5F0E3] z-[70] shadow-2xl flex flex-col touch-pan-y"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-5 border-b border-[rgba(18,64,60,0.1)]">
@@ -523,9 +556,13 @@ export default function Navbar({
                 </button>
               </div>
 
-              {/* Profile Section - Moved to Top */}
+              {/* Profile Section - Clickable to go to Account */}
               {user && (
-                <div className="p-5 bg-[#12403C] text-white">
+                <Link 
+                  href="/account"
+                  onClick={() => setIsOpen(false)}
+                  className="block p-5 bg-[#12403C] text-white hover:bg-[#0e3330] transition-colors"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-[#d4af37] text-[#12403C] flex items-center justify-center text-xl font-bold">
                       {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
@@ -536,8 +573,11 @@ export default function Navbar({
                       </p>
                       <p className="text-xs opacity-70">{user.email}</p>
                     </div>
+                    <svg className="ml-auto opacity-50" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
                   </div>
-                </div>
+                </Link>
               )}
 
               {/* Navigation */}

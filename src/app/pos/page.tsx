@@ -268,7 +268,7 @@ export default function POSLoginPage() {
                     </form>
 
                     <p className="pos-login-footer">
-                        LegeCy Store • Point of Sale v1.0
+                        Legacy Store • Point of Sale v1.0
                     </p>
                 </div>
             </div>

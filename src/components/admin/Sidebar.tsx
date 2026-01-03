@@ -91,7 +91,7 @@ export function AdminSidebar() {
             <div className="admin-brand">
                 <div className="brand-icon">L</div>
                 <div>
-                    <span className="brand-text">LegeCy</span>
+                    <span className="brand-text">Legacy</span>
                     <span className="brand-badge">Admin</span>
                 </div>
             </div>

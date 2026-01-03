@@ -51,7 +51,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationEmailDat
     
     <!-- Header -->
     <div style="background: linear-gradient(135deg, #12403C, #2d5a4e); padding: 40px 30px; text-align: center;">
-      <h1 style="color: #d4af37; margin: 0; font-size: 28px; letter-spacing: 2px;">LegeCy</h1>
+      <h1 style="color: #d4af37; margin: 0; font-size: 28px; letter-spacing: 2px;">Legacy</h1>
       <p style="color: #a3b8b0; margin: 10px 0 0; font-size: 14px;">Luxury Timepieces</p>
     </div>
 
@@ -126,7 +126,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationEmailDat
     <!-- Footer -->
     <div style="background: #f4f3f0; padding: 30px; text-align: center;">
       <p style="color: #888; margin: 0; font-size: 12px;">
-        © ${new Date().getFullYear()} LegeCy Store. All rights reserved.
+        © ${new Date().getFullYear()} Legacy Store. All rights reserved.
       </p>
     </div>
 
@@ -136,9 +136,9 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationEmailDat
     `;
 
     const { data: emailData, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'LegeCy Store <onboarding@resend.dev>',
+      from: process.env.RESEND_FROM_EMAIL || 'Legacy Store <onboarding@resend.dev>',
       to: data.customerEmail,
-      subject: `Order Confirmation #${orderNumber} - LegeCy Store`,
+      subject: `Order Confirmation #${orderNumber} - Legacy Store`,
       html: html,
     });
 
@@ -187,7 +187,7 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
   <div style="max-width: 500px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
     
     <div style="background: linear-gradient(135deg, #12403C, #2d5a4e); padding: 30px; text-align: center;">
-      <h1 style="color: #d4af37; margin: 0; font-size: 24px;">LegeCy</h1>
+      <h1 style="color: #d4af37; margin: 0; font-size: 24px;">Legacy</h1>
     </div>
 
     <div style="padding: 40px 30px; text-align: center;">
@@ -215,7 +215,7 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
 
     <div style="background: #f9f9f9; padding: 20px; text-align: center;">
       <p style="color: #888; margin: 0; font-size: 12px;">
-        © ${new Date().getFullYear()} LegeCy Store
+        © ${new Date().getFullYear()} Legacy Store
       </p>
     </div>
   </div>
@@ -224,9 +224,9 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
     `;
 
     const { error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'LegeCy Store <onboarding@resend.dev>',
+      from: process.env.RESEND_FROM_EMAIL || 'Legacy Store <onboarding@resend.dev>',
       to: data.email,
-      subject: 'Reset Your Password - LegeCy Store',
+      subject: 'Reset Your Password - Legacy Store',
       html: html,
     });
 

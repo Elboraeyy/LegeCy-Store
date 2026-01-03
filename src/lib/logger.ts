@@ -36,7 +36,7 @@ const pinoOptions: pino.LoggerOptions = {
     
     // Base context included in every log
     base: {
-        service: 'legecy-store',
+        service: 'Legacy-store',
         env: config.nodeEnv,
     },
     

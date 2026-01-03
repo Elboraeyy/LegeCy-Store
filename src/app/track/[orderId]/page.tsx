@@ -10,7 +10,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { orderId } = await params;
   return {
-    title: `Track Order #${orderId.slice(0, 8).toUpperCase()} | LegeCy Store`,
+    title: `Track Order #${orderId.slice(0, 8).toUpperCase()} | Legacy Store`,
     description: "Track your order status and shipping updates.",
   };
 }

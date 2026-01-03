@@ -79,10 +79,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         >
           {product.name}
         </h3>
-        <div className="product-price-wrapper">
-          <p className="product-price">{formatPrice(product.price)}</p>
+        <div className="flex items-baseline gap-2 mt-1">
+          <span className="text-lg font-bold text-[#12403C]">{formatPrice(product.price)}</span>
           {isOnSale && (
-            <p className="product-compare-price">{formatPrice(product.compareAtPrice!)}</p>
+            <span className="text-sm text-gray-400 line-through">{formatPrice(product.compareAtPrice!)}</span>
           )}
         </div>
         <div className="product-actions">

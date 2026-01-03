@@ -8,7 +8,7 @@ interface SplashScreenProps {
   onFinish?: () => void;
 }
 
-export default function SplashScreen({ storeName = "LegeCy", onFinish }: SplashScreenProps) {
+export default function SplashScreen({ storeName = "Legacy", onFinish }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
