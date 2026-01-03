@@ -74,15 +74,17 @@ export default function LoginPage() {
                         display: block !important;
                         background: #12403C !important;
                         height: 100vh;
-                        overflow-y: auto !important; /* Page-level scroll */
-                        overflow-x: hidden;
+                        overflow-y: scroll; /* Allow vertical scroll */
+                        scroll-snap-type: y mandatory; /* Force snap points */
+                        scroll-behavior: smooth;
                     }
 
-                    /* 1. Green Header (Top portion) */
+                    /* 1. Green Header (Top 1/3) */
                     .auth-brand-side { 
-                        height: 45vh !important; /* Occupy top 45% */
+                        height: 35vh !important; /* Exactly 1/3 approx */
                         width: 100% !important;
-                        padding: 40px 20px !important;
+                        padding: 24px 20px !important;
+                        scroll-snap-align: start; /* Snap point 1 */
                         
                         display: flex !important;
                         flex-direction: column !important;
@@ -93,42 +95,53 @@ export default function LoginPage() {
                         z-index: 1;
                     }
 
-                    /* Mobile Content Scaling */
+                    /* Compact Text Scaling for 35vh */
                     .auth-brand-side .brand-title { 
                         display: block !important; 
-                        font-size: 32px !important; 
+                        font-size: 32px !important; /* Readable but compact */
                         line-height: 1.1 !important;
-                        margin-bottom: 16px !important;
+                        margin-bottom: 8px !important;
                         text-align: center;
                     }
                     .auth-brand-side .brand-subtitle { 
                         display: block !important; 
                         font-size: 10px !important;
-                        margin-bottom: 12px !important;
+                        margin-bottom: 8px !important;
                         text-align: center;
+                        opacity: 0.8 !important;
                     }
-                    /* Keep Quote hidden on mobile to save space, or show small if requested. User said "same text". Let's show it small. */
+                    /* User requested ALL text visible */
                     .auth-brand-side .brand-quote { 
-                        display: none !important; 
+                        display: block !important; 
+                        font-size: 11px !important; /* Small enough to fit */
+                        line-height: 1.4 !important;
+                        margin-bottom: 0 !important;
+                        text-align: center;
+                        max-width: 90% !important;
+                        opacity: 0.7 !important;
                     }
                     .auth-brand-side .brand-footer { 
-                        display: none !important; 
+                        display: none !important; /* Footer might be too much for 35vh, hiding to prioritize key text */
                     }
                     
-                    /* Hide duplicate mobile header I made */
                     .mobile-brand-header { display: none !important; }
 
                     /* 2. White Form Sheet */
                     .auth-form-side { 
-                        min-height: 100vh !important; /* Ensure it can fill screen after scroll */
+                        height: 100vh !important; /* Full screen height */
                         width: 100% !important;
+                        scroll-snap-align: start; /* Snap point 2 */
+                        scroll-snap-stop: always; /* Force stop here */
                         
                         background: #F5F0E3 !important;
                         border-radius: 30px 30px 0 0 !important;
-                        margin-top: -30px !important; /* Overlap header */
+                        margin-top: -20px !important; /* Overlap */
                         padding: 40px 24px !important;
                         
-                        display: block !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        
                         position: relative;
                         z-index: 2;
                         box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
@@ -139,16 +152,19 @@ export default function LoginPage() {
                         width: 100% !important;
                         margin: 0 auto;
                     }
-                    
-                    /* Optional: Drag indicator */
-                    .auth-form-side::before {
+
+                    /* Drag Handle Indicator */
+                     .auth-form-side::before {
                         content: '';
                         display: block;
                         width: 40px;
                         height: 4px;
                         background: #d1cfca;
                         border-radius: 2px;
-                        margin: -10px auto 30px auto; /* Centered top handle */
+                        position: absolute;
+                        top: 12px;
+                        left: 50%;
+                        transform: translateX(-50%);
                     }
                     
                     .auth-form-side h2 { display: block !important; text-align: center; font-size: 24px !important; }
@@ -329,42 +345,61 @@ export default function LoginPage() {
                         <SubmitButton />
                     </form>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '32px 0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '32px 0 24px 0' }}>
                         <div style={{ flex: 1, height: '1px', background: '#d1cfca' }}></div>
-                        <span style={{ fontSize: '12px', color: '#5c6b66', textTransform: 'uppercase', letterSpacing: '1px' }}>Or continue with</span>
+                        <span style={{ fontSize: '12px', color: '#5c6b66', textTransform: 'uppercase', letterSpacing: '1px' }}>Or login with</span>
                         <div style={{ flex: 1, height: '1px', background: '#d1cfca' }}></div>
                     </div>
 
-                    <a
-                        href="/api/auth/google"
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '12px',
-                            width: '100%',
-                            padding: '12px',
-                            background: '#fff',
-                            border: '1px solid #d1cfca',
-                            borderRadius: '999px',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            color: '#12403C',
-                            textDecoration: 'none',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.background = '#f8f8f8'}
-                        onMouseOut={(e) => e.currentTarget.style.background = '#fff'}
-                    >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05" />
-                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                        </svg>
-                        Sign in with Google
-                    </a>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
+                        {/* Google */}
+                        <a
+                            href="/api/auth/google"
+                            style={{
+                                width: '50px',
+                                height: '50px',
+                                borderRadius: '50%',
+                                border: '1px solid #d1cfca',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: '#fff',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                            }}
+                            className="hover:scale-105 hover:shadow-md"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05" />
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                            </svg>
+                        </a>
+
+                        {/* Facebook */}
+                        <a
+                            href="/api/auth/facebook"
+                            style={{
+                                width: '50px',
+                                height: '50px',
+                                borderRadius: '50%',
+                                border: '1px solid #d1cfca',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: '#fff',
+                                transition: 'all 0.2s',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                            }}
+                            className="hover:scale-105 hover:shadow-md"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="#1877F2">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                            </svg>
+                        </a>
+                    </div>
 
                     <p style={{ textAlign: 'center', marginTop: '40px', fontSize: '12px', color: '#a3b8b0' }}>
                         &copy; {new Date().getFullYear()} Legacy Store. Secure Login.
