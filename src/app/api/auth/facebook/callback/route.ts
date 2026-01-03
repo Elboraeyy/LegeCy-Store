@@ -19,19 +19,11 @@ export async function GET(request: Request) {
     const clientSecret = process.env.FACEBOOK_CLIENT_SECRET;
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/facebook/callback`;
 
-    console.log('FB Callback - Debug Info:', {
-       hasClientId: !!clientId,
-       hasClientSecret: !!clientSecret,
-       redirectUri,
-       codePrefix: code.substring(0, 5) + '...'
-    });
-
     // 1. Exchange code for access token
     const tokenUrl = `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${clientId}&redirect_uri=${redirectUri}&client_secret=${clientSecret}&code=${code}`;
     const tokenRes = await fetch(tokenUrl);
 
     const tokens = await tokenRes.json();
-    console.log('FB Token Response:', tokens.error ? JSON.stringify(tokens.error) : 'Success');
     
     if (tokens.error) {
         throw new Error(tokens.error.message || 'Failed to get Facebook tokens');
@@ -42,7 +34,6 @@ export async function GET(request: Request) {
     const userRes = await fetch(userUrl);
     
     const profile = await userRes.json();
-    console.log('FB Profile Response:', profile.error ? JSON.stringify(profile.error) : `Fetched user: ${profile.id}`);
     
     if (profile.error) {
         throw new Error(profile.error.message || 'Failed to get Facebook user info');
@@ -54,7 +45,6 @@ export async function GET(request: Request) {
 
     // 3. Find or Create User
     // First, check by facebookId
-    console.log('Attempting DB lookup for:', email);
     let user = await prisma.user.findFirst({ 
         where: { 
             OR: [
@@ -63,8 +53,6 @@ export async function GET(request: Request) {
             ]
         } 
     });
-
-    console.log('User found in DB?', !!user ? user.id : 'No - Creating new');
 
     if (!user) {
         user = await prisma.user.create({
@@ -112,7 +100,6 @@ export async function GET(request: Request) {
         path: '/'
     });
 
-    console.log('Session created, redirecting to /');
     return NextResponse.redirect(new URL('/', request.url));
 
   } catch (err: unknown) {
