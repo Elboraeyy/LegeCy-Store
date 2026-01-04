@@ -368,7 +368,7 @@ async function logPaymentFailure(
 /**
  * Get current metrics snapshot
  */
-export function getMetricsSnapshot(): object {
+export async function getMetricsSnapshot() {
   return {
     paymentAttempts: { ...metrics.paymentAttempts },
     orderVolume: { ...metrics.orderVolume },

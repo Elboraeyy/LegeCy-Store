@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import styles from '../page.module.css';
+
 
 export const metadata: Metadata = {
   title: 'Shipping Policy | LegaCy',
@@ -8,9 +8,9 @@ export const metadata: Metadata = {
 
 export default function ShippingPolicyPage() {
   return (
-    <main className={styles.legal}>
-      <div className="container" style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px' }}>
-        <h1 style={{ marginBottom: '32px' }}>Shipping Policy</h1>
+    <main className="min-h-screen bg-gray-50 py-12">
+      <div className="container mx-auto max-w-4xl px-4">
+        <h1 className="text-3xl font-bold mb-8">Shipping Policy</h1>
         
         <p><strong>Last Updated:</strong> January 4, 2026</p>
         
