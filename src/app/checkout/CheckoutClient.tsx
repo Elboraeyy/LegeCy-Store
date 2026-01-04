@@ -591,15 +591,23 @@ export default function CheckoutClient() {
                         Wallet Number
                       </label>
                       <input
-                        type="text"
+                        type="tel"
                         name="walletNumber"
-                        placeholder="01xxxxxxxxx"
+                        placeholder="01XXXXXXXXX"
+                        pattern="01[0125][0-9]{8}"
+                        maxLength={11}
                         value={form.walletNumber || ""}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 11);
+                          handleChange({ target: { name: 'walletNumber', value } } as React.ChangeEvent<HTMLInputElement>);
+                        }}
                         className="w-full p-3 border rounded-lg"
                         style={{ width: "100%", padding: "12px", border: "1px solid #ddd", borderRadius: "8px" }}
                         required
                       />
+                      <span style={{ fontSize: "12px", color: "#6b7280", marginTop: "4px", display: "block" }}>
+                        Enter your Egyptian mobile number (Vodafone, Etisalat, Orange, WE)
+                      </span>
                     </div>
                   )}
                 </div>

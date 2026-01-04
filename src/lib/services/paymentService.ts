@@ -107,6 +107,23 @@ export async function confirmPaymentIntent(intentId: string) {
             tx
         );
 
+        // 7. Send confirmation email NOW (after payment verified)
+        const { sendOrderConfirmationEmail } = await import('@/lib/services/emailService');
+        await sendOrderConfirmationEmail({
+            orderId: intent.orderId,
+            customerName: intent.order.customerName || 'Customer',
+            customerEmail: intent.order.customerEmail || '',
+            items: intent.order.items.map(item => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: Number(item.price)
+            })),
+            total: orderTotal,
+            shippingAddress: `${intent.order.shippingAddress || ''}, ${intent.order.shippingCity || ''}`
+        }).catch(err => {
+            logger.error('Failed to send payment confirmation email', { orderId: intent.orderId, error: err });
+        });
+
         return { success: true };
     });
 }

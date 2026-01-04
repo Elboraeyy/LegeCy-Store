@@ -65,6 +65,34 @@ export async function middleware(request: NextRequest) {
             return redirectResponse;
         }
         
+        // CSRF Protection for mutations
+        const mutationMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+        if (mutationMethods.includes(request.method)) {
+            // Skip CSRF for logout (form submit without JS)
+            if (path === '/api/admin/logout') {
+                return response;
+            }
+            
+            const csrfToken = request.headers.get('x-csrf-token');
+            const csrfCookie = request.cookies.get('csrf_token')?.value;
+            
+            if (!csrfToken || !csrfCookie || csrfToken !== csrfCookie) {
+                return NextResponse.json(
+                    { 
+                        error: { 
+                            code: 'CSRF_VALIDATION_FAILED', 
+                            message: 'Invalid or missing CSRF token',
+                            requestId 
+                        } 
+                    },
+                    { 
+                        status: 403,
+                        headers: { 'x-request-id': requestId }
+                    }
+                );
+            }
+        }
+        
         return response;
     }
 

@@ -227,13 +227,17 @@ export async function POST(request: Request) {
             const expectedAmountCents = Math.round(Number(intent.amount) * 100);
             
             if (Math.abs(amountCents - expectedAmountCents) > 1) { // Allow 1 cent tolerance
-                logger.error('Paymob amount mismatch', {
+                logger.error('Paymob amount mismatch - REJECTING PAYMENT', {
                     transactionId,
                     orderId,
                     received: amountCents,
                     expected: expectedAmountCents
                 });
-                // Still process but log for review
+                // SECURITY: Reject mismatched amounts - do not process
+                return NextResponse.json(
+                    { error: 'Payment amount mismatch. Transaction rejected.' },
+                    { status: 400 }
+                );
             }
 
             await confirmPaymentIntent(intent.id);
