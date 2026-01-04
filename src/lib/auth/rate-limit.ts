@@ -30,7 +30,10 @@ export type RateLimitResult = {
 // UPSTASH REDIS SETUP
 // ============================================
 
-let upstashRatelimit: ReturnType<typeof createUpstashRatelimit> | null = null;
+// Type for Upstash ratelimit result
+type UpstashRatelimitResult = { limit: (identifier: string) => Promise<{ success: boolean; remaining: number; reset: number }> } | null;
+
+let upstashRatelimit: UpstashRatelimitResult = null;
 
 async function getUpstashRatelimit() {
   if (upstashRatelimit) return upstashRatelimit;
@@ -64,9 +67,7 @@ async function getUpstashRatelimit() {
   return null;
 }
 
-function createUpstashRatelimit() {
-  return null as unknown as { limit: (identifier: string) => Promise<{ success: boolean; remaining: number; reset: number }> };
-}
+
 
 // ============================================
 // IN-MEMORY FALLBACK (Development)
