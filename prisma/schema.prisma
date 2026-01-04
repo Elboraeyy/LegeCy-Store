@@ -183,10 +183,19 @@ model Order {
   pointsEarned  Int            @default(0)
   pointsRedeemed Int           @default(0)
 
+  // Idempotency for checkout safety
+  idempotencyKey String?       @unique
+
+  // Coupon usage tracking
+  couponUsage   CouponUsage?
+
   // Performance indexes
   @@index([status])
   @@index([createdAt])
   @@index([userId])
+  @@index([idempotencyKey])
+  @@index([customerEmail])
+  @@index([paymentMethod])
 }
 
 model PaymentIntent {
@@ -687,6 +696,39 @@ model Coupon {
   updatedAt     DateTime  @updatedAt
   
   orders        Order[]
+  usages        CouponUsage[]
+}
+
+// Per-user coupon usage tracking to prevent abuse
+model CouponUsage {
+  id        String   @id @default(uuid())
+  couponId  String
+  coupon    Coupon   @relation(fields: [couponId], references: [id])
+  userId    String?
+  userEmail String
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  usedAt    DateTime @default(now())
+  
+  @@unique([couponId, userId])
+  @@unique([couponId, userEmail])
+  @@index([couponId])
+}
+
+// Price history for audit trail (Issue #7)
+model ProductPriceHistory {
+  id         String   @id @default(uuid())
+  productId  String
+  variantId  String?
+  oldPrice   Decimal
+  newPrice   Decimal
+  changedBy  String?  // AdminUser ID who made the change
+  reason     String?  // Optional reason for change
+  createdAt  DateTime @default(now())
+  
+  @@index([productId])
+  @@index([variantId])
+  @@index([createdAt])
 }
 
 model StockNotification {

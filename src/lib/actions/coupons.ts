@@ -19,7 +19,19 @@ export interface CouponValidationResult {
     finalTotal?: number;
 }
 
-export async function validateCoupon(code: string, cartTotal: number): Promise<CouponValidationResult> {
+/**
+ * Validates a coupon code and checks per-user usage limits
+ * @param code - Coupon code
+ * @param cartTotal - Cart total before discount
+ * @param userEmail - Optional email for per-user limit check
+ * @param userId - Optional user ID for per-user limit check
+ */
+export async function validateCoupon(
+    code: string, 
+    cartTotal: number,
+    userEmail?: string,
+    userId?: string
+): Promise<CouponValidationResult> {
     try {
         if (!code) {
             return { isValid: false, error: 'Coupon code is required' };
@@ -46,9 +58,28 @@ export async function validateCoupon(code: string, cartTotal: number): Promise<C
             return { isValid: false, error: 'Coupon has expired' };
         }
 
-        // Check usage limit
+        // Check global usage limit
         if (coupon.usageLimit !== null && coupon.currentUsage >= coupon.usageLimit) {
             return { isValid: false, error: 'Coupon usage limit reached' };
+        }
+
+        // ========================================
+        // PER-USER USAGE CHECK (NEW)
+        // ========================================
+        if (userEmail || userId) {
+            const existingUsage = await prisma.couponUsage.findFirst({
+                where: {
+                    couponId: coupon.id,
+                    OR: [
+                        ...(userEmail ? [{ userEmail }] : []),
+                        ...(userId ? [{ userId }] : [])
+                    ]
+                }
+            });
+            
+            if (existingUsage) {
+                return { isValid: false, error: 'You have already used this coupon' };
+            }
         }
 
         // Check min order value
@@ -98,3 +129,4 @@ export async function validateCoupon(code: string, cartTotal: number): Promise<C
         return { isValid: false, error: 'Failed to validate coupon' };
     }
 }
+

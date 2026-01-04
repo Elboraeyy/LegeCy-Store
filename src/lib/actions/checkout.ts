@@ -27,6 +27,7 @@ interface CheckoutInput {
   totalPrice: number;
   couponCode?: string;
   walletNumber?: string;
+  idempotencyKey?: string; // Prevents duplicate orders on refresh/retry
 }
 
 interface CheckoutResult {
@@ -38,7 +39,27 @@ interface CheckoutResult {
 
 export async function placeOrderWithShipping(input: CheckoutInput): Promise<CheckoutResult> {
   try {
-    // Validate input
+    // ========================================
+    // KILL SWITCH CHECKS
+    // ========================================
+    const { getKillSwitches, isPaymentMethodEnabled } = await import('@/lib/killSwitches');
+    const switches = await getKillSwitches();
+    
+    if (!switches.checkout_enabled) {
+      return { success: false, error: 'Checkout is temporarily disabled. Please try again later.' };
+    }
+    
+    if (!await isPaymentMethodEnabled(input.paymentMethod)) {
+      return { success: false, error: `${input.paymentMethod === 'cod' ? 'Cash on delivery' : 'Online payment'} is currently unavailable.` };
+    }
+    
+    if (input.couponCode && !switches.coupons_enabled) {
+      return { success: false, error: 'Coupon codes are temporarily disabled.' };
+    }
+
+    // ========================================
+    // INPUT VALIDATION
+    // ========================================
     if (!input.customerName || !input.customerEmail || !input.customerPhone) {
       return { success: false, error: 'Customer information is incomplete' };
     }
@@ -51,15 +72,76 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       return { success: false, error: 'Cart is empty' };
     }
 
-    // Recalculate basic total from items (security check)
-    const calculatedTotal = input.cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    // ========================================
+    // IDEMPOTENCY CHECK
+    // ========================================
+    if (input.idempotencyKey) {
+      const existingOrder = await prisma.order.findUnique({
+        where: { idempotencyKey: input.idempotencyKey }
+      });
+      
+      if (existingOrder) {
+        logger.info(`Idempotent order detected, returning existing order`, { orderId: existingOrder.id });
+        return { success: true, orderId: existingOrder.id };
+      }
+    }
+
+    // ========================================
+    // PRICE VERIFICATION FROM DATABASE
+    // ========================================
+    let calculatedTotal = 0;
+    
+    for (const item of input.cartItems) {
+      // Fetch actual price from database
+      const product = await prisma.product.findUnique({
+        where: { id: item.id },
+        include: { variants: { 
+            where: item.variantId ? { id: item.variantId } : undefined 
+          } 
+        }
+      });
+      
+      if (!product) {
+        return { success: false, error: `Product "${item.name}" not found` };
+      }
+      
+      if (product.status !== 'active') {
+        return { success: false, error: `Product "${item.name}" is no longer available` };
+      }
+      
+      // Get the correct price (variant price or product price)
+      if (product.variants.length === 0) { return { success: false, error: `Product "${item.name}" has no variant configured` }; } const dbPrice = Number(product.variants[0].price);
+      
+      // Verify client price matches DB price (within 1 cent tolerance for rounding)
+      if (Math.abs(dbPrice - item.price) > 0.01) {
+        logger.warn(`Price mismatch detected`, { 
+          productId: item.id, 
+          clientPrice: item.price, 
+          dbPrice,
+          difference: Math.abs(dbPrice - item.price)
+        });
+        return { success: false, error: `Price has changed for "${item.name}". Please refresh and try again.` };
+      }
+      
+      calculatedTotal += dbPrice * item.qty;
+    }
+    
+    // Get User Session (if any) - needed for coupon per-user check
+    const { getCurrentUser } = await import('@/lib/actions/auth');
+    const user = await getCurrentUser();
+    
     let finalTotal = calculatedTotal;
     let couponId: string | null = null;
 
-    // Validate Coupon if provided
+    // Validate Coupon if provided (with per-user check)
     if (input.couponCode) {
         const { validateCoupon } = await import('./coupons');
-        const validation = await validateCoupon(input.couponCode, calculatedTotal);
+        const validation = await validateCoupon(
+            input.couponCode, 
+            calculatedTotal,
+            input.customerEmail,  // For per-user limit
+            user?.id              // For per-user limit
+        );
         
         if (validation.isValid && validation.coupon && validation.finalTotal !== undefined) {
             finalTotal = validation.finalTotal;
@@ -71,10 +153,6 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
 
     // Calculate Loyalty Points (1 point per 10 EGP)
     const pointsEarned = Math.floor(finalTotal / 10);
-
-    // Get User Session (if any)
-    const { getCurrentUser } = await import('@/lib/actions/auth');
-    const user = await getCurrentUser();
 
     // Create order with shipping details
     const order = await prisma.$transaction(async (tx) => {
@@ -160,6 +238,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
           paymentMethod: input.paymentMethod,
           couponId: couponId,
           pointsEarned: pointsEarned,
+          idempotencyKey: input.idempotencyKey || null, // Prevent duplicate orders
           items: {
             create: input.cartItems.map(item => ({
               productId: item.id,
@@ -175,6 +254,18 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
           items: true
         }
       });
+
+      // Record coupon usage for per-user tracking
+      if (couponId) {
+        await tx.couponUsage.create({
+          data: {
+            couponId,
+            userId: user?.id || null,
+            userEmail: input.customerEmail,
+            orderId: newOrder.id
+          }
+        });
+      }
 
       // STEP 3: Deduct inventory with verification
       for (const item of input.cartItems) {
@@ -280,9 +371,10 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         }
     }
 
-    // Send confirmation email (only if COD or we want to send it 'Pending Payment')
-    // Usually we wait for payment confirmation for Paymob, but safely sending 'Order Received' is fine.
-    sendOrderConfirmationEmail({
+    // Send confirmation email ONLY for COD orders
+    // For online payments, email will be sent after payment confirmation (in paymentService.ts)
+    if (input.paymentMethod === 'cod') {
+      sendOrderConfirmationEmail({
       orderId: order.id,
       customerName: input.customerName,
       customerEmail: input.customerEmail,
@@ -294,8 +386,9 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       total: finalTotal,
       shippingAddress: `${input.shippingAddress}, ${input.shippingCity}`
     }).catch((err: Error) => {
-      logger.error('Failed to send confirmation email', { orderId: order.id, error: err });
-    });
+        logger.error('Failed to send confirmation email', { orderId: order.id, error: err });
+      });
+    }
 
     revalidatePath('/admin/orders');
     

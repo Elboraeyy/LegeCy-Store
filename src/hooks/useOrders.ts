@@ -47,9 +47,7 @@ export function useOrders({ page, limit = 10, status, sortBy, search, dateRange 
       if (dateRange?.to) params.set('to', dateRange.to.toISOString());
 
       const res = await fetch(`/api/admin/orders?${params.toString()}`, {
-        headers: {
-          'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_SECRET || 'super-secret-admin-key'
-        }
+        credentials: 'include' // Use session cookie for auth
       });
       if (!res.ok) {
         throw new Error('Failed to fetch orders');
