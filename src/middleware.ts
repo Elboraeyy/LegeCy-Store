@@ -73,6 +73,13 @@ export async function middleware(request: NextRequest) {
                 return response;
             }
             
+            // Skip CSRF for Next.js Server Actions (they have their own security)
+            // Server Actions send 'next-action' header
+            const isServerAction = request.headers.get('next-action');
+            if (isServerAction) {
+                return response;
+            }
+            
             const csrfToken = request.headers.get('x-csrf-token');
             const csrfCookie = request.cookies.get('csrf_token')?.value;
             
