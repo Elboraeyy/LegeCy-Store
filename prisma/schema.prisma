@@ -697,6 +697,9 @@ model Coupon {
   
   orders        Order[]
   usages        CouponUsage[]
+
+  @@index([isActive])
+  @@index([startDate, endDate])
 }
 
 // Per-user coupon usage tracking to prevent abuse
