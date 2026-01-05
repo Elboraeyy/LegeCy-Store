@@ -38,3 +38,31 @@ export async function createReturnRequest(orderId: string, reason: string, items
     return { success: false, error: msg };
   }
 }
+
+import { approveReturnRequest, rejectReturnRequest } from "@/lib/services/refundService";
+import { requireAdminPermission } from "@/lib/auth/guards";
+import { AdminPermissions } from "@/lib/auth/permissions";
+
+export async function approveRefundAction(requestId: string, amount?: number) {
+  try {
+    const admin = await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
+    const result = await approveReturnRequest(requestId, admin.id, amount);
+    revalidatePath('/admin/orders');
+    return result;
+  } catch (error: unknown) {
+     const msg = error instanceof Error ? error.message : "Unknown error";
+     return { success: false, message: msg };
+  }
+}
+
+export async function rejectRefundAction(requestId: string, reason: string) {
+  try {
+    const admin = await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
+    const result = await rejectReturnRequest(requestId, admin.id, reason);
+    revalidatePath('/admin/orders');
+    return result;
+  } catch (error: unknown) {
+     const msg = error instanceof Error ? error.message : "Unknown error";
+     return { success: false, message: msg };
+  }
+}

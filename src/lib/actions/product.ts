@@ -122,6 +122,20 @@ export async function updateProductAction(id: string, data: ProductInput) {
                 price: new Decimal(data.price),
             }
         });
+
+        // 2.1 Track Price History if changed
+        if (firstVariant.price && !firstVariant.price.equals(new Decimal(data.price))) {
+            await prisma.productPriceHistory.create({
+                data: {
+                    productId: id,
+                    variantId: firstVariant.id,
+                    oldPrice: firstVariant.price,
+                    newPrice: new Decimal(data.price),
+                    changedBy: admin.id,
+                    reason: 'Admin product update'
+                }
+            });
+        }
         
         // 3. Update Inventory if stock provided
         if (data.stock !== undefined && data.stock !== null) {
