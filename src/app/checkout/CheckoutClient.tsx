@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useStore } from "@/context/StoreContext";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { placeOrderWithShipping } from "@/lib/actions/checkout";
 
 import { validateCoupon } from "@/lib/actions/coupons";
+import { getPaymentMethodsStatus } from "@/lib/actions/killswitches";
 
 interface ShippingForm {
   customerName: string;
@@ -33,6 +34,14 @@ export default function CheckoutClient() {
   const [couponError, setCouponError] = useState("");
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
+  // Payment Methods State (from kill switches)
+  const [paymentMethods, setPaymentMethods] = useState<{cod: boolean; paymob: boolean; wallet: boolean}>({
+    cod: true,
+    paymob: false,
+    wallet: false
+  });
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
+
   const [form, setForm] = useState<ShippingForm>({
     customerName: "",
     customerEmail: "",
@@ -44,6 +53,21 @@ export default function CheckoutClient() {
   });
 
   const [errors, setErrors] = useState<Partial<ShippingForm>>({});
+
+  // Fetch payment methods status on mount
+  useEffect(() => {
+    getPaymentMethodsStatus().then(status => {
+      setPaymentMethods(status);
+      setLoadingPaymentMethods(false);
+      // If COD (default) is disabled, switch to first available
+      if (!status.cod) {
+        if (status.paymob) setForm(f => ({ ...f, paymentMethod: "paymob" }));
+        else if (status.wallet) setForm(f => ({ ...f, paymentMethod: "wallet" }));
+      }
+    }).catch(() => {
+      setLoadingPaymentMethods(false);
+    });
+  }, []);
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const shipping = 0; // Free shipping
@@ -496,7 +520,13 @@ export default function CheckoutClient() {
                   <label style={{ display: "block", marginBottom: "12px", fontWeight: "600", fontSize: "14px" }}>
                     Payment Method
                   </label>
+                  {loadingPaymentMethods ? (
+                    <div style={{ padding: "20px", textAlign: "center", color: "#6b7280" }}>
+                      Loading payment options...
+                    </div>
+                  ) : (
                   <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", flexDirection: "column" }}>
+                    {paymentMethods.cod && (
                     <label style={{
                       flex: 1,
                       minWidth: "140px",
@@ -525,7 +555,9 @@ export default function CheckoutClient() {
                         </div>
                       </div>
                     </label>
+                    )}
 
+                    {paymentMethods.paymob && (
                     <label style={{
                       flex: 1,
                       minWidth: "140px",
@@ -554,7 +586,9 @@ export default function CheckoutClient() {
                         </div>
                       </div>
                     </label>
+                    )}
 
+                    {paymentMethods.wallet && (
                     <label style={{
                       flex: 1,
                       minWidth: "140px",
@@ -583,7 +617,9 @@ export default function CheckoutClient() {
                         </div>
                       </div>
                     </label>
+                    )}
                   </div>
+                  )}
                   
                   {form.paymentMethod === "wallet" && (
                     <div style={{ marginTop: "16px" }}>
