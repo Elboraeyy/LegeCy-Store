@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
 import Link from 'next/link';
 
-type PaymentStatus = 'loading' | 'success' | 'failed';
+type PaymentStatus = 'success' | 'failed';
 
 interface PaymentResult {
     status: PaymentStatus;
@@ -34,15 +34,15 @@ export default function PaymentCallbackPage() {
     const { clearCart } = useStore();
     const { status, orderId } = usePaymentResult();
     const [countdown, setCountdown] = useState(3);
-    const [cartCleared, setCartCleared] = useState(false);
+    const cartClearedRef = useRef(false);
 
-    // Clear cart once on success
+    // Clear cart once on success (using ref to avoid setState in effect)
     useEffect(() => {
-        if (status === 'success' && !cartCleared) {
+        if (status === 'success' && !cartClearedRef.current) {
+            cartClearedRef.current = true;
             clearCart();
-            setCartCleared(true);
         }
-    }, [status, cartCleared, clearCart]);
+    }, [status, clearCart]);
 
     // Auto redirect countdown for success
     useEffect(() => {
