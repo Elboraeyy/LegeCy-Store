@@ -97,6 +97,8 @@ model AdminUser {
   // Security Fields
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
+  failedLoginAttempts Int      @default(0)
+  lockedUntil         DateTime?
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -157,6 +159,7 @@ model Order {
   status     String               @default("pending")
   orderStatus OrderStatusEnum     @relation(fields: [status], references: [value])
   createdAt  DateTime             @default(now())
+  deliveredAt DateTime?            // Actual delivery date for return window
 
   userId     String?
   user       User?                @relation(fields: [userId], references: [id])
@@ -750,6 +753,27 @@ model StoreConfig {
   key       String   @unique // e.g., "homepage_hero", "site_settings"
   value     Json     // Flexible JSON payload
   updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// Email Queue (Reliable Delivery)
+// ==========================================
+
+model EmailQueue {
+  id          String   @id @default(uuid())
+  to          String
+  subject     String
+  html        String   @db.Text
+  status      String   @default("pending") // pending, sent, failed
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  error       String?
+  scheduledAt DateTime @default(now())
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@index([status])
+  @@index([scheduledAt])
 }
 
 // ==========================================

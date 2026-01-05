@@ -29,6 +29,9 @@ async function logAudit(adminId: string, action: string, metadata: Record<string
     });
 }
 
+const LOCKOUT_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
 export async function adminLogin(prevState: ActionState, formData: FormData): Promise<ActionState> {
     const ip = (await headers()).get('x-forwarded-for') || 'unknown';
 
@@ -43,25 +46,54 @@ export async function adminLogin(prevState: ActionState, formData: FormData): Pr
         const admin = await prisma.adminUser.findUnique({ where: { email: data.email } });
 
         if (!admin || !admin.isActive) {
-            // Fake verification
+            // Fake verification to prevent timing attacks
             await verifyPassword('dummy', '$argon2id$v=19$m=65536,t=3,p=4$dummyhash$dummyhash');
-            // We do NOT log audit here because we don't have an admin ID to attach to, 
-            // but we could log to a system-wide security log if requested. 
-            // For now, return generic error.
             return { error: 'Invalid credentials' };
+        }
+
+        // Check if account is locked
+        if (admin.lockedUntil && admin.lockedUntil > new Date()) {
+            const remainingMinutes = Math.ceil((admin.lockedUntil.getTime() - Date.now()) / 60000);
+            await logAudit(admin.id, 'LOGIN_BLOCKED', { reason: 'Account locked', remainingMinutes }, ip);
+            return { error: `Account is locked. Try again in ${remainingMinutes} minutes.` };
         }
 
         const isValid = await verifyPassword(data.password, admin.passwordHash);
 
         if (!isValid) {
-            await logAudit(admin.id, 'LOGIN_FAILED', { reason: 'Invalid Password' }, ip);
-            return { error: 'Invalid credentials' };
+            // Increment failed attempts
+            const newAttempts = admin.failedLoginAttempts + 1;
+            const shouldLock = newAttempts >= LOCKOUT_ATTEMPTS;
+            
+            await prisma.adminUser.update({
+                where: { id: admin.id },
+                data: {
+                    failedLoginAttempts: newAttempts,
+                    lockedUntil: shouldLock ? new Date(Date.now() + LOCKOUT_DURATION_MS) : null
+                }
+            });
+
+            await logAudit(admin.id, 'LOGIN_FAILED', { 
+                reason: 'Invalid Password', 
+                attempts: newAttempts,
+                locked: shouldLock 
+            }, ip);
+
+            if (shouldLock) {
+                return { error: 'Account locked due to too many failed attempts. Try again in 15 minutes.' };
+            }
+            
+            return { error: `Invalid credentials. ${LOCKOUT_ATTEMPTS - newAttempts} attempts remaining.` };
         }
 
-        // Success
+        // Success - reset failed attempts
         await prisma.adminUser.update({
             where: { id: admin.id },
-            data: { lastLoginAt: new Date() }
+            data: { 
+                lastLoginAt: new Date(),
+                failedLoginAttempts: 0,
+                lockedUntil: null
+            }
         });
 
         await logAudit(admin.id, 'LOGIN_SUCCESS', {}, ip);

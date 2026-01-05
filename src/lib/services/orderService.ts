@@ -132,7 +132,11 @@ export async function updateOrderStatus(
 
       const updated = await tx.order.update({
         where: { id: orderId },
-        data: { status: newStatus },
+        data: { 
+          status: newStatus,
+          // Set deliveredAt when order is delivered for accurate return window
+          ...(newStatus === OrderStatus.Delivered && { deliveredAt: new Date() })
+        },
         include: { items: true },
       });
 

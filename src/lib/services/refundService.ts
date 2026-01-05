@@ -57,8 +57,8 @@ export async function checkRefundEligibility(orderId: string): Promise<RefundEli
       };
     }
 
-    // Check refund window
-    const deliveredAt = order.createdAt; // TODO: Use actual delivery date when tracked
+    // Check refund window - use deliveredAt if available, fallback to createdAt
+    const deliveredAt = order.deliveredAt || order.createdAt;
     const daysSinceDelivery = Math.floor(
       (Date.now() - deliveredAt.getTime()) / (1000 * 60 * 60 * 24)
     );
