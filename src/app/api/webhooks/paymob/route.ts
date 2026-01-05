@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { confirmPaymentIntent, failPaymentIntent, PaymentIntentStatus } from '@/lib/services/paymentService';
+import { getPaymobConfig } from '@/lib/paymob';
 
 /**
  * Paymob Webhook Handler (Transaction Processed Callback)
@@ -15,8 +16,6 @@ import { confirmPaymentIntent, failPaymentIntent, PaymentIntentStatus } from '@/
  * 
  * Paymob sends POST with JSON body containing transaction data
  */
-
-const PAYMOB_HMAC_SECRET = process.env.PAYMOB_HMAC_SECRET;
 
 interface PaymobTransaction {
     id: number;
@@ -79,9 +78,9 @@ interface PaymobCallback {
  * 
  * Paymob concatenates specific fields and computes HMAC-SHA512
  */
-function verifyPaymobHmac(obj: PaymobTransaction, hmacHeader: string): boolean {
-    if (!PAYMOB_HMAC_SECRET) {
-        logger.warn('PAYMOB_HMAC_SECRET not set - skipping signature verification');
+function verifyPaymobHmac(obj: PaymobTransaction, hmacHeader: string, hmacSecret: string): boolean {
+    if (!hmacSecret) {
+        logger.warn('HMAC Secret not configured - skipping signature verification');
         return process.env.NODE_ENV !== 'production'; // Allow in dev only
     }
 
@@ -112,14 +111,18 @@ function verifyPaymobHmac(obj: PaymobTransaction, hmacHeader: string): boolean {
     ].join('');
 
     const calculatedHmac = crypto
-        .createHmac('sha512', PAYMOB_HMAC_SECRET)
+        .createHmac('sha512', hmacSecret)
         .update(concatenatedString)
         .digest('hex');
 
-    return crypto.timingSafeEqual(
-        Buffer.from(calculatedHmac),
-        Buffer.from(hmacHeader)
-    );
+    try {
+        return crypto.timingSafeEqual(
+            Buffer.from(calculatedHmac),
+            Buffer.from(hmacHeader)
+        );
+    } catch {
+        return false; // Buffer length mismatch
+    }
 }
 
 async function isEventProcessed(transactionId: number): Promise<boolean> {
@@ -159,6 +162,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
+    // Fetch config (for HMAC secret)
+    const config = await getPaymobConfig();
+    
     const hmacHeader = request.headers.get('hmac') || '';
     const transaction = body.obj;
     
@@ -168,7 +174,7 @@ export async function POST(request: Request) {
     }
 
     // 1. Verify HMAC Signature
-    if (!verifyPaymobHmac(transaction, hmacHeader)) {
+    if (!verifyPaymobHmac(transaction, hmacHeader, config.hmacSecret)) {
         logger.error('Paymob HMAC verification failed', { 
             transactionId: transaction.id 
         });

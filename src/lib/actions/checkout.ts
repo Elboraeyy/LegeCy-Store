@@ -344,7 +344,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     if (input.paymentMethod === 'paymob' || input.paymentMethod === 'wallet') {
         const { initiatePaymobPayment } = await import('@/lib/paymob');
         console.log(`💳 Initiating Paymob (${input.paymentMethod}) for Order:`, order.id);
-        
+
         try {
             const paymentResult = await initiatePaymobPayment({
                 id: order.id,
@@ -361,7 +361,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
                 logger.error('Paymob initiation failed', { orderId: order.id, error: paymentResult.error });
                 return {
                     success: false,
-                    error: `Payment initiation failed: ${paymentResult.error || 'Unknown error'}`
+                    error: paymentResult.error || 'Payment initiation failed'
                 };
             }
         } catch (e) {
