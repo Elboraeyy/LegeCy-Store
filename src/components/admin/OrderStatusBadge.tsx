@@ -7,6 +7,8 @@ const STATUS_COLORS: Record<OrderStatus, { bg: string; color: string }> = {
   [OrderStatus.Shipped]: { bg: '#e8f0fe', color: '#1967d2' },   // Blue
   [OrderStatus.Delivered]: { bg: '#ceead6', color: '#0d652d' }, // Darker Green
   [OrderStatus.Cancelled]: { bg: '#fce8e6', color: '#c5221f' }, // Red
+  [OrderStatus.PaymentPending]: { bg: '#fff8e1', color: '#f57c00' }, // Amber
+  [OrderStatus.PaymentFailed]: { bg: '#ffebee', color: '#d32f2f' },  // Light Red
 };
 
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {
