@@ -95,21 +95,28 @@ export async function fetchOrderStats() {
     const [
         totalOrders,
         pendingOrders,
+        failedPayments,
         monthlyRevenue,
         recentOrders
     ] = await Promise.all([
-        prisma.order.count(),
+        prisma.order.count({
+            where: { status: { notIn: ['payment_pending', 'payment_failed'] } }
+        }),
         prisma.order.count({ where: { status: 'pending' } }),
+        prisma.order.count({ 
+            where: { status: { in: ['payment_pending', 'payment_failed'] } } 
+        }),
         prisma.order.aggregate({
             _sum: { totalPrice: true },
             where: {
                 createdAt: { gte: firstDayOfMonth },
-                status: { not: 'cancelled' }
+                status: { notIn: ['cancelled', 'payment_pending', 'payment_failed'] }
             }
         }),
         prisma.order.findMany({
             take: 5,
             orderBy: { createdAt: 'desc' },
+            where: { status: { notIn: ['payment_pending', 'payment_failed'] } },
             select: { id: true, createdAt: true, status: true, totalPrice: true, user: { select: { name: true } } }
         })
     ]);
@@ -117,6 +124,7 @@ export async function fetchOrderStats() {
     return {
         totalOrders,
         pendingOrders,
+        failedPayments,
         monthlyRevenue: Number(monthlyRevenue._sum.totalPrice || 0),
         recentOrders: recentOrders.map(o => ({
             ...o,

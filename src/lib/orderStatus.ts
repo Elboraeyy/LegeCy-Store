@@ -11,6 +11,8 @@ export { OrderStatus };
  */
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.Pending]: [OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Cancelled],
+  [OrderStatus.PaymentPending]: [OrderStatus.Paid, OrderStatus.PaymentFailed, OrderStatus.Cancelled],
+  [OrderStatus.PaymentFailed]: [OrderStatus.Cancelled], // Can only be cancelled
   [OrderStatus.Paid]: [OrderStatus.Shipped, OrderStatus.Cancelled],
   [OrderStatus.Shipped]: [OrderStatus.Delivered, OrderStatus.Cancelled],
   [OrderStatus.Delivered]: [],

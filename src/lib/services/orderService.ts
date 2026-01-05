@@ -274,7 +274,13 @@ export async function getOrderForAdmin(orderId: string) {
 export async function getOrders({ page = 1, limit = 10, status, sortBy = 'newest', search, dateRange }: GetOrdersParams): Promise<OrdersResponse> {
   const skip = (Math.max(1, page) - 1) * limit; 
   
-  const where: Prisma.OrderWhereInput = {};
+  const where: Prisma.OrderWhereInput = {
+    // Exclude payment-related pending/failed orders from main list
+    // These are shown in a separate "Failed Payments" section
+    status: { notIn: [OrderStatus.PaymentPending, OrderStatus.PaymentFailed] }
+  };
+  
+  // If specific status filter provided, use it instead
   if (status) where.status = status;
   
   if (search) {

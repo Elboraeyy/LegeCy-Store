@@ -83,7 +83,7 @@ export async function confirmPaymentIntent(intentId: string) {
         await tx.orderStatusHistory.create({
             data: {
                 orderId: intent.orderId,
-                from: OrderStatus.Pending,
+                from: OrderStatus.PaymentPending,
                 to: OrderStatus.Paid,
                 reason: 'Payment Confirmed'
             }
@@ -136,7 +136,7 @@ export async function failPaymentIntent(intentId: string, reason: string = 'Paym
     return await prisma.$transaction(async (tx) => {
         const intent = await tx.paymentIntent.findUnique({
             where: { id: intentId },
-            include: { order: true }
+            include: { order: { include: { items: true } } }
         });
 
         if (!intent) return;
@@ -150,8 +150,39 @@ export async function failPaymentIntent(intentId: string, reason: string = 'Paym
             data: { status: newStatus } 
         });
 
-        // 2. Cancel Order
-        await internalCancelOrder(tx, intent.orderId, `Payment Failed: ${reason}`);
+        // 2. Mark Order as PaymentFailed (NOT cancelled - keeps cart intact for retry)
+        await tx.order.update({
+            where: { id: intent.orderId },
+            data: { status: OrderStatus.PaymentFailed }
+        });
+
+        // 3. Release reserved stock back to available
+        const warehouseId = await getDefaultWarehouseId(tx);
+        for (const item of intent.order.items) {
+            if (item.variantId) {
+                // Release reservation: decrement reserved, increment available
+                await tx.inventory.updateMany({
+                    where: {
+                        warehouseId,
+                        variantId: item.variantId
+                    },
+                    data: {
+                        reserved: { decrement: item.quantity },
+                        available: { increment: item.quantity }
+                    }
+                });
+            }
+        }
+
+        // 4. Log History
+        await tx.orderStatusHistory.create({
+            data: {
+                orderId: intent.orderId,
+                from: OrderStatus.PaymentPending,
+                to: OrderStatus.PaymentFailed,
+                reason: reason
+            }
+        });
         
         return { success: true };
     });

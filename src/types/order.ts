@@ -8,6 +8,8 @@ export interface OrderItem {
 
 export enum OrderStatus {
   Pending = 'pending',
+  PaymentPending = 'payment_pending',   // Waiting for online payment
+  PaymentFailed = 'payment_failed',     // Online payment failed
   Paid = 'paid',
   Shipped = 'shipped',
   Delivered = 'delivered',

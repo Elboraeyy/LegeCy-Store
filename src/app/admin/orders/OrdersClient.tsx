@@ -24,6 +24,7 @@ interface OrdersClientProps {
     stats: {
         totalOrders: number;
         pendingOrders: number;
+        failedPayments: number;
         monthlyRevenue: number;
     };
 }
