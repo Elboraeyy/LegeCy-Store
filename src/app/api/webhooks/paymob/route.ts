@@ -153,22 +153,30 @@ async function markEventProcessed(transactionId: number, success: boolean, entit
 }
 
 export async function POST(request: Request) {
+    console.log('=== PAYMOB WEBHOOK RECEIVED ===');
+    
     let body: PaymobCallback;
     
     try {
         body = await request.json();
+        console.log('Webhook body received:', JSON.stringify(body, null, 2));
     } catch {
+        console.error('Failed to parse webhook body');
         logger.warn('Invalid Paymob webhook payload');
         return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
     // Fetch config (for HMAC secret)
     const config = await getPaymobConfig();
+    console.log('HMAC Secret (first 5 chars):', config.hmacSecret?.substring(0, 5) || 'NOT SET');
     
     const hmacHeader = request.headers.get('hmac') || '';
+    console.log('HMAC Header received:', hmacHeader ? 'Present' : 'Missing');
+    
     const transaction = body.obj;
     
     if (!transaction) {
+        console.error('Missing transaction object');
         logger.warn('Missing transaction object in Paymob callback');
         return NextResponse.json({ error: 'Missing transaction' }, { status: 400 });
     }
