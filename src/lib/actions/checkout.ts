@@ -226,10 +226,15 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       }
 
       // STEP 2: Create the order
+      // Use PaymentPending for online payments, Pending for COD
+      const initialStatus = (input.paymentMethod === 'paymob' || input.paymentMethod === 'wallet')
+        ? OrderStatus.PaymentPending
+        : OrderStatus.Pending;
+
       const newOrder = await tx.order.create({
         data: {
           totalPrice: new Prisma.Decimal(finalTotal),
-          status: OrderStatus.Pending,
+          status: initialStatus,
           userId: user?.id, // Link to user if logged in
           customerName: input.customerName,
           customerEmail: input.customerEmail,

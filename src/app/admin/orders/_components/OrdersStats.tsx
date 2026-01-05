@@ -6,6 +6,7 @@ import { formatCurrency } from "../../../../lib/utils";
 interface StatsData {
     totalOrders: number;
     pendingOrders: number;
+    failedPayments: number;
     monthlyRevenue: number;
 }
 
@@ -15,7 +16,7 @@ interface OrdersStatsProps {
 
 export default function OrdersStats({ stats }: OrdersStatsProps) {
     return (
-        <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
             {/* Total Orders */}
             <div className="admin-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -57,6 +58,32 @@ export default function OrdersStats({ stats }: OrdersStatsProps) {
                     Revenue so far
                 </div>
             </div>
+
+            {/* Failed Payments */}
+            <Link 
+                href="/admin/orders/failed-payments" 
+                className="admin-card" 
+                style={{ 
+                    padding: '24px', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '8px',
+                    textDecoration: 'none',
+                    border: stats.failedPayments > 0 ? '2px solid #ef4444' : undefined,
+                    background: stats.failedPayments > 0 ? 'rgba(239, 68, 68, 0.05)' : undefined
+                }}
+            >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="stat-label">Failed Payments</span>
+                    <span style={{ fontSize: '20px' }}>❌</span>
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: 700, color: '#ef4444' }}>
+                    {stats.failedPayments}
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
+                    Click to view details →
+                </div>
+            </Link>
 
             {/* Quick Action - Create Manual Order */}
             <Link href="/admin/orders/create" className="admin-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--admin-bg-hover)', border: '1px dashed var(--admin-border)', cursor: 'pointer', textDecoration: 'none' }}>
