@@ -12,6 +12,8 @@ const defaultSettings: PaymentSettings = {
     enablePaymob: false,
     paymobApiKey: '',
     paymobIntegrationId: '',
+    paymobHmacSecret: '',
+    paymobIframeId: '',
     enableFawry: false,
     fawryMerchantCode: '',
     fawrySecurityKey: '',
@@ -144,26 +146,56 @@ export default function PaymentsSettingsPage() {
                             <SettingsField
                                 label="API Key"
                                 htmlFor="paymobApiKey"
+                                description="Your Paymob API Key (from Dashboard > Settings)"
                             >
                                 <input
                                     id="paymobApiKey"
                                     type="password"
                                     value={settings.paymobApiKey}
                                     onChange={(e) => setSettings({ ...settings, paymobApiKey: e.target.value })}
-                                    placeholder="pk_live_••••••••"
+                                    placeholder="ZXlKaGJHY2lP..."
                                 />
                             </SettingsField>
 
                             <SettingsField
                                 label="Integration ID"
                                 htmlFor="paymobIntegrationId"
+                                description="Online Card integration ID (from Payment Integrations)"
                             >
                                 <input
                                     id="paymobIntegrationId"
                                     type="text"
                                     value={settings.paymobIntegrationId}
                                     onChange={(e) => setSettings({ ...settings, paymobIntegrationId: e.target.value })}
-                                    placeholder="123456"
+                                    placeholder="5448380"
+                                />
+                            </SettingsField>
+
+                            <SettingsField
+                                label="HMAC Secret"
+                                htmlFor="paymobHmacSecret"
+                                description="For webhook verification (from Dashboard > Developers)"
+                            >
+                                <input
+                                    id="paymobHmacSecret"
+                                    type="password"
+                                    value={settings.paymobHmacSecret}
+                                    onChange={(e) => setSettings({ ...settings, paymobHmacSecret: e.target.value })}
+                                    placeholder="A1B6B2AB6CD261E8..."
+                                />
+                            </SettingsField>
+
+                            <SettingsField
+                                label="Iframe ID"
+                                htmlFor="paymobIframeId"
+                                description="Payment iframe ID (from Dashboard > Developers > Iframes)"
+                            >
+                                <input
+                                    id="paymobIframeId"
+                                    type="text"
+                                    value={settings.paymobIframeId}
+                                    onChange={(e) => setSettings({ ...settings, paymobIframeId: e.target.value })}
+                                    placeholder="991175"
                                 />
                             </SettingsField>
                         </div>
