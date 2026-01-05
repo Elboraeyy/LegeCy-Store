@@ -22,8 +22,8 @@ async function checkPaymentStatus() {
   });
   
   // 3. Simulate Logic
-  const switches = (killSwitchConfig?.value as any) || { payments_enabled: true, paymob_enabled: false };
-  const settings = (paymentConfig?.value as any) || {};
+  const switches = (killSwitchConfig?.value || { payments_enabled: true, paymob_enabled: false }) as { payments_enabled: boolean; paymob_enabled: boolean };
+  const settings = (paymentConfig?.value || {}) as { enablePaymob?: boolean; testMode?: boolean };
   
   console.log('--------------------------------------------------');
   console.log(`[KillSwitch] payments_enabled: ${switches.payments_enabled}`);
