@@ -50,7 +50,9 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     }
     
     if (!await isPaymentMethodEnabled(input.paymentMethod)) {
+    if (!await isPaymentMethodEnabled(input.paymentMethod)) {
       return { success: false, error: `${input.paymentMethod === 'cod' ? 'Cash on delivery' : 'Online payment'} is currently unavailable.` };
+    }
     }
     
     if (input.couponCode && !switches.coupons_enabled) {

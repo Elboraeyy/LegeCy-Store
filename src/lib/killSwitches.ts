@@ -119,17 +119,50 @@ export async function requireFeature(feature: keyof KillSwitches, errorMessage?:
 
 /**
  * Payment method guard - checks if specific payment method is allowed
+ * Now reads from BOTH kill switches AND payment_settings (admin panel)
  */
 export async function isPaymentMethodEnabled(method: 'cod' | 'paymob' | 'wallet'): Promise<boolean> {
   const switches = await getKillSwitches();
   
-  if (!switches.payments_enabled) return false;
+  if (!switches.payments_enabled) {
+    console.log(`❌ isPaymentMethodEnabled: Master switch disabled`);
+    return false;
+  }
+  
+  // Also check payment_settings from admin config (same as getPaymentMethodsStatus)
+  let paymentSettings: { enableCOD?: boolean; enablePaymob?: boolean } = {};
+  try {
+    const config = await prisma.storeConfig.findUnique({
+      where: { key: 'payment_settings' }
+    });
+    if (config?.value) {
+      paymentSettings = config.value as { enableCOD?: boolean; enablePaymob?: boolean };
+    }
+  } catch (error) {
+    console.error('Failed to load payment settings', error);
+  }
+
+  console.log(`🔍 isPaymentMethodEnabled Check:`, {
+    method,
+    killSwitch: {
+      paymob: switches.paymob_enabled,
+      cod: switches.cod_enabled
+    },
+    paymentSettings: {
+      enablePaymob: paymentSettings.enablePaymob,
+      enableCOD: paymentSettings.enableCOD
+    }
+  });
   
   switch (method) {
     case 'cod':
-      return switches.cod_enabled;
+      // COD: enabled if kill switch allows AND payment settings allows
+      return switches.cod_enabled && (paymentSettings.enableCOD !== false);
     case 'paymob':
-      return switches.paymob_enabled;
+      // Paymob: enabled if kill switch allows AND payment settings explicitly enables it
+      const isEnabled = switches.paymob_enabled || (paymentSettings.enablePaymob === true);
+      console.log(`💳 Paymob Enabled Result: ${isEnabled}`);
+      return isEnabled;
     case 'wallet':
       return switches.wallet_enabled;
     default:
