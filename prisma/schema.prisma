@@ -271,6 +271,7 @@ model Product {
   variants       Variant[]
   reviews        Review[]
   compareAtPrice Decimal?  // Original price for sale display
+  costPrice      Decimal?  // Cost of Goods Sold (COGS)
   status         String    @default("active") // active, draft, archived
   
   // Category relation
@@ -1049,5 +1050,177 @@ model POSHeldTransaction {
   @@index([sessionId])
   @@index([createdAt])
   @@index([expiresAt])
+}
+
+
+// ==========================================
+// FINANCE DOMAIN (Treasury & Capital)
+// ==========================================
+
+// 1. Chart of Accounts & Ledger
+// ------------------------------------------
+
+model Account {
+  id              String        @id @default(uuid())
+  code            String        @unique // e.g., "1001"
+  name            String        // e.g., "Cash in Bank", "Sales Revenue"
+  type            AccountType   // ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE
+  currency        String        @default("EGP")
+  balance         Decimal       @default(0) // Cached balance, source of truth is Ledger
+  isSystem        Boolean       @default(false) // Cannot be deleted
+  
+  transactions    TransactionLine[]
+  
+  description     String?
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+// The "Journal" - grouping lines together
+model JournalEntry {
+  id              String            @id @default(uuid())
+  reference       String?           // External Ref (e.g. "INV-101")
+  date            DateTime          @default(now())
+  description     String
+  status          JournalStatus     @default(POSTED)
+  
+  lines           TransactionLine[]
+  
+  // Linkage to business events
+  orderId         String?           // Linked to an Order (Revenue)
+  expenseId       String?           // Linked to an Expense
+  capitalTxId     String?           // Linked to Capital movement
+  
+  createdBy       String            // Admin ID
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  VOID
+}
+
+// The "Ledger" - individual debit/credit lines
+model TransactionLine {
+  id              String        @id @default(uuid())
+  journalEntryId  String
+  journalEntry    JournalEntry  @relation(fields: [journalEntryId], references: [id])
+  
+  accountId       String
+  account         Account       @relation(fields: [accountId], references: [id])
+  
+  debit           Decimal       @default(0)
+  credit          Decimal       @default(0)
+  
+  description     String?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([accountId])
+  @@index([journalEntryId])
+}
+
+
+// 2. Capital & Ownership (Shareholders)
+// ------------------------------------------
+
+model Investor {
+  id              String        @id @default(uuid())
+  name            String
+  type            InvestorType  @default(PARTNER) // PARTNER, INVESTOR
+  
+  // Snapshots of ownership
+  transactions    CapitalTransaction[]
+  
+  netContributed  Decimal       @default(0) // Total Deposited - Total Withdrawn
+  currentShare    Decimal       @default(0) // Percentage (0-100) - Derived
+  
+  isActive        Boolean       @default(true)
+  joinedAt        DateTime      @default(now())
+}
+
+enum InvestorType {
+  OWNER
+  PARTNER
+  INVESTOR
+}
+
+model CapitalTransaction {
+  id              String          @id @default(uuid())
+  investorId      String
+  investor        Investor        @relation(fields: [investorId], references: [id])
+  
+  type            CapitalTxType
+  amount          Decimal
+  date            DateTime        @default(now())
+  description     String?
+  
+  // Link to the Journal Entry that moved the actual money
+  journalEntryId  String?         @unique 
+  // We can't use relation here to avoid circular dependencies easily
+  
+  snapshotTotalCapital Decimal    @default(0) // Total company capital at this moment
+  snapshotShare        Decimal    @default(0) // Investor's share % after this tx
+  
+  createdAt       DateTime        @default(now())
+  createdBy       String          // Admin ID
+}
+
+enum CapitalTxType {
+  DEPOSIT
+  WITHDRAWAL
+}
+
+
+// 3. Expenses
+// ------------------------------------------
+
+model Expense {
+  id              String        @id @default(uuid())
+  description     String
+  amount          Decimal
+  date            DateTime      @default(now())
+  
+  categoryId      String
+  category        ExpenseCategory @relation(fields: [categoryId], references: [id])
+  
+  status          ExpenseStatus @default(PENDING)
+  
+  receiptUrl      String?
+  
+  // Journal Link (When Paid)
+  journalEntryId  String?       @unique
+  
+  paidBy          String?       // Payer Name or Account
+  approvedBy      String?       // Admin ID
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model ExpenseCategory {
+  id              String        @id @default(uuid())
+  name            String        @unique // Marketing, Rent, Salaries
+  code            String?       // Link to Chart of Account Code
+  budgetLimit     Decimal?
+  expenses        Expense[]
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
 }
 

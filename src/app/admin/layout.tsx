@@ -96,6 +96,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <NavLink href="/admin/reviews" icon="💬" label="Reviews" active={pathname?.startsWith('/admin/reviews')} />
                         
                         <div className="nav-label">Management</div>
+                        <NavLink href="/admin/finance" icon="💰" label="Finance" active={pathname?.startsWith('/admin/finance')} />
                         <NavLink href="/admin/team" icon="👨‍💼" label="Team" active={pathname?.startsWith('/admin/team')} />
                         <NavLink href="/admin/analytics" icon="📈" label="Analytics" active={pathname?.startsWith('/admin/analytics')} />
                         <NavLink href="/admin/activity" icon="📋" label="Activity Log" active={pathname?.startsWith('/admin/activity')} />

@@ -5,6 +5,7 @@ import { requireAdminPermission } from '@/lib/auth/guards';
 import { AdminPermissions } from '@/lib/auth/permissions';
 import { NotFoundError, ValidationError } from '@/lib/errors';
 import { isFeatureEnabled } from '@/lib/killSwitches';
+import { recordOrderRevenue } from '@/lib/actions/finance';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -64,9 +65,15 @@ export async function PATCH(
     // 3. Auth & Permission
     const admin = await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
 
+
+
     // 4. Update Status with Audit Context
     const updatedOrder = await updateOrderStatus(id, OrderStatus.Paid, 'admin', admin.id);
     
+    // 5. Finance: Record Revenue in Ledger
+    // Fire and forget (don't block response, but log error if fails)
+    recordOrderRevenue(id, Number(updatedOrder.totalPrice)).catch(e => console.error('Failed to record revenue:', e));
+
     console.warn(`[SECURITY] Admin ${admin.id} manually marked order ${id} as paid. Reason: ${reason}`);
     
     return NextResponse.json(updatedOrder, { status: 200 });
