@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import BackButton from '@/components/admin/BackButton';
 import { validateAdminSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
@@ -56,20 +56,20 @@ export default async function TopCustomersPage() {
             {/* Header */}
             <div className="admin-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Link href="/admin/analytics" className="back-btn" style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '50%',
-                        background: '#f5f5f5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '18px',
-                        textDecoration: 'none',
-                        color: '#333'
-                    }}>
-                        ←
-                    </Link>
+                    <BackButton 
+                        fallbackHref="/admin/analytics" 
+                        label="←"
+                        style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            background: '#f5f5f5',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '18px'
+                        }}
+                    />
                     <div>
                         <h1 className="admin-title">Top Customers</h1>
                         <p className="admin-subtitle">Your most valuable customers by revenue</p>

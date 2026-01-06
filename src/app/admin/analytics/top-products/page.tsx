@@ -1,3 +1,4 @@
+import BackButton from '@/components/admin/BackButton';
 import Link from 'next/link';
 import Image from 'next/image';
 import { validateAdminSession } from '@/lib/auth/session';
@@ -50,20 +51,20 @@ export default async function TopProductsPage() {
             {/* Header */}
             <div className="admin-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Link href="/admin/analytics" className="back-btn" style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '50%',
-                        background: '#f5f5f5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '18px',
-                        textDecoration: 'none',
-                        color: '#333'
-                    }}>
-                        ←
-                    </Link>
+                    <BackButton 
+                        fallbackHref="/admin/analytics" 
+                        label="←"
+                        style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            background: '#f5f5f5',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '18px'
+                        }}
+                    />
                     <div>
                         <h1 className="admin-title">Top Selling Products</h1>
                         <p className="admin-subtitle">All-time best performing products by sales volume</p>

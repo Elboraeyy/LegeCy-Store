@@ -1,10 +1,10 @@
 'use client';
 
 import { Suspense, useState, useEffect, use } from 'react';
-import Link from 'next/link';
 import { fetchOrderDetails } from '../../actions';
 import '@/app/admin/admin.css';
 import StatusUpdateControl from '@/components/admin/StatusUpdateControl';
+import BackButton from '@/components/admin/BackButton';
 
 type OrderDetail = Awaited<ReturnType<typeof fetchOrderDetails>>;
 
@@ -45,9 +45,11 @@ function OrderDetailsView({ id }: { id: string }) {
             <div className="admin-header">
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                         <Link href="/admin/orders" style={{ textDecoration: 'none', color: 'var(--admin-text-muted)', fontSize: '14px' }}>
-                            ← Back to Orders
-                         </Link>
+                         <BackButton 
+                            fallbackHref="/admin/orders" 
+                            label="← Back"
+                            style={{ background: 'none', border: 'none', padding: 0, color: 'var(--admin-text-muted)', fontSize: '14px' }}
+                         />
                          <span style={{ color: 'var(--admin-border)' }}>|</span>
                          <span style={{ fontSize: '14px', color: 'var(--admin-text-muted)', fontFamily: 'monospace' }}>#{order.id.slice(0, 8)}</span>
                     </div>

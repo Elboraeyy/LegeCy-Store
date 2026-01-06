@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { toast } from 'sonner';
 import { createManualOrder } from '@/lib/actions/order';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
@@ -201,9 +200,12 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                     <p className="admin-subtitle">Create an order for customers who ordered via social media</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    <Link href="/admin/orders" className="admin-btn admin-btn-outline">
-                        ← Back to Orders
-                    </Link>
+                    <button 
+                        onClick={() => router.back()} 
+                        className="admin-btn admin-btn-outline"
+                    >
+                        ← Back
+                    </button>
                 </div>
             </div>
 

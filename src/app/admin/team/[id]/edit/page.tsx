@@ -1,7 +1,7 @@
 import { validateAdminSession } from '@/lib/auth/session';
 import { redirect, notFound } from 'next/navigation';
 import { getTeamMember, getAdminRoles } from '@/lib/actions/team';
-import Link from 'next/link';
+import BackButton from '@/components/admin/BackButton';
 import EditMemberForm from './EditMemberForm';
 import '@/app/admin/admin.css';
 
@@ -27,11 +27,11 @@ export default async function EditMemberPage({ params }: Props) {
             {/* Header */}
             <div className="admin-header" style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Link 
-                        href={`/admin/team/${member.id}`}
+                    <BackButton 
+                        fallbackHref={`/admin/team/${member.id}`}
+                        label="←"
                         style={{ 
                             fontSize: '24px', 
-                            textDecoration: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -40,9 +40,7 @@ export default async function EditMemberPage({ params }: Props) {
                             borderRadius: '8px',
                             background: '#f3f4f6'
                         }}
-                    >
-                        ←
-                    </Link>
+                    />
                     <div>
                         <h1 className="admin-title">Edit Team Member</h1>
                         <p className="admin-subtitle">Update {member.name}&apos;s information</p>

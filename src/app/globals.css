@@ -12,8 +12,8 @@
     --text-muted-dark: #8BA8A4;
     --text-muted-light: #4A6B68;
   --accent: var(--accent-color, #d4af37);
-  --border-dark: #1F615B;
-    --border-light: transparent;
+    --border-dark: #1F615B;
+    --border-light: rgba(18, 64, 60, 0.08);
     /* Removed as requested */
 /* Theme Defaults (Light by default) */
   --bg-default: var(--bg-light);

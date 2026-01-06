@@ -2,6 +2,7 @@ import { validateAdminSession } from '@/lib/auth/session';
 import { redirect, notFound } from 'next/navigation';
 import { getTeamMember } from '@/lib/actions/team';
 import Link from 'next/link';
+import BackButton from '@/components/admin/BackButton';
 import '@/app/admin/admin.css';
 
 export const dynamic = 'force-dynamic';
@@ -45,11 +46,11 @@ export default async function ViewMemberPage({ params }: Props) {
             {/* Header */}
             <div className="admin-header" style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Link 
-                        href="/admin/team" 
+                    <BackButton 
+                        fallbackHref="/admin/team" 
+                        label="←"
                         style={{ 
                             fontSize: '24px', 
-                            textDecoration: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -58,9 +59,7 @@ export default async function ViewMemberPage({ params }: Props) {
                             borderRadius: '8px',
                             background: '#f3f4f6'
                         }}
-                    >
-                        ←
-                    </Link>
+                    />
                     <div>
                         <h1 className="admin-title">Team Member Details</h1>
                         <p className="admin-subtitle">View team member information</p>

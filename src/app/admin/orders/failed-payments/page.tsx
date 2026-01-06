@@ -1,6 +1,6 @@
 import { fetchFailedPaymentOrders } from './actions';
 import FailedPaymentsClient from './FailedPaymentsClient';
-import Link from 'next/link';
+import BackButton from '@/components/admin/BackButton';
 
 export default async function FailedPaymentsPage() {
     const orders = await fetchFailedPaymentOrders();
@@ -14,9 +14,7 @@ export default async function FailedPaymentsPage() {
                     <p className="admin-subtitle">Orders with failed payment attempts. Contact customers to complete orders.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <Link href="/admin/orders" className="admin-btn admin-btn-outline">
-                        <span>←</span> Back to Orders
-                    </Link>
+                    <BackButton fallbackHref="/admin/orders" label="← Back" />
                 </div>
             </div>
 

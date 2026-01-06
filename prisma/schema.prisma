@@ -188,6 +188,9 @@ model Order {
 
   // Idempotency for checkout safety
   idempotencyKey String?       @unique
+  
+  // Order source tracking
+  orderSource    String        @default("online") // online, whatsapp, instagram, facebook, call, pos
 
   // Coupon usage tracking
   couponUsage   CouponUsage?
@@ -199,6 +202,7 @@ model Order {
   @@index([idempotencyKey])
   @@index([customerEmail])
   @@index([paymentMethod])
+  @@index([orderSource])
 }
 
 model PaymentIntent {

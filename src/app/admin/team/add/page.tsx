@@ -1,7 +1,7 @@
 import { validateAdminSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { getAdminRoles } from '@/lib/actions/team';
-import Link from 'next/link';
+import BackButton from '@/components/admin/BackButton';
 import AddMemberForm from './AddMemberForm';
 import '@/app/admin/admin.css';
 
@@ -18,11 +18,11 @@ export default async function AddMemberPage() {
             {/* Header */}
             <div className="admin-header" style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Link 
-                        href="/admin/team" 
+                    <BackButton 
+                        fallbackHref="/admin/team" 
+                        label="←"
                         style={{ 
                             fontSize: '24px', 
-                            textDecoration: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -31,9 +31,7 @@ export default async function AddMemberPage() {
                             borderRadius: '8px',
                             background: '#f3f4f6'
                         }}
-                    >
-                        ←
-                    </Link>
+                    />
                     <div>
                         <h1 className="admin-title">Add Team Member</h1>
                         <p className="admin-subtitle">Create a new admin account for your team</p>

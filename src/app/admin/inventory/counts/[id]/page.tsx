@@ -141,7 +141,7 @@ export default function StockCountPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ fontSize: '48px' }}>❌</div>
                 <div style={{ color: 'var(--admin-text-muted)' }}>Stock count not found</div>
-                <Link href="/admin/inventory/counts" className="admin-btn admin-btn-outline">← Back to Counts</Link>
+                <button onClick={() => router.back()} className="admin-btn admin-btn-outline">← Back</button>
             </div>
         );
     }
@@ -151,9 +151,9 @@ export default function StockCountPage() {
             {/* Header */}
             <div className="admin-header" style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <Link href="/admin/inventory/counts" className="admin-btn admin-btn-outline" style={{ padding: '10px 16px' }}>
+                    <button onClick={() => router.back()} className="admin-btn admin-btn-outline" style={{ padding: '10px 16px' }}>
                         ← Back
-                    </Link>
+                    </button>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <h1 className="admin-title" style={{ margin: 0 }}>{count.countNumber}</h1>
