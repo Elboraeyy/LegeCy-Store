@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStore } from "@/context/StoreContext";
 import { Reveal } from "@/components/ui/Reveal";
@@ -24,9 +25,8 @@ interface ShippingForm {
 
 export default function CheckoutClient() {
   const { cart, clearCart } = useStore();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState<"shipping" | "confirmation">("shipping");
-  const [orderId, setOrderId] = useState<string | null>(null);
   
   // Coupon State
   const [couponCode, setCouponCode] = useState("");
@@ -165,10 +165,10 @@ export default function CheckoutClient() {
            return;
         }
 
-        setOrderId(result.orderId);
-        setStep("confirmation");
+        // COD order success - redirect to order page
         clearCart();
         toast.success("Your order has been confirmed! 🎉");
+        router.push(`/orders/${result.orderId}`);
       } else {
         toast.error(result.error || "Failed to create order");
       }
@@ -188,7 +188,7 @@ export default function CheckoutClient() {
     }
   };
 
-  if (cart.length === 0 && step === "shipping") {
+  if (cart.length === 0) {
     return (
       <main className="container" style={{ padding: "80px 0", textAlign: "center" }}>
         <h2>Your Cart is Empty</h2>
@@ -198,107 +198,6 @@ export default function CheckoutClient() {
         <Link href="/shop" className="btn btn-primary">
           Browse Products
         </Link>
-      </main>
-    );
-  }
-
-  // Confirmation Step
-  if (step === "confirmation" && orderId) {
-    return (
-      <main>
-        <section className="shop-hero">
-          <div className="container">
-            <Reveal>
-              <h1 className="fade-in">Order Confirmed! 🎉</h1>
-            </Reveal>
-            <Reveal delay={0.2}>
-              <p className="fade-in">Thank you for choosing Legacy. Your order is being prepared.</p>
-            </Reveal>
-          </div>
-        </section>
-
-        <section className="container" style={{ marginBottom: "80px" }}>
-          <div style={{ 
-            maxWidth: "600px", 
-            margin: "0 auto", 
-            background: "#fff", 
-            borderRadius: "16px", 
-            padding: "40px",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.08)"
-          }}>
-            <div style={{ textAlign: "center", marginBottom: "32px" }}>
-              <div style={{ 
-                width: "80px", 
-                height: "80px", 
-                background: "linear-gradient(135deg, #12403C, #2d5a4e)", 
-                borderRadius: "50%", 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center", 
-                margin: "0 auto 20px",
-                fontSize: "36px",
-                color: "#fff"
-              }}>
-                ✓
-              </div>
-              <h2 style={{ fontSize: "28px", marginBottom: "8px" }}>Order #{orderId.slice(0, 8).toUpperCase()}</h2>
-              <p style={{ color: "var(--text-muted)" }}>Order details have been sent to your email</p>
-            </div>
-
-            <div style={{ 
-              background: "#f9f9f9", 
-              borderRadius: "12px", 
-              padding: "24px", 
-              marginBottom: "24px" 
-            }}>
-              <h3 style={{ fontSize: "16px", marginBottom: "16px", color: "var(--text-muted)" }}>Shipping Details</h3>
-              <p><strong>{form.customerName}</strong></p>
-              <p>{form.shippingAddress}</p>
-              <p>{form.shippingCity}</p>
-              <p>{form.customerPhone}</p>
-            </div>
-
-            <div style={{ padding: "16px 0", borderTop: "1px solid #eee" }}>
-               {appliedCoupon && (
-                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", color: "#16a34a" }}>
-                   <span>Discount ({appliedCoupon.code})</span>
-                   <span>- {formatPrice(appliedCoupon.discount)}</span>
-                 </div>
-               )}
-               <div style={{ 
-                 display: "flex", 
-                 justifyContent: "space-between", 
-                 fontSize: "18px",
-                 fontWeight: "600"
-               }}>
-                 <span>Total</span>
-                 <span style={{ color: "var(--accent)" }}>{formatPrice(finalTotal)}</span>
-               </div>
-            </div>
-
-            <div style={{ 
-              display: "flex", 
-              gap: "16px", 
-              marginTop: "32px",
-              flexWrap: "wrap"
-            }}>
-              <Link 
-                href={`/track/${orderId}`} 
-                className="btn btn-primary"
-                style={{ flex: 1, textAlign: "center" }}
-              >
-                Track Order
-              </Link>
-              <Link 
-                href="/shop" 
-                className="btn btn-outline"
-                style={{ flex: 1, textAlign: "center" }}
-              >
-                Continue Shopping
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
     );
   }
