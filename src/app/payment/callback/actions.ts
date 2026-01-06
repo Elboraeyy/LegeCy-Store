@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { confirmPaymentIntent, failPaymentIntent, PaymentIntentStatus } from '@/lib/services/paymentService';
+import { confirmPaymentIntent, PaymentIntentStatus } from '@/lib/services/paymentService';
 
 export interface ProcessPaymentResult {
     success: boolean;
@@ -13,13 +13,12 @@ export interface ProcessPaymentResult {
 
 /**
  * Process Paymob payment callback from URL parameters
- * This is called from the callback page to update order status
+ * Updates order status based on payment result
  */
 export async function processPaymobCallback(
     searchParams: Record<string, string>
 ): Promise<ProcessPaymentResult> {
     console.log('=== Processing Paymob Callback ===');
-    console.log('Raw params:', JSON.stringify(searchParams, null, 2));
 
     // Extract key params
     const transactionId = searchParams.id || searchParams.transaction_id || '';
@@ -27,37 +26,30 @@ export async function processPaymobCallback(
     const success = searchParams.success === 'true';
     const pending = searchParams.pending === 'true';
     const isVoided = searchParams.is_voided === 'true';
-    const amountCents = parseInt(searchParams.amount_cents || '0', 10);
 
-    console.log('Parsed params:', { transactionId, orderId, success, pending, isVoided, amountCents });
+    console.log('Params:', { transactionId, orderId, success, pending, isVoided });
 
     // Determine if payment was successful
     const isPaymentSuccess = success && !pending && !isVoided;
     console.log('Payment success:', isPaymentSuccess);
 
     if (!orderId) {
-        console.error('No merchant_order_id in callback');
-        return { 
-            success: false, 
-            error: 'No order ID provided',
-            debug: 'merchant_order_id missing from URL params'
-        };
+        console.error('No merchant_order_id');
+        return { success: false, error: 'No order ID', debug: 'merchant_order_id missing' };
     }
 
-    // Check if already processed (idempotency)
+    // Check idempotency - already processed?
     const processedEventId = `paymob_${transactionId}`;
-    
     try {
-        const existingEvent = await prisma.processedWebhookEvent.findUnique({
+        const existing = await prisma.processedWebhookEvent.findUnique({
             where: { id: processedEventId }
         });
-
-        if (existingEvent) {
-            console.log('Transaction already processed:', processedEventId);
+        if (existing) {
             const order = await prisma.order.findUnique({
                 where: { id: orderId },
                 select: { status: true }
             });
+            console.log('Already processed, current status:', order?.status);
             return { 
                 success: order?.status === 'paid',
                 orderId, 
@@ -66,98 +58,118 @@ export async function processPaymobCallback(
             };
         }
     } catch (e) {
-        console.log('Idempotency check failed, continuing:', e);
+        console.log('Idempotency check failed:', e);
     }
 
-    // Find the payment intent for this order
-    let intent = null;
+    // Try to find and confirm PaymentIntent
     try {
-        intent = await prisma.paymentIntent.findFirst({
-            where: { 
-                orderId,
-                status: PaymentIntentStatus.Pending
-            }
+        const intent = await prisma.paymentIntent.findFirst({
+            where: { orderId, status: PaymentIntentStatus.Pending }
         });
-        console.log('Found payment intent:', intent?.id || 'None');
-    } catch (e) {
-        console.error('Error finding payment intent:', e);
-    }
-
-    if (!intent) {
-        // Check if order exists and was already processed
-        const existingOrder = await prisma.order.findUnique({
-            where: { id: orderId },
-            select: { status: true }
-        });
-
-        if (existingOrder) {
-            console.log('Order exists with status:', existingOrder.status);
-            return { 
-                success: existingOrder.status === 'paid',
-                orderId, 
-                orderStatus: existingOrder.status,
-                debug: 'Payment intent not found, order exists'
-            };
-        }
-
-        return { 
-            success: false, 
-            error: 'Order not found',
-            orderId,
-            debug: 'No payment intent and no order found'
-        };
-    }
-
-    // Process the payment
-    try {
-        if (isPaymentSuccess) {
-            console.log('Confirming payment for intent:', intent.id);
+        
+        if (intent && isPaymentSuccess) {
+            console.log('Found PaymentIntent, confirming:', intent.id);
             await confirmPaymentIntent(intent.id);
-            console.log('Payment confirmed successfully');
-        } else {
-            const reason = searchParams['data.message'] || searchParams.data_message || 'Payment declined';
-            console.log('Failing payment for intent:', intent.id, 'Reason:', reason);
-            await failPaymentIntent(intent.id, reason);
-            console.log('Payment marked as failed');
-        }
-
-        // Mark as processed (idempotency)
-        try {
+            
+            // Mark processed
             await prisma.processedWebhookEvent.create({
                 data: {
                     id: processedEventId,
                     provider: 'paymob',
-                    eventType: isPaymentSuccess ? 'payment.success' : 'payment.failed',
+                    eventType: 'payment.success',
                     entityId: orderId,
                     processedAt: new Date()
                 }
+            }).catch(() => {});
+            
+            const updated = await prisma.order.findUnique({
+                where: { id: orderId },
+                select: { status: true }
             });
-        } catch (e) {
-            console.log('Failed to mark as processed (might already exist):', e);
+            
+            return { 
+                success: true, 
+                orderId, 
+                orderStatus: updated?.status || 'paid',
+                debug: 'Confirmed via PaymentIntent'
+            };
         }
-
-        // Get updated order status
-        const updatedOrder = await prisma.order.findUnique({
-            where: { id: orderId },
-            select: { status: true }
-        });
-
-        console.log('Final order status:', updatedOrder?.status);
-
-        return { 
-            success: isPaymentSuccess, 
-            orderId,
-            orderStatus: updatedOrder?.status || (isPaymentSuccess ? 'paid' : 'payment_failed'),
-            debug: `Processed: ${isPaymentSuccess ? 'SUCCESS' : 'FAILED'}`
-        };
-
-    } catch (error) {
-        console.error('Error processing payment:', error);
-        return { 
-            success: false, 
-            error: error instanceof Error ? error.message : 'Processing failed',
-            orderId,
-            debug: `Error: ${error}`
-        };
+        
+        console.log('No pending PaymentIntent found, updating order directly');
+    } catch (e) {
+        console.error('PaymentIntent lookup failed:', e);
     }
+
+    // FALLBACK: Update order status directly if payment was successful
+    if (isPaymentSuccess) {
+        try {
+            // Update order to paid
+            await prisma.order.update({
+                where: { id: orderId },
+                data: { status: 'paid' }
+            });
+            
+            // Release stock reservation if any PaymentIntent exists
+            const anyIntent = await prisma.paymentIntent.findFirst({
+                where: { orderId }
+            });
+            if (anyIntent) {
+                await prisma.paymentIntent.update({
+                    where: { id: anyIntent.id },
+                    data: { status: PaymentIntentStatus.Succeeded }
+                });
+            }
+            
+            // Log history
+            await prisma.orderStatusHistory.create({
+                data: {
+                    orderId,
+                    from: 'payment_pending',
+                    to: 'paid',
+                    reason: 'Payment Confirmed (Direct Update)'
+                }
+            }).catch(() => {});
+            
+            // Mark processed
+            await prisma.processedWebhookEvent.create({
+                data: {
+                    id: processedEventId,
+                    provider: 'paymob',
+                    eventType: 'payment.success',
+                    entityId: orderId,
+                    processedAt: new Date()
+                }
+            }).catch(() => {});
+            
+            console.log('Order updated to paid directly');
+            return { 
+                success: true, 
+                orderId, 
+                orderStatus: 'paid',
+                debug: 'Direct update to paid'
+            };
+            
+        } catch (e) {
+            console.error('Direct update failed:', e);
+            return { 
+                success: false, 
+                error: 'Failed to update order',
+                orderId,
+                debug: `Error: ${e}`
+            };
+        }
+    }
+
+    // Payment failed
+    const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { status: true }
+    });
+    
+    return { 
+        success: false, 
+        orderId, 
+        orderStatus: order?.status || 'payment_failed',
+        debug: 'Payment not successful'
+    };
 }
