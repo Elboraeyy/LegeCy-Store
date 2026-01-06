@@ -255,6 +255,13 @@ export async function POST(request: Request) {
             }
 
             await confirmPaymentIntent(intent.id);
+            
+            // Finance: Record Revenue in Ledger (Fire and forget)
+            // Use intent.amount which is the base currency value
+            import('@/lib/actions/finance').then(({ recordOrderRevenue }) => {
+                recordOrderRevenue(orderId!, Number(intent.amount)).catch(e => console.error('Failed to record revenue (Webhook):', e));
+            });
+
             logger.info('Payment confirmed via Paymob', { 
                 intentId: intent.id, 
                 orderId,
