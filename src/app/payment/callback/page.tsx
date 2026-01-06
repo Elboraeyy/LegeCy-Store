@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
 import Link from 'next/link';
-import { processPaymobCallback, ProcessPaymentResult } from './actions';
+import { processPaymobCallback } from './actions';
 
 type PageStatus = 'processing' | 'success' | 'failed';
 
@@ -16,10 +16,11 @@ export default function PaymentCallbackPage() {
     const [status, setStatus] = useState<PageStatus>('processing');
     const [orderId, setOrderId] = useState<string | null>(null);
     const [orderStatus, setOrderStatus] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [countdown, setCountdown] = useState(3);
     const processedRef = useRef(false);
 
-    // Convert searchParams to object for server action
+    // Convert searchParams to object
     const paramsObject = useMemo(() => {
         const obj: Record<string, string> = {};
         searchParams.forEach((value, key) => {
@@ -28,6 +29,13 @@ export default function PaymentCallbackPage() {
         return obj;
     }, [searchParams]);
 
+    // Check if payment looks successful from URL
+    const urlIndicatesSuccess = useMemo(() => {
+        return paramsObject.success === 'true' && 
+               paramsObject.pending !== 'true' && 
+               paramsObject.is_voided !== 'true';
+    }, [paramsObject]);
+
     // Process payment on mount
     useEffect(() => {
         if (processedRef.current) return;
@@ -35,10 +43,16 @@ export default function PaymentCallbackPage() {
 
         async function processPayment() {
             console.log('Processing payment callback...');
+            console.log('URL indicates success:', urlIndicatesSuccess);
             
+            const merchantOrderId = paramsObject.merchant_order_id;
+            if (merchantOrderId) {
+                setOrderId(merchantOrderId);
+            }
+
             try {
-                const result: ProcessPaymentResult = await processPaymobCallback(paramsObject);
-                console.log('Payment processing result:', result);
+                const result = await processPaymobCallback(paramsObject);
+                console.log('Server action result:', result);
 
                 if (result.orderId) {
                     setOrderId(result.orderId);
@@ -48,7 +62,16 @@ export default function PaymentCallbackPage() {
                     setOrderStatus(result.orderStatus);
                 }
 
-                if (result.success && (result.orderStatus === 'paid' || paramsObject.success === 'true')) {
+                if (result.error) {
+                    setErrorMessage(result.error);
+                }
+
+                // Determine success based on result OR URL params
+                const isSuccess = result.success || 
+                                  result.orderStatus === 'paid' || 
+                                  urlIndicatesSuccess;
+
+                if (isSuccess) {
                     clearCart();
                     setStatus('success');
                 } else {
@@ -57,25 +80,19 @@ export default function PaymentCallbackPage() {
             } catch (error) {
                 console.error('Payment processing error:', error);
                 
-                // Fallback: check URL params directly
-                const success = paramsObject.success === 'true';
-                const merchantOrderId = paramsObject.merchant_order_id;
-                
-                if (merchantOrderId) {
-                    setOrderId(merchantOrderId);
-                }
-                
-                if (success) {
+                // Fallback: trust URL params if server action fails
+                if (urlIndicatesSuccess) {
                     clearCart();
                     setStatus('success');
                 } else {
+                    setErrorMessage(error instanceof Error ? error.message : 'Unknown error');
                     setStatus('failed');
                 }
             }
         }
 
         processPayment();
-    }, [paramsObject, clearCart]);
+    }, [paramsObject, urlIndicatesSuccess, clearCart]);
 
     // Auto redirect countdown for success
     useEffect(() => {
@@ -118,7 +135,7 @@ export default function PaymentCallbackPage() {
                     </div>
                     <h1 className="text-2xl font-bold text-gray-800 mb-2">Payment Successful! 🎉</h1>
                     <p className="text-gray-600 mb-4">
-                        Thank you for your order. Your payment has been received and your order is being processed.
+                        Thank you for your order. Your payment has been received.
                     </p>
                     {orderId && (
                         <p className="text-sm text-gray-500 mb-2">
@@ -126,8 +143,8 @@ export default function PaymentCallbackPage() {
                         </p>
                     )}
                     {orderStatus && (
-                        <p className="text-xs text-green-600 mb-4">
-                            Status: {orderStatus.toUpperCase()}
+                        <p className="text-xs text-green-600 mb-4 uppercase">
+                            Status: {orderStatus}
                         </p>
                     )}
                     <p className="text-sm text-gray-400 mb-6">
@@ -162,9 +179,12 @@ export default function PaymentCallbackPage() {
                     </svg>
                 </div>
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">Payment Failed</h1>
-                <p className="text-gray-600 mb-6">
-                    Your payment could not be processed. Please try again or choose a different payment method.
+                <p className="text-gray-600 mb-4">
+                    Your payment could not be processed. Please try again.
                 </p>
+                {errorMessage && (
+                    <p className="text-sm text-red-500 mb-4">{errorMessage}</p>
+                )}
                 {orderId && (
                     <p className="text-sm text-gray-500 mb-4">
                         Order ID: <span className="font-mono">{orderId.slice(0, 8)}</span>
