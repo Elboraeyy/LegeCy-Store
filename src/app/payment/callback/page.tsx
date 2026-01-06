@@ -184,13 +184,7 @@ export default function PaymentCallbackPage() {
                             href={orderId ? `/orders/${orderId}` : '/orders'}
                             className="block w-full bg-[var(--color-primary)] text-white py-3 rounded-xl font-semibold hover:opacity-90 transition"
                         >
-                            Track My Order
-                        </Link>
-                        <Link 
-                            href="/"
-                            className="block w-full border border-gray-300 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition"
-                        >
-                            Continue Shopping
+                            OK
                         </Link>
                     </div>
                 </div>
