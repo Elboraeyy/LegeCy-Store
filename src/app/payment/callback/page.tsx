@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useStore } from '@/context/StoreContext';
+import { useStore, CART_CLEARED_FLAG } from '@/context/StoreContext';
 import Link from 'next/link';
 import { processPaymobCallback } from './actions';
 
@@ -72,12 +72,12 @@ export default function PaymentCallbackPage() {
                                   urlIndicatesSuccess;
 
                 if (isSuccess) {
-                    console.log('Payment successful - clearing cart');
-                    // Clear cart with slight delay to ensure state is updated
-                    setTimeout(() => {
-                        clearCart();
-                        console.log('Cart cleared');
-                    }, 100);
+                    console.log('Payment successful - setting cart clear flag and clearing cart');
+                    // Set flag FIRST - this ensures StoreContext won't reload cart on any refresh
+                    sessionStorage.setItem(CART_CLEARED_FLAG, 'true');
+                    // Clear cart immediately
+                    clearCart();
+                    console.log('Cart cleared');
                     setStatus('success');
                 } else {
                     setStatus('failed');
@@ -87,6 +87,7 @@ export default function PaymentCallbackPage() {
                 
                 // Fallback: trust URL params if server action fails
                 if (urlIndicatesSuccess) {
+                    sessionStorage.setItem(CART_CLEARED_FLAG, 'true');
                     clearCart();
                     setStatus('success');
                 } else {

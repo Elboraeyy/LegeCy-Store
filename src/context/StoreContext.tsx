@@ -13,6 +13,9 @@ import {
 } from '@/lib/actions/cart';
 import { toast } from 'sonner';
 
+// Flag used to signal cart should be cleared after payment success
+export const CART_CLEARED_FLAG = 'cart_cleared_on_payment';
+
 // Unified Product type for cart compatibility
 export interface Product {
   id: string; // Enforce String/UUID for consistency
@@ -71,6 +74,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     const init = async () => {
         try {
+            // CHECK FOR PAYMENT SUCCESS FLAG FIRST
+            // If payment was just completed, DON'T load cart from storage
+            const paymentJustCompleted = sessionStorage.getItem(CART_CLEARED_FLAG);
+            if (paymentJustCompleted) {
+                console.log("[Cart] Payment success flag detected - skipping cart load and clearing");
+                sessionStorage.removeItem(CART_CLEARED_FLAG);
+                localStorage.removeItem("cart");
+                // Also clear DB cart
+                clearDbCartAction().catch(() => {});
+                if (mounted) {
+                    setCart([]);
+                    setIsLoading(false);
+                }
+                // Still fetch products
+                const dbProducts = await fetchShopProducts();
+                const mapped: Product[] = dbProducts.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    price: p.price,
+                    cat: p.category || undefined,
+                    img: p.imageUrl || undefined,
+                    imageUrl: p.imageUrl,
+                    brand: p.brand,
+                    description: null,
+                    variants: [],
+                    defaultVariantId: p.defaultVariantId
+                }));
+                if (mounted) setProducts(mapped);
+                return; // Skip normal cart loading
+            }
+
             // 1. ALWAYS restore from localStorage first (for instant UX)
             const localStr = localStorage.getItem("cart");
             const localItems: CartItem[] = localStr ? JSON.parse(localStr) : [];
