@@ -11,6 +11,7 @@ import { placeOrderWithShipping } from "@/lib/actions/checkout";
 
 import { validateCoupon } from "@/lib/actions/coupons";
 import { getPaymentMethodsStatus } from "@/lib/actions/killswitches";
+import { useFormPersistence } from "@/hooks/useFormPersistence";
 
 interface ShippingForm {
   customerName: string;
@@ -42,7 +43,7 @@ export default function CheckoutClient() {
   });
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
 
-  const [form, setForm] = useState<ShippingForm>({
+  const [form, setForm, clearFormStorage] = useFormPersistence<ShippingForm>('checkout_form', {
     customerName: "",
     customerEmail: "",
     customerPhone: "",
@@ -67,7 +68,7 @@ export default function CheckoutClient() {
     }).catch(() => {
       setLoadingPaymentMethods(false);
     });
-  }, []);
+  }, [setForm]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const shipping = 0; // Free shipping
@@ -167,6 +168,7 @@ export default function CheckoutClient() {
 
         // COD order success - redirect to order page
         clearCart();
+        clearFormStorage(); // Clear persisted form data
         toast.success("Your order has been confirmed! 🎉");
         router.push(`/orders/${result.orderId}`);
       } else {

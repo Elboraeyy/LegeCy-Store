@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import { adminLogin } from '@/lib/actions/admin-auth';
 import '../admin.css';
+import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
 
 function SubmitButton() {
     return (
@@ -21,6 +22,7 @@ function SubmitButton() {
 
 export default function AdminLoginPage() {
     const [state, formAction] = useActionState(adminLogin, null);
+    const { containerRef } = useUncontrolledFormPersistence('admin_login_form');
 
     return (
         <div style={{ 
@@ -104,7 +106,7 @@ export default function AdminLoginPage() {
                         <p style={{ color: '#5c6b66' }}>Please enter your credentials to access the dashboard.</p>
                     </div>
 
-                    <form action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <form ref={containerRef} action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         <div className="admin-form-group" style={{ marginBottom: 0 }}>
                             <label className="admin-label">Email Address</label>
                             <input 

@@ -3,10 +3,12 @@
 import React from "react";
 import { useStore } from "@/context/StoreContext";
 import { Reveal } from "@/components/ui/Reveal";
+import { useUncontrolledFormPersistence } from "@/hooks/useFormPersistence";
 
 
 export default function ContactClient() {
   const { showToast } = useStore();
+  const { containerRef, clearAll } = useUncontrolledFormPersistence('contact_form');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +36,7 @@ export default function ContactClient() {
     }
 
     form.reset();
+    clearAll(); // Clear persisted form data
   };
 
   return (
@@ -87,7 +90,7 @@ export default function ContactClient() {
 
             <div className="contact-form-wrapper">
                <Reveal delay={0.3} width="100%">
-                  <form id="contact-form" onSubmit={handleSubmit} aria-labelledby="contact-title">
+                  <form ref={containerRef} id="contact-form" onSubmit={handleSubmit} aria-labelledby="contact-title">
                     <h3
                       id="contact-title"
                       style={{
