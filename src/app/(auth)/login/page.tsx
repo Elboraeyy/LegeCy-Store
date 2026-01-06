@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import { login } from '@/lib/actions/auth';
 import Link from 'next/link';
+import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
 
 function SubmitButton() {
     return (
@@ -42,6 +43,7 @@ function SubmitButton() {
 
 export default function LoginPage() {
     const [state, formAction] = useActionState(login, null);
+    const { containerRef } = useUncontrolledFormPersistence('login_form');
 
     return (
         <div className="auth-container" style={{ 
@@ -277,7 +279,7 @@ export default function LoginPage() {
                         </p>
                     </div>
 
-                    <form action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <form ref={containerRef} action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <label style={{ fontSize: '12px', fontWeight: 700, color: '#1a3c34', textTransform: 'uppercase', letterSpacing: '1px' }}>Email</label>
                             <input 
