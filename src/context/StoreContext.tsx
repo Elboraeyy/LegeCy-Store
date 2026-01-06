@@ -293,11 +293,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
       setCart([]);
-      if (isLoggedIn) {
-          clearDbCartAction();
-      } else {
-          localStorage.removeItem("cart");
-      }
+      // Always clear both storage types to ensure complete cleanup
+      // This fixes race condition when returning from payment gateway
+      localStorage.removeItem("cart");
+      // Always try to clear DB cart - server action handles auth check
+      clearDbCartAction().catch(() => {
+          // Silently ignore - user might not be logged in
+      });
   };
   
   const toggleFav = (id: ProductId) => {
