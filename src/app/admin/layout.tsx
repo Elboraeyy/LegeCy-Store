@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import './admin.css';
@@ -55,6 +55,13 @@ function SidebarProfile() {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isLogin = pathname?.includes('/login');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Close sidebar when navigating
+    useEffect(() => {
+        const timer = setTimeout(() => setIsSidebarOpen(false), 50);
+        return () => clearTimeout(timer);
+    }, [pathname]);
 
     if (isLogin) {
         return <div className="admin-login-wrapper">{children}</div>;
@@ -63,11 +70,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
         <AdminProfileProvider>
             <div className="admin-shell">
+                {/* Mobile Menu Toggle */}
+                <button 
+                    className="mobile-menu-toggle"
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    aria-label="Toggle Menu"
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        {isSidebarOpen ? (
+                            <path d="M18 6L6 18M6 6l12 12" />
+                        ) : (
+                            <path d="M3 12h18M3 6h18M3 18h18" />
+                        )}
+                    </svg>
+                </button>
+
+                {/* Sidebar Overlay */}
+                <div 
+                    className={`sidebar-overlay ${isSidebarOpen ? 'visible' : ''}`}
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+
                 {/* Keyboard Shortcuts (global listener) */}
                 <KeyboardShortcuts />
 
                 {/* Sidebar */}
-                <aside className="admin-sidebar">
+                <aside className={`admin-sidebar ${isSidebarOpen ? 'open' : ''}`}>
                     <Link href="/admin" className="admin-brand" style={{ textDecoration: 'none', display: 'block' }}>
                         <div className="brand-text">LEGACY</div>
                     </Link>
