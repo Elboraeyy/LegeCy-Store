@@ -18,7 +18,7 @@
     --admin-text-muted: #4A6B68;
   
   --admin-accent: #d4af37;        /* Gold */
-  --admin-border: transparent;
+  --admin-border: rgba(18, 64, 60, 0.08);
     /* Removed as requested */
   
   /* Semantic Variables */
@@ -38,7 +38,7 @@
   --main-bg: #F5F0E3;
     /* Darker Beige to match store global background */
   --card-bg: #ffffff;
-    --card-border: transparent;
+    --card-border: rgba(18, 64, 60, 0.08);
       /* Removed as requested */
   
   --shadow-sm: 0 1px 2px rgba(18, 64, 60, 0.05);

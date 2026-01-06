@@ -78,6 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <nav className="admin-nav">
                         <div className="nav-label">Main Menu</div>
                         <NavLink href="/admin" icon="📊" label="Dashboard" active={pathname === '/admin'} />
+                        <NavLink href="/admin/daily" icon="📅" label="Daily Report" active={pathname?.startsWith('/admin/daily')} />
                         <NavLink href="/admin/orders" icon="🛍️" label="Orders" active={pathname?.startsWith('/admin/orders')} />
                         <NavLink href="/admin/products" icon="📦" label="Products" active={pathname?.startsWith('/admin/products')} />
                         <NavLink href="/admin/inventory" icon="📊" label="Inventory" active={pathname?.startsWith('/admin/inventory')} />
