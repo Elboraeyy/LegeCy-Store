@@ -41,6 +41,19 @@ export default function PaymentCallbackPage() {
         if (processedRef.current) return;
         processedRef.current = true;
 
+        // Check if we already processed payment and reloaded
+        const successOrderId = sessionStorage.getItem('payment_success_order');
+        if (successOrderId) {
+            console.log('Payment already processed - showing success UI');
+            sessionStorage.removeItem('payment_success_order');
+            // Use queueMicrotask to avoid synchronous setState within effect
+            queueMicrotask(() => {
+                setOrderId(successOrderId);
+                setStatus('success');
+            });
+            return;
+        }
+
         async function processPayment() {
             console.log('Processing payment callback...');
             console.log('URL indicates success:', urlIndicatesSuccess);
@@ -54,9 +67,7 @@ export default function PaymentCallbackPage() {
                 const result = await processPaymobCallback(paramsObject);
                 console.log('Server action result:', result);
 
-                if (result.orderId) {
-                    setOrderId(result.orderId);
-                }
+                const finalOrderId = result.orderId || merchantOrderId;
 
                 if (result.orderStatus) {
                     setOrderStatus(result.orderStatus);
@@ -71,13 +82,20 @@ export default function PaymentCallbackPage() {
                                   result.orderStatus === 'paid' || 
                                   urlIndicatesSuccess;
 
-                if (isSuccess) {
-                    console.log('Payment successful - setting cart clear flag and clearing cart');
-                    // Set flag FIRST - this ensures StoreContext won't reload cart on any refresh
+                if (isSuccess && finalOrderId) {
+                    console.log('Payment successful - clearing cart and reloading');
+                    // Set flags - one for cart clearing (consumed by StoreContext), one for success UI
                     sessionStorage.setItem(CART_CLEARED_FLAG, 'true');
-                    // Clear cart immediately
+                    sessionStorage.setItem('payment_success_order', finalOrderId);
+                    // Clear localStorage directly
+                    localStorage.removeItem('cart');
+                    // Reload to refresh StoreContext with cleared cart
+                    window.location.reload();
+                    return;
+                } else if (isSuccess) {
+                    // Success but no orderId - just clear and show
+                    sessionStorage.setItem(CART_CLEARED_FLAG, 'true');
                     clearCart();
-                    console.log('Cart cleared');
                     setStatus('success');
                 } else {
                     setStatus('failed');
@@ -87,9 +105,14 @@ export default function PaymentCallbackPage() {
                 
                 // Fallback: trust URL params if server action fails
                 if (urlIndicatesSuccess) {
+                    const merchantOrderId = paramsObject.merchant_order_id;
                     sessionStorage.setItem(CART_CLEARED_FLAG, 'true');
-                    clearCart();
-                    setStatus('success');
+                    if (merchantOrderId) {
+                        sessionStorage.setItem('payment_success_order', merchantOrderId);
+                    }
+                    localStorage.removeItem('cart');
+                    window.location.reload();
+                    return;
                 } else {
                     setErrorMessage(error instanceof Error ? error.message : 'Unknown error');
                     setStatus('failed');
