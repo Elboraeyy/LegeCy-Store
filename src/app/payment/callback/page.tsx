@@ -72,7 +72,12 @@ export default function PaymentCallbackPage() {
                                   urlIndicatesSuccess;
 
                 if (isSuccess) {
-                    clearCart();
+                    console.log('Payment successful - clearing cart');
+                    // Clear cart with slight delay to ensure state is updated
+                    setTimeout(() => {
+                        clearCart();
+                        console.log('Cart cleared');
+                    }, 100);
                     setStatus('success');
                 } else {
                     setStatus('failed');
