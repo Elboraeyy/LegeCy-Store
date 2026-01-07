@@ -1,20 +1,2 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/zombie-orders",
-      "schedule": "*/30 * * * *"
-    },
-    {
-      "path": "/api/cron/abandoned-cart",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/stock-alerts",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/reconciliation",
-      "schedule": "0 2 * * *"
-    }
-  ]
 }
