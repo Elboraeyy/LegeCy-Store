@@ -109,7 +109,7 @@ export type HeaderSettings = {
 const defaultGeneral: GeneralSettings = {
   storeName: "Legacy Store",
   storeEmail: "info@legecy.store",
-  storePhone: "+20 127 934 2177",
+  storePhone: "+20 127 843 2630",
   storeAddress: "Samanoud, Gharbia, Egypt",
   timezone: "Africa/Cairo",
   currency: "EGP",

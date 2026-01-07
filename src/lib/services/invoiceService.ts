@@ -204,7 +204,7 @@ export async function generateInvoiceHtml(orderId: string): Promise<string | nul
 
     <div class="footer">
       <p>Thank you for shopping with LegaCy!</p>
-      <p style="margin-top: 8px;">Questions? Contact us at support@legecy.store</p>
+      <p style="margin-top: 8px;">Questions? Contact us at info@legecy.store</p>
     </div>
   </div>
 </body>

@@ -292,7 +292,7 @@ export default function HelpSupportClient() {
                     </div>
                     <h4>Email Us</h4>
                     <p>Drop us a line anytime</p>
-                    <a href="mailto:support@legacy.store" className="contact-link">support@legacy.store</a>
+                    <a href="mailto:info@legecy.store" className="contact-link">info@legecy.store</a>
                   </motion.div>
 
                   <motion.div 
@@ -308,7 +308,7 @@ export default function HelpSupportClient() {
                     </div>
                     <h4>Call Us</h4>
                     <p>Mon-Sat, 10am - 10pm</p>
-                    <a href="tel:+201279342177" className="contact-link">+20 127 934 2177</a>
+                    <a href="tel:+201278432630" className="contact-link">+20 127 843 2630</a>
                   </motion.div>
 
                   <motion.div 

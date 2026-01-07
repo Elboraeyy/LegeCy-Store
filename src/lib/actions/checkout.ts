@@ -50,9 +50,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     }
     
     if (!await isPaymentMethodEnabled(input.paymentMethod)) {
-    if (!await isPaymentMethodEnabled(input.paymentMethod)) {
       return { success: false, error: `${input.paymentMethod === 'cod' ? 'Cash on delivery' : 'Online payment'} is currently unavailable.` };
-    }
     }
     
     if (input.couponCode && !switches.coupons_enabled) {
@@ -231,6 +229,13 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         ? OrderStatus.PaymentPending
         : OrderStatus.Pending;
 
+      // Get customer IP for fraud detection
+      const { headers } = await import('next/headers');
+      const headersList = await headers();
+      const customerIP = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() 
+        || headersList.get('x-real-ip') 
+        || 'unknown';
+
       const newOrder = await tx.order.create({
         data: {
           totalPrice: new Prisma.Decimal(finalTotal),
@@ -246,6 +251,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
           couponId: couponId,
           pointsEarned: pointsEarned,
           idempotencyKey: input.idempotencyKey || null, // Prevent duplicate orders
+          customerIP: customerIP, // Fraud detection
           items: {
             create: input.cartItems.map(item => ({
               productId: item.id,

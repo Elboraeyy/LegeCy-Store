@@ -1,11 +1,45 @@
 import type { NextConfig } from "next";
 
+// Security Headers for Production
+const securityHeaders = [
+  {
+    key: 'X-DNS-Prefetch-Control',
+    value: 'on'
+  },
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=63072000; includeSubDomains; preload'
+  },
+  {
+    key: 'X-Frame-Options',
+    value: 'DENY'
+  },
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff'
+  },
+  {
+    key: 'X-XSS-Protection',
+    value: '1; mode=block'
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin'
+  },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=()'
+  }
+];
+
 const nextConfig: NextConfig = {
-  experimental: {
-    // instrumentationHook: true, // Not needed in Next.js 15+? It is stable in 15? 
-    // Checking docs... in 13.2 it was experimental. In 15 it might be stable.
-    // Let's add it to be safe or if it's required.
-    // Actually, usually it's auto-detected if file exists in src/
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: securityHeaders,
+      },
+    ];
   },
   images: {
     remotePatterns: [
@@ -22,3 +56,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
