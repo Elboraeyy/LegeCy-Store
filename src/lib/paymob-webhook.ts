@@ -1,5 +1,3 @@
-'use server';
-
 /**
  * Paymob Webhook HMAC Verification
  * 
