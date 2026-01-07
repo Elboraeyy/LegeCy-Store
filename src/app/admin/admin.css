@@ -1331,7 +1331,9 @@ input[type="number"].form-input {
                                                                 @media (max-width: 768px) {
                                                                   .admin-table-container {
                                                                     overflow-x: auto;
-                                                                  }                                                                                                  .admin-table {
+                                                                  
+}                                
+                                                                  .admin-table {
                                                                     min-width: 600px;
                                                                   }
                                 
@@ -2775,4 +2777,204 @@ input[type="number"].form-input {
   font-size: 13px;
   line-height: 1.5;
   font-style: italic;
+}
+/* ============================================
+   Mobile Responsive Styles
+   ============================================ */
+
+/* Mobile Menu Toggle Button (Hamburger) */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1000;
+  width: 48px;
+  height: 48px;
+  background: var(--admin-bg-dark);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(18, 64, 60, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-menu-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(18, 64, 60, 0.35);
+}
+
+.mobile-menu-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Hamburger Lines */
+.hamburger-line {
+  display: block;
+  width: 22px;
+  height: 2.5px;
+  background: #ffffff;
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+/* Hamburger Animation - Active State (X shape) */
+.mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+  transform: translateY(7.5px) rotate(45deg);
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+  transform: translateY(-7.5px) rotate(-45deg);
+}
+
+/* Mobile Overlay */
+.mobile-sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+  opacity: 0;
+  visibility: hidden;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Mobile Responsive Breakpoint */
+@media screen and (max-width: 1024px) {
+
+  /* Show hamburger menu */
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  /* Show overlay on mobile */
+  .mobile-sidebar-overlay {
+    display: block;
+  }
+
+  /* Hide sidebar by default on mobile */
+  .admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+    z-index: 50;
+    margin-right: 0;
+    border-radius: 0 30px 30px 0;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Show sidebar when open */
+  .admin-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Adjust main content */
+  .admin-main {
+    padding: 80px 20px 24px 20px;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  /* Adjust admin header for mobile */
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+
+  .admin-title {
+    font-size: 28px;
+  }
+
+  /* Admin grid responsive */
+  .admin-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Table responsive */
+  .admin-table-container {
+    overflow-x: auto;
+  }
+
+  .admin-table {
+    min-width: 600px;
+  }
+
+  /* Cards responsive */
+  .admin-card {
+    padding: 16px;
+  }
+}
+
+/* Smaller mobile screens */
+@media screen and (max-width: 640px) {
+  .mobile-menu-toggle {
+    top: 12px;
+    left: 12px;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+  }
+
+  .hamburger-line {
+    width: 20px;
+  }
+
+  .admin-main {
+    padding: 72px 16px 20px 16px;
+  }
+
+  .admin-title {
+    font-size: 24px;
+  }
+
+  .admin-subtitle {
+    font-size: 13px;
+  }
+
+  /* Buttons on mobile */
+  .admin-btn {
+    padding: 10px 18px;
+    font-size: 11px;
+  }
+
+  /* Tabs on mobile - make scrollable */
+  .admin-tabs {
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-tab-item {
+    padding: 8px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
 }

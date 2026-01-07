@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import './admin.css';
@@ -55,6 +55,21 @@ function SidebarProfile() {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isLogin = pathname?.includes('/login');
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const closeSidebar = () => setSidebarOpen(false);
+
+    // Prevent scrolling when sidebar is open on mobile
+    useEffect(() => {
+        if (sidebarOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [sidebarOpen]);
 
     if (isLogin) {
         return <div className="admin-login-wrapper">{children}</div>;
@@ -66,9 +81,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {/* Keyboard Shortcuts (global listener) */}
                 <KeyboardShortcuts />
 
+                {/* Mobile Hamburger Button */}
+                <button 
+                    className={`mobile-menu-toggle ${sidebarOpen ? 'active' : ''}`}
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    aria-label="Toggle menu"
+                >
+                    <span className="hamburger-line"></span>
+                    <span className="hamburger-line"></span>
+                    <span className="hamburger-line"></span>
+                </button>
+
+                {/* Mobile Overlay */}
+                <div 
+                    className={`mobile-sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                />
+
                 {/* Sidebar */}
-                <aside className="admin-sidebar">
-                    <Link href="/admin" className="admin-brand" style={{ textDecoration: 'none', display: 'block' }}>
+                <aside className={`admin-sidebar ${sidebarOpen ? 'mobile-open' : ''}`}>
+                    <Link href="/admin" className="admin-brand" style={{ textDecoration: 'none', display: 'block' }} onClick={closeSidebar}>
                         <div className="brand-text">LEGACY</div>
                     </Link>
 
@@ -77,31 +109,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                     <nav className="admin-nav">
                         <div className="nav-label">Main Menu</div>
-                        <NavLink href="/admin" icon="📊" label="Dashboard" active={pathname === '/admin'} />
-                        <NavLink href="/admin/daily" icon="📅" label="Daily Report" active={pathname?.startsWith('/admin/daily')} />
-                        <NavLink href="/admin/orders" icon="🛍️" label="Orders" active={pathname?.startsWith('/admin/orders')} />
-                        <NavLink href="/admin/products" icon="📦" label="Products" active={pathname?.startsWith('/admin/products')} />
-                        <NavLink href="/admin/procurement" icon="🚛" label="Procurement" active={pathname?.startsWith('/admin/procurement')} />
-                        <NavLink href="/admin/inventory" icon="📊" label="Inventory" active={pathname?.startsWith('/admin/inventory')} />
+                        <NavLink href="/admin" icon="📊" label="Dashboard" active={pathname === '/admin'} onClick={closeSidebar} />
+                        <NavLink href="/admin/daily" icon="📅" label="Daily Report" active={pathname?.startsWith('/admin/daily')} onClick={closeSidebar} />
+                        <NavLink href="/admin/orders" icon="🛍️" label="Orders" active={pathname?.startsWith('/admin/orders')} onClick={closeSidebar} />
+                        <NavLink href="/admin/products" icon="📦" label="Products" active={pathname?.startsWith('/admin/products')} onClick={closeSidebar} />
+                        <NavLink href="/admin/procurement" icon="🚛" label="Procurement" active={pathname?.startsWith('/admin/procurement')} onClick={closeSidebar} />
+                        <NavLink href="/admin/inventory" icon="📊" label="Inventory" active={pathname?.startsWith('/admin/inventory')} onClick={closeSidebar} />
                         {pathname?.startsWith('/admin/inventory') && (
                             <div style={{ marginLeft: '24px', marginBottom: '8px' }}>
-                                <NavLink href="/admin/inventory/warehouses" icon="🏭" label="Warehouses" active={pathname === '/admin/inventory/warehouses'} />
-                                <NavLink href="/admin/inventory/transfers" icon="🔄" label="Transfers" active={pathname === '/admin/inventory/transfers'} />
-                                <NavLink href="/admin/inventory/alerts" icon="⚠️" label="Alerts" active={pathname === '/admin/inventory/alerts'} />
-                                <NavLink href="/admin/inventory/counts" icon="📋" label="Stock Counts" active={pathname === '/admin/inventory/counts'} />
-                                <NavLink href="/admin/inventory/reports" icon="📈" label="Reports" active={pathname === '/admin/inventory/reports'} />
+                                <NavLink href="/admin/inventory/warehouses" icon="🏭" label="Warehouses" active={pathname === '/admin/inventory/warehouses'} onClick={closeSidebar} />
+                                <NavLink href="/admin/inventory/transfers" icon="🔄" label="Transfers" active={pathname === '/admin/inventory/transfers'} onClick={closeSidebar} />
+                                <NavLink href="/admin/inventory/alerts" icon="⚠️" label="Alerts" active={pathname === '/admin/inventory/alerts'} onClick={closeSidebar} />
+                                <NavLink href="/admin/inventory/counts" icon="📋" label="Stock Counts" active={pathname === '/admin/inventory/counts'} onClick={closeSidebar} />
+                                <NavLink href="/admin/inventory/reports" icon="📈" label="Reports" active={pathname === '/admin/inventory/reports'} onClick={closeSidebar} />
                             </div>
                         )}
-                        <NavLink href="/admin/customers" icon="👥" label="Customers" active={pathname?.startsWith('/admin/customers')} />
-                        <NavLink href="/admin/categories" icon="📁" label="Categories" active={pathname?.startsWith('/admin/categories')} />
-                        <NavLink href="/admin/reviews" icon="💬" label="Reviews" active={pathname?.startsWith('/admin/reviews')} />
+                        <NavLink href="/admin/customers" icon="👥" label="Customers" active={pathname?.startsWith('/admin/customers')} onClick={closeSidebar} />
+                        <NavLink href="/admin/categories" icon="📁" label="Categories" active={pathname?.startsWith('/admin/categories')} onClick={closeSidebar} />
+                        <NavLink href="/admin/reviews" icon="💬" label="Reviews" active={pathname?.startsWith('/admin/reviews')} onClick={closeSidebar} />
                         
                         <div className="nav-label">Management</div>
-                        <NavLink href="/admin/finance" icon="💰" label="Finance" active={pathname?.startsWith('/admin/finance')} />
-                        <NavLink href="/admin/team" icon="👨‍💼" label="Team" active={pathname?.startsWith('/admin/team')} />
-                        <NavLink href="/admin/analytics" icon="📈" label="Analytics" active={pathname?.startsWith('/admin/analytics')} />
-                        <NavLink href="/admin/activity" icon="📋" label="Activity Log" active={pathname?.startsWith('/admin/activity')} />
-                        <NavLink href="/admin/config" icon="⚙️" label="Settings" active={pathname?.startsWith('/admin/config')} />
+                        <NavLink href="/admin/finance" icon="💰" label="Finance" active={pathname?.startsWith('/admin/finance')} onClick={closeSidebar} />
+                        <NavLink href="/admin/team" icon="👨‍💼" label="Team" active={pathname?.startsWith('/admin/team')} onClick={closeSidebar} />
+                        <NavLink href="/admin/analytics" icon="📈" label="Analytics" active={pathname?.startsWith('/admin/analytics')} onClick={closeSidebar} />
+                        <NavLink href="/admin/activity" icon="📋" label="Activity Log" active={pathname?.startsWith('/admin/activity')} onClick={closeSidebar} />
+                        <NavLink href="/admin/config" icon="⚙️" label="Settings" active={pathname?.startsWith('/admin/config')} onClick={closeSidebar} />
                         
                         <div style={{ flex: 1 }}></div>
 
@@ -127,11 +159,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
 }
 
-function NavLink({ href, icon, label, active }: { href: string; icon: string; label: string; active?: boolean }) {
+function NavLink({ href, icon, label, active, onClick }: { href: string; icon: string; label: string; active?: boolean; onClick?: () => void }) {
     return (
-        <Link href={href} className={`admin-nav-item ${active ? 'active' : ''}`}>
+        <Link href={href} className={`admin-nav-item ${active ? 'active' : ''}`} onClick={onClick}>
             <span className="nav-icon">{icon}</span>
             <span>{label}</span>
         </Link>
     );
 }
+
