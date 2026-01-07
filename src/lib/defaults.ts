@@ -10,9 +10,9 @@ import type {
 
 export const defaultGeneral: GeneralSettings = {
   storeName: "Legacy Store",
-  storeEmail: "contact@legacy.com",
-  storePhone: "+20 123 456 7890",
-  storeAddress: "Cairo, Egypt",
+  storeEmail: "info@legecy.store",
+  storePhone: "+20 127 934 2177",
+  storeAddress: "Samanoud, Gharbia, Egypt",
   timezone: "Africa/Cairo",
   currency: "EGP",
   currencySymbol: "EGP",
@@ -98,7 +98,7 @@ export const defaultHeader: HeaderSettings = {
   showWishlist: true,
   stickyHeader: true,
   announcementEnabled: false,
-  announcementText: "Free shipping on orders over 1000 EGP",
+  announcementText: "Free shipping on orders over 1500 EGP to Gharbia & Dakahlia",
   announcementBgColor: "#12403C",
   announcementTextColor: "#ffffff",
 };

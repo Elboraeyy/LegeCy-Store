@@ -14,12 +14,12 @@ const faqData: FAQItem[] = [
   {
     category: "Shipping & Delivery",
     question: "What is the delivery time?",
-    answer: "We deliver orders within 2-5 business days in Cairo and Giza, and 5-7 business days for other governorates. You will receive a tracking number as soon as your order leaves our warehouse."
+    answer: "We ship from Samanoud, Gharbia. Orders to Gharbia & Dakahlia arrive in 1-2 business days. Cairo, Giza & Alexandria take 2-4 days. Other areas take 3-7 days depending on distance. You will receive a tracking number as soon as your order ships."
   },
   {
     category: "Shipping & Delivery",
     question: "Is shipping free?",
-    answer: "Yes! Shipping is free on all orders within Egypt. There are no hidden or additional fees."
+    answer: "Free shipping is available for orders above 1,500 EGP to Gharbia and Dakahlia governorates. For other areas, shipping fees are calculated at checkout based on your location."
   },
   {
     category: "Shipping & Delivery",
