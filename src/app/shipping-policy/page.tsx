@@ -17,7 +17,7 @@ export default function ShippingPolicyPage() {
             </svg>
           </div>
           <h1>Shipping Policy</h1>
-          <p>Fast and secure delivery across Egypt</p>
+          <p>Fast delivery from Samanoud to all of Egypt</p>
           <div className="last-updated">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
@@ -33,7 +33,7 @@ export default function ShippingPolicyPage() {
         <div className="container">
           <div className="policy-card">
             
-            {/* Delivery Areas */}
+            {/* Our Location */}
             <div className="policy-section">
               <div className="policy-section-header">
                 <div className="policy-section-icon">
@@ -42,11 +42,11 @@ export default function ShippingPolicyPage() {
                     <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </div>
-                <h2>Delivery Areas</h2>
+                <h2>Our Location</h2>
               </div>
               <p>
-                We deliver to all governorates across Egypt. Whether you&apos;re in Cairo, Alexandria, 
-                the Delta, or Upper Egypt, your premium watches and accessories will reach you safely.
+                LegaCy ships from our headquarters in <strong>Samanoud, Gharbia Governorate</strong>. 
+                All orders are carefully prepared and shipped directly to your doorstep across Egypt.
               </p>
             </div>
 
@@ -60,7 +60,7 @@ export default function ShippingPolicyPage() {
                 </div>
                 <h2>Delivery Times</h2>
               </div>
-              <p>Estimated delivery times based on your location:</p>
+              <p>Estimated delivery times based on distance from Samanoud:</p>
               <table className="policy-table">
                 <thead>
                   <tr>
@@ -70,23 +70,60 @@ export default function ShippingPolicyPage() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Cairo &amp; Giza</td>
-                    <td>1-3 business days</td>
+                    <td>Gharbia &amp; Dakahlia</td>
+                    <td>1-2 business days</td>
                   </tr>
                   <tr>
-                    <td>Alexandria &amp; Delta</td>
+                    <td>Sharqia, Kafr El-Sheikh &amp; Monufia</td>
+                    <td>2-3 business days</td>
+                  </tr>
+                  <tr>
+                    <td>Cairo, Giza &amp; Alexandria</td>
                     <td>2-4 business days</td>
                   </tr>
                   <tr>
-                    <td>Upper Egypt</td>
-                    <td>3-5 business days</td>
+                    <td>Other Delta Governorates</td>
+                    <td>3-4 business days</td>
                   </tr>
                   <tr>
-                    <td>Remote Areas</td>
+                    <td>Upper Egypt (Beni Suef to Assiut)</td>
+                    <td>4-5 business days</td>
+                  </tr>
+                  <tr>
+                    <td>Upper Egypt (Sohag to Aswan)</td>
                     <td>5-7 business days</td>
+                  </tr>
+                  <tr>
+                    <td>Red Sea, Sinai &amp; Remote Areas</td>
+                    <td>6-8 business days</td>
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            {/* Free Shipping */}
+            <div className="policy-section">
+              <div className="policy-section-header">
+                <div className="policy-section-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                </div>
+                <h2>Free Shipping</h2>
+              </div>
+              <div className="policy-info-box">
+                <h4>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                  Gharbia &amp; Dakahlia Special
+                </h4>
+                <p>Enjoy <strong>FREE shipping</strong> on all orders above <strong>1,500 EGP</strong> to Gharbia and Dakahlia governorates!</p>
+              </div>
+              <p>
+                For other governorates, shipping fees are calculated at checkout based on your location 
+                and order weight.
+              </p>
             </div>
 
             {/* Premium Packaging */}
@@ -100,8 +137,8 @@ export default function ShippingPolicyPage() {
                 <h2>Premium Packaging</h2>
               </div>
               <p>
-                Every order is carefully packaged to ensure your watches, wallets, and accessories 
-                arrive in perfect condition. Our packaging includes:
+                Every order is carefully packaged at our Samanoud facility to ensure your watches, 
+                wallets, and accessories arrive in perfect condition:
               </p>
               <ul className="policy-list">
                 <li>Protective boxes for watches with cushioning</li>
@@ -109,30 +146,6 @@ export default function ShippingPolicyPage() {
                 <li>Sealed packaging for perfumes</li>
                 <li>Discreet outer packaging for privacy</li>
               </ul>
-            </div>
-
-            {/* Shipping Costs */}
-            <div className="policy-section">
-              <div className="policy-section-header">
-                <div className="policy-section-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h2>Shipping Costs</h2>
-              </div>
-              <p>
-                Shipping is calculated at checkout based on your location and order total.
-              </p>
-              <div className="policy-info-box">
-                <h4>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  Free Shipping
-                </h4>
-                <p>Enjoy <strong>FREE shipping</strong> on all orders above <strong>500 EGP</strong> within Cairo and Giza!</p>
-              </div>
             </div>
 
             {/* Order Tracking */}
@@ -147,9 +160,8 @@ export default function ShippingPolicyPage() {
                 <h2>Order Tracking</h2>
               </div>
               <p>
-                Once your order ships, you&apos;ll receive an SMS and email with tracking information. 
-                Track your watch, wallet, or accessories in real-time through your account dashboard 
-                or the courier&apos;s website.
+                Once your order ships from Samanoud, you&apos;ll receive an SMS and email with tracking 
+                information. Track your package in real-time through your account or the courier&apos;s website.
               </p>
             </div>
 
@@ -172,7 +184,7 @@ export default function ShippingPolicyPage() {
             {/* Contact Box */}
             <div className="policy-contact-box">
               <h3>Questions About Your Delivery?</h3>
-              <p>Our team is here to help</p>
+              <p>Our team in Samanoud is here to help</p>
               <a href="mailto:info@legecy.store" className="contact-email">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
