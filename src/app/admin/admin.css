@@ -2933,8 +2933,11 @@ input[type="number"].form-input {
   }
 }
 
-/* Smaller mobile screens */
+/* Smaller mobile screens - COMPREHENSIVE MOBILE RESPONSIVE */
 @media screen and (max-width: 640px) {
+  /* ============================================
+       PHASE 1: Core Variables & Base Typography
+       ============================================ */
   .mobile-menu-toggle {
     top: 12px;
     left: 12px;
@@ -2947,34 +2950,845 @@ input[type="number"].form-input {
     width: 20px;
   }
 
+    /* ============================================
+       PHASE 2: Main Content & Header
+       ============================================ */
   .admin-main {
-    padding: 72px 16px 20px 16px;
+    padding: 68px 14px 20px 14px;
+    }
+    
+    .admin-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
   }
 
   .admin-title {
-    font-size: 24px;
+    font-size: 22px;
+      margin-bottom: 4px;
   }
 
   .admin-subtitle {
+    font-size: 12px;
+      line-height: 1.4;
+    }
+    
+    /* ============================================
+         PHASE 3: Cards & Stats
+         ============================================ */
+    
+    .admin-card {
+      padding: 14px;
+      border-radius: 14px;
+    }
+    
+    .admin-card:hover {
+      transform: none;
+      /* Disable hover lift on mobile */
+    }
+    
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+    }
+    
+    .stat-value {
+      font-size: 26px;
+    }
+    
+    .admin-grid {
+      grid-template-columns: 1fr !important;
+      gap: 12px;
+    }
+    
+    /* Mini KPI Cards */
+    .mini-kpi-card {
+      padding: 12px 14px;
+    }
+    
+    /* Analytics KPI Grid */
+    .analytics-kpi-grid {
+      grid-template-columns: 1fr !important;
+      gap: 12px;
+    }
+    
+    .analytics-kpi-grid.secondary {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 10px;
+    }
+    
+    .analytics-charts-grid {
+      grid-template-columns: 1fr !important;
+      gap: 16px;
+    }
+    
+    .analytics-bottom-grid {
+      grid-template-columns: 1fr !important;
+      gap: 16px;
+    }
+    
+    .analytics-section-title {
+      font-size: 18px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+    }
+    
+    .admin-card.chart-card {
+      min-height: 280px;
+    }
+    
+    .chart-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    
+    /* ============================================
+         PHASE 4: Tables
+         ============================================ */
+    
+    .admin-table-container {
+      border-radius: 14px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .admin-table {
+      min-width: 550px;
+    }
+    
+    .admin-table th {
+      padding: 12px 14px;
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+    
+    .admin-table td {
+      padding: 12px 14px;
     font-size: 13px;
   }
 
-  /* Buttons on mobile */
+    /* ============================================
+       PHASE 5: Forms
+       ============================================ */
+  
+    .form-input {
+      padding: 10px 14px;
+      font-size: 14px;
+      border-radius: 10px;
+    }
+  
+    .admin-form-group label {
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+  
+    textarea.form-input {
+      min-height: 80px;
+    }
+  
+    select.form-input {
+      padding: 10px 40px 10px 14px;
+      font-size: 13px;
+      background-position: right 12px center;
+      background-size: 12px;
+    }
+  
+    /* Settings Form Fields */
+    .settings-field-label {
+      font-size: 11px;
+    }
+  
+    .settings-field-input input,
+    .settings-field-input textarea,
+    .settings-field-input select {
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+  
+    .settings-grid,
+    .settings-grid-3 {
+      grid-template-columns: 1fr !important;
+      gap: 14px;
+    }
+  
+    /* ============================================
+       PHASE 6: Buttons & Actions
+       ============================================ */
   .admin-btn {
-    padding: 10px 18px;
+    padding: 10px 16px;
+      font-size: 11px;
+      gap: 6px;
+      width: 100%;
+      justify-content: center;
+    }
+    
+    /* Allow inline buttons when wrapped in flex container */
+    .admin-header .admin-btn,
+    .confirm-dialog-actions .admin-btn,
+    .settings-actions .admin-btn {
+      width: auto;
+    }
+    
+    .admin-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    
+    /* Export Button */
+    .export-btn {
+      padding: 8px 14px;
+      font-size: 11px;
+    }
+    
+    /* Date Range Picker */
+    .date-range-picker {
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    
+    .date-range-btn {
+      padding: 6px 12px;
+      font-size: 11px;
+    }
+    
+    /* ============================================
+         PHASE 7: Toolbar & Search
+         ============================================ */
+    
+    .admin-toolbar {
+      flex-direction: column;
+      border-radius: 14px;
+      padding: 12px;
+      gap: 12px;
+    }
+    
+    .admin-tabs-container {
+      width: 100%;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      padding-bottom: 4px;
+      gap: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .admin-tab-pill {
+      padding: 8px 14px;
     font-size: 11px;
+    flex-shrink: 0;
   }
 
-  /* Tabs on mobile - make scrollable */
+    .admin-search-wrapper {
+      width: 100%;
+    }
+  
+    .admin-search-input {
+      padding: 10px 14px 10px 38px;
+      font-size: 13px;
+    }
+  
+    .admin-search-icon {
+      left: 14px;
+      font-size: 13px;
+    }
+  
+    /* Tabs */
   .admin-tabs {
+    display: flex;
     overflow-x: auto;
     max-width: 100%;
+    border-radius: 14px;
     -webkit-overflow-scrolling: touch;
   }
 
   .admin-tab-item {
     padding: 8px 14px;
+    font-size: 11px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    
+    /* ============================================
+         PHASE 8: Modals & Dialogs
+         ============================================ */
+    
+    .confirm-dialog-overlay,
+    .quick-search-overlay {
+      padding: 16px;
+      align-items: flex-start;
+      padding-top: 10vh;
+    }
+    
+    .confirm-dialog {
+      padding: 20px;
+      width: 100%;
+      max-width: none;
+      border-radius: 16px;
+    }
+    
+    .confirm-dialog-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+    
+    .confirm-dialog-title {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    
+    .confirm-dialog-message {
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    
+    .confirm-dialog-actions {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .confirm-dialog-actions button {
+      width: 100%;
+    }
+    
+    /* Quick Search Modal */
+    .quick-search-modal {
+      width: 100%;
+      max-width: none;
+      border-radius: 16px;
+    }
+    
+    .quick-search-input-wrapper {
+      padding: 14px 16px;
+      gap: 10px;
+    }
+    
+    .quick-search-input {
+      font-size: 16px;
+      /* Prevent zoom on iOS */
+    }
+    
+    .quick-search-item {
+      padding: 10px 16px;
+      gap: 10px;
+    }
+    
+    .quick-search-section-title {
+      padding: 8px 16px;
+      font-size: 10px;
+    }
+    
+    /* Shortcuts Modal */
+    .shortcuts-modal {
+      padding: 20px;
+      width: 100%;
+      max-width: none;
+    }
+    
+    .shortcut-row {
+      padding: 6px 0;
+    }
+    
+    .shortcut-key kbd {
+      padding: 3px 6px;
+      font-size: 11px;
+    }
+    
+    /* ============================================
+         PHASE 9: Navigation & Sidebar
+         ============================================ */
+    
+    .sidebar-profile {
+      padding: 6px 10px;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .profile-avatar {
+      width: 28px;
+      height: 28px;
+      font-size: 12px;
+    }
+    
+    .profile-name {
+      font-size: 11px;
+    }
+    
+    .profile-role {
+      font-size: 9px;
+    }
+    
+    .nav-label {
+      font-size: 9px;
+      margin: 10px 0 4px 10px;
+    }
+    
+    .admin-nav-item {
+      padding: 10px 18px;
+      font-size: 13px;
+      gap: 10px;
+    }
+    
+    .admin-logout-btn {
+      padding: 10px 20px;
     font-size: 12px;
-    white-space: nowrap;
+    min-width: 120px;
+      gap: 8px;
+    }
+    
+    /* Brand */
+    .admin-brand {
+      padding: 0 12px 18px 18px;
+    }
+    
+    .brand-text {
+      font-size: 18px;
+    }
+    
+    /* ============================================
+         PHASE 10: Page-Specific Components
+         ============================================ */
+    
+    /* Status Badges */
+    .status-badge {
+      padding: 3px 10px;
+      font-size: 10px;
+    }
+    
+    /* Notification Panel */
+    .notification-panel {
+      width: 280px;
+      right: -50px;
+    }
+    
+    .notification-header {
+      padding: 12px;
+      font-size: 13px;
+    }
+    
+    .notification-item {
+      padding: 10px 12px;
+      gap: 10px;
+    }
+    
+    .notification-icon {
+      font-size: 18px;
+    }
+    
+    .notification-title {
+      font-size: 12px;
+    }
+    
+    .notification-time {
+      font-size: 10px;
+    }
+    
+    /* Bulk Actions Bar */
+    .bulk-actions-bar {
+      padding: 10px 14px;
+      flex-direction: column;
+      gap: 10px;
+      text-align: center;
+    }
+    
+    .bulk-actions-bar .actions {
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .bulk-actions-bar button {
+      padding: 6px 12px;
+      font-size: 11px;
+    }
+    
+    /* Settings Layout */
+    .settings-layout {
+      gap: 20px;
+    }
+    
+    .settings-sidebar {
+      padding: 16px;
+      border-radius: 14px;
+    }
+    
+    .settings-sidebar-header {
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+    }
+    
+    .settings-sidebar-title {
+      font-size: 20px;
+    }
+    
+    .settings-nav {
+      gap: 6px;
+    }
+    
+    .settings-nav-item {
+      padding: 8px 12px;
+    }
+    
+    .settings-section {
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+    }
+    
+    .settings-section-header {
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+    }
+    
+    .settings-section-title {
+      font-size: 17px;
+    }
+    
+    .settings-section-icon {
+      font-size: 20px;
+    }
+    
+    .settings-page-title {
+      font-size: 22px;
+    }
+    
+    .settings-page-description {
+      font-size: 13px;
+    }
+    
+    .settings-actions {
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 0;
+    }
+    
+    .settings-actions .admin-btn {
+      width: 100%;
+    }
+    
+    /* Toggle Switch - Touch Friendly */
+    .toggle-switch {
+      width: 48px;
+      height: 26px;
+    }
+    
+    .toggle-switch-thumb {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .toggle-switch--checked .toggle-switch-thumb {
+      transform: translateX(22px);
+    }
+    
+    .settings-toggle-row {
+      padding: 12px 0;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .settings-toggle-label {
+      font-size: 13px;
+    }
+    
+    .settings-toggle-description {
+      font-size: 11px;
+    }
+    
+    /* Image Uploader */
+    .image-uploader-dropzone {
+      padding: 24px;
+      min-height: 160px;
+    }
+    
+    .image-uploader-text {
+      font-size: 14px;
+    }
+    
+    .image-uploader-hint {
+      font-size: 11px;
+    }
+    
+    /* Color Picker */
+    .color-picker-trigger {
+      padding: 8px 12px;
+      gap: 10px;
+    }
+    
+    .color-picker-swatch {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .color-picker-value {
+      font-size: 13px;
+    }
+    
+    .color-picker-dropdown {
+      padding: 12px;
+      min-width: 200px;
+    }
+    
+    .color-picker-presets {
+      gap: 6px;
+    }
+    
+    .color-picker-preset {
+      width: 24px;
+      height: 24px;
+    }
+    
+    /* Impact Preview */
+    .impact-preview {
+      padding: 12px;
+      margin: 10px 0;
+    }
+    
+    .impact-preview-header {
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    
+    .impact-icon {
+      font-size: 16px;
+    }
+    
+    .impact-changes,
+    .impact-example {
+      padding: 10px;
+    }
+    
+    .impact-changes strong,
+    .impact-example strong {
+      font-size: 12px;
+    }
+    
+    .impact-changes li,
+    .impact-example-box {
+      font-size: 12px;
+    }
+    
+    /* Admin Dropdown */
+    .admin-dropdown {
+      min-width: 140px;
+    }
+    
+    .admin-dropdown__trigger {
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+    
+    .admin-dropdown__option {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    
+    /* Settings Tabs */
+    .settings-tabs {
+      padding: 12px;
+      gap: 6px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .settings-tab {
+      padding: 8px 14px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    }
+    
+    /* ============================================
+       Extra Small Mobile (320px - 375px)
+       ============================================ */
+    @media screen and (max-width: 375px) {
+      .admin-main {
+        padding: 64px 10px 16px 10px;
+      }
+    
+      .admin-title {
+        font-size: 20px;
+      }
+    
+      .admin-subtitle {
+        font-size: 11px;
+      }
+    
+      .stat-value {
+        font-size: 22px;
+      }
+    
+      .admin-card {
+        padding: 12px;
+        border-radius: 12px;
+      }
+    
+      .admin-btn {
+        padding: 8px 14px;
+        font-size: 10px;
+      }
+    
+      .mobile-menu-toggle {
+        width: 40px;
+        height: 40px;
+        top: 10px;
+        left: 10px;
+      }
+    
+      .hamburger-line {
+        width: 18px;
+      }
+    
+      .admin-toolbar {
+        padding: 10px;
+        gap: 10px;
+      }
+    
+      .admin-tab-pill {
+        padding: 6px 12px;
+        font-size: 10px;
+      }
+    
+      .admin-table th,
+      .admin-table td {
+        padding: 10px 12px;
+      }
+    
+      .form-input {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+    
+      .confirm-dialog {
+        padding: 16px;
+      }
+    
+      .confirm-dialog-title {
+        font-size: 16px;
+      }
+    
+      .notification-panel {
+        width: 260px;
+        right: -40px;
+      }
+    
+      .settings-section {
+        padding: 14px;
+      }
+    
+      .settings-sidebar {
+        padding: 14px;
+      }
+    
+      .settings-page-title {
+        font-size: 20px;
+      }
+    }
+    
+    /* ============================================
+       Tablet Portrait (768px - 1024px)
+       ============================================ */
+    @media screen and (min-width: 641px) and (max-width: 768px) {
+      .admin-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+    
+      .analytics-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    
+      .stat-value {
+        font-size: 30px;
+      }
+    
+      .admin-title {
+        font-size: 26px;
+      }
+    
+      .admin-card {
+        padding: 18px;
+      }
+    }
+    
+    /* ============================================
+       Touch-Friendly Global Improvements
+       ============================================ */
+    @media (hover: none) and (pointer: coarse) {
+    
+      /* All tappable elements should have minimum 44x44 touch target */
+      .admin-btn,
+      .admin-tab-item,
+      .admin-tab-pill,
+      .admin-nav-item,
+      .settings-nav-item,
+      .admin-dropdown__trigger,
+      .toggle-switch,
+      .date-range-btn,
+      .export-btn,
+      .settings-tab {
+        min-height: 44px;
+      }
+    
+      /* Remove hover effects on touch devices */
+      .admin-card:hover {
+        transform: none;
+        box-shadow: var(--shadow-sm);
+      }
+    
+      .admin-btn:hover {
+        transform: none;
+      }
+    
+      .admin-logout-btn:hover {
+        transform: none;
+      }
+    }
+    
+    /* ============================================
+       Landscape Mobile Optimizations
+       ============================================ */
+    @media screen and (max-width: 896px) and (orientation: landscape) {
+      .admin-main {
+        padding-top: 60px;
+      }
+    
+      .mobile-menu-toggle {
+        top: 8px;
+        left: 8px;
+        width: 40px;
+        height: 40px;
+      }
+    
+      .admin-sidebar {
+        width: 240px;
+      }
+    
+      .confirm-dialog-overlay {
+        padding-top: 5vh;
+      }
+    }
+    
+    /* Print Styles - Hide navigation */
+    @media print {
+    
+      .admin-sidebar,
+      .mobile-menu-toggle,
+      .mobile-sidebar-overlay,
+      .admin-toolbar,
+      .admin-logout-btn {
+        display: none !important;
+      }
+    
+      .admin-main {
+        padding: 0;
+        margin: 0;
   }
 }
