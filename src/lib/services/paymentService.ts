@@ -118,8 +118,11 @@ export async function confirmPaymentIntent(intentId: string) {
                 quantity: item.quantity,
                 price: Number(item.price)
             })),
+            subtotal: orderTotal,
+            shipping: 0,
             total: orderTotal,
-            shippingAddress: `${intent.order.shippingAddress || ''}, ${intent.order.shippingCity || ''}`
+            shippingAddress: `${intent.order.shippingAddress || ''}, ${intent.order.shippingCity || ''}`,
+            paymentMethod: intent.order.paymentMethod || 'paymob'
         }).catch(err => {
             logger.error('Failed to send payment confirmation email', { orderId: intent.orderId, error: err });
         });
