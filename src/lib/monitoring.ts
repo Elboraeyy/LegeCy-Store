@@ -297,7 +297,7 @@ async function sendCriticalAlert(alert: AlertPayload): Promise<void> {
       const resend = new Resend(process.env.RESEND_API_KEY);
       
       await resend.emails.send({
-        from: 'alerts@legacy.com',
+        from: 'alerts@legecy.store',
         to: adminEmail,
         subject: `[CRITICAL] ${alert.type}: ${alert.message}`,
         html: `

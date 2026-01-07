@@ -192,6 +192,9 @@ model Order {
   // Order source tracking
   orderSource    String        @default("online") // online, whatsapp, instagram, facebook, call, pos
 
+  // Fraud detection
+  customerIP     String?       // IP address for fraud detection
+
   // Coupon usage tracking
   couponUsage   CouponUsage?
 

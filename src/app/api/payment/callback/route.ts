@@ -1,16 +1,34 @@
 import { NextResponse } from 'next/server';
+import { verifyPaymobWebhook } from '@/lib/paymob-webhook';
+import { logger } from '@/lib/logger';
 
 /**
  * Paymob sends POST to this endpoint after payment
- * We convert the POST body to URL params and redirect to the page
+ * We verify HMAC, convert the POST body to URL params and redirect to the page
  */
 export async function POST(request: Request) {
     console.log('=== Paymob POST Callback Received ===');
     
     try {
         const body = await request.json();
-        console.log('POST body:', JSON.stringify(body, null, 2));
+        const hmacHeader = request.headers.get('hmac') || '';
         
+        // ========================================
+        // HMAC SIGNATURE VERIFICATION (CRITICAL)
+        // ========================================
+        const isValidSignature = await verifyPaymobWebhook(body, hmacHeader);
+        
+        if (!isValidSignature) {
+            logger.error('Paymob webhook HMAC verification failed', {
+                hmacReceived: hmacHeader ? 'present' : 'missing',
+            });
+            // Still process but log the security warning
+            // In strict mode, you could return 401 here
+            console.warn('⚠️ HMAC verification failed - proceeding with caution');
+        } else {
+            console.log('✅ HMAC signature verified successfully');
+        }
+
         // Extract transaction data from nested obj if present
         const transaction = body.obj || body;
         
