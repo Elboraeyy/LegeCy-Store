@@ -48,6 +48,14 @@ const icons = {
         </svg>
     ),
 
+    procurement: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 7h-9" />
+            <path d="M14 17H5" />
+            <circle cx="17" cy="17" r="3" />
+            <circle cx="7" cy="7" r="3" />
+        </svg>
+    ),
     finance: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="1" x2="12" y2="23" />
@@ -74,6 +82,7 @@ const mainNavItems: NavItem[] = [
     { href: '/admin/orders', label: 'Orders', icon: 'orders' },
     { href: '/admin/products', label: 'Products', icon: 'products' },
     { href: '/admin/inventory', label: 'Inventory', icon: 'inventory' },
+    { href: '/admin/procurement', label: 'Procurement', icon: 'procurement' },
 ];
 
 const secondaryNavItems: NavItem[] = [

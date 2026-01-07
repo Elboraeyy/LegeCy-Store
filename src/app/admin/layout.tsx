@@ -73,7 +73,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="admin-shell">
                 {/* Mobile Menu Toggle */}
                 <button 
-                    className="mobile-menu-toggle"
+                    className="mobile-menu-toggle lg:hidden"
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     aria-label="Toggle Menu"
                 >
@@ -110,6 +110,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <NavLink href="/admin/daily" icon="📅" label="Daily Report" active={pathname?.startsWith('/admin/daily')} />
                         <NavLink href="/admin/orders" icon="🛍️" label="Orders" active={pathname?.startsWith('/admin/orders')} />
                         <NavLink href="/admin/products" icon="📦" label="Products" active={pathname?.startsWith('/admin/products')} />
+                        <NavLink href="/admin/procurement" icon="🚛" label="Procurement" active={pathname?.startsWith('/admin/procurement')} />
                         <NavLink href="/admin/inventory" icon="📊" label="Inventory" active={pathname?.startsWith('/admin/inventory')} />
                         {pathname?.startsWith('/admin/inventory') && (
                             <div style={{ marginLeft: '24px', marginBottom: '8px' }}>
