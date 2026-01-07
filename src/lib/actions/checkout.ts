@@ -396,8 +396,11 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         quantity: item.qty,
         price: item.price
       })),
+      subtotal: finalTotal,
+      shipping: 0,
       total: finalTotal,
-      shippingAddress: `${input.shippingAddress}, ${input.shippingCity}`
+      shippingAddress: `${input.shippingAddress}, ${input.shippingCity}`,
+      paymentMethod: 'cod'
     }).catch((err: Error) => {
         logger.error('Failed to send confirmation email', { orderId: order.id, error: err });
       });
