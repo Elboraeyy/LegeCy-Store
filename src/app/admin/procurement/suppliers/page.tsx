@@ -9,12 +9,17 @@ export default async function SuppliersPage() {
     return (
         <div className="fade-in">
             <div className="admin-header">
-                <div>
-                    <h1 className="admin-title">Suppliers</h1>
-                    <p className="admin-subtitle">Active suppliers and vendors</p>
+                <div className="flex flex-col gap-4">
+                    <Link href="/admin/procurement" className="admin-btn admin-btn-secondary w-fit">
+                        ← Back
+                    </Link>
+                    <div>
+                        <h1 className="admin-title">Suppliers</h1>
+                        <p className="admin-subtitle">Active suppliers and vendors</p>
+                    </div>
                 </div>
-                <Link href="/admin/procurement/suppliers/new" className="admin-btn-primary">
-                    + Add Supplier
+                <Link href="/admin/procurement/suppliers/new" className="admin-btn admin-btn-primary">
+                    <span className="text-lg">+</span> Add Supplier
                 </Link>
             </div>
 

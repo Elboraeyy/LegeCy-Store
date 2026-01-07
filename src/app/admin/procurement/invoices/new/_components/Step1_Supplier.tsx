@@ -71,7 +71,7 @@ export function Step1_Supplier({ suppliers, onNext }: Props) {
             </div>
 
             <div className="flex justify-end pt-4">
-                <button type="submit" disabled={loading} className="admin-btn-primary w-full md:w-auto">
+                <button type="submit" disabled={loading} className="admin-btn admin-btn-primary w-full md:w-auto">
                     {loading ? 'Creating Draft...' : 'Next: Add Items'}
                 </button>
             </div>

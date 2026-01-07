@@ -77,7 +77,7 @@ export function Step2_Items({ invoiceId, onNext, onBack }: Props) {
                     </div>
                 </div>
                 <div className="mt-4 text-right">
-                    <button onClick={handleAddItem} className="admin-btn-secondary">
+                    <button onClick={handleAddItem} className="admin-btn admin-btn-secondary">
                         + Add Row
                     </button>
                 </div>
@@ -102,7 +102,7 @@ export function Step2_Items({ invoiceId, onNext, onBack }: Props) {
                                 <td>{Number(item.unitCost).toFixed(2)}</td>
                                 <td>{(item.quantity * Number(item.unitCost)).toFixed(2)}</td>
                                 <td>
-                                    <button className="text-red-500 hover:scale-105 transition-transform" onClick={() => {/* Handle remove locally and server side */}}>
+                                    <button className="text-red-500 hover:text-red-700 hover:scale-105 transition-all font-medium text-sm" onClick={() => {/* Handle remove locally and server side */}}>
                                         Remove
                                     </button>
                                 </td>
@@ -116,8 +116,8 @@ export function Step2_Items({ invoiceId, onNext, onBack }: Props) {
             </div>
 
             <div className="flex justify-between pt-4">
-                <button onClick={onBack} className="admin-btn-secondary">Back</button>
-                <button onClick={onNext} className="admin-btn-primary" disabled={items.length === 0}>Review & Post</button>
+                <button onClick={onBack} className="admin-btn admin-btn-secondary">Back</button>
+                <button onClick={onNext} className="admin-btn admin-btn-primary" disabled={items.length === 0}>Review & Post</button>
             </div>
         </div>
     );

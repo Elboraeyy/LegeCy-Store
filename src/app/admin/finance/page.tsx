@@ -16,7 +16,7 @@ export default async function FinanceDashboard() {
         </div>
       </div>
 
-      <div className="admin-grid admin-grid-responsive" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '40px' }}>
+      <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '40px' }}>
         {/* Cash on Hand */}
         <div className="admin-card">
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -64,7 +64,7 @@ export default async function FinanceDashboard() {
         </div>
       </div>
 
-      <div className="admin-grid admin-grid-responsive" style={{ gridTemplateColumns: '2fr 1fr' }}>
+      <div className="admin-grid" style={{ gridTemplateColumns: '2fr 1fr' }}>
         <div className="admin-card">
             <h3 className="font-heading" style={{ fontSize: '18px', marginBottom: '20px' }}>Recent Ledger Activity</h3>
             <div style={{ padding: '40px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>

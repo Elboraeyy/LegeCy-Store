@@ -7,10 +7,11 @@ import { toast } from 'sonner';
 
 interface Props {
     invoiceId: string;
+    warehouseId: string;
     onBack: () => void;
 }
 
-export function Step3_Review({ invoiceId, onBack }: Props) {
+export function Step3_Review({ invoiceId, warehouseId, onBack }: Props) {
     const router = useRouter();
     const [posting, setPosting] = useState(false);
 
@@ -19,9 +20,6 @@ export function Step3_Review({ invoiceId, onBack }: Props) {
         
         setPosting(true);
         try {
-            // Hardcoded warehouse ID for now. Later: fetch from list or context
-            const warehouseId = 'default-wh'; 
-            
             const res = await postInvoiceAction(invoiceId, warehouseId, 'admin'); // 'admin' placeholder userId
             if (res.success) {
                 toast.success('Invoice Posted Successfully');
@@ -47,10 +45,10 @@ export function Step3_Review({ invoiceId, onBack }: Props) {
             </div>
 
             <div className="flex justify-center gap-4 pt-8">
-                <button onClick={onBack} className="admin-btn-secondary">
+                <button onClick={onBack} className="admin-btn admin-btn-secondary">
                     Back to Edit
                 </button>
-                <button onClick={handlePost} disabled={posting} className="bg-red-600 text-white px-8 py-3 rounded hover:bg-red-700 transition-colors font-bold shadow-lg">
+                <button onClick={handlePost} disabled={posting} className="admin-btn-danger">
                     {posting ? 'Posting...' : 'POST INVOICE'}
                 </button>
             </div>

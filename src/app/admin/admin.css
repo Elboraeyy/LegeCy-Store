@@ -1330,11 +1330,8 @@ input[type="number"].form-input {
                                 
                                                                 @media (max-width: 768px) {
                                                                   .admin-table-container {
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-                                
-                                                                  .admin-table {
+                                                                    overflow-x: auto;
+                                                                  }                                                                                                  .admin-table {
                                                                     min-width: 600px;
                                                                   }
                                 
@@ -1356,28 +1353,22 @@ input[type="number"].form-input {
                                                                 }
                                 
                                                                 /* Mobile Menu Toggle */
-.mobile-menu-toggle {
-  display: none;
-  position: fixed;
-  top: 16px;
-    right: 16px;
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: var(--admin-bg-dark);
-    color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-    cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 2000;
-    font-size: 24px;
-  transition: all 0.2s ease;
-  }
-  
-  .mobile-menu-toggle:active {
-    transform: scale(0.95);
-}
-                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                .mobile-menu-toggle {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  display: none;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  position: fixed;
+                                                                  bottom: 24px;
+                                                                    right: 24px;
+                                                                    width: 56px;
+                                                                    height: 56px;
+                                                                    border-radius: 50%;
+                                                                    background: var(--admin-bg-dark);
+                                                                    color: #fff;
+                                                                  border: none;
+                                                                    cursor: pointer;
+                                                                  box-shadow: var(--shadow-lg);
+                                                                    z-index: 99;
+                                                                    font-size: 24px;
+                                                                }
                                                                 @media (max-width: 1024px) {
                                                                   .mobile-menu-toggle {
                                                                     display: flex;
@@ -2784,5 +2775,4 @@ input[type="number"].form-input {
   font-size: 13px;
   line-height: 1.5;
   font-style: italic;
-}
 }
