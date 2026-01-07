@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { Step1_Supplier } from './_components/Step1_Supplier';
 import { Step2_Items } from './_components/Step2_Items';
@@ -7,7 +8,7 @@ import { Step3_Review } from './_components/Step3_Review';
 
 import { Supplier } from '@prisma/client';
 
-export default function WizardClient({ suppliers }: { suppliers: Supplier[] }) {
+export default function WizardClient({ suppliers, defaultWarehouseId }: { suppliers: Supplier[], defaultWarehouseId: string }) {
     const [step, setStep] = useState(1);
     const [invoiceId, setInvoiceId] = useState<string | null>(null);
 
@@ -19,11 +20,15 @@ export default function WizardClient({ suppliers }: { suppliers: Supplier[] }) {
     return (
         <div className="fade-in max-w-5xl mx-auto">
             <div className="admin-header">
-                <div>
-                     <h1 className="admin-title">New Purchase Invoice</h1>
-                     <p className="admin-subtitle">Step {step}: {step === 1 ? 'Supplier Details' : step === 2 ? 'Add Items' : 'Review & Post'}</p>
+                <div className="flex flex-col gap-4">
+                     <Link href="/admin/procurement/invoices" className="admin-btn admin-btn-secondary w-fit">
+                        ← Cancel
+                    </Link>
+                    <div>
+                        <h1 className="admin-title">New Purchase Invoice</h1>
+                        <p className="admin-subtitle">Step {step}: {step === 1 ? 'Supplier Details' : step === 2 ? 'Add Items' : 'Review & Post'}</p>
+                    </div>
                 </div>
-                {/* Visual Progress Indicator could go here */}
             </div>
             
             <div className="mt-6">
@@ -42,6 +47,7 @@ export default function WizardClient({ suppliers }: { suppliers: Supplier[] }) {
                 {step === 3 && invoiceId && (
                     <Step3_Review 
                         invoiceId={invoiceId} 
+                        warehouseId={defaultWarehouseId}
                         onBack={() => setStep(2)} 
                     />
                 )}

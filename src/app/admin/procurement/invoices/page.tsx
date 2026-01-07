@@ -12,12 +12,17 @@ export default async function InvoicesPage() {
     return (
         <div className="fade-in">
             <div className="admin-header">
-                <div>
-                    <h1 className="admin-title">Purchase Invoices</h1>
-                    <p className="admin-subtitle">Track incoming stock and payments</p>
+                <div className="flex flex-col gap-4">
+                    <Link href="/admin/procurement" className="admin-btn admin-btn-secondary w-fit">
+                        ← Back
+                    </Link>
+                    <div>
+                        <h1 className="admin-title">Purchase Invoices</h1>
+                        <p className="admin-subtitle">Track incoming stock and payments</p>
+                    </div>
                 </div>
-                <Link href="/admin/procurement/invoices/new" className="admin-btn-primary">
-                    + New Invoice
+                <Link href="/admin/procurement/invoices/new" className="admin-btn admin-btn-primary">
+                    <span className="text-lg">+</span> New Invoice
                 </Link>
             </div>
 

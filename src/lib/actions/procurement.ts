@@ -79,8 +79,8 @@ export async function addInvoiceItem(invoiceId: string, item: {
     await prisma.purchaseInvoiceItem.create({
         data: {
             invoiceId,
-            productId: item.productId,
-            variantId: item.variantId,
+            productId: item.productId || undefined,
+            variantId: item.variantId || undefined,
             description: item.description,
             quantity: item.quantity,
             unitCost: item.unitCost, // Store as decimal in DB

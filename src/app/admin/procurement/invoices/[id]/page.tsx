@@ -31,7 +31,7 @@ export default async function InvoiceDetailsPage({ params }: { params: Promise<{
             <div className="admin-header">
                 <div>
                     <div className="flex items-center gap-3">
-                        <Link href="/admin/procurement/invoices" className="text-muted hover:text-foreground">← Back</Link>
+                        <Link href="/admin/procurement/invoices" className="admin-btn admin-btn-secondary">← Back</Link>
                         <h1 className="admin-title">Invoice {invoice.invoiceNumber}</h1>
                         <span className={`status-badge ${
                              invoice.status === 'POSTED' ? 'status-success' :

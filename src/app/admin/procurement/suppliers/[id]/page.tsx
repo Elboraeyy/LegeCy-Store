@@ -39,7 +39,7 @@ export default async function SupplierDetailsPage({ params }: { params: Promise<
                     </div>
                 </div>
                 <div className="flex gap-2">
-                     <Link href="/admin/procurement/suppliers" className="admin-btn-secondary">Back</Link>
+                     <Link href="/admin/procurement/suppliers" className="admin-btn admin-btn-secondary">← Back</Link>
                 </div>
             </div>
 
