@@ -103,6 +103,16 @@ export async function processPaymobCallback(
     // FALLBACK: Update order status directly if payment was successful
     if (isPaymentSuccess) {
         try {
+            // Get order details first for email
+            const order = await prisma.order.findUnique({
+                where: { id: orderId },
+                include: { items: true }
+            });
+            
+            if (!order) {
+                return { success: false, error: 'Order not found', orderId };
+            }
+            
             // Update order to paid
             await prisma.order.update({
                 where: { id: orderId },
@@ -140,6 +150,29 @@ export async function processPaymobCallback(
                     processedAt: new Date()
                 }
             }).catch(() => {});
+            
+            // ============================================
+            // SEND EMAIL (IMPORTANT!)
+            // ============================================
+            console.log('📧 Sending order confirmation email after payment...');
+            const { sendOrderConfirmationEmail } = await import('@/lib/services/emailService');
+            await sendOrderConfirmationEmail({
+                orderId: order.id,
+                customerName: order.customerName || 'Customer',
+                customerEmail: order.customerEmail || '',
+                items: order.items.map(item => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: Number(item.price)
+                })),
+                subtotal: Number(order.totalPrice),
+                shipping: 0,
+                total: Number(order.totalPrice),
+                shippingAddress: `${order.shippingAddress || ''}, ${order.shippingCity || ''}`,
+                paymentMethod: order.paymentMethod || 'online'
+            }).catch(err => {
+                console.error('Failed to send confirmation email:', err);
+            });
             
             console.log('Order updated to paid directly');
             return { 
