@@ -108,32 +108,56 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <SidebarProfile />
 
                     <nav className="admin-nav">
-                        <div className="nav-label">Main Menu</div>
-                        <NavLink href="/admin" icon="📊" label="Dashboard" active={pathname === '/admin'} onClick={closeSidebar} />
+                        {/* Dashboard - First, No Section Header */}
+                        <NavLink href="/admin" icon="🏠" label="Dashboard" active={pathname === '/admin'} onClick={closeSidebar} />
                         <NavLink href="/admin/daily" icon="📅" label="Daily Report" active={pathname?.startsWith('/admin/daily')} onClick={closeSidebar} />
+                        
+                        {/* Store Section */}
+                        <div className="nav-label">Store</div>
                         <NavLink href="/admin/orders" icon="🛍️" label="Orders" active={pathname?.startsWith('/admin/orders')} onClick={closeSidebar} />
                         <NavLink href="/admin/products" icon="📦" label="Products" active={pathname?.startsWith('/admin/products')} onClick={closeSidebar} />
-                        <NavLink href="/admin/procurement" icon="🚛" label="Procurement" active={pathname?.startsWith('/admin/procurement')} onClick={closeSidebar} />
+                        <NavLink href="/admin/categories" icon="📁" label="Categories" active={pathname?.startsWith('/admin/categories')} onClick={closeSidebar} />
+                        <NavLink href="/admin/customers" icon="👥" label="Customers" active={pathname?.startsWith('/admin/customers')} onClick={closeSidebar} />
+                        <NavLink href="/admin/reviews" icon="⭐" label="Reviews" active={pathname?.startsWith('/admin/reviews')} onClick={closeSidebar} />
+                        
+                        {/* Operations Section */}
+                        <div className="nav-label">Operations</div>
                         <NavLink href="/admin/inventory" icon="📊" label="Inventory" active={pathname?.startsWith('/admin/inventory')} onClick={closeSidebar} />
                         {pathname?.startsWith('/admin/inventory') && (
                             <div style={{ marginLeft: '24px', marginBottom: '8px' }}>
                                 <NavLink href="/admin/inventory/warehouses" icon="🏭" label="Warehouses" active={pathname === '/admin/inventory/warehouses'} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/transfers" icon="🔄" label="Transfers" active={pathname === '/admin/inventory/transfers'} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/alerts" icon="⚠️" label="Alerts" active={pathname === '/admin/inventory/alerts'} onClick={closeSidebar} />
-                                <NavLink href="/admin/inventory/counts" icon="📋" label="Stock Counts" active={pathname === '/admin/inventory/counts'} onClick={closeSidebar} />
+                                <NavLink href="/admin/inventory/counts" icon="🔢" label="Stock Counts" active={pathname === '/admin/inventory/counts'} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/reports" icon="📈" label="Reports" active={pathname === '/admin/inventory/reports'} onClick={closeSidebar} />
                             </div>
                         )}
-                        <NavLink href="/admin/customers" icon="👥" label="Customers" active={pathname?.startsWith('/admin/customers')} onClick={closeSidebar} />
-                        <NavLink href="/admin/categories" icon="📁" label="Categories" active={pathname?.startsWith('/admin/categories')} onClick={closeSidebar} />
-                        <NavLink href="/admin/reviews" icon="💬" label="Reviews" active={pathname?.startsWith('/admin/reviews')} onClick={closeSidebar} />
+                        <NavLink href="/admin/procurement" icon="🚛" label="Procurement" active={pathname?.startsWith('/admin/procurement')} onClick={closeSidebar} />
                         
-                        <div className="nav-label">Management</div>
-                        <NavLink href="/admin/finance" icon="💰" label="Finance" active={pathname?.startsWith('/admin/finance')} onClick={closeSidebar} />
+                        {/* Finance Section */}
+                        <div className="nav-label">Finance</div>
+                        <NavLink href="/admin/finance" icon="💰" label="Treasury" active={pathname?.startsWith('/admin/finance') && !pathname?.includes('/reports') && !pathname?.includes('/periods')} onClick={closeSidebar} />
+                        <NavLink href="/admin/finance/periods" icon="📅" label="Periods" active={pathname === '/admin/finance/periods'} onClick={closeSidebar} />
+                        <NavLink href="/admin/finance/reports/pnl" icon="📊" label="P&L Report" active={pathname === '/admin/finance/reports/pnl'} onClick={closeSidebar} />
+                        <NavLink href="/admin/finance/reports/cashflow" icon="💵" label="Cash Flow" active={pathname === '/admin/finance/reports/cashflow'} onClick={closeSidebar} />
+                        <NavLink href="/admin/finance/reports/balance" icon="⚖️" label="Balance Sheet" active={pathname === '/admin/finance/reports/balance'} onClick={closeSidebar} />
+                        
+                        {/* System Section */}
+                        <div className="nav-label">System</div>
                         <NavLink href="/admin/team" icon="👨‍💼" label="Team" active={pathname?.startsWith('/admin/team')} onClick={closeSidebar} />
+                        {pathname?.startsWith('/admin/team') && (
+                            <div style={{ marginLeft: '24px', marginBottom: '8px' }}>
+                                <NavLink href="/admin/team/approvals" icon="✅" label="Approvals" active={pathname === '/admin/team/approvals'} onClick={closeSidebar} />
+                            </div>
+                        )}
                         <NavLink href="/admin/analytics" icon="📈" label="Analytics" active={pathname?.startsWith('/admin/analytics')} onClick={closeSidebar} />
                         <NavLink href="/admin/activity" icon="📋" label="Activity Log" active={pathname?.startsWith('/admin/activity')} onClick={closeSidebar} />
                         <NavLink href="/admin/config" icon="⚙️" label="Settings" active={pathname?.startsWith('/admin/config')} onClick={closeSidebar} />
+                        {pathname?.startsWith('/admin/config') && (
+                            <div style={{ marginLeft: '24px', marginBottom: '8px' }}>
+                                <NavLink href="/admin/config/security" icon="🔐" label="Security" active={pathname === '/admin/config/security'} onClick={closeSidebar} />
+                            </div>
+                        )}
                         
                         <div style={{ flex: 1 }}></div>
 

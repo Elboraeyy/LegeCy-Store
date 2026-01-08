@@ -88,7 +88,7 @@ async function main() {
       { debit: 0, credit: 99.99 }
     ]);
     fail('Journal validation: Unbalanced entry should have thrown');
-  } catch (e) {
+  } catch {
     pass('Journal validation: Unbalanced entry rejected');
   }
   

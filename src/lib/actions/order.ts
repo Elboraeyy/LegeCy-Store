@@ -6,29 +6,65 @@ import { AdminPermissions } from '@/lib/auth/permissions';
 import { revalidatePath } from 'next/cache';
 import { OrderStatus } from '@/lib/orderStatus';
 import { Order } from '@/types/order';
+import { recordOrderEvent, OrderEventType } from '@/lib/services/orderLifecycleService';
+import prisma from '@/lib/prisma';
 
-export type StatusUpdateResult = {
+interface StatusUpdateResult {
     success: boolean;
     error?: string;
-};
+}
+
+// Map order status to event type
+function getEventType(status: OrderStatus): OrderEventType {
+    const mapping: Record<string, OrderEventType> = {
+        'pending': 'CREATED',
+        'Confirmed': 'CONFIRMED',
+        'Paid': 'PAID',
+        'Shipped': 'SHIPPED',
+        'Delivered': 'DELIVERED',
+        'Cancelled': 'CANCELLED',
+        'Refunded': 'REFUNDED'
+    };
+    return mapping[status] || 'CONFIRMED';
+}
 
 export async function updateOrderStatusAction(
     orderId: string, 
-    newStatus: OrderStatus
-    // reason?: string // TODO: Pass to service when supported
+    newStatus: OrderStatus,
+    reason?: string
 ): Promise<StatusUpdateResult> {
     try {
         const admin = await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
         
+        // Get current status before update
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            select: { status: true, totalPrice: true }
+        });
+        const previousStatus = order?.status;
+        
+        // Update order status
         await updateOrderStatus(
             orderId, 
             newStatus, 
             'admin', 
             admin.id
         );
+        
+        // Record lifecycle event (triggers financial effects)
+        await recordOrderEvent({
+            orderId,
+            eventType: getEventType(newStatus),
+            fromStatus: previousStatus,
+            toStatus: newStatus,
+            amount: (newStatus as string) === 'Refunded' ? Number(order?.totalPrice || 0) : undefined,
+            reason,
+            triggeredBy: admin.id
+        });
 
         revalidatePath(`/admin/orders/${orderId}`);
         revalidatePath('/admin/orders');
+        revalidatePath('/admin/finance');
         return { success: true };
     } catch (error) {
         if (error instanceof Error) {
@@ -73,8 +109,6 @@ export async function placeOrder(cartItems: CartItemInput[]): Promise<Order> {
 // ==========================================
 // ADMIN MANUAL ORDER ACTIONS
 // ==========================================
-
-import prisma from '@/lib/prisma';
 
 interface ManualOrderInput {
     customer: 

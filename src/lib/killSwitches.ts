@@ -21,6 +21,8 @@ export type KillSwitches = {
   pos_enabled: boolean;           // POS system access
 };
 
+export type KillSwitchKey = keyof KillSwitches;
+
 // Safe defaults - online payments disabled until verified
 export const DEFAULT_KILL_SWITCHES: KillSwitches = {
   payments_enabled: true,

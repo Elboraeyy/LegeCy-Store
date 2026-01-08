@@ -198,6 +198,14 @@ model Order {
   // Coupon usage tracking
   couponUsage   CouponUsage?
 
+  // Enterprise Governance Relations
+  disputes       OrderDispute[]
+  adjustments    OrderAdjustment[]
+  
+  // Neural System - Revenue & Event Tracking
+  revenueRecognition RevenueRecognition?
+  events             OrderEvent[]
+
   // Performance indexes
   @@index([status])
   @@index([createdAt])
@@ -1202,7 +1210,6 @@ enum CapitalTxType {
   WITHDRAWAL
 }
 
-
 // 3. Expenses
 // ------------------------------------------
 
@@ -1493,5 +1500,269 @@ model InvoiceAuditLog {
   details     String?
   
   timestamp   DateTime @default(now())
+}
+
+// ==========================================
+// Enterprise Governance Domain
+// ==========================================
+
+// Financial Period Locking - Prevents retroactive edits
+model FinancialPeriod {
+  id           String   @id @default(uuid())
+  name         String   // "January 2026", "Q1 2026"
+  type         String   @default("month") // month, quarter, year
+  startDate    DateTime
+  endDate      DateTime
+  status       String   @default("open") // open, closing, closed, locked
+  
+  closedBy     String?
+  closedAt     DateTime?
+  reopenedBy   String?
+  reopenedAt   DateTime?
+  reopenReason String?
+  
+  // Link to closing report artifacts
+  reportSnapshot Json? 
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@unique([startDate, endDate])
+  @@index([status])
+}
+
+// Approval Workflows - Governance for dangerous actions
+model ApprovalRule {
+  id             String   @id @default(uuid())
+  name           String   // "Refund > 500 EGP", "Price Change"
+  description    String?
+  entityType     String   // order, refund, price_change, capital, inventory_adjust
+  condition      String   // JSON: {"field": "amount", "operator": "gt", "value": 500}
+  requiredRole   String   // Role name that can approve
+  requiresTwo    Boolean  @default(false) // Requires two approvers
+  autoApprove    Boolean  @default(false) // Owner bypass
+  isActive       Boolean  @default(true)
+  priority       Int      @default(0) // Higher = checked first
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  requests       ApprovalRequest[]
+  
+  @@index([entityType, isActive])
+}
+
+model ApprovalRequest {
+  id               String   @id @default(uuid())
+  ruleId           String
+  rule             ApprovalRule @relation(fields: [ruleId], references: [id])
+  
+  entityType       String   // Same as rule
+  entityId         String   // ID of the entity needing approval
+  actionType       String   // create, update, delete, execute
+  actionData       String?  // JSON of proposed changes
+  
+  status           String   @default("pending") // pending, approved, rejected, expired
+  
+  requestedBy      String   // Admin ID
+  requestedAt      DateTime @default(now())
+  
+  // First approver
+  approvedBy       String?
+  approvedAt       DateTime?
+  approverNote     String?
+  
+  // Second approver (if requiresTwo)
+  secondApprovedBy String?
+  secondApprovedAt DateTime?
+  secondApproverNote String?
+  
+  // Rejection
+  rejectedBy       String?
+  rejectedAt       DateTime?
+  rejectReason     String?
+  
+  // Expiry
+  expiresAt        DateTime?
+  
+  @@index([status, entityType])
+  @@index([requestedBy])
+}
+
+// Order Disputes
+model OrderDispute {
+  id             String   @id @default(uuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id])
+  
+  type           String   // refund_request, fraud, quality, shipping, other
+  description    String
+  evidence       String?  // JSON array of attachment URLs
+  
+  status         String   @default("open") // open, investigating, resolved, escalated
+  priority       String   @default("normal") // low, normal, high, urgent
+  
+  resolution     String?
+  resolvedBy     String?
+  resolvedAt     DateTime?
+  
+  assignedTo     String?
+  escalatedTo    String?
+  escalatedAt    DateTime?
+  
+  createdBy      String   // customer or admin ID
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@index([status])
+  @@index([orderId])
+}
+
+// Order Adjustments (with approval)
+model OrderAdjustment {
+  id             String   @id @default(uuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id])
+  
+  type           String   // discount, fee_waiver, price_correction, shipping_refund
+  amount         Decimal
+  reason         String
+  
+  status         String   @default("pending") // pending, approved, rejected, applied
+  
+  requestedBy    String
+  requestedAt    DateTime @default(now())
+  
+  approvedBy     String?
+  approvedAt     DateTime?
+  
+  rejectedBy     String?
+  rejectedAt     DateTime?
+  rejectReason   String?
+  
+  appliedAt      DateTime?
+  ledgerEntryId  String?  // Reference to JournalEntry if created
+  
+  @@index([orderId])
+  @@index([status])
+}
+
+// GDPR Compliance - Data Requests
+model DataRequest {
+  id            String   @id @default(uuid())
+  userId        String
+  userEmail     String
+  
+  type          String   // export, deletion
+  status        String   @default("pending") // pending, processing, completed, rejected
+  
+  processedBy   String?
+  processedAt   DateTime?
+  completedAt   DateTime?
+  
+  downloadUrl   String?
+  downloadExpires DateTime?
+  
+  rejectedReason String?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([userId])
+  @@index([status])
+}
+
+// Sequential Invoice Numbering
+model InvoiceSequence {
+  id          String   @id @default(uuid())
+  prefix      String   @default("INV")
+  year        Int
+  lastNumber  Int      @default(0)
+  
+  @@unique([prefix, year])
+}
+
+// Budget Management
+model Budget {
+  id             String   @id @default(uuid())
+  name           String
+  description    String?
+  
+  categoryType   String   // expense_category, account
+  categoryId     String   // ID of ExpenseCategory or Account
+  
+  periodType     String   @default("monthly") // monthly, quarterly, yearly
+  periodStart    DateTime
+  periodEnd      DateTime
+  
+  amount         Decimal
+  spent          Decimal  @default(0)
+  alertThreshold Decimal? // Alert when spent reaches this percentage (0-100)
+  
+  isActive       Boolean  @default(true)
+  
+  createdBy      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@index([periodStart, periodEnd])
+}
+
+// ==========================================
+// Revenue Recognition & Order Events (Neural System)
+// ==========================================
+
+// Tracks when revenue is officially recognized for an order
+model RevenueRecognition {
+  id              String   @id @default(uuid())
+  orderId         String   @unique
+  recognizedAt    DateTime @default(now())
+  
+  // Amounts
+  grossRevenue    Decimal  // Total order amount
+  discountAmount  Decimal  @default(0)
+  netRevenue      Decimal  // grossRevenue - discountAmount
+  cogsAmount      Decimal  @default(0) // Cost of goods sold
+  grossProfit     Decimal  @default(0) // netRevenue - cogsAmount
+  
+  // Journal references
+  revenueJournalId String? // Reference to revenue journal entry
+  cogsJournalId    String? // Reference to COGS journal entry
+  
+  // Audit
+  recognizedBy    String?  // Admin who triggered (or "system")
+  
+  order           Order    @relation(fields: [orderId], references: [id])
+  
+  @@index([recognizedAt])
+}
+
+// Tracks all order lifecycle events for audit trail
+model OrderEvent {
+  id          String   @id @default(uuid())
+  orderId     String
+  eventType   String   // CREATED, CONFIRMED, PAID, SHIPPED, DELIVERED, CANCELLED, REFUNDED
+  
+  // Event details
+  fromStatus  String?  // Previous status
+  toStatus    String?  // New status
+  
+  // Financial impact
+  amount      Decimal? // Amount involved (e.g., refund amount)
+  journalId   String?  // Reference to journal entry if financial
+  
+  // Metadata
+  reason      String?  // Reason for event (e.g., refund reason)
+  metadata    Json?    // Additional data
+  
+  // Audit
+  triggeredBy String?  // Admin ID who triggered
+  ipAddress   String?  // IP address
+  createdAt   DateTime @default(now())
+  
+  order       Order    @relation(fields: [orderId], references: [id])
+  
+  @@index([orderId])
+  @@index([eventType])
+  @@index([createdAt])
 }
 

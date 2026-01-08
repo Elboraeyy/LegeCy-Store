@@ -2,6 +2,8 @@ import AdminHomeClient from './_components/home/AdminHomeClient';
 import { requireAdminPermission } from '@/lib/auth/guards';
 import { AdminPermissions } from '@/lib/auth/permissions';
 import prisma from '@/lib/prisma';
+import { getKillSwitches } from '@/lib/killSwitches';
+import Link from 'next/link';
 
 // Fetch command center stats
 async function getCommandCenterStats() {
@@ -19,7 +21,7 @@ async function getCommandCenterStats() {
         prisma.stockAlert.count({
             where: { status: 'ACTIVE' }
         }),
-        // Low stock count (using where minStock > 0 and available < minStock is complex, simplify)
+        // Low stock count
         prisma.$queryRaw<[{count: bigint}]>`
             SELECT COUNT(*) as count FROM "WarehouseStock" 
             WHERE available < min_stock AND min_stock > 0
@@ -48,10 +50,260 @@ async function getCommandCenterStats() {
     };
 }
 
+// Fetch executive stats - INTELLIGENT DASHBOARD
+async function getExecutiveStats() {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const [
+        killSwitches,
+        treasuryAccounts,
+        monthlyExpenses,
+        monthlyRevenue,
+        inventoryValue,
+        recognizedRevenue
+    ] = await Promise.all([
+        getKillSwitches(),
+        prisma.treasuryAccount.findMany(),
+        prisma.expense.aggregate({
+            where: { date: { gte: monthStart }, status: 'APPROVED' },
+            _sum: { amount: true }
+        }),
+        prisma.order.aggregate({
+            where: {
+                createdAt: { gte: monthStart },
+                status: { in: ['Paid', 'Shipped', 'Delivered'] }
+            },
+            _sum: { totalPrice: true }
+        }),
+        // Inventory value from inventory with cost prices
+        prisma.inventory.findMany({
+            include: { variant: true }
+        }),
+        // Recognized revenue from ledger
+        prisma.revenueRecognition.aggregate({
+            where: { recognizedAt: { gte: monthStart } },
+            _sum: { netRevenue: true, cogsAmount: true, grossProfit: true }
+        }),
+        // COGS from ledger account
+        prisma.account.findFirst({
+            where: { code: '5000' }
+        })
+    ]);
+    
+    const cashOnHand = treasuryAccounts.reduce((sum: number, acc: { balance: unknown }) => sum + Number(acc.balance), 0);
+    
+    // Calculate inventory value at cost
+    const inventoryTotal = inventoryValue.reduce((sum: number, inv: { variant: { costPrice: unknown } | null; available: number }) => {
+        const cost = Number(inv.variant?.costPrice || 0);
+        return sum + (cost * inv.available);
+    }, 0);
+    
+    // Calculate net profit from ledger
+    const revenue = Number(monthlyRevenue._sum?.totalPrice || 0);
+    const expenses = Number(monthlyExpenses._sum?.amount || 0);
+    const cogs = Number(recognizedRevenue._sum?.cogsAmount || 0);
+    const netProfit = revenue - expenses - cogs;
+    const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+    
+    // Count disabled critical switches
+    const disabledSwitches = Object.entries(killSwitches).filter(([key, val]) => {
+        const critical = ['checkout_enabled', 'payments_enabled', 'paymob_enabled'];
+        return critical.includes(key) && !val;
+    }).length;
+    
+    // Generate warnings
+    const warnings: string[] = [];
+    if (netProfit < 0) warnings.push('⚠️ Negative profit this month');
+    if (cashOnHand < expenses) warnings.push('💸 Cash below monthly expenses');
+    if (disabledSwitches > 0) warnings.push('🔴 Critical systems disabled');
+    
+    return {
+        cashOnHand,
+        monthlyExpenses: expenses,
+        monthlyRevenue: revenue,
+        inventoryValue: inventoryTotal,
+        netProfit,
+        profitMargin,
+        pendingApprovals: 0,
+        disabledSwitches,
+        killSwitchesOK: disabledSwitches === 0,
+        warnings,
+        hasWarnings: warnings.length > 0
+    };
+}
+
 export default async function AdminDashboard() {
     await requireAdminPermission(AdminPermissions.DASHBOARD.VIEW);
 
-    const stats = await getCommandCenterStats();
+    const [stats, execStats] = await Promise.all([
+        getCommandCenterStats(),
+        getExecutiveStats()
+    ]);
 
-    return <AdminHomeClient stats={stats} />;
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('en-EG', { 
+            style: 'currency', 
+            currency: 'EGP',
+            minimumFractionDigits: 0 
+        }).format(amount);
+    };
+
+    return (
+        <>
+            <AdminHomeClient stats={stats} />
+            
+            {/* Executive Widgets */}
+            <div style={{ padding: '0 32px 32px', marginTop: '-16px' }}>
+                <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 600 }}>
+                    📊 Executive Overview
+                </h2>
+                
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                    gap: '16px' 
+                }}>
+                    {/* Cash Position */}
+                    <Link href="/admin/finance/equity" className="exec-widget" style={{ textDecoration: 'none' }}>
+                        <div className="admin-card" style={{ padding: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Cash on Hand</div>
+                                    <div style={{ fontSize: '24px', fontWeight: 700, color: '#22c55e', marginTop: '4px' }}>
+                                        {formatCurrency(execStats.cashOnHand)}
+                                    </div>
+                                </div>
+                                <span style={{ fontSize: '28px' }}>💰</span>
+                            </div>
+                        </div>
+                    </Link>
+
+                    {/* Monthly Revenue */}
+                    <Link href="/admin/finance/reports/pnl" className="exec-widget" style={{ textDecoration: 'none' }}>
+                        <div className="admin-card" style={{ padding: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Monthly Revenue</div>
+                                    <div style={{ fontSize: '24px', fontWeight: 700, marginTop: '4px' }}>
+                                        {formatCurrency(execStats.monthlyRevenue)}
+                                    </div>
+                                </div>
+                                <span style={{ fontSize: '28px' }}>📈</span>
+                            </div>
+                        </div>
+                    </Link>
+
+                    {/* Monthly Expenses */}
+                    <Link href="/admin/finance/expenses" className="exec-widget" style={{ textDecoration: 'none' }}>
+                        <div className="admin-card" style={{ padding: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Monthly Expenses</div>
+                                    <div style={{ fontSize: '24px', fontWeight: 700, color: '#ef4444', marginTop: '4px' }}>
+                                        {formatCurrency(execStats.monthlyExpenses)}
+                                    </div>
+                                </div>
+                                <span style={{ fontSize: '28px' }}>💸</span>
+                            </div>
+                        </div>
+                    </Link>
+
+                    {/* Kill Switches Status */}
+                    <Link href="/admin/config/security" className="exec-widget" style={{ textDecoration: 'none' }}>
+                        <div className="admin-card" style={{ 
+                            padding: '20px',
+                            border: !execStats.killSwitchesOK ? '2px solid #ef4444' : undefined
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>System Health</div>
+                                    <div style={{ 
+                                        fontSize: '18px', 
+                                        fontWeight: 700, 
+                                        color: execStats.killSwitchesOK ? '#22c55e' : '#ef4444',
+                                        marginTop: '4px' 
+                                    }}>
+                                        {execStats.killSwitchesOK ? '✓ All Systems GO' : `⚠ ${execStats.disabledSwitches} Disabled`}
+                                    </div>
+                                </div>
+                                <span style={{ fontSize: '28px' }}>{execStats.killSwitchesOK ? '💚' : '🔴'}</span>
+                            </div>
+                        </div>
+                    </Link>
+
+                    {/* Net Profit */}
+                    <Link href="/admin/finance/reports/pnl" className="exec-widget" style={{ textDecoration: 'none' }}>
+                        <div className="admin-card" style={{ 
+                            padding: '20px',
+                            border: execStats.netProfit < 0 ? '2px solid #ef4444' : '2px solid #22c55e'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Net Profit (Month)</div>
+                                    <div style={{ 
+                                        fontSize: '24px', 
+                                        fontWeight: 700, 
+                                        color: execStats.netProfit >= 0 ? '#22c55e' : '#ef4444',
+                                        marginTop: '4px' 
+                                    }}>
+                                        {formatCurrency(execStats.netProfit)}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                        {execStats.profitMargin.toFixed(1)}% margin
+                                    </div>
+                                </div>
+                                <span style={{ fontSize: '28px' }}>{execStats.netProfit >= 0 ? '📊' : '📉'}</span>
+                            </div>
+                        </div>
+                    </Link>
+
+                    {/* Inventory Value */}
+                    <Link href="/admin/inventory" className="exec-widget" style={{ textDecoration: 'none' }}>
+                        <div className="admin-card" style={{ padding: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Inventory Value</div>
+                                    <div style={{ fontSize: '24px', fontWeight: 700, color: '#3b82f6', marginTop: '4px' }}>
+                                        {formatCurrency(execStats.inventoryValue)}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                        at cost
+                                    </div>
+                                </div>
+                                <span style={{ fontSize: '28px' }}>📦</span>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+
+                {/* Warnings Section */}
+                {execStats.hasWarnings && (
+                    <div className="admin-card" style={{ 
+                        marginTop: '16px', 
+                        padding: '16px', 
+                        backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                            <span style={{ fontSize: '24px' }}>⚠️</span>
+                            <span style={{ fontWeight: 600, color: '#ef4444' }}>Attention Required</span>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {execStats.warnings.map((warning, i) => (
+                                <div key={i} style={{ 
+                                    padding: '8px 12px', 
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                                    borderRadius: '8px',
+                                    fontSize: '14px'
+                                }}>
+                                    {warning}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </>
+    );
 }
