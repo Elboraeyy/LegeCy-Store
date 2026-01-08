@@ -76,12 +76,21 @@ interface PaymobCallback {
 /**
  * Verify Paymob HMAC signature
  * 
- * Paymob concatenates specific fields and computes HMAC-SHA512
+ * CRITICAL SECURITY: This function is FAIL-CLOSED.
+ * If HMAC secret is not configured, ALL webhooks are REJECTED.
+ * This applies to ALL environments including development.
  */
-function verifyPaymobHmac(obj: PaymobTransaction, hmacHeader: string, hmacSecret: string): boolean {
+function verifyPaymobHmac(obj: PaymobTransaction, hmacHeader: string, hmacSecret: string): { valid: boolean; error?: string } {
+    // FAIL-CLOSED: If HMAC secret is not configured, REJECT ALL WEBHOOKS
     if (!hmacSecret) {
-        logger.warn('HMAC Secret not configured - skipping signature verification');
-        return process.env.NODE_ENV !== 'production'; // Allow in dev only
+        logger.error('CRITICAL: PAYMOB_HMAC_SECRET is not configured - REJECTING WEBHOOK');
+        return { valid: false, error: 'HMAC_SECRET_NOT_CONFIGURED' };
+    }
+
+    // FAIL-CLOSED: If no HMAC header received, REJECT
+    if (!hmacHeader) {
+        logger.error('CRITICAL: No HMAC header received in webhook - REJECTING');
+        return { valid: false, error: 'HMAC_HEADER_MISSING' };
     }
 
     // Paymob HMAC is computed from concatenated values (in alphabetical order by key)
@@ -116,14 +125,16 @@ function verifyPaymobHmac(obj: PaymobTransaction, hmacHeader: string, hmacSecret
         .digest('hex');
 
     try {
-        return crypto.timingSafeEqual(
+        const isValid = crypto.timingSafeEqual(
             Buffer.from(calculatedHmac),
             Buffer.from(hmacHeader)
         );
+        return { valid: isValid, error: isValid ? undefined : 'HMAC_MISMATCH' };
     } catch {
-        return false; // Buffer length mismatch
+        return { valid: false, error: 'HMAC_COMPARISON_FAILED' }; // Buffer length mismatch
     }
 }
+
 
 async function isEventProcessed(transactionId: number): Promise<boolean> {
     const existing = await prisma.processedWebhookEvent.findUnique({
@@ -168,10 +179,9 @@ export async function POST(request: Request) {
 
     // Fetch config (for HMAC secret)
     const config = await getPaymobConfig();
-    console.log('HMAC Secret (first 5 chars):', config.hmacSecret?.substring(0, 5) || 'NOT SET');
+    // SECURITY: Never log secrets, even partially
     
     const hmacHeader = request.headers.get('hmac') || '';
-    console.log('HMAC Header received:', hmacHeader ? 'Present' : 'Missing');
     
     const transaction = body.obj;
     
@@ -181,11 +191,27 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Missing transaction' }, { status: 400 });
     }
 
-    // 1. Verify HMAC Signature
-    if (!verifyPaymobHmac(transaction, hmacHeader, config.hmacSecret)) {
+    // 1. Verify HMAC Signature (FAIL-CLOSED)
+    const hmacResult = verifyPaymobHmac(transaction, hmacHeader, config.hmacSecret);
+    if (!hmacResult.valid) {
         logger.error('Paymob HMAC verification failed', { 
-            transactionId: transaction.id 
+            transactionId: transaction.id,
+            error: hmacResult.error
         });
+        
+        // Send critical alert for webhook security failures
+        try {
+            const { sendAlert } = await import('@/lib/monitoring');
+            await sendAlert({
+                type: 'SECURITY_ALERT',
+                severity: 'critical',
+                message: `Webhook HMAC verification failed: ${hmacResult.error}`,
+                details: { transactionId: transaction.id, error: hmacResult.error }
+            });
+        } catch (e) {
+            logger.error('Failed to send security alert', { error: e });
+        }
+        
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
