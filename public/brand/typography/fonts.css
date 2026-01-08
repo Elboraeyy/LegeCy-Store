@@ -1,7 +1,0 @@
-@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@100;200;300;400;500&display=swap');
-
-:root {
-    --font-logo: 'Great Vibes', cursive; /* The "Thin" Signature Font */
-    --font-primary: 'Montserrat', sans-serif; /* The Thin Body Font */
-    --font-heading: 'Great Vibes', cursive; /* Replaced Cinzel with the Brand Font */
-}

@@ -3,23 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { adminLogout } from '@/lib/actions/admin-auth';
+import { useState } from 'react';
 
-// SVG Icons as components
+// SVG Icons
 const icons = {
-    dashboard: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-        </svg>
-    ),
-    orders: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <path d="M16 10a4 4 0 0 1-8 0" />
-        </svg>
+    sales: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.91 8.84 8.56 2.23a1.93 1.93 0 0 0-1.81 0L3.1 4.13a2.12 2.12 0 0 0-.05 3.69l12.22 6.93a2 2 0 0 0 1.94 0L21 12.51a2.12 2.12 0 0 0-.09-3.67Z"/><path d="m3.09 8.84 12.35-6.61"/><path d="M20.91 8.84 8.56 2.23"/></svg>
     ),
     products: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -28,126 +17,194 @@ const icons = {
             <line x1="12" y1="22.08" x2="12" y2="12" />
         </svg>
     ),
-    inventory: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 3h18v18H3zM21 9H3M21 15H3M12 3v18" />
-        </svg>
-    ),
-    customers: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-    ),
-    settings: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>
-    ),
-
-    procurement: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 7h-9" />
-            <path d="M14 17H5" />
-            <circle cx="17" cy="17" r="3" />
-            <circle cx="7" cy="7" r="3" />
-        </svg>
+    operations: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     ),
     finance: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23" />
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+    ),
+    management: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
     ),
     logout: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16,17 21,12 16,7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16,17 21,12 16,7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
     ),
+    chevronDown: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    )
 };
 
 interface NavItem {
-    href: string;
     label: string;
-    icon: keyof typeof icons;
+    href?: string;
+    children?: NavItem[];
 }
 
-const mainNavItems: NavItem[] = [
-    { href: '/admin', label: 'Dashboard', icon: 'dashboard' },
-    { href: '/admin/orders', label: 'Orders', icon: 'orders' },
-    { href: '/admin/products', label: 'Products', icon: 'products' },
-    { href: '/admin/inventory', label: 'Inventory', icon: 'inventory' },
-    { href: '/admin/procurement', label: 'Procurement', icon: 'procurement' },
-];
-
-const secondaryNavItems: NavItem[] = [
-    { href: '/admin/finance', label: 'Finance', icon: 'finance' },
-    { href: '/admin/categories', label: 'Categories', icon: 'settings' }, // Used 'settings' icon tentatively
-    { href: '/admin/brands', label: 'Brands', icon: 'settings' },
-    { href: '/admin/materials', label: 'Materials', icon: 'inventory' },
-    { href: '/admin/customers', label: 'Customers', icon: 'customers' },
-    { href: '/admin/settings', label: 'Settings', icon: 'settings' },
-];
+const navStructure: Record<string, { icon: keyof typeof icons; items: NavItem[] }> = {
+    'Sales': {
+        icon: 'sales',
+        items: [
+            { label: 'Orders', href: '/admin/orders' },
+            { label: 'Customers', href: '/admin/customers' },
+            { label: 'Reviews', href: '/admin/reviews' },
+            { label: 'Coupons', href: '/admin/coupons' }
+        ]
+    },
+    'Catalog': {
+        icon: 'products', // Reusing products icon
+        items: [
+            { label: 'Products', href: '/admin/products' },
+            { label: 'Categories', href: '/admin/categories' },
+            { label: 'Brands', href: '/admin/brands' },
+            { label: 'Materials', href: '/admin/materials' }
+        ]
+    },
+    'Operations': {
+        icon: 'operations',
+        items: [
+            { label: 'Inventory', href: '/admin/inventory' },
+            { label: 'Procurement', href: '/admin/procurement' },
+            { label: 'Warehouses', href: '/admin/inventory/warehouses' },
+            { label: 'Transfers', href: '/admin/inventory/transfers' },
+        ]
+    },
+    'Finance': {
+        icon: 'finance',
+        items: [
+            { label: 'Dashboard', href: '/admin/finance' },
+            { label: 'Accounts', href: '/admin/finance/accounts' },
+            { label: 'Journal', href: '/admin/finance/transactions' },
+            { label: 'Expenses', href: '/admin/finance/expenses' },
+            { label: 'Capital', href: '/admin/finance/capital' },
+            { label: 'Valuation', href: '/admin/finance/inventory' },
+            { 
+                label: 'Reports', 
+                children: [
+                    { label: 'P&L', href: '/admin/finance/reports/pnl' },
+                    { label: 'Balance Sheet', href: '/admin/finance/reports/balance' },
+                    { label: 'Cash Flow', href: '/admin/finance/reports/cashflow' },
+                    { label: 'Forecasts', href: '/admin/finance/reports/forecasts' }
+                ]
+            }
+        ]
+    },
+    'Management': {
+        icon: 'management',
+        items: [
+            { label: 'Team', href: '/admin/team' },
+            { label: 'Roles', href: '/admin/team/roles' },
+            { label: 'Approvals', href: '/admin/team/approvals' },
+            { label: 'Activity', href: '/admin/activity' },
+            { label: 'Settings', href: '/admin/config' } // Linked to config as Settings
+        ]
+    }
+};
 
 export function AdminSidebar() {
     const pathname = usePathname();
+    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+        'Sales': true,
+        'Catalog': true,
+        'Operations': true,
+        'Finance': true,
+        'Management': true
+    });
 
-    const isActive = (href: string) => {
+    const toggleSection = (section: string) => {
+        setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+    };
+
+    const isActive = (href?: string) => {
+        if (!href) return false;
         if (href === '/admin') return pathname === '/admin';
         return pathname.startsWith(href);
     };
 
+    const renderNavItems = (items: NavItem[], depth = 0) => {
+        return items.map((item) => {
+            if (item.children) {
+                return (
+                    <div key={item.label} className="nav-group">
+                        <div className="nav-group-label" style={{ paddingLeft: `${16 + depth * 12}px`, fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '8px', marginBottom: '4px' }}>
+                            {item.label}
+                        </div>
+                        {renderNavItems(item.children, depth + 1)}
+                    </div>
+                );
+            }
+            return (
+                <Link
+                    key={item.href}
+                    href={item.href!}
+                    className={`admin-nav-item ${isActive(item.href) ? 'active' : ''}`}
+                    style={{ paddingLeft: `${16 + depth * 12}px` }}
+                >
+                    <span className="nav-dot" style={{ 
+                        width: '6px', 
+                        height: '6px', 
+                        borderRadius: '50%', 
+                        background: isActive(item.href) ? 'var(--primary)' : 'var(--border-color)',
+                        marginRight: '12px'
+                    }}/>
+                    <span>{item.label}</span>
+                </Link>
+            );
+        });
+    };
+
     return (
-        <aside className="admin-sidebar">
-            {/* Logo */}
-            <div className="admin-brand">
+        <aside className="admin-sidebar" style={{ width: '260px', overflowY: 'auto' }}>
+            <div className="admin-brand" style={{ padding: '24px', borderBottom: '1px solid var(--border-color)' }}>
                 <div className="brand-icon">L</div>
                 <div>
                     <span className="brand-text">Legacy</span>
-                    <span className="brand-badge">Admin</span>
+                    <span className="brand-badge">Neural Admin</span>
                 </div>
             </div>
 
-            {/* Main Navigation */}
-            <nav className="admin-nav">
-                <div className="admin-nav-section">
-                    <div className="admin-nav-label">Main Menu</div>
-                    {mainNavItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`admin-nav-item ${isActive(item.href) ? 'active' : ''}`}
+            <nav className="admin-nav" style={{ padding: '16px 0' }}>
+                {Object.entries(navStructure).map(([section, data]) => (
+                    <div key={section} className="nav-section" style={{ marginBottom: '24px' }}>
+                        <div 
+                            className="section-header" 
+                            onClick={() => toggleSection(section)}
+                            style={{ 
+                                padding: '8px 24px', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                cursor: 'pointer',
+                                color: 'var(--text-primary)',
+                                fontWeight: 600
+                            }}
                         >
-                            <span className="admin-nav-icon">{icons[item.icon]}</span>
-                            <span>{item.label}</span>
-                        </Link>
-                    ))}
-                </div>
-
-                <div className="admin-nav-section">
-                    <div className="admin-nav-label">Management</div>
-                    {secondaryNavItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`admin-nav-item ${isActive(item.href) ? 'active' : ''}`}
-                        >
-                            <span className="admin-nav-icon">{icons[item.icon]}</span>
-                            <span>{item.label}</span>
-                        </Link>
-                    ))}
-                </div>
+                            <span className="section-icon" style={{ marginRight: '12px', width: '20px', height: '20px' }}>
+                                {icons[data.icon]}
+                            </span>
+                            <span style={{ flex: 1 }}>{section}</span>
+                            <span 
+                                style={{ 
+                                    width: '16px', 
+                                    height: '16px', 
+                                    transition: 'transform 0.2s',
+                                    transform: expandedSections[section] ? 'rotate(0deg)' : 'rotate(-90deg)'
+                                }}
+                            >
+                                {icons.chevronDown}
+                            </span>
+                        </div>
+                        
+                        {expandedSections[section] && (
+                            <div className="section-items" style={{ marginTop: '4px' }}>
+                                {renderNavItems(data.items)}
+                            </div>
+                        )}
+                    </div>
+                ))}
             </nav>
 
-            {/* Logout */}
-            <div className="admin-logout-wrapper">
+            <div className="admin-logout-wrapper" style={{ borderTop: '1px solid var(--border-color)', padding: '16px' }}>
                 <form action={adminLogout}>
-                    <button type="submit" className="admin-logout-btn">
+                    <button type="submit" className="admin-logout-btn" style={{ width: '100%', justifyContent: 'center' }}>
                         <span className="admin-nav-icon">{icons.logout}</span>
                         <span>Logout</span>
                     </button>

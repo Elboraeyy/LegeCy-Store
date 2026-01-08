@@ -6,38 +6,59 @@ import { Prisma } from "@prisma/client";
 
 // Get a single config by key
 export async function getStoreConfig(key: string) {
-  const config = await prisma.storeConfig.findUnique({
-    where: { key }
-  });
-  return config?.value || null;
+  try {
+    if (!prisma.storeConfig) {
+      console.warn(`[Config] prisma.storeConfig missing for key: ${key}`);
+      return null;
+    }
+    const config = await prisma.storeConfig.findUnique({
+      where: { key }
+    });
+    return config?.value || null;
+  } catch (e) {
+    console.warn(`[Config] Failed to fetch key: ${key}`, e);
+    return null;
+  }
 }
 
 // Get multiple configs by keys (batch fetch)
 export async function getMultipleConfigs(keys: string[]) {
-  const configs = await prisma.storeConfig.findMany({
-    where: { key: { in: keys } }
-  });
-  
-  const result: Record<string, unknown> = {};
-  configs.forEach(config => {
-    result[config.key] = config.value;
-  });
-  return result;
+  try {
+    if (!prisma.storeConfig) return {};
+    const configs = await prisma.storeConfig.findMany({
+      where: { key: { in: keys } }
+    });
+    
+    const result: Record<string, unknown> = {};
+    configs.forEach(config => {
+      result[config.key] = config.value;
+    });
+    return result;
+  } catch (e) {
+    console.warn('[Config] Failed to fetch multiple configs', e);
+    return {};
+  }
 }
 
 // Get all configs that start with a prefix (for sections)
 export async function getConfigsByPrefix(prefix: string) {
-  const configs = await prisma.storeConfig.findMany({
-    where: {
-      key: { startsWith: prefix }
-    }
-  });
-  
-  const result: Record<string, unknown> = {};
-  configs.forEach(config => {
-    result[config.key] = config.value;
-  });
-  return result;
+  try {
+    if (!prisma.storeConfig) return {};
+    const configs = await prisma.storeConfig.findMany({
+      where: {
+        key: { startsWith: prefix }
+      }
+    });
+    
+    const result: Record<string, unknown> = {};
+    configs.forEach(config => {
+      result[config.key] = config.value;
+    });
+    return result;
+  } catch (e) {
+    console.warn('[Config] Failed to fetch prefix configs', e);
+    return {};
+  }
 }
 
 // Update a single config

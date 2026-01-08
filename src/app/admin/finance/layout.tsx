@@ -14,6 +14,10 @@ export default function FinanceLayout({ children }: { children: React.ReactNode 
     { href: '/admin/finance/transactions', label: 'Ledger', icon: '📓' },
     { href: '/admin/finance/inventory', label: 'Inventory Value', icon: '📦' },
     { href: '/admin/finance/accounts', label: 'Accounts', icon: '⚙️' },
+    { href: '/admin/finance/periods', label: 'Periods', icon: '🔒' },
+    { href: '/admin/finance/reports/pnl', label: 'P&L', icon: '📈' },
+    { href: '/admin/finance/reports/cashflow', label: 'Cash Flow', icon: '💹' },
+    { href: '/admin/finance/reports/balance', label: 'Balance Sheet', icon: '⚖️' },
   ];
 
   return (
