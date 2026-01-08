@@ -62,18 +62,21 @@ export async function createJournalEntry(
 ) {
   const admin = await requireAdmin();
 
-  // 1. Validate Balance (Zero-Sum Check)
-  let totalDebit = 0;
-  let totalCredit = 0;
+  // 1. Validate Balance (Zero-Sum Check) using EXACT decimal math
+  // CRITICAL: Never use floating-point tolerance for financial calculations
+  const { Decimal } = await import('@prisma/client/runtime/library');
+  
+  let totalDebit = new Decimal(0);
+  let totalCredit = new Decimal(0);
 
   lines.forEach(line => {
-    totalDebit += line.debit || 0;
-    totalCredit += line.credit || 0;
+    totalDebit = totalDebit.plus(new Decimal(line.debit || 0));
+    totalCredit = totalCredit.plus(new Decimal(line.credit || 0));
   });
 
-  // Floating point safety margin
-  if (Math.abs(totalDebit - totalCredit) > 0.01) {
-    throw new Error(`Journal Entry Unbalanced: Debit (${totalDebit}) != Credit (${totalCredit})`);
+  // EXACT equality check - no tolerance
+  if (!totalDebit.equals(totalCredit)) {
+    throw new Error(`Journal Entry Unbalanced: Debit (${totalDebit.toString()}) != Credit (${totalCredit.toString()})`);
   }
 
   // 2. Execute Atomic Transaction

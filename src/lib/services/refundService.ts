@@ -289,7 +289,69 @@ export async function completeRefund(
         }
       }
 
-      // 3. Audit log
+      // 3. CRITICAL: Create reversing journal entry for financial accuracy
+      // This reverses the original revenue recognition
+      const refundAmount = Number(returnRequest.order.totalPrice);
+      
+      // Find the original revenue journal entry
+      const originalJournal = await tx.journalEntry.findFirst({
+        where: { orderId: returnRequest.orderId }
+      });
+
+      // Only create reversal if original journal exists
+      if (originalJournal) {
+        // Get accounts
+        const salesAccount = await tx.account.findFirst({ where: { code: '4001' } }); // Sales Revenue
+        const cashAccount = await tx.account.findFirst({ where: { code: '1001' } }); // Cash
+
+        if (salesAccount && cashAccount) {
+          // Create reversing journal entry
+          const reversalJournal = await tx.journalEntry.create({
+            data: {
+              description: `Refund Reversal for Order #${returnRequest.orderId.slice(0, 8)}`,
+              reference: `REFUND-${returnRequestId.slice(0, 8)}`,
+              date: new Date(),
+              status: 'POSTED',
+              createdBy: adminId,
+              orderId: returnRequest.orderId
+            }
+          });
+
+          // Line 1: Debit Sales Revenue (reverse the credit)
+          await tx.transactionLine.create({
+            data: {
+              journalEntryId: reversalJournal.id,
+              accountId: salesAccount.id,
+              debit: refundAmount,
+              credit: 0,
+              description: 'Sales Revenue Reversal (Refund)'
+            }
+          });
+          // Update sales account balance (decrease)
+          await tx.account.update({
+            where: { id: salesAccount.id },
+            data: { balance: { decrement: refundAmount } }
+          });
+
+          // Line 2: Credit Cash (reverse the debit)
+          await tx.transactionLine.create({
+            data: {
+              journalEntryId: reversalJournal.id,
+              accountId: cashAccount.id,
+              debit: 0,
+              credit: refundAmount,
+              description: 'Cash Reversal (Refund Paid Out)'
+            }
+          });
+          // Update cash account balance (decrease)
+          await tx.account.update({
+            where: { id: cashAccount.id },
+            data: { balance: { decrement: refundAmount } }
+          });
+        }
+      }
+
+      // 4. Audit log
       await auditService.logAction(
         adminId,
         'REFUND_COMPLETED',
@@ -297,7 +359,9 @@ export async function completeRefund(
         returnRequestId,
         { 
           orderId: returnRequest.orderId,
-          transactionReference 
+          refundAmount,
+          transactionReference,
+          ledgerReversalCreated: !!originalJournal
         },
         null,
         null,

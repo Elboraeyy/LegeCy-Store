@@ -113,16 +113,38 @@ if (typeof setInterval !== 'undefined') {
 // MAIN RATE LIMIT FUNCTION
 // ============================================
 
+// CRITICAL: Endpoints that must FAIL-CLOSED if rate limiting is unavailable
+const CRITICAL_RATE_LIMIT_PATTERNS = [
+  'login',
+  'checkout',
+  'payment',
+  'admin_login',
+  'signup'
+];
+
+function isCriticalEndpoint(identifier: string): boolean {
+  const lowerIdentifier = identifier.toLowerCase();
+  return CRITICAL_RATE_LIMIT_PATTERNS.some(p => lowerIdentifier.includes(p));
+}
+
 /**
  * Check rate limit for an identifier.
  * Uses Upstash in production, memory in development.
+ * 
+ * FAIL-CLOSED BEHAVIOR (Production):
+ * - Critical endpoints (login, checkout, payment) MUST BLOCK if Upstash unavailable
+ * - Non-critical endpoints fall back to memory-based limiting
  * 
  * @returns RateLimitResult with allowed status and remaining count
  */
 export async function checkRateLimitAsync(
   identifier: string, 
-  config: RateLimitConfig
+  config: RateLimitConfig,
+  options?: { failClosed?: boolean }
 ): Promise<RateLimitResult> {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const shouldFailClosed = options?.failClosed ?? (isProduction && isCriticalEndpoint(identifier));
+  
   // Try Upstash first
   const upstash = await getUpstashRatelimit();
   
@@ -157,11 +179,45 @@ export async function checkRateLimitAsync(
       };
     } catch (e) {
       console.error('Upstash rate limit check failed:', e);
-      // Fallback to memory on error
+      
+      // FAIL-CLOSED: For critical endpoints in production, BLOCK if Upstash fails
+      if (shouldFailClosed) {
+        console.error(`CRITICAL: Rate limiting unavailable for critical endpoint. BLOCKING request for: ${identifier}`);
+        
+        // Send alert
+        try {
+          const { sendAlert } = await import('@/lib/monitoring');
+          await sendAlert({
+            type: 'RATE_LIMIT_BREACH',
+            severity: 'critical',
+            message: `Rate limiting unavailable - blocking critical endpoint: ${identifier}`,
+            details: { identifier, error: String(e) }
+          });
+        } catch {
+          // Ignore alert errors
+        }
+        
+        return {
+          allowed: false,
+          remaining: 0,
+          resetAt: Date.now() + 60000, // Retry in 1 minute
+        };
+      }
+      
+      // Non-critical: Fallback to memory
+      console.warn(`Rate limiting fallback to memory for non-critical: ${identifier}`);
     }
+  } else if (shouldFailClosed) {
+    // FAIL-CLOSED: No Upstash configured for critical endpoint in production
+    console.error(`CRITICAL: Upstash not configured for critical endpoint. BLOCKING: ${identifier}`);
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt: Date.now() + 60000,
+    };
   }
   
-  // Fallback to memory
+  // Fallback to memory (only for non-critical or development)
   const result = checkMemoryRateLimit(identifier, config);
   
   // Track breaches
@@ -176,6 +232,7 @@ export async function checkRateLimitAsync(
   
   return result;
 }
+
 
 /**
  * Synchronous rate limit check (memory-only, for backward compatibility)
