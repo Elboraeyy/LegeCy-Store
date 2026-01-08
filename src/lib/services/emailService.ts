@@ -1,5 +1,3 @@
-'use server';
-
 import { Resend } from 'resend';
 import { logger } from '@/lib/logger';
 
