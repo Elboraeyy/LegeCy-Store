@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     await Promise.all([
       prisma.order.count(),
       prisma.product.count(),
-      prisma.customer.count(),
+      prisma.user.count(),
     ]);
 
     const duration = Date.now() - startTime;
