@@ -9,7 +9,11 @@ export default function FinanceLayout({ children }: { children: React.ReactNode 
 
   const financeLinks = [
     { href: '/admin/finance', label: 'Dashboard', icon: '📊' },
-    { href: '/admin/finance/equity', label: 'Capital & Partners', icon: '🤝' },
+    { href: '/admin/finance/forecast', label: 'توقع السيولة', icon: '🔮' },
+    { href: '/admin/finance/break-even', label: 'نقطة التعادل', icon: '⚖️' },
+    { href: '/admin/finance/profit-quality', label: 'جودة الربح', icon: '📊' },
+    { href: '/admin/finance/partners', label: 'محافظ الشركاء', icon: '🤝' },
+    { href: '/admin/finance/equity', label: 'Capital & Partners', icon: '💼' },
     { href: '/admin/finance/expenses', label: 'Expenses', icon: '💸' },
     { href: '/admin/finance/transactions', label: 'Ledger', icon: '📓' },
     { href: '/admin/finance/inventory', label: 'Inventory Value', icon: '📦' },
@@ -18,6 +22,7 @@ export default function FinanceLayout({ children }: { children: React.ReactNode 
     { href: '/admin/finance/reports/pnl', label: 'P&L', icon: '📈' },
     { href: '/admin/finance/reports/cashflow', label: 'Cash Flow', icon: '💹' },
     { href: '/admin/finance/reports/balance', label: 'Balance Sheet', icon: '⚖️' },
+    { href: '/admin/finance/reports/board', label: 'Board Report', icon: '📋' },
   ];
 
   return (

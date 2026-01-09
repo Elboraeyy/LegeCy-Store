@@ -1,0 +1,15 @@
+﻿src/app/admin/finance/partners/page.tsx(142,35): error TS2503: Cannot find namespace 'JSX'.
+src/app/api/admin/config/kill-switches/route.ts(27,29): error TS2352: Conversion of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/app/api/admin/config/kill-switches/route.ts(27,78): error TS2339: Property 'findUnique' does not exist on type '{}'.
+src/lib/services/governanceService.ts(48,7): error TS2322: Type 'Record<string, unknown>' is not assignable to type 'JsonNull | InputJsonValue'.
+  Type 'Record<string, unknown>' is missing the following properties from type 'readonly (InputJsonValue | null)[]': length, concat, join, slice, and 26 more.
+src/lib/services/governanceService.ts(280,12): error TS2322: Type '({ label: string; value: string; change: number; trend: string; } | { label: string; value: string; trend: string; change?: undefined; })[]' is not assignable to type '{ label: string; value: string; change?: number | undefined; trend: "up" | "down" | "stable"; }[]'.
+  Type '{ label: string; value: string; change: number; trend: string; } | { label: string; value: string; trend: string; change?: undefined; }' is not assignable to type '{ label: string; value: string; change?: number | undefined; trend: "up" | "down" | "stable"; }'.
+    Type '{ label: string; value: string; change: number; trend: string; }' is not assignable to type '{ label: string; value: string; change?: number | undefined; trend: "up" | "down" | "stable"; }'.
+      Types of property 'trend' are incompatible.
+        Type 'string' is not assignable to type '"up" | "down" | "stable"'.
+src/lib/services/operationsService.ts(186,7): error TS2322: Type 'Record<string, unknown>' is not assignable to type 'JsonNull | InputJsonValue'.
+  Type 'Record<string, unknown>' is missing the following properties from type 'readonly (InputJsonValue | null)[]': length, concat, join, slice, and 26 more.
+src/lib/services/operationsService.ts(192,7): error TS2322: Type 'Record<string, unknown>' is not assignable to type 'JsonNull | InputJsonValue | undefined'.
+  Type 'Record<string, unknown>' is missing the following properties from type 'readonly (InputJsonValue | null)[]': length, concat, join, slice, and 26 more.

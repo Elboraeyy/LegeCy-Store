@@ -45,6 +45,8 @@ const navStructure: Record<string, { icon: keyof typeof icons; items: NavItem[] 
         icon: 'sales',
         items: [
             { label: 'Orders', href: '/admin/orders' },
+            { label: 'Order Risk', href: '/admin/orders/risk' },
+            { label: 'Returns Intel', href: '/admin/orders/returns/intelligence' },
             { label: 'Customers', href: '/admin/customers' },
             { label: 'Reviews', href: '/admin/reviews' },
             { label: 'Coupons', href: '/admin/coupons' }
@@ -64,6 +66,7 @@ const navStructure: Record<string, { icon: keyof typeof icons; items: NavItem[] 
         items: [
             { label: 'Inventory', href: '/admin/inventory' },
             { label: 'Procurement', href: '/admin/procurement' },
+            { label: 'Supplier Perf.', href: '/admin/procurement/performance' },
             { label: 'Warehouses', href: '/admin/inventory/warehouses' },
             { label: 'Transfers', href: '/admin/inventory/transfers' },
         ]
@@ -72,6 +75,10 @@ const navStructure: Record<string, { icon: keyof typeof icons; items: NavItem[] 
         icon: 'finance',
         items: [
             { label: 'Dashboard', href: '/admin/finance' },
+            { label: 'Forecast', href: '/admin/finance/forecast' },
+            { label: 'Break-Even', href: '/admin/finance/break-even' },
+            { label: 'Profit Quality', href: '/admin/finance/profit-quality' },
+            { label: 'Partners', href: '/admin/finance/partners' },
             { label: 'Accounts', href: '/admin/finance/accounts' },
             { label: 'Journal', href: '/admin/finance/transactions' },
             { label: 'Expenses', href: '/admin/finance/expenses' },
@@ -83,6 +90,7 @@ const navStructure: Record<string, { icon: keyof typeof icons; items: NavItem[] 
                     { label: 'P&L', href: '/admin/finance/reports/pnl' },
                     { label: 'Balance Sheet', href: '/admin/finance/reports/balance' },
                     { label: 'Cash Flow', href: '/admin/finance/reports/cashflow' },
+                    { label: 'Board Report', href: '/admin/finance/reports/board' },
                     { label: 'Forecasts', href: '/admin/finance/reports/forecasts' }
                 ]
             }
@@ -91,11 +99,15 @@ const navStructure: Record<string, { icon: keyof typeof icons; items: NavItem[] 
     'Management': {
         icon: 'management',
         items: [
+            { label: 'Daily Brief', href: '/admin/daily/ceo-brief' },
             { label: 'Team', href: '/admin/team' },
+            { label: 'Decisions', href: '/admin/team/decisions' },
             { label: 'Roles', href: '/admin/team/roles' },
             { label: 'Approvals', href: '/admin/team/approvals' },
             { label: 'Activity', href: '/admin/activity' },
-            { label: 'Settings', href: '/admin/config' } // Linked to config as Settings
+            { label: 'Audit Trail', href: '/admin/activity/audit-timeline' },
+            { label: 'Kill Switches', href: '/admin/config/security/kill-switches' },
+            { label: 'Settings', href: '/admin/config' }
         ]
     }
 };

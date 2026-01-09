@@ -1766,5 +1766,189 @@ model OrderEvent {
   @@index([createdAt])
 }
 
+// ==========================================
+// Order Risk Scoring (Phase 2)
+// ==========================================
 
+model OrderRiskScore {
+  id              String   @id @default(uuid())
+  orderId         String   @unique
+  
+  score           Int      // 0-100 (higher = riskier)
+  factors         Json     // { newCustomer: true, highReturnArea: true, cod: true, highValue: true }
+  
+  flagged         Boolean  @default(false)
+  reviewStatus    String   @default("pending") // pending, reviewed, approved, blocked
+  
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewNote      String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([flagged, reviewStatus])
+  @@index([score])
+}
 
+model ShippingZone {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  cities          String[] // List of cities in this zone
+  
+  returnRate      Decimal  @default(0)  // Historical return rate (0-100)
+  avgDeliveryDays Int      @default(3)
+  riskLevel       String   @default("normal") // low, normal, high, critical
+  
+  isActive        Boolean  @default(true)
+  notes           String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([riskLevel])
+}
+
+// ==========================================
+// Supplier Performance (Phase 2)
+// ==========================================
+
+model SupplierPerformance {
+  id              String   @id @default(uuid())
+  supplierId      String   @unique
+  
+  qualityScore    Int      @default(80)    // 0-100
+  complianceScore Int      @default(80)    // 0-100
+  issueRate       Decimal  @default(0)     // Percentage
+  avgDeliveryDays Decimal  @default(0)
+  
+  totalOrders     Int      @default(0)
+  totalIssues     Int      @default(0)
+  onTimeDelivery  Int      @default(0)     // Count of on-time deliveries
+  lateDelivery    Int      @default(0)     // Count of late deliveries
+  
+  lastUpdated     DateTime @default(now())
+  
+  @@index([qualityScore])
+  @@index([complianceScore])
+}
+
+// ==========================================
+// Decision Log (Phase 3)
+// ==========================================
+
+model DecisionLog {
+  id              String   @id @default(uuid())
+  
+  type            String   // pricing, marketing, inventory, partnership, operations
+  title           String
+  description     String
+  
+  contextData     Json     // Numbers/metrics at decision time
+  expectedOutcome String?  // What we expect to happen
+  
+  actualOutcome   String?  // What actually happened (filled later)
+  outcomeScore    Int?     // -100 to 100 (bad to good)
+  evaluationNotes String?
+  
+  decisionMaker   String   // Admin ID
+  decisionMakerName String?
+  
+  evaluatedBy     String?
+  evaluatedAt     DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([type])
+  @@index([decisionMaker])
+  @@index([createdAt])
+}
+
+// ==========================================
+// Work Contribution Tracker (Phase 5)
+// ==========================================
+
+model WorkContribution {
+  id              String   @id @default(uuid())
+  adminId         String
+  period          String   // YYYY-MM format
+  
+  tasksCompleted  Int      @default(0)
+  ticketsResolved Int      @default(0)
+  ordersProcessed Int      @default(0)
+  approvalsHandled Int     @default(0)
+  
+  totalPoints     Int      @default(0) // Calculated score
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([adminId, period])
+  @@index([period])
+  @@index([totalPoints])
+}
+
+// ==========================================
+// Partner Conflict Prevention (Phase 5)
+// ==========================================
+
+model PartnerAlert {
+  id              String   @id @default(uuid())
+  investorId      String
+  
+  type            String   // OVER_WITHDRAWAL, INACTIVE, CAPITAL_IMBALANCE, SHARE_DISPUTE
+  severity        String   @default("warning") // info, warning, critical
+  
+  title           String
+  message         String
+  suggestedAction String?
+  
+  status          String   @default("pending") // pending, acknowledged, resolved, dismissed
+  
+  acknowledgedBy  String?
+  acknowledgedAt  DateTime?
+  resolvedBy      String?
+  resolvedAt      DateTime?
+  resolutionNote  String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([status])
+  @@index([investorId])
+  @@index([severity])
+}
+
+// ==========================================
+// Kill Switches & Fraud Watch (Phase 6)
+// ==========================================
+
+model CustomerRiskProfile {
+  id              String   @id @default(uuid())
+  
+  // Can be linked to userId or identified by email/phone
+  userId          String?  @unique
+  email           String?
+  phone           String?
+  
+  returnCount     Int      @default(0)
+  cancelCount     Int      @default(0)
+  disputeCount    Int      @default(0)
+  totalOrders     Int      @default(0)
+  
+  riskScore       Int      @default(0)  // 0-100
+  riskLevel       String   @default("normal") // normal, elevated, high, blocked
+  
+  flagReason      String?
+  notes           String?
+  
+  blockedAt       DateTime?
+  blockedBy       String?
+  
+  lastOrderAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([riskLevel])
+  @@index([riskScore])
+  @@index([email])
+  @@index([phone])
+}
