@@ -7,130 +7,189 @@ import Link from 'next/link';
 
 // Fetch command center stats
 async function getCommandCenterStats() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-    const [pendingOrders, activeAlerts, lowStockItems, todayOrders] = await Promise.all([
-        // Pending orders count
-        prisma.order.count({
-            where: {
-                status: { in: ['PENDING', 'PROCESSING'] }
-            }
-        }),
-        // Active alerts count
-        prisma.stockAlert.count({
-            where: { status: 'ACTIVE' }
-        }),
-        // Low stock count
-        prisma.$queryRaw<[{count: bigint}]>`
-            SELECT COUNT(*) as count FROM "WarehouseStock" 
-            WHERE available < min_stock AND min_stock > 0
-        `.then(r => Number(r[0]?.count || 0)).catch(() => 0),
-        // Today's revenue
-        prisma.order.aggregate({
-            where: {
-                createdAt: { gte: today },
-                status: { not: 'CANCELLED' }
-            },
-            _sum: { totalPrice: true }
-        })
-    ]);
+        // Defensive: Check for missing models
+        if (!prisma.order || !prisma.stockAlert) return {
+            pendingOrders: 0,
+            activeAlerts: 0,
+            lowStockCount: 0,
+            todayRevenue: 0,
+            systemStatus: 'nominal' as const
+        };
 
-    // Determine system status
-    let systemStatus: 'nominal' | 'attention' | 'critical' = 'nominal';
-    if (activeAlerts > 5 || pendingOrders > 20) systemStatus = 'critical';
-    else if (activeAlerts > 0 || pendingOrders > 10) systemStatus = 'attention';
+        const [pendingOrders, activeAlerts, lowStockItems, todayOrders] = await Promise.all([
+            // Pending orders count
+            prisma.order.count({
+                where: {
+                    status: { in: ['PENDING', 'PROCESSING'] }
+                }
+            }),
+            // Active alerts count
+            prisma.stockAlert.count({
+                where: { status: 'ACTIVE' }
+            }),
+            // Low stock count - Robust handling for raw query or missing view
+            prisma.$queryRaw<[{count: bigint}]>`
+                SELECT COUNT(*) as count FROM "Inventory" 
+                WHERE available < "minStock" AND "minStock" > 0
+            `.then(r => Number(r[0]?.count || 0))
+             .catch(e => {
+                 console.warn('Low stock query failed, trying fallback view or returning 0', e);
+                 // Try WarehouseStock view as fallback
+                 return prisma.$queryRaw<[{count: bigint}]>`
+                    SELECT COUNT(*) as count FROM "WarehouseStock" 
+                    WHERE available < min_stock AND min_stock > 0
+                 `.then(r => Number(r[0]?.count || 0)).catch(() => 0);
+             }),
+            // Today's revenue
+            prisma.order.aggregate({
+                where: {
+                    createdAt: { gte: today },
+                    status: { not: 'CANCELLED' }
+                },
+                _sum: { totalPrice: true }
+            })
+        ]);
 
-    return {
-        pendingOrders,
-        activeAlerts,
-        lowStockCount: lowStockItems,
-        todayRevenue: todayOrders._sum?.totalPrice?.toNumber() || 0,
-        systemStatus
-    };
+        // Determine system status
+        let systemStatus: 'nominal' | 'attention' | 'critical' = 'nominal';
+        if (activeAlerts > 5 || pendingOrders > 20) systemStatus = 'critical';
+        else if (activeAlerts > 0 || pendingOrders > 10) systemStatus = 'attention';
+
+        return {
+            pendingOrders,
+            activeAlerts,
+            lowStockCount: lowStockItems,
+            todayRevenue: todayOrders._sum?.totalPrice?.toNumber() || 0,
+            systemStatus
+        };
+    } catch (error) {
+        console.error('Failed to fetch command center stats:', error);
+        return {
+            pendingOrders: 0,
+            activeAlerts: 0,
+            lowStockCount: 0,
+            todayRevenue: 0,
+            systemStatus: 'attention' as const // Warn user something is wrong
+        };
+    }
 }
 
 // Fetch executive stats - INTELLIGENT DASHBOARD
 async function getExecutiveStats() {
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    
-    const [
-        killSwitches,
-        treasuryAccounts,
-        monthlyExpenses,
-        monthlyRevenue,
-        inventoryValue,
-        recognizedRevenue
-    ] = await Promise.all([
-        getKillSwitches(),
-        prisma.treasuryAccount.findMany(),
-        prisma.expense.aggregate({
-            where: { date: { gte: monthStart }, status: 'APPROVED' },
-            _sum: { amount: true }
-        }),
-        prisma.order.aggregate({
-            where: {
-                createdAt: { gte: monthStart },
-                status: { in: ['Paid', 'Shipped', 'Delivered'] }
-            },
-            _sum: { totalPrice: true }
-        }),
-        // Inventory value from inventory with cost prices
-        prisma.inventory.findMany({
-            include: { variant: true }
-        }),
-        // Recognized revenue from ledger
-        prisma.revenueRecognition.aggregate({
-            where: { recognizedAt: { gte: monthStart } },
-            _sum: { netRevenue: true, cogsAmount: true, grossProfit: true }
-        }),
-        // COGS from ledger account
-        prisma.account.findFirst({
-            where: { code: '5000' }
-        })
-    ]);
-    
-    const cashOnHand = treasuryAccounts.reduce((sum: number, acc: { balance: unknown }) => sum + Number(acc.balance), 0);
-    
-    // Calculate inventory value at cost
-    const inventoryTotal = inventoryValue.reduce((sum: number, inv: { variant: { costPrice: unknown } | null; available: number }) => {
-        const cost = Number(inv.variant?.costPrice || 0);
-        return sum + (cost * inv.available);
-    }, 0);
-    
-    // Calculate net profit from ledger
-    const revenue = Number(monthlyRevenue._sum?.totalPrice || 0);
-    const expenses = Number(monthlyExpenses._sum?.amount || 0);
-    const cogs = Number(recognizedRevenue._sum?.cogsAmount || 0);
-    const netProfit = revenue - expenses - cogs;
-    const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
-    
-    // Count disabled critical switches
-    const disabledSwitches = Object.entries(killSwitches).filter(([key, val]) => {
-        const critical = ['checkout_enabled', 'payments_enabled', 'paymob_enabled'];
-        return critical.includes(key) && !val;
-    }).length;
-    
-    // Generate warnings
-    const warnings: string[] = [];
-    if (netProfit < 0) warnings.push('⚠️ Negative profit this month');
-    if (cashOnHand < expenses) warnings.push('💸 Cash below monthly expenses');
-    if (disabledSwitches > 0) warnings.push('🔴 Critical systems disabled');
-    
-    return {
-        cashOnHand,
-        monthlyExpenses: expenses,
-        monthlyRevenue: revenue,
-        inventoryValue: inventoryTotal,
-        netProfit,
-        profitMargin,
-        pendingApprovals: 0,
-        disabledSwitches,
-        killSwitchesOK: disabledSwitches === 0,
-        warnings,
-        hasWarnings: warnings.length > 0
-    };
+    try {
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        // Defensive check for stale client
+        if (!prisma.order || !prisma.expense || !prisma.inventory || !prisma.revenueRecognition) {
+            console.warn('[AdminDashboard] Prisma client stale or missing models');
+             return {
+                cashOnHand: 0,
+                monthlyExpenses: 0,
+                monthlyRevenue: 0,
+                inventoryValue: 0,
+                netProfit: 0,
+                profitMargin: 0,
+                pendingApprovals: 0,
+                disabledSwitches: 0,
+                killSwitchesOK: true,
+                warnings: ['⚠️ System restarting - please refresh'],
+                hasWarnings: true
+            };
+        }
+
+        const [
+            killSwitches,
+            treasuryAccounts,
+            monthlyExpenses,
+            monthlyRevenue,
+            inventoryValue,
+            recognizedRevenue
+        ] = await Promise.all([
+            getKillSwitches(),
+            prisma.treasuryAccount.findMany(),
+            prisma.expense.aggregate({
+                where: { date: { gte: monthStart }, status: 'APPROVED' },
+                _sum: { amount: true }
+            }),
+            prisma.order.aggregate({
+                where: {
+                    createdAt: { gte: monthStart },
+                    status: { in: ['Paid', 'Shipped', 'Delivered'] }
+                },
+                _sum: { totalPrice: true }
+            }),
+            // Inventory value from inventory with cost prices
+            prisma.inventory.findMany({
+                include: { variant: true }
+            }),
+            // Recognized revenue from ledger
+            prisma.revenueRecognition.aggregate({
+                where: { recognizedAt: { gte: monthStart } },
+                _sum: { netRevenue: true, cogsAmount: true, grossProfit: true }
+            })
+        ]);
+        
+        const cashOnHand = treasuryAccounts.reduce((sum: number, acc: { balance: unknown }) => sum + Number(acc.balance), 0);
+        
+        // Calculate inventory value at cost
+        const inventoryTotal = inventoryValue.reduce((sum: number, inv: { variant: { costPrice: unknown } | null; available: number }) => {
+            const cost = Number(inv.variant?.costPrice || 0);
+            return sum + (cost * inv.available);
+        }, 0);
+        
+        // Calculate net profit from ledger
+        const revenue = Number(monthlyRevenue._sum?.totalPrice || 0);
+        const expenses = Number(monthlyExpenses._sum?.amount || 0);
+        const cogs = Number(recognizedRevenue._sum?.cogsAmount || 0);
+        const netProfit = revenue - expenses - cogs;
+        const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+        
+        // Count disabled critical switches
+        const disabledSwitches = Object.entries(killSwitches).filter(([key, val]) => {
+            const critical = ['checkout_enabled', 'payments_enabled', 'paymob_enabled'];
+            return critical.includes(key) && !val;
+        }).length;
+        
+        // Generate warnings
+        const warnings: string[] = [];
+        if (netProfit < 0) warnings.push('⚠️ Negative profit this month');
+        if (cashOnHand < expenses) warnings.push('💸 Cash below monthly expenses');
+        if (disabledSwitches > 0) warnings.push('🔴 Critical systems disabled');
+        
+        return {
+            cashOnHand,
+            monthlyExpenses: expenses,
+            monthlyRevenue: revenue,
+            inventoryValue: inventoryTotal,
+            netProfit,
+            profitMargin,
+            pendingApprovals: 0,
+            disabledSwitches,
+            killSwitchesOK: disabledSwitches === 0,
+            warnings,
+            hasWarnings: warnings.length > 0
+        };
+    } catch (error) {
+        console.error('Failed to fetch executive stats:', error);
+        return {
+            cashOnHand: 0,
+            monthlyExpenses: 0,
+            monthlyRevenue: 0,
+            inventoryValue: 0,
+            netProfit: 0,
+            profitMargin: 0,
+            pendingApprovals: 0,
+            disabledSwitches: 0,
+            killSwitchesOK: true,
+            warnings: ['⚠️ Error loading data'],
+            hasWarnings: true
+        };
+    }
 }
 
 export default async function AdminDashboard() {
