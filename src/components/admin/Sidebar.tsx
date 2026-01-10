@@ -75,15 +75,31 @@ const navStructure: Record<string, { icon: keyof typeof icons; items: NavItem[] 
         icon: 'finance',
         items: [
             { label: 'Dashboard', href: '/admin/finance' },
-            { label: 'Forecast', href: '/admin/finance/forecast' },
-            { label: 'Break-Even', href: '/admin/finance/break-even' },
-            { label: 'Profit Quality', href: '/admin/finance/profit-quality' },
-            { label: 'Partners', href: '/admin/finance/partners' },
-            { label: 'Accounts', href: '/admin/finance/accounts' },
-            { label: 'Journal', href: '/admin/finance/transactions' },
-            { label: 'Expenses', href: '/admin/finance/expenses' },
-            { label: 'Capital', href: '/admin/finance/capital' },
-            { label: 'Valuation', href: '/admin/finance/inventory' },
+            { 
+                label: 'Treasury', 
+                children: [
+                    { label: 'Cash Forecast', href: '/admin/finance/forecast' },
+                    { label: 'Break-Even', href: '/admin/finance/break-even' },
+                    { label: 'Profit Quality', href: '/admin/finance/profit-quality' },
+                ]
+            },
+            { 
+                label: 'Accounting', 
+                children: [
+                    { label: 'Accounts', href: '/admin/finance/accounts' },
+                    { label: 'Journal', href: '/admin/finance/transactions' },
+                    { label: 'Expenses', href: '/admin/finance/expenses' },
+                    { label: 'Inventory Value', href: '/admin/finance/inventory' },
+                ]
+            },
+            { 
+                label: 'Capital', 
+                children: [
+                    { label: 'Partners', href: '/admin/finance/partners' },
+                    { label: 'Equity', href: '/admin/finance/equity' },
+                    { label: 'Periods', href: '/admin/finance/periods' },
+                ]
+            },
             { 
                 label: 'Reports', 
                 children: [
@@ -91,7 +107,6 @@ const navStructure: Record<string, { icon: keyof typeof icons; items: NavItem[] 
                     { label: 'Balance Sheet', href: '/admin/finance/reports/balance' },
                     { label: 'Cash Flow', href: '/admin/finance/reports/cashflow' },
                     { label: 'Board Report', href: '/admin/finance/reports/board' },
-                    { label: 'Forecasts', href: '/admin/finance/reports/forecasts' }
                 ]
             }
         ]

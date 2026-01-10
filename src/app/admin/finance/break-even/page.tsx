@@ -54,7 +54,7 @@ export default function BreakEvenPage() {
   }, [selectedProduct]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-EG', { 
+    return new Intl.NumberFormat('en-US', { 
       style: 'currency', 
       currency: 'EGP',
       maximumFractionDigits: 0
@@ -64,112 +64,106 @@ export default function BreakEvenPage() {
   const getStatusStyle = (status: 'profitable' | 'break-even' | 'loss') => {
     switch (status) {
       case 'profitable':
-        return { bg: 'bg-green-100', text: 'text-green-800', icon: '✅', label: 'رابح' };
+        return { bg: 'positive', icon: '✅', label: 'Profitable' };
       case 'break-even':
-        return { bg: 'bg-amber-100', text: 'text-amber-800', icon: '⚖️', label: 'التعادل' };
+        return { bg: 'warning', icon: '⚖️', label: 'Break-Even' };
       case 'loss':
-        return { bg: 'bg-red-100', text: 'text-red-800', icon: '📉', label: 'خسارة' };
+        return { bg: 'negative', icon: '📉', label: 'Loss' };
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a3c34]"></div>
+      <div className="admin-loading">
+        <div className="admin-spinner"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#1a3c34]">حاسبة نقطة التعادل</h1>
-        <p className="text-gray-500">Break-Even Calculator - اعرف كم تحتاج تبيع علشان تكسب</p>
-      </div>
+    <>
+      {/* Page Description */}
+      <p className="page-description">
+        Know how much you need to sell to cover costs
+      </p>
 
       {/* Brand Level Break-Even */}
       {brandData && (
-        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-[#1a3c34] flex items-center gap-2">
-              <span className="text-2xl">🏢</span>
-              التعادل على مستوى البراند
-            </h2>
-            <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusStyle(brandData.status).bg} ${getStatusStyle(brandData.status).text}`}>
+        <div className="admin-card section-card">
+          <div className="section-header">
+            <h3><span>🏢</span> Brand-Level Break-Even</h3>
+            <span className={`status-tag ${getStatusStyle(brandData.status).bg}`}>
               {getStatusStyle(brandData.status).icon} {getStatusStyle(brandData.status).label}
-            </div>
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="admin-grid stats-grid">
             <StatCard 
-              label="المصروفات الثابتة الشهرية"
+              label="Monthly Fixed Costs"
               value={formatCurrency(brandData.totalMonthlyFixedCosts)}
               icon="💸"
             />
             <StatCard 
-              label="متوسط هامش الربح"
+              label="Avg. Profit Margin"
               value={formatCurrency(brandData.avgProfitMargin)}
               icon="📊"
             />
             <StatCard 
-              label="القطع المطلوب بيعها"
-              value={brandData.unitsToBreakEven.toLocaleString('ar-EG')}
+              label="Units to Break-Even"
+              value={brandData.unitsToBreakEven.toLocaleString()}
               icon="🎯"
               highlight
             />
             <StatCard 
-              label="المبيعات الحالية"
-              value={`${brandData.currentMonthlySales.toLocaleString('ar-EG')} قطعة`}
+              label="Current Monthly Sales"
+              value={`${brandData.currentMonthlySales.toLocaleString()} units`}
               icon="📦"
             />
           </div>
 
           {/* Progress Bar */}
-          <div className="bg-gray-100 rounded-full h-4 overflow-hidden">
-            <div 
-              className={`h-full transition-all duration-500 ${
-                brandData.status === 'profitable' ? 'bg-green-500' :
-                brandData.status === 'break-even' ? 'bg-amber-500' : 'bg-red-500'
-              }`}
-              style={{ 
-                width: `${Math.min(100, (brandData.currentMonthlySales / brandData.unitsToBreakEven) * 100)}%` 
-              }}
-            />
-          </div>
-          <div className="flex justify-between text-sm text-gray-500 mt-2">
-            <span>0</span>
-            <span>نقطة التعادل: {brandData.unitsToBreakEven.toLocaleString('ar-EG')}</span>
-            <span className="text-green-600 font-medium">
-              {((brandData.currentMonthlySales / brandData.unitsToBreakEven) * 100).toFixed(0)}%
-            </span>
+          <div className="progress-container">
+            <div className="progress-bar">
+              <div 
+                className={`progress-fill ${brandData.status}`}
+                style={{ 
+                  width: `${Math.min(100, (brandData.currentMonthlySales / brandData.unitsToBreakEven) * 100)}%` 
+                }}
+              />
+            </div>
+            <div className="progress-labels">
+              <span>0</span>
+              <span>Break-Even: {brandData.unitsToBreakEven.toLocaleString()}</span>
+              <span className="progress-percent">
+                {((brandData.currentMonthlySales / brandData.unitsToBreakEven) * 100).toFixed(0)}%
+              </span>
+            </div>
           </div>
 
           {/* Revenue Target */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-blue-800">
-              <strong>الإيراد المطلوب للتعادل:</strong> {formatCurrency(brandData.revenueToBreakEven)}
+          <div className="info-box info">
+            <p>
+              <strong>Revenue needed for break-even:</strong> {formatCurrency(brandData.revenueToBreakEven)}
             </p>
           </div>
         </div>
       )}
 
       {/* Product Level Break-Even */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-[#1a3c34] flex items-center gap-2 mb-6">
-          <span className="text-2xl">📦</span>
-          التعادل على مستوى المنتج
-        </h2>
+      <div className="admin-card section-card">
+        <div className="section-header">
+          <h3><span>📦</span> Product-Level Break-Even</h3>
+        </div>
 
         {/* Product Selector */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">اختر منتج</label>
+        <div className="product-selector">
+          <label>Select Product</label>
           <select
             value={selectedProduct}
             onChange={(e) => setSelectedProduct(e.target.value)}
-            className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1a3c34] focus:border-transparent"
+            className="form-input"
           >
-            <option value="">-- اختر منتج --</option>
+            <option value="">-- Choose a product --</option>
             {products.map(product => (
               <option key={product.id} value={product.id}>{product.name}</option>
             ))}
@@ -177,90 +171,327 @@ export default function BreakEvenPage() {
         </div>
 
         {productData ? (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold">{productData.productName}</h3>
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusStyle(productData.status).bg} ${getStatusStyle(productData.status).text}`}>
+          <div className="product-analysis">
+            <div className="product-header">
+              <h4>{productData.productName}</h4>
+              <span className={`status-tag ${getStatusStyle(productData.status).bg}`}>
                 {getStatusStyle(productData.status).icon} {getStatusStyle(productData.status).label}
-              </div>
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <StatCard label="سعر البيع" value={formatCurrency(productData.unitPrice)} icon="💵" />
-              <StatCard label="التكلفة" value={formatCurrency(productData.unitCost)} icon="🏭" />
-              <StatCard label="هامش الربح" value={formatCurrency(productData.profitMargin)} icon="📈" />
-              <StatCard label="نسبة الهامش" value={`${productData.profitMarginPercent.toFixed(1)}%`} icon="📊" />
-              <StatCard label="المطلوب بيعه" value={`${productData.unitsToBreakEven} قطعة`} icon="🎯" highlight />
-              <StatCard label="المبيعات الحالية" value={`${productData.currentMonthlySales} قطعة`} icon="📦" />
+            <div className="admin-grid stats-grid-sm">
+              <StatCard label="Selling Price" value={formatCurrency(productData.unitPrice)} icon="💵" />
+              <StatCard label="Unit Cost" value={formatCurrency(productData.unitCost)} icon="🏭" />
+              <StatCard label="Profit Margin" value={formatCurrency(productData.profitMargin)} icon="📈" />
+              <StatCard label="Margin %" value={`${productData.profitMarginPercent.toFixed(1)}%`} icon="📊" />
+              <StatCard label="Units Needed" value={`${productData.unitsToBreakEven}`} icon="🎯" highlight />
+              <StatCard label="Current Sales" value={`${productData.currentMonthlySales}`} icon="📦" />
             </div>
 
             {/* Product Progress */}
-            <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
-              <div 
-                className={`h-full transition-all duration-500 ${
-                  productData.status === 'profitable' ? 'bg-green-500' :
-                  productData.status === 'break-even' ? 'bg-amber-500' : 'bg-red-500'
-                }`}
-                style={{ 
-                  width: `${Math.min(100, (productData.currentMonthlySales / productData.unitsToBreakEven) * 100)}%` 
-                }}
-              />
+            <div className="progress-container sm">
+              <div className="progress-bar small">
+                <div 
+                  className={`progress-fill ${productData.status}`}
+                  style={{ 
+                    width: `${Math.min(100, (productData.currentMonthlySales / productData.unitsToBreakEven) * 100)}%` 
+                  }}
+                />
+              </div>
             </div>
 
             {/* Recommendation */}
-            <div className={`p-4 rounded-lg ${
-              productData.status === 'profitable' ? 'bg-green-50' :
-              productData.status === 'loss' ? 'bg-red-50' : 'bg-amber-50'
-            }`}>
+            <div className={`info-box ${productData.status === 'profitable' ? 'success' : productData.status === 'loss' ? 'danger' : 'warning'}`}>
               {productData.status === 'profitable' ? (
-                <p className="text-green-800">
-                  ✅ <strong>ممتاز!</strong> هذا المنتج يحقق أرباح. المبيعات تتجاوز نقطة التعادل بـ {productData.currentMonthlySales - productData.unitsToBreakEven} قطعة.
+                <p>
+                  ✅ <strong>Excellent!</strong> This product is profitable. Sales exceed break-even by {productData.currentMonthlySales - productData.unitsToBreakEven} units.
                 </p>
               ) : productData.status === 'loss' ? (
-                <p className="text-red-800">
-                  ⚠️ <strong>تحذير!</strong> هذا المنتج يحقق خسارة. تحتاج بيع {productData.unitsToBreakEven - productData.currentMonthlySales} قطعة إضافية للوصول للتعادل.
+                <p>
+                  ⚠️ <strong>Warning!</strong> This product is at a loss. Need to sell {productData.unitsToBreakEven - productData.currentMonthlySales} more units to break even.
                 </p>
               ) : (
-                <p className="text-amber-800">
-                  ⚖️ <strong>التعادل!</strong> هذا المنتج يحقق التعادل بالضبط. أي مبيعات إضافية ستحقق أرباح.
+                <p>
+                  ⚖️ <strong>Break-Even!</strong> This product is exactly at break-even. Any additional sales will generate profit.
                 </p>
               )}
             </div>
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-500">
-            <span className="text-4xl">📊</span>
-            <p className="mt-2">اختر منتج لعرض تحليل التعادل</p>
+          <div className="empty-state-container">
+            <span className="empty-icon">📊</span>
+            <p>Select a product to view break-even analysis</p>
           </div>
         )}
       </div>
 
       {/* Formula Explanation */}
-      <div className="bg-gray-50 rounded-xl border border-gray-200 p-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <span>📐</span>
-          كيف يتم الحساب؟
-        </h3>
-        <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-600" style={{ direction: 'ltr' }}>
-          <div>
-            <p className="font-mono bg-white p-3 rounded border mb-2">
-              Break-Even Units = Fixed Costs ÷ Profit Margin
-            </p>
-            <p className="text-right" style={{ direction: 'rtl' }}>
-              عدد القطع المطلوب = المصروفات الثابتة ÷ هامش الربح للقطعة
-            </p>
+      <div className="admin-card formula-card">
+        <h3><span>📐</span> How is this calculated?</h3>
+        <div className="formulas-grid">
+          <div className="formula-item">
+            <code>Break-Even Units = Fixed Costs ÷ Profit Margin per Unit</code>
+            <p>The number of units you need to sell to cover all fixed costs</p>
           </div>
-          <div>
-            <p className="font-mono bg-white p-3 rounded border mb-2">
-              Profit Margin = Selling Price - Unit Cost
-            </p>
-            <p className="text-right" style={{ direction: 'rtl' }}>
-              هامش الربح = سعر البيع - تكلفة القطعة
-            </p>
+          <div className="formula-item">
+            <code>Profit Margin = Selling Price - Unit Cost</code>
+            <p>The profit you make on each unit sold</p>
           </div>
         </div>
       </div>
-    </div>
+
+      <style jsx>{`
+        .admin-loading {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 300px;
+        }
+
+        .admin-spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid rgba(18, 64, 60, 0.1);
+          border-top-color: #12403C;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        .page-description {
+          color: var(--admin-text-muted, #4A6B68);
+          margin: 0 0 24px;
+          font-size: 14px;
+        }
+
+        .section-card {
+          margin-bottom: 24px;
+        }
+
+        .section-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
+        }
+
+        .section-header h3 {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+          color: var(--admin-text-on-light, #12403C);
+        }
+
+        .section-header h3 span {
+          font-size: 24px;
+        }
+
+        .status-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 6px 12px;
+          border-radius: 99px;
+          font-size: 13px;
+          font-weight: 500;
+        }
+
+        .status-tag.positive {
+          background: rgba(34, 197, 94, 0.1);
+          color: #16a34a;
+        }
+
+        .status-tag.negative {
+          background: rgba(239, 68, 68, 0.1);
+          color: #dc2626;
+        }
+
+        .status-tag.warning {
+          background: rgba(245, 158, 11, 0.1);
+          color: #d97706;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          margin-bottom: 20px;
+        }
+
+        .stats-grid-sm {
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          margin-bottom: 16px;
+        }
+
+        .progress-container {
+          margin-bottom: 24px;
+        }
+
+        .progress-container.sm {
+          margin-bottom: 16px;
+        }
+
+        .progress-bar {
+          background: rgba(18, 64, 60, 0.1);
+          border-radius: 99px;
+          height: 16px;
+          overflow: hidden;
+        }
+
+        .progress-bar.small {
+          height: 12px;
+        }
+
+        .progress-fill {
+          height: 100%;
+          transition: width 0.5s ease;
+        }
+
+        .progress-fill.profitable {
+          background: #22c55e;
+        }
+
+        .progress-fill.break-even {
+          background: #f59e0b;
+        }
+
+        .progress-fill.loss {
+          background: #ef4444;
+        }
+
+        .progress-labels {
+          display: flex;
+          justify-content: space-between;
+          font-size: 13px;
+          color: var(--admin-text-muted, #4A6B68);
+          margin-top: 8px;
+        }
+
+        .progress-percent {
+          color: #22c55e;
+          font-weight: 500;
+        }
+
+        .info-box {
+          padding: 16px;
+          border-radius: 12px;
+        }
+
+        .info-box p {
+          margin: 0;
+        }
+
+        .info-box.info {
+          background: rgba(59, 130, 246, 0.1);
+          color: #1d4ed8;
+        }
+
+        .info-box.success {
+          background: rgba(34, 197, 94, 0.1);
+          color: #16a34a;
+        }
+
+        .info-box.warning {
+          background: rgba(245, 158, 11, 0.1);
+          color: #d97706;
+        }
+
+        .info-box.danger {
+          background: rgba(239, 68, 68, 0.1);
+          color: #dc2626;
+        }
+
+        .product-selector {
+          margin-bottom: 24px;
+        }
+
+        .product-selector label {
+          display: block;
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--admin-text-muted, #4A6B68);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 6px;
+        }
+
+        .product-selector .form-input {
+          max-width: 400px;
+        }
+
+        .product-analysis {
+          padding-top: 16px;
+          border-top: 1px solid rgba(18, 64, 60, 0.08);
+        }
+
+        .product-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 16px;
+        }
+
+        .product-header h4 {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 700;
+          color: var(--admin-text-on-light, #12403C);
+        }
+
+        .empty-state-container {
+          text-align: center;
+          padding: 48px 24px;
+          color: var(--admin-text-muted, #4A6B68);
+        }
+
+        .empty-icon {
+          display: block;
+          font-size: 48px;
+          margin-bottom: 12px;
+        }
+
+        .formula-card {
+          background: rgba(18, 64, 60, 0.03);
+        }
+
+        .formula-card h3 {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 0 0 16px;
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--admin-text-on-light, #12403C);
+        }
+
+        .formulas-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 24px;
+        }
+
+        .formula-item code {
+          display: block;
+          background: white;
+          padding: 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(18, 64, 60, 0.08);
+          font-family: monospace;
+          font-size: 13px;
+          margin-bottom: 8px;
+        }
+
+        .formula-item p {
+          margin: 0;
+          font-size: 13px;
+          color: var(--admin-text-muted, #4A6B68);
+        }
+      `}</style>
+    </>
   );
 }
 
@@ -276,12 +507,18 @@ function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <div className={`p-4 rounded-lg border ${highlight ? 'bg-[#1a3c34] text-white border-[#1a3c34]' : 'bg-gray-50 border-gray-200'}`}>
-      <div className="flex items-center gap-2 mb-1">
+    <div style={{
+      padding: '16px',
+      borderRadius: '12px',
+      border: highlight ? 'none' : '1px solid rgba(18, 64, 60, 0.08)',
+      background: highlight ? '#12403C' : 'rgba(18, 64, 60, 0.03)',
+      color: highlight ? 'white' : 'inherit'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
         <span>{icon}</span>
-        <span className={`text-xs ${highlight ? 'text-gray-200' : 'text-gray-500'}`}>{label}</span>
+        <span style={{ fontSize: '11px', color: highlight ? 'rgba(255,255,255,0.7)' : 'var(--admin-text-muted)' }}>{label}</span>
       </div>
-      <p className={`text-lg font-bold ${highlight ? 'text-white' : 'text-[#1a3c34]'}`}>{value}</p>
+      <p style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: highlight ? 'white' : 'var(--admin-text-on-light)' }}>{value}</p>
     </div>
   );
 }

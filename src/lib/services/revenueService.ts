@@ -1,5 +1,3 @@
-'use server';
-
 /**
  * Revenue Service
  * 
@@ -39,6 +37,7 @@ async function getAccountByCode(code: string) {
       '1100': { name: 'Accounts Receivable', type: AccountType.ASSET },
       '1200': { name: 'Inventory', type: AccountType.ASSET },
       '2100': { name: 'Deferred Revenue', type: AccountType.LIABILITY },
+      '3000': { name: 'Owner\'s Equity', type: AccountType.EQUITY },
       '4000': { name: 'Sales Revenue', type: AccountType.REVENUE },
       '5000': { name: 'Cost of Goods Sold', type: AccountType.EXPENSE },
       '5300': { name: 'Inventory Adjustment', type: AccountType.EXPENSE },
