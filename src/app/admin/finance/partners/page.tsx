@@ -25,7 +25,7 @@ export default function PartnersPage() {
   }, []);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-EG', { 
+    return new Intl.NumberFormat('en-US', { 
       style: 'currency', 
       currency: 'EGP',
       maximumFractionDigits: 0
@@ -33,7 +33,7 @@ export default function PartnersPage() {
   };
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('ar-EG', {
+    return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -50,7 +50,7 @@ export default function PartnersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a3c34]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#12403C]"></div>
       </div>
     );
   }
@@ -60,8 +60,8 @@ export default function PartnersPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#1a3c34]">محافظ الشركاء</h1>
-          <p className="text-gray-500">Partner Wallets - رأس المال والأرباح لكل شريك</p>
+          <h1 className="text-2xl font-bold text-[#12403C]">Partner Wallets</h1>
+          <p className="text-gray-500">Capital and earnings tracking for each partner</p>
         </div>
       </div>
 
@@ -69,25 +69,25 @@ export default function PartnersPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryCard
           icon="💰"
-          label="إجمالي رأس المال"
+          label="Total Capital"
           value={formatCurrency(totals.capital)}
           color="#3b82f6"
         />
         <SummaryCard
           icon="📈"
-          label="إجمالي الأرباح"
+          label="Total Earnings"
           value={formatCurrency(totals.earnings)}
           color="#10b981"
         />
         <SummaryCard
           icon="💸"
-          label="إجمالي المسحوب"
+          label="Total Withdrawn"
           value={formatCurrency(totals.withdrawn)}
           color="#f59e0b"
         />
         <SummaryCard
           icon="🏦"
-          label="إجمالي المتبقي"
+          label="Total Remaining"
           value={formatCurrency(totals.remaining)}
           color="#8b5cf6"
         />
@@ -103,9 +103,9 @@ export default function PartnersPage() {
       ) : (
         <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
           <span className="text-5xl">🤝</span>
-          <h3 className="text-xl font-semibold mt-4 text-gray-700">لا يوجد شركاء</h3>
+          <h3 className="text-xl font-semibold mt-4 text-gray-700">No Partners Yet</h3>
           <p className="text-gray-500 mt-2">
-            أضف شركاء من صفحة رأس المال والشركاء لتتبع محافظهم
+            Add partners from the Capital & Equity page to track their wallets
           </p>
         </div>
       )}
@@ -113,7 +113,7 @@ export default function PartnersPage() {
       {/* Distribution Chart */}
       {partners.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-[#1a3c34] mb-6">توزيع الحصص</h3>
+          <h3 className="text-lg font-semibold text-[#12403C] mb-6">Ownership Distribution</h3>
           <div className="flex flex-wrap gap-4 items-center">
             {/* Pie representation */}
             <div className="relative w-32 h-32">
@@ -202,9 +202,9 @@ function PartnerCard({
   formatDate: (date: Date) => string;
 }) {
   const typeLabels: Record<string, { label: string; color: string }> = {
-    OWNER: { label: 'مالك', color: 'bg-purple-100 text-purple-800' },
-    PARTNER: { label: 'شريك', color: 'bg-blue-100 text-blue-800' },
-    INVESTOR: { label: 'مستثمر', color: 'bg-green-100 text-green-800' }
+    OWNER: { label: 'Owner', color: 'bg-purple-100 text-purple-800' },
+    PARTNER: { label: 'Partner', color: 'bg-blue-100 text-blue-800' },
+    INVESTOR: { label: 'Investor', color: 'bg-green-100 text-green-800' }
   };
 
   const typeInfo = typeLabels[partner.type] || typeLabels.PARTNER;
@@ -214,7 +214,7 @@ function PartnerCard({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1a3c34] to-[#2d5a4e] flex items-center justify-center text-white text-xl font-bold">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#12403C] to-[#2d5a4e] flex items-center justify-center text-white text-xl font-bold">
             {partner.name.charAt(0)}
           </div>
           <div>
@@ -224,28 +224,28 @@ function PartnerCard({
             </span>
           </div>
         </div>
-        <div className="text-left">
-          <p className="text-2xl font-bold text-[#1a3c34]">{partner.sharePercent.toFixed(1)}%</p>
-          <p className="text-xs text-gray-500">نسبة الملكية</p>
+        <div className="text-right">
+          <p className="text-2xl font-bold text-[#12403C]">{partner.sharePercent.toFixed(1)}%</p>
+          <p className="text-xs text-gray-500">Ownership</p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-blue-50 rounded-lg p-3">
-          <p className="text-xs text-blue-600">رأس المال</p>
+          <p className="text-xs text-blue-600">Capital</p>
           <p className="font-bold text-blue-800">{formatCurrency(partner.capitalContributed)}</p>
         </div>
         <div className="bg-green-50 rounded-lg p-3">
-          <p className="text-xs text-green-600">الأرباح المستحقة</p>
+          <p className="text-xs text-green-600">Earnings</p>
           <p className="font-bold text-green-800">{formatCurrency(partner.totalEarnings)}</p>
         </div>
         <div className="bg-amber-50 rounded-lg p-3">
-          <p className="text-xs text-amber-600">المسحوب</p>
+          <p className="text-xs text-amber-600">Withdrawn</p>
           <p className="font-bold text-amber-800">{formatCurrency(partner.withdrawn)}</p>
         </div>
         <div className="bg-purple-50 rounded-lg p-3">
-          <p className="text-xs text-purple-600">المتبقي</p>
+          <p className="text-xs text-purple-600">Remaining</p>
           <p className="font-bold text-purple-800">{formatCurrency(partner.remaining)}</p>
         </div>
       </div>
@@ -253,10 +253,10 @@ function PartnerCard({
       {/* Last Transaction */}
       {partner.lastTransaction && (
         <div className="mt-4 pt-4 border-t border-gray-100">
-          <p className="text-xs text-gray-500">آخر معاملة</p>
+          <p className="text-xs text-gray-500">Last Transaction</p>
           <div className="flex items-center justify-between mt-1">
             <span className={`text-sm font-medium ${partner.lastTransaction.type === 'DEPOSIT' ? 'text-green-600' : 'text-red-600'}`}>
-              {partner.lastTransaction.type === 'DEPOSIT' ? '⬆️ إيداع' : '⬇️ سحب'}
+              {partner.lastTransaction.type === 'DEPOSIT' ? '⬆️ Deposit' : '⬇️ Withdrawal'}
               {' '}
               {formatCurrency(partner.lastTransaction.amount)}
             </span>

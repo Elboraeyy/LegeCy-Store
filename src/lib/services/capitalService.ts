@@ -13,7 +13,7 @@ import { CapitalTxType } from '@prisma/client';
  */
 
 export async function getInvestors() {
-  return await prisma.investor.findMany({
+  const investors = await prisma.investor.findMany({
     include: {
       transactions: {
         orderBy: { date: 'desc' },
@@ -21,6 +21,19 @@ export async function getInvestors() {
       }
     }
   });
+
+  // Convert Decimal to plain numbers for client component serialization
+  return investors.map(inv => ({
+    ...inv,
+    netContributed: Number(inv.netContributed),
+    currentShare: Number(inv.currentShare),
+    transactions: inv.transactions.map(tx => ({
+      ...tx,
+      amount: Number(tx.amount),
+      snapshotTotalCapital: Number(tx.snapshotTotalCapital),
+      snapshotShare: Number(tx.snapshotShare)
+    }))
+  }));
 }
 
 export async function recordCapitalTransaction(
@@ -85,4 +98,64 @@ export async function recordCapitalTransaction(
   });
   
   return tx;
+}
+
+export async function createInvestor(data: {
+  name: string;
+  type: 'OWNER' | 'PARTNER' | 'INVESTOR';
+  initialCapital?: number;
+  createdBy: string;
+}) {
+  // Create the investor
+  const investor = await prisma.investor.create({
+    data: {
+      name: data.name,
+      type: data.type,
+      currentShare: 0, // Will be calculated based on capital
+      netContributed: 0
+    }
+  });
+
+  // If initial capital provided, record the transaction
+  if (data.initialCapital && data.initialCapital > 0) {
+    await recordCapitalTransaction(
+      investor.id,
+      'DEPOSIT',
+      data.initialCapital,
+      'Initial capital contribution',
+      data.createdBy
+    );
+  }
+
+  return investor;
+}
+
+export async function deleteInvestor(investorId: string) {
+  const investor = await prisma.investor.findUnique({ 
+    where: { id: investorId },
+    include: { transactions: true }
+  });
+  
+  if (!investor) {
+    throw new Error('Investor not found');
+  }
+  
+  // Check if investor has any capital balance
+  if (Number(investor.netContributed) !== 0) {
+    throw new Error('Cannot delete investor with capital balance. Withdraw all funds first.');
+  }
+  
+  // Delete related transactions first
+  if (investor.transactions.length > 0) {
+    await prisma.capitalTransaction.deleteMany({
+      where: { investorId }
+    });
+  }
+  
+  // Delete the investor
+  await prisma.investor.delete({
+    where: { id: investorId }
+  });
+  
+  return { success: true };
 }

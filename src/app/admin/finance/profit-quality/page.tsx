@@ -27,7 +27,7 @@ export default function ProfitQualityPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a3c34]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#12403C]"></div>
       </div>
     );
   }
@@ -35,7 +35,8 @@ export default function ProfitQualityPage() {
   if (!data) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">لا توجد بيانات كافية</p>
+        <span className="text-4xl">📊</span>
+        <p className="text-gray-500 mt-2">Not enough data available</p>
       </div>
     );
   }
@@ -48,31 +49,31 @@ export default function ProfitQualityPage() {
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 80) return 'ممتاز';
-    if (score >= 60) return 'جيد';
-    if (score >= 40) return 'متوسط';
-    if (score >= 20) return 'ضعيف';
-    return 'خطر';
+    if (score >= 80) return 'Excellent';
+    if (score >= 60) return 'Good';
+    if (score >= 40) return 'Average';
+    if (score >= 20) return 'Poor';
+    return 'Critical';
   };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'improving': return { icon: '📈', text: 'في تحسن', color: 'text-green-600' };
-      case 'declining': return { icon: '📉', text: 'في انخفاض', color: 'text-red-600' };
-      default: return { icon: '➡️', text: 'مستقر', color: 'text-gray-600' };
+      case 'improving': return { icon: '📈', text: 'Improving', color: 'text-green-600' };
+      case 'declining': return { icon: '📉', text: 'Declining', color: 'text-red-600' };
+      default: return { icon: '➡️', text: 'Stable', color: 'text-gray-600' };
     }
   };
 
   const trendInfo = getTrendIcon(data.trend);
-  const circumference = 2 * Math.PI * 45; // radius = 45
+  const circumference = 2 * Math.PI * 45;
   const strokeDashoffset = circumference - (data.score / 100) * circumference;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#1a3c34]">مؤشر جودة الربح</h1>
-        <p className="text-gray-500">Profit Quality Indicator - مش كل ربح صحي</p>
+        <h1 className="text-2xl font-bold text-[#12403C]">Profit Quality Indicator</h1>
+        <p className="text-gray-500">Not all profit is created equal - measure the quality of your earnings</p>
       </div>
 
       {/* Main Score Card */}
@@ -108,12 +109,12 @@ export default function ProfitQualityPage() {
               <span className="text-3xl font-bold" style={{ color: getScoreColor(data.score) }}>
                 {data.score}
               </span>
-              <span className="text-sm text-gray-500">من 100</span>
+              <span className="text-sm text-gray-500">of 100</span>
             </div>
           </div>
 
           {/* Score Info */}
-          <div className="text-center md:text-right flex-1">
+          <div className="text-center md:text-left flex-1">
             <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
               <span 
                 className="text-2xl font-bold"
@@ -126,7 +127,8 @@ export default function ProfitQualityPage() {
               </span>
             </div>
             <p className="text-gray-500 text-sm max-w-md">
-              هذا المؤشر يقيس جودة أرباحك بناءً على مصادر الإيراد ونسبة الخصومات والمرتجعات ومصاريف الإعلانات.
+              This indicator measures the quality of your profits based on revenue sources, 
+              discount rates, returns, and advertising costs.
             </p>
           </div>
         </div>
@@ -135,34 +137,34 @@ export default function ProfitQualityPage() {
       {/* Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <ImpactCard
-          label="المبيعات الحقيقية"
+          label="Real Sales"
           value={`${data.breakdown.realSalesPercent}%`}
-          detail="من إجمالي الإيراد"
+          detail="of total revenue"
           icon="💵"
           positive
         />
         <ImpactCard
-          label="تأثير الخصومات"
+          label="Discount Impact"
           value={`-${data.breakdown.discountImpact}`}
-          detail="نقطة مخصومة"
+          detail="points deducted"
           icon="🏷️"
         />
         <ImpactCard
-          label="تأثير المرتجعات"
+          label="Return Impact"
           value={`-${data.breakdown.returnImpact}`}
-          detail="نقطة مخصومة"
+          detail="points deducted"
           icon="📦"
         />
         <ImpactCard
-          label="تأثير الإعلانات"
+          label="Ad Spend Impact"
           value={`-${data.breakdown.adSpendImpact}`}
-          detail="نقطة مخصومة"
+          detail="points deducted"
           icon="📢"
         />
         <ImpactCard
-          label="مخاطر COD"
+          label="COD Risk"
           value={`-${data.breakdown.codRiskImpact}`}
-          detail="نقطة مخصومة"
+          detail="points deducted"
           icon="💳"
         />
       </div>
@@ -172,7 +174,7 @@ export default function ProfitQualityPage() {
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <h3 className="font-semibold text-red-800 flex items-center gap-2 mb-4">
             <span>⚠️</span>
-            عوامل الخطر
+            Risk Factors
           </h3>
           <ul className="space-y-2">
             {data.riskFactors.map((factor, idx) => (
@@ -187,13 +189,13 @@ export default function ProfitQualityPage() {
 
       {/* Score Guide */}
       <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-        <h3 className="font-semibold text-[#1a3c34] mb-4">دليل النتيجة</h3>
+        <h3 className="font-semibold text-[#12403C] mb-4">Score Guide</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center text-sm">
-          <ScoreRange color="#ef4444" range="0-19" label="خطر" emoji="🔴" />
-          <ScoreRange color="#f97316" range="20-39" label="ضعيف" emoji="🟠" />
-          <ScoreRange color="#f59e0b" range="40-59" label="متوسط" emoji="🟡" />
-          <ScoreRange color="#3b82f6" range="60-79" label="جيد" emoji="🔵" />
-          <ScoreRange color="#10b981" range="80-100" label="ممتاز" emoji="🟢" />
+          <ScoreRange color="#ef4444" range="0-19" label="Critical" emoji="🔴" />
+          <ScoreRange color="#f97316" range="20-39" label="Poor" emoji="🟠" />
+          <ScoreRange color="#f59e0b" range="40-59" label="Average" emoji="🟡" />
+          <ScoreRange color="#3b82f6" range="60-79" label="Good" emoji="🔵" />
+          <ScoreRange color="#10b981" range="80-100" label="Excellent" emoji="🟢" />
         </div>
       </div>
 
@@ -201,37 +203,37 @@ export default function ProfitQualityPage() {
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
         <h3 className="font-semibold text-blue-800 flex items-center gap-2 mb-4">
           <span>💡</span>
-          توصيات لتحسين الجودة
+          Recommendations to Improve Quality
         </h3>
         <ul className="space-y-3 text-blue-700">
           {data.breakdown.discountImpact > 10 && (
             <li className="flex items-start gap-2">
               <span>•</span>
-              <span>قلل الخصومات أو اجعلها مستهدفة للعملاء الجدد فقط</span>
+              <span>Reduce discounts or make them targeted for new customers only</span>
             </li>
           )}
           {data.breakdown.returnImpact > 10 && (
             <li className="flex items-start gap-2">
               <span>•</span>
-              <span>راجع سياسة المرتجعات وحسّن جودة المنتجات ذات المرتجعات العالية</span>
+              <span>Review return policy and improve quality of high-return products</span>
             </li>
           )}
           {data.breakdown.adSpendImpact > 10 && (
             <li className="flex items-start gap-2">
               <span>•</span>
-              <span>حسّن استهداف الإعلانات لتقليل تكلفة الاكتساب</span>
+              <span>Optimize ad targeting to reduce customer acquisition cost</span>
             </li>
           )}
           {data.breakdown.codRiskImpact > 10 && (
             <li className="flex items-start gap-2">
               <span>•</span>
-              <span>شجع الدفع الإلكتروني بخصومات أو عروض حصرية</span>
+              <span>Encourage online payment with exclusive discounts or offers</span>
             </li>
           )}
           {data.score >= 80 && (
             <li className="flex items-start gap-2">
               <span>✨</span>
-              <span>أداء ممتاز! حافظ على هذا المستوى واستمر في مراقبة المؤشرات</span>
+              <span>Excellent performance! Maintain this level and keep monitoring the indicators</span>
             </li>
           )}
         </ul>

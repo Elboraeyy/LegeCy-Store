@@ -31,22 +31,23 @@ export default function CashFlowForecastPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a3c34]"></div>
+      <div className="admin-loading">
+        <div className="admin-spinner"></div>
       </div>
     );
   }
 
   if (!forecast) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">لا توجد بيانات كافية للتوقع</p>
+      <div className="empty-state-container">
+        <span className="empty-icon">📊</span>
+        <p>Not enough data for forecast</p>
       </div>
     );
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-EG', { 
+    return new Intl.NumberFormat('en-US', { 
       style: 'currency', 
       currency: 'EGP',
       maximumFractionDigits: 0
@@ -70,7 +71,6 @@ export default function CashFlowForecastPage() {
     return ((maxValue - value) / range) * chartHeight;
   };
 
-  // Create SVG paths
   const createPath = (values: number[]) => {
     const step = chartWidth / (values.length - 1);
     return values.map((v, i) => `${i === 0 ? 'M' : 'L'} ${i * step} ${getY(v)}`).join(' ');
@@ -82,27 +82,20 @@ export default function CashFlowForecastPage() {
   const safetyY = getY(forecast.safetyLevel);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1a3c34]">توقع السيولة</h1>
-          <p className="text-gray-500">Cash Flow Forecast</p>
-        </div>
-        
-        {/* Period Selector */}
-        <div className="flex gap-2">
+    <>
+      {/* Page Description & Period Selector */}
+      <div className="page-header-row">
+        <p className="page-description">
+          Predict your future liquidity position
+        </p>
+        <div className="period-selector">
           {([7, 30, 60] as const).map(days => (
             <button
               key={days}
               onClick={() => setSelectedDays(days)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                selectedDays === days
-                  ? 'bg-[#1a3c34] text-white'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:border-[#1a3c34]'
-              }`}
+              className={`period-btn ${selectedDays === days ? 'active' : ''}`}
             >
-              {days} يوم
+              {days} Days
             </button>
           ))}
         </div>
@@ -110,7 +103,7 @@ export default function CashFlowForecastPage() {
 
       {/* Alerts Section */}
       {forecast.alerts.length > 0 && (
-        <div className="space-y-3">
+        <div className="alerts-section">
           {forecast.alerts.map((alert, idx) => (
             <AlertCard key={idx} alert={alert} />
           ))}
@@ -118,73 +111,87 @@ export default function CashFlowForecastPage() {
       )}
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          icon="💰"
-          label="السيولة الحالية"
-          value={formatCurrency(forecast.currentCash)}
-          subtext="Current Cash"
-          color="#10b981"
-        />
-        <MetricCard
-          icon="📈"
-          label="متوسط الإيراد الشهري"
-          value={formatCurrency(forecast.monthlyRevenue)}
-          subtext="Monthly Revenue"
-          color="#3b82f6"
-        />
-        <MetricCard
-          icon="📉"
-          label="متوسط المصروفات الشهرية"
-          value={formatCurrency(forecast.monthlyBurnRate)}
-          subtext="Monthly Burn"
-          color="#f59e0b"
-        />
-        <MetricCard
-          icon="⏳"
-          label="Runway"
-          value={forecast.runway >= 999 ? '∞' : `${forecast.runway.toFixed(1)} شهر`}
-          subtext={forecast.runway < 6 ? 'تحذير: منخفض' : 'صحي'}
-          color={forecast.runway < 6 ? '#ef4444' : '#10b981'}
-        />
+      <div className="admin-grid stats-grid">
+        <div className="admin-card stat-card">
+          <div className="stat-header">
+            <span className="stat-icon">💰</span>
+            <div className="stat-content">
+              <span className="stat-label">Current Cash</span>
+              <span className="stat-value positive">{formatCurrency(forecast.currentCash)}</span>
+              <span className="stat-hint">Available Balance</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="admin-card stat-card">
+          <div className="stat-header">
+            <span className="stat-icon">📈</span>
+            <div className="stat-content">
+              <span className="stat-label">Monthly Revenue</span>
+              <span className="stat-value info">{formatCurrency(forecast.monthlyRevenue)}</span>
+              <span className="stat-hint">Average Inflow</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="admin-card stat-card">
+          <div className="stat-header">
+            <span className="stat-icon">📉</span>
+            <div className="stat-content">
+              <span className="stat-label">Monthly Burn Rate</span>
+              <span className="stat-value warning">{formatCurrency(forecast.monthlyBurnRate)}</span>
+              <span className="stat-hint">Average Outflow</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="admin-card stat-card">
+          <div className="stat-header">
+            <span className="stat-icon">⏳</span>
+            <div className="stat-content">
+              <span className="stat-label">Runway</span>
+              <span className={`stat-value ${forecast.runway < 6 ? 'negative' : 'positive'}`}>
+                {forecast.runway >= 999 ? '∞' : `${forecast.runway.toFixed(1)} months`}
+              </span>
+              <span className="stat-hint">{forecast.runway < 6 ? 'Warning: Low' : 'Healthy'}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Scenario Chart */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-        <h3 className="text-lg font-semibold mb-4 text-[#1a3c34]">
-          السيناريوهات المتوقعة
-          <span className="text-sm font-normal text-gray-500 mr-2">
-            (أفضل / متوقع / أسوأ)
-          </span>
-        </h3>
+      <div className="admin-card chart-card">
+        <div className="card-header">
+          <h3>Scenario Projections</h3>
+          <span className="chart-subtitle">(Best / Expected / Worst)</span>
+        </div>
         
-        <div className="relative" style={{ height: chartHeight + 60, direction: 'ltr' }}>
+        <div className="chart-container">
           {/* Legend */}
-          <div className="absolute top-0 left-0 flex gap-4 text-sm">
-            <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-green-500"></span>
-              أفضل
+          <div className="chart-legend">
+            <span className="legend-item">
+              <span className="legend-dot" style={{ background: '#10b981' }}></span>
+              Best
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-              متوقع
+            <span className="legend-item">
+              <span className="legend-dot" style={{ background: '#3b82f6' }}></span>
+              Expected
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-red-500"></span>
-              أسوأ
+            <span className="legend-item">
+              <span className="legend-dot" style={{ background: '#ef4444' }}></span>
+              Worst
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-8 h-0.5 bg-amber-500" style={{ borderStyle: 'dashed' }}></span>
-              الحد الآمن
+            <span className="legend-item">
+              <span className="legend-line"></span>
+              Safety Level
             </span>
           </div>
 
           {/* SVG Chart */}
           <svg 
-            className="w-full mt-8" 
+            className="chart-svg" 
             viewBox={`0 0 ${chartWidth} ${chartHeight + 20}`}
             preserveAspectRatio="none"
-            style={{ height: chartHeight }}
           >
             {/* Safety line */}
             <line 
@@ -235,30 +242,30 @@ export default function CashFlowForecastPage() {
           </svg>
 
           {/* X-axis labels */}
-          <div className="flex justify-between text-xs text-gray-500 mt-2">
-            <span>اليوم</span>
-            <span>{Math.floor(selectedDays / 2)} يوم</span>
-            <span>{selectedDays} يوم</span>
+          <div className="chart-x-axis">
+            <span>Today</span>
+            <span>{Math.floor(selectedDays / 2)} Days</span>
+            <span>{selectedDays} Days</span>
           </div>
         </div>
 
         {/* End values */}
-        <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t">
-          <div className="text-center">
-            <p className="text-sm text-gray-500">أفضل سيناريو</p>
-            <p className="text-lg font-bold text-green-600">
+        <div className="forecast-results">
+          <div className="result-item best">
+            <p className="result-label">Best Case</p>
+            <p className="result-value">
               {formatCurrency(forecast.scenarios[forecast.scenarios.length - 1]?.best || 0)}
             </p>
           </div>
-          <div className="text-center">
-            <p className="text-sm text-gray-500">السيناريو المتوقع</p>
-            <p className="text-lg font-bold text-blue-600">
+          <div className="result-item expected">
+            <p className="result-label">Expected Case</p>
+            <p className="result-value">
               {formatCurrency(forecast.scenarios[forecast.scenarios.length - 1]?.expected || 0)}
             </p>
           </div>
-          <div className="text-center">
-            <p className="text-sm text-gray-500">أسوأ سيناريو</p>
-            <p className="text-lg font-bold text-red-600">
+          <div className="result-item worst">
+            <p className="result-label">Worst Case</p>
+            <p className="result-value">
               {formatCurrency(forecast.scenarios[forecast.scenarios.length - 1]?.worst || 0)}
             </p>
           </div>
@@ -267,105 +274,342 @@ export default function CashFlowForecastPage() {
 
       {/* Historical Cash Flow */}
       {forecast.historicalData.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-[#1a3c34]">التدفق النقدي التاريخي</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-right py-3 px-4">الشهر</th>
-                  <th className="text-right py-3 px-4">الداخل</th>
-                  <th className="text-right py-3 px-4">الخارج</th>
-                  <th className="text-right py-3 px-4">الصافي</th>
-                </tr>
-              </thead>
-              <tbody>
-                {forecast.historicalData.map((row, idx) => (
-                  <tr key={idx} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium">{row.date}</td>
-                    <td className="py-3 px-4 text-green-600">{formatCurrency(row.cashIn)}</td>
-                    <td className="py-3 px-4 text-red-600">{formatCurrency(row.cashOut)}</td>
-                    <td className={`py-3 px-4 font-semibold ${row.net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(row.net)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="admin-table-container">
+          <div className="table-header">
+            <h3>Historical Cash Flow</h3>
           </div>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th className="text-right">Cash In</th>
+                <th className="text-right">Cash Out</th>
+                <th className="text-right">Net</th>
+              </tr>
+            </thead>
+            <tbody>
+              {forecast.historicalData.map((row, idx) => (
+                <tr key={idx}>
+                  <td className="font-medium">{row.date}</td>
+                  <td className="text-right positive">{formatCurrency(row.cashIn)}</td>
+                  <td className="text-right negative">{formatCurrency(row.cashOut)}</td>
+                  <td className={`text-right font-bold ${row.net >= 0 ? 'positive' : 'negative'}`}>
+                    {formatCurrency(row.net)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
-    </div>
-  );
-}
 
-function MetricCard({ 
-  icon, 
-  label, 
-  value, 
-  subtext, 
-  color 
-}: { 
-  icon: string; 
-  label: string; 
-  value: string; 
-  subtext: string;
-  color: string;
-}) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-      <div className="flex items-start gap-3">
-        <span className="text-2xl">{icon}</span>
-        <div className="flex-1">
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-xl font-bold mt-1" style={{ color }}>{value}</p>
-          <p className="text-xs text-gray-400 mt-1">{subtext}</p>
-        </div>
-      </div>
-    </div>
+      <style jsx>{`
+        .admin-loading {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 300px;
+        }
+
+        .admin-spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid rgba(18, 64, 60, 0.1);
+          border-top-color: #12403C;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        .empty-state-container {
+          text-align: center;
+          padding: 48px 24px;
+          color: var(--admin-text-muted, #4A6B68);
+        }
+
+        .empty-icon {
+          display: block;
+          font-size: 48px;
+          margin-bottom: 12px;
+        }
+
+        .page-header-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .page-description {
+          color: var(--admin-text-muted, #4A6B68);
+          margin: 0;
+          font-size: 14px;
+        }
+
+        .period-selector {
+          display: flex;
+          gap: 8px;
+        }
+
+        .period-btn {
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          border: 1px solid rgba(18, 64, 60, 0.08);
+          cursor: pointer;
+          transition: all 0.2s;
+          background: white;
+          color: var(--admin-text-muted, #4A6B68);
+        }
+
+        .period-btn:hover {
+          border-color: #12403C;
+        }
+
+        .period-btn.active {
+          background: #12403C;
+          color: white;
+          border-color: #12403C;
+        }
+
+        .alerts-section {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          margin-bottom: 24px;
+        }
+
+        .stat-card {
+          padding: 20px;
+        }
+
+        .stat-header {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+        }
+
+        .stat-icon {
+          font-size: 28px;
+        }
+
+        .stat-content {
+          flex: 1;
+        }
+
+        .stat-label {
+          display: block;
+          font-size: 13px;
+          color: var(--admin-text-muted, #4A6B68);
+        }
+
+        .stat-value {
+          display: block;
+          font-size: 22px;
+          font-weight: 700;
+          margin-top: 4px;
+        }
+
+        .stat-value.positive { color: #10b981; }
+        .stat-value.negative { color: #ef4444; }
+        .stat-value.warning { color: #f59e0b; }
+        .stat-value.info { color: #3b82f6; }
+
+        .stat-hint {
+          display: block;
+          font-size: 11px;
+          color: var(--admin-text-muted, #4A6B68);
+          margin-top: 4px;
+        }
+
+        .chart-card {
+          margin-bottom: 24px;
+        }
+
+        .card-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid rgba(18, 64, 60, 0.08);
+          margin-bottom: 16px;
+        }
+
+        .card-header h3 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--admin-text-on-light, #12403C);
+        }
+
+        .chart-subtitle {
+          font-size: 13px;
+          color: var(--admin-text-muted, #4A6B68);
+          font-weight: 400;
+        }
+
+        .chart-container {
+          position: relative;
+        }
+
+        .chart-legend {
+          display: flex;
+          gap: 16px;
+          flex-wrap: wrap;
+          font-size: 13px;
+          margin-bottom: 16px;
+        }
+
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .legend-dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+        }
+
+        .legend-line {
+          width: 24px;
+          height: 2px;
+          background: #f59e0b;
+          border-style: dashed;
+        }
+
+        .chart-svg {
+          width: 100%;
+          height: 200px;
+        }
+
+        .chart-x-axis {
+          display: flex;
+          justify-content: space-between;
+          font-size: 12px;
+          color: var(--admin-text-muted, #4A6B68);
+          margin-top: 8px;
+        }
+
+        .forecast-results {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-top: 24px;
+          padding-top: 16px;
+          border-top: 1px solid rgba(18, 64, 60, 0.08);
+        }
+
+        .result-item {
+          text-align: center;
+        }
+
+        .result-label {
+          font-size: 13px;
+          color: var(--admin-text-muted, #4A6B68);
+          margin: 0 0 4px;
+        }
+
+        .result-value {
+          font-size: 18px;
+          font-weight: 700;
+          margin: 0;
+        }
+
+        .result-item.best .result-value { color: #10b981; }
+        .result-item.expected .result-value { color: #3b82f6; }
+        .result-item.worst .result-value { color: #ef4444; }
+
+        .admin-table-container {
+          margin-bottom: 24px;
+        }
+
+        .table-header {
+          padding: 16px 24px;
+          border-bottom: 1px solid rgba(18, 64, 60, 0.08);
+        }
+
+        .table-header h3 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--admin-text-on-light, #12403C);
+        }
+
+        .text-right { text-align: right; }
+        .font-medium { font-weight: 500; }
+        .font-bold { font-weight: 700; }
+        .positive { color: #10b981; }
+        .negative { color: #ef4444; }
+      `}</style>
+    </>
   );
 }
 
 function AlertCard({ alert }: { alert: CashAlert }) {
   const styles = {
     danger: {
-      bg: 'bg-red-50',
-      border: 'border-red-200',
+      bg: 'rgba(239, 68, 68, 0.05)',
+      border: 'rgba(239, 68, 68, 0.2)',
       icon: '🚨',
-      titleColor: 'text-red-800',
-      textColor: 'text-red-600'
+      titleColor: '#991b1b',
+      textColor: '#dc2626'
     },
     warning: {
-      bg: 'bg-amber-50',
-      border: 'border-amber-200',
+      bg: 'rgba(245, 158, 11, 0.05)',
+      border: 'rgba(245, 158, 11, 0.2)',
       icon: '⚠️',
-      titleColor: 'text-amber-800',
-      textColor: 'text-amber-600'
+      titleColor: '#92400e',
+      textColor: '#d97706'
     },
     info: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
+      bg: 'rgba(59, 130, 246, 0.05)',
+      border: 'rgba(59, 130, 246, 0.2)',
       icon: 'ℹ️',
-      titleColor: 'text-blue-800',
-      textColor: 'text-blue-600'
+      titleColor: '#1e40af',
+      textColor: '#3b82f6'
     }
   };
 
   const style = styles[alert.type];
 
   return (
-    <div className={`${style.bg} ${style.border} border rounded-lg p-4 flex items-start gap-3`}>
-      <span className="text-xl">{style.icon}</span>
-      <div>
-        <h4 className={`font-semibold ${style.titleColor}`}>{alert.title}</h4>
-        <p className={`text-sm ${style.textColor} mt-1`}>{alert.message}</p>
+    <div style={{
+      background: style.bg,
+      border: `1px solid ${style.border}`,
+      borderRadius: '16px',
+      padding: '16px',
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: '12px'
+    }}>
+      <span style={{ fontSize: '20px' }}>{style.icon}</span>
+      <div style={{ flex: 1 }}>
+        <h4 style={{ margin: '0 0 4px', fontWeight: 600, color: style.titleColor }}>{alert.title}</h4>
+        <p style={{ margin: 0, fontSize: '13px', color: style.textColor }}>{alert.message}</p>
       </div>
       {alert.daysUntil && (
-        <div className="mr-auto text-center">
-          <span className="text-2xl font-bold" style={{ color: alert.type === 'danger' ? '#ef4444' : '#f59e0b' }}>
+        <div style={{ textAlign: 'center' }}>
+          <span style={{ 
+            fontSize: '24px', 
+            fontWeight: 700, 
+            color: alert.type === 'danger' ? '#ef4444' : '#f59e0b' 
+          }}>
             {alert.daysUntil}
           </span>
-          <p className="text-xs text-gray-500">يوم</p>
+          <p style={{ fontSize: '11px', color: 'var(--admin-text-muted)', margin: 0 }}>days</p>
         </div>
       )}
     </div>
