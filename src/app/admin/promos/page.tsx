@@ -193,14 +193,14 @@ export default function PromosPage() {
                     <button 
                         type="button"
                         className="admin-btn admin-btn-outline"
-                        onClick={() => { console.log('Bulk clicked'); setModalType('bulk'); }}
+                        onClick={() => setModalType('bulk')}
                     >
                         <span>⚡</span> Bulk Create
                     </button>
                     <button 
                         type="button"
                         className="admin-btn admin-btn-primary"
-                        onClick={() => { console.log('New coupon clicked'); setEditingCoupon(null); setModalType('create'); }}
+                        onClick={() => { setEditingCoupon(null); setModalType('create'); }}
                     >
                         <span>+</span> New Coupon
                     </button>
@@ -383,6 +383,7 @@ export default function PromosPage() {
                                     <td>
                                         <div className="coupon-actions">
                                             <button 
+                                                type="button"
                                                 className="action-btn" 
                                                 onClick={() => handleEdit(coupon)}
                                                 title="Edit"
@@ -390,20 +391,43 @@ export default function PromosPage() {
                                                 ✏️
                                             </button>
                                             <button 
+                                                type="button"
                                                 className="action-btn" 
                                                 onClick={() => handleDuplicate(coupon.id)}
                                                 title="Duplicate"
                                             >
                                                 📋
                                             </button>
-                                            <button 
-                                                className="action-btn" 
+                                            <div 
+                                                className="toggle-switch"
+                                                style={{
+                                                    position: 'relative',
+                                                    width: '44px',
+                                                    height: '24px',
+                                                    background: coupon.isActive ? '#12403C' : '#ccc',
+                                                    borderRadius: '12px',
+                                                    cursor: 'pointer',
+                                                    transition: 'background 0.3s ease'
+                                                }}
                                                 onClick={() => handleToggleStatus(coupon.id)}
-                                                title={coupon.isActive ? 'Deactivate' : 'Activate'}
+                                                title={coupon.isActive ? 'Click to deactivate' : 'Click to activate'}
                                             >
-                                                {coupon.isActive ? '🔴' : '🟢'}
-                                            </button>
+                                                <div 
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: '2px',
+                                                        left: coupon.isActive ? '22px' : '2px',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        background: '#fff',
+                                                        borderRadius: '50%',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                                        transition: 'left 0.3s ease'
+                                                    }}
+                                                />
+                                            </div>
                                             <button 
+                                                type="button"
                                                 className="action-btn action-btn-danger" 
                                                 onClick={() => handleDelete(coupon.id)}
                                                 title="Delete"
