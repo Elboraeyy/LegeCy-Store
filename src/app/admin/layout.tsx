@@ -120,6 +120,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <NavLink href="/admin/customers" icon="👥" label="Customers" active={pathname?.startsWith('/admin/customers')} onClick={closeSidebar} />
                         <NavLink href="/admin/reviews" icon="⭐" label="Reviews" active={pathname?.startsWith('/admin/reviews')} onClick={closeSidebar} />
                         
+                        {/* Marketing Section */}
+                        <div className="nav-label">Marketing</div>
+                        <NavLink href="/admin/promos" icon="🎟️" label="Promos & Discounts" active={pathname?.startsWith('/admin/promos')} onClick={closeSidebar} />
+                        
                         {/* Operations Section */}
                         <div className="nav-label">Operations</div>
                         <NavLink href="/admin/inventory" icon="📊" label="Inventory" active={pathname?.startsWith('/admin/inventory')} onClick={closeSidebar} />
