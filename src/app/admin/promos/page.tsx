@@ -1,5 +1,6 @@
 'use client';
 
+import '@/app/admin/admin.css';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -190,14 +191,16 @@ export default function PromosPage() {
                 </div>
                 <div className="promos-header-actions">
                     <button 
+                        type="button"
                         className="admin-btn admin-btn-outline"
-                        onClick={() => setModalType('bulk')}
+                        onClick={() => { console.log('Bulk clicked'); setModalType('bulk'); }}
                     >
                         <span>⚡</span> Bulk Create
                     </button>
                     <button 
+                        type="button"
                         className="admin-btn admin-btn-primary"
-                        onClick={() => { setEditingCoupon(null); setModalType('create'); }}
+                        onClick={() => { console.log('New coupon clicked'); setEditingCoupon(null); setModalType('create'); }}
                     >
                         <span>+</span> New Coupon
                     </button>
