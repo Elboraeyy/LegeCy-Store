@@ -727,8 +727,34 @@ function CouponModal({
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div 
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 9999,
+                padding: '16px'
+            }} 
+            onClick={onClose}
+        >
+            <div 
+                style={{
+                    background: '#fff',
+                    borderRadius: '20px',
+                    width: '100%',
+                    maxWidth: '560px',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                    boxShadow: '0 20px 25px -5px rgba(18, 64, 60, 0.1), 0 10px 10px -5px rgba(18, 64, 60, 0.04)'
+                }} 
+                onClick={e => e.stopPropagation()}
+            >
                 <div className="modal-header">
                     <h2>{coupon ? 'Edit Coupon' : 'Create New Coupon'}</h2>
                     <button className="modal-close" onClick={onClose}>×</button>
@@ -1015,8 +1041,34 @@ function BulkCreateModal({
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div 
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 9999,
+                padding: '16px'
+            }} 
+            onClick={onClose}
+        >
+            <div 
+                style={{
+                    background: '#fff',
+                    borderRadius: '20px',
+                    width: '100%',
+                    maxWidth: '500px',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                    boxShadow: '0 20px 25px -5px rgba(18, 64, 60, 0.1), 0 10px 10px -5px rgba(18, 64, 60, 0.04)'
+                }} 
+                onClick={e => e.stopPropagation()}
+            >
                 <div className="modal-header">
                     <h2>Bulk Create Coupons</h2>
                     <button className="modal-close" onClick={onClose}>×</button>
