@@ -2,6 +2,7 @@
 
 import '@/app/admin/admin.css';
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import { 
     getCoupons, 
@@ -12,18 +13,51 @@ import {
     toggleCouponStatus, 
     duplicateCoupon,
     bulkCreateCoupons,
-    CouponWithStats, 
     CouponAnalytics, 
     CouponFilters,
-    CouponInput
+    CouponInput,
+    CouponWithStats
 } from '@/lib/actions/coupons';
+import {
+    getFlashSales,
+    createFlashSale,
+    toggleFlashSaleStatus,
+    deleteFlashSale,
+    searchProducts,
+    FlashSaleInput,
+    FlashSaleWithStats,
+    ProductSearchResult,
+    getBOGODeals,
+    createBOGODeal,
+    toggleBOGOStatus,
+    deleteBOGO,
+    BOGOInput,
+    BOGOWithStats,
+    getBundles,
+    createBundle,
+    toggleBundleStatus,
+    deleteBundle,
+    BundleInput,
+    BundleWithStats,
+    getProductOffers,
+    createProductOffer,
+    toggleProductOfferStatus,
+    deleteProductOffer,
+    searchCategories,
+    ProductOfferInput,
+    ProductOfferWithStats
+} from '@/lib/actions/promotions';
 
 // ==========================================
 // Types
 // ==========================================
 
+type MainPromoType = 'coupons' | 'flash-sales' | 'bogo' | 'bundles' | 'product-offers';
 type TabType = 'all' | 'active' | 'scheduled' | 'expired' | 'inactive';
-type ModalType = 'create' | 'edit' | 'bulk' | null;
+type ModalType = 'create' | 'edit' | 'bulk' | 'flash-sale' | 'bogo' | 'bundle' | 'product-offer' | null;
+
+// Helper function
+const formatCurrency = (value: number) => `EGP ${value.toLocaleString()}`;
 
 // ==========================================
 // Main Page Component
@@ -31,8 +65,20 @@ type ModalType = 'create' | 'edit' | 'bulk' | null;
 
 export default function PromosPage() {
     // State
+    const [mainPromoType, setMainPromoType] = useState<MainPromoType>('coupons');
+    // Coupon State
     const [coupons, setCoupons] = useState<CouponWithStats[]>([]);
     const [analytics, setAnalytics] = useState<CouponAnalytics | null>(null);
+    // Flash Sale State
+    const [flashSales, setFlashSales] = useState<FlashSaleWithStats[]>([]);
+    // BOGO State
+    const [bogoDeals, setBogoDeals] = useState<BOGOWithStats[]>([]);
+    // Bundles State
+    const [bundles, setBundles] = useState<BundleWithStats[]>([]);
+    // Product Offers State
+    const [productOffers, setProductOffers] = useState<ProductOfferWithStats[]>([]);
+    
+    // Shared State
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabType>('all');
     const [search, setSearch] = useState('');
@@ -46,28 +92,42 @@ export default function PromosPage() {
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
-            const filters: CouponFilters = {
-                search: search || undefined,
-                status: activeTab === 'all' ? undefined : activeTab,
-                page,
-                limit: 20
-            };
+            if (mainPromoType === 'coupons') {
+                const filters: CouponFilters = {
+                    search: search || undefined,
+                    status: activeTab === 'all' ? undefined : activeTab,
+                    page,
+                    limit: 20
+                };
 
-            const [couponsData, analyticsData] = await Promise.all([
-                getCoupons(filters),
-                getCouponAnalytics()
-            ]);
+                const [couponsData, analyticsData] = await Promise.all([
+                    getCoupons(filters),
+                    getCouponAnalytics()
+                ]);
 
-            setCoupons(couponsData.coupons);
-            setTotalPages(couponsData.totalPages);
-            setAnalytics(analyticsData);
+                setCoupons(couponsData.coupons);
+                setTotalPages(couponsData.totalPages);
+                setAnalytics(analyticsData);
+            } else if (mainPromoType === 'flash-sales') {
+                const data = await getFlashSales(activeTab === 'all' ? undefined : activeTab);
+                setFlashSales(data);
+            } else if (mainPromoType === 'bogo') {
+                const data = await getBOGODeals(activeTab === 'all' ? undefined : activeTab);
+                setBogoDeals(data);
+            } else if (mainPromoType === 'bundles') {
+                const data = await getBundles(activeTab === 'all' ? undefined : activeTab);
+                setBundles(data);
+            } else if (mainPromoType === 'product-offers') {
+                const data = await getProductOffers(activeTab === 'all' ? undefined : activeTab);
+                setProductOffers(data);
+            }
         } catch (error) {
             console.error('Failed to load data:', error);
-            toast.error('Failed to load coupons');
+            toast.error('Failed to load promotions');
         } finally {
             setLoading(false);
         }
-    }, [search, activeTab, page]);
+    }, [search, activeTab, page, mainPromoType]);
 
     useEffect(() => {
         loadData();
@@ -169,6 +229,94 @@ export default function PromosPage() {
         loadData();
     };
 
+    // Flash Sale Handlers
+    const handleToggleFlashSale = async (id: string) => {
+        const result = await toggleFlashSaleStatus(id);
+        if (result.success) {
+            toast.success(`Flash sale ${result.isActive ? 'activated' : 'deactivated'}`);
+            loadData();
+        } else {
+            toast.error(result.error || 'Failed to update status');
+        }
+    };
+
+    const handleDeleteFlashSale = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this flash sale?')) return;
+        const result = await deleteFlashSale(id);
+        if (result.success) {
+            toast.success('Flash sale deleted');
+            loadData();
+        } else {
+            toast.error(result.error || 'Failed to delete flash sale');
+        }
+    };
+
+    // BOGO Handlers
+    const handleToggleBOGO = async (id: string) => {
+        const result = await toggleBOGOStatus(id);
+        if (result.success) {
+            toast.success(`Deal ${result.isActive ? 'activated' : 'deactivated'}`);
+            loadData();
+        } else {
+            toast.error(result.error || 'Failed to update status');
+        }
+    };
+
+    const handleDeleteBOGO = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this BOGO deal?')) return;
+        const result = await deleteBOGO(id);
+        if (result.success) {
+            toast.success('Deal deleted');
+            loadData();
+        } else {
+            toast.error(result.error || 'Failed to delete deal');
+        }
+    };
+
+    // Bundle Handlers
+    const handleToggleBundle = async (id: string) => {
+        const result = await toggleBundleStatus(id);
+        if (result.success) {
+            toast.success(`Bundle ${result.isActive ? 'activated' : 'deactivated'}`);
+            loadData();
+        } else {
+            toast.error(result.error || 'Failed to update status');
+        }
+    };
+
+    const handleDeleteBundle = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this bundle?')) return;
+        const result = await deleteBundle(id);
+        if (result.success) {
+            toast.success('Bundle deleted');
+            loadData();
+        } else {
+            toast.error(result.error || 'Failed to delete bundle');
+        }
+    };
+
+    // Product Offer Handlers
+    const handleToggleProductOffer = async (id: string) => {
+        const result = await toggleProductOfferStatus(id);
+        if (result.success) {
+            toast.success(`Offer ${result.isActive ? 'activated' : 'deactivated'}`);
+            loadData();
+        } else {
+            toast.error(result.error || 'Failed to update status');
+        }
+    };
+
+    const handleDeleteProductOffer = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this offer?')) return;
+        const result = await deleteProductOffer(id);
+        if (result.success) {
+            toast.success('Offer deleted');
+            loadData();
+        } else {
+            toast.error(result.error || 'Failed to delete offer');
+        }
+    };
+
     // Format helpers
     const formatCurrency = (value: number) => `EGP ${value.toLocaleString()}`;
     const formatDate = (date: Date | null) => date ? new Date(date).toLocaleDateString('en-EG', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
@@ -187,25 +335,72 @@ export default function PromosPage() {
             <div className="promos-header">
                 <div>
                     <h1 className="admin-title">Promos & Discounts</h1>
-                    <p className="admin-subtitle">Manage coupon codes, flash sales, and promotional campaigns</p>
-                </div>
-                <div className="promos-header-actions">
-                    <button 
-                        type="button"
-                        className="admin-btn admin-btn-outline"
-                        onClick={() => setModalType('bulk')}
-                    >
-                        <span>⚡</span> Bulk Create
-                    </button>
-                    <button 
-                        type="button"
-                        className="admin-btn admin-btn-primary"
-                        onClick={() => { setEditingCoupon(null); setModalType('create'); }}
-                    >
-                        <span>+</span> New Coupon
-                    </button>
+                    <p className="admin-subtitle">Manage coupon codes, flash sales, bundles, and all promotional campaigns</p>
                 </div>
             </div>
+
+            {/* Main Promo Type Tabs */}
+            <div className="main-promo-tabs">
+                <button 
+                    className={`main-promo-tab ${mainPromoType === 'coupons' ? 'active' : ''}`}
+                    onClick={() => setMainPromoType('coupons')}
+                >
+                    <span className="tab-icon">🎫</span>
+                    <span className="tab-label">Coupons</span>
+                </button>
+                <button 
+                    className={`main-promo-tab ${mainPromoType === 'flash-sales' ? 'active' : ''}`}
+                    onClick={() => setMainPromoType('flash-sales')}
+                >
+                    <span className="tab-icon">⚡</span>
+                    <span className="tab-label">Flash Sales</span>
+                </button>
+                <button 
+                    className={`main-promo-tab ${mainPromoType === 'bogo' ? 'active' : ''}`}
+                    onClick={() => setMainPromoType('bogo')}
+                >
+                    <span className="tab-icon">🎁</span>
+                    <span className="tab-label">BOGO</span>
+                </button>
+                <button 
+                    className={`main-promo-tab ${mainPromoType === 'bundles' ? 'active' : ''}`}
+                    onClick={() => setMainPromoType('bundles')}
+                >
+                    <span className="tab-icon">📦</span>
+                    <span className="tab-label">Bundles</span>
+                </button>
+                <button 
+                    className={`main-promo-tab ${mainPromoType === 'product-offers' ? 'active' : ''}`}
+                    onClick={() => setMainPromoType('product-offers')}
+                >
+                    <span className="tab-icon">🏷️</span>
+                    <span className="tab-label">Product Offers</span>
+                </button>
+            </div>
+
+            {/* Coupons Section */}
+            {mainPromoType === 'coupons' && (
+                <>
+                    {/* Coupon Header Actions */}
+                    <div className="section-header">
+                        <h2>🎫 Coupon Codes</h2>
+                        <div className="section-actions">
+                            <button 
+                                type="button"
+                                className="admin-btn admin-btn-outline"
+                                onClick={() => setModalType('bulk')}
+                            >
+                                <span>⚡</span> Bulk Create
+                            </button>
+                            <button 
+                                type="button"
+                                className="admin-btn admin-btn-primary"
+                                onClick={() => { setEditingCoupon(null); setModalType('create'); }}
+                            >
+                                <span>+</span> New Coupon
+                            </button>
+                        </div>
+                    </div>
 
             {/* Stats Cards */}
             {analytics && (
@@ -481,6 +676,117 @@ export default function PromosPage() {
                 />
             )}
 
+            </>
+            )}
+
+            {/* Flash Sale Modal */}
+            {modalType === 'flash-sale' && (
+                <FlashSaleModal
+                    onClose={() => setModalType(null)}
+                    onSave={async (data) => {
+                        const result = await createFlashSale(data);
+                        if (result.success) {
+                            toast.success('Flash sale created');
+                            setModalType(null);
+                            loadData();
+                        } else {
+                            toast.error(result.error || 'Failed to create flash sale');
+                        }
+                    }}
+                />
+            )}
+
+            {/* BOGO Modal */}
+            {modalType === 'bogo' && (
+                <BOGOModal
+                    onClose={() => setModalType(null)}
+                    onSave={async (data) => {
+                        const result = await createBOGODeal(data);
+                        if (result.success) {
+                            toast.success('BOGO deal created');
+                            setModalType(null);
+                            loadData();
+                        } else {
+                            toast.error(result.error || 'Failed to create deal');
+                        }
+                    }}
+                />
+            )}
+
+            {/* Bundle Modal */}
+            {modalType === 'bundle' && (
+                <BundleModal
+                    onClose={() => setModalType(null)}
+                    onSave={async (data) => {
+                        const result = await createBundle(data);
+                        if (result.success) {
+                            toast.success('Bundle created');
+                            setModalType(null);
+                            loadData();
+                        } else {
+                            toast.error(result.error || 'Failed to create bundle');
+                        }
+                    }}
+                />
+            )}
+
+            {/* Product Offer Modal */}
+            {modalType === 'product-offer' && (
+                <ProductOfferModal
+                    onClose={() => setModalType(null)}
+                    onSave={async (data) => {
+                        const result = await createProductOffer(data);
+                        if (result.success) {
+                            toast.success('Offer created');
+                            setModalType(null);
+                            loadData();
+                        } else {
+                            toast.error(result.error || 'Failed to create offer');
+                        }
+                    }}
+                />
+            )}
+
+            {/* Flash Sales Section */}
+            {mainPromoType === 'flash-sales' && (
+                <FlashSalesSection 
+                    flashSales={flashSales}
+                    onCreate={() => setModalType('flash-sale')}
+                    onToggle={handleToggleFlashSale}
+                    onDelete={handleDeleteFlashSale}
+                />
+            )}
+
+            {/* BOGO Section */}
+            {mainPromoType === 'bogo' && (
+                <BOGOSection 
+                    deals={bogoDeals}
+                    onCreate={() => setModalType('bogo')}
+                    onToggle={handleToggleBOGO}
+                    onDelete={handleDeleteBOGO}
+                />
+            )}
+
+            {/* Bundles Section */}
+            {mainPromoType === 'bundles' && (
+                <BundlesSection 
+                    bundles={bundles}
+                    onCreate={() => setModalType('bundle')}
+                    onToggle={handleToggleBundle}
+                    onDelete={handleDeleteBundle}
+                />
+            )}
+
+            {/* Product Offers Section */}
+            {mainPromoType === 'product-offers' && (
+                <ProductOffersSection 
+                    offers={productOffers}
+                    onCreate={() => setModalType('product-offer')}
+                    onToggle={handleToggleProductOffer}
+                    onDelete={handleDeleteProductOffer}
+                />
+            )}
+
             <style jsx>{`
                 .admin-promos-page {
                     padding: 0;
@@ -490,9 +796,77 @@ export default function PromosPage() {
                     display: flex;
                     justify-content: space-between;
                     align-items: flex-start;
-                    margin-bottom: 32px;
+                    margin-bottom: 24px;
                     flex-wrap: wrap;
                     gap: 16px;
+                }
+
+                .main-promo-tabs {
+                    display: flex;
+                    gap: 8px;
+                    padding: 8px;
+                    background: #f5f5f5;
+                    border-radius: 16px;
+                    margin-bottom: 32px;
+                    overflow-x: auto;
+                }
+
+                .main-promo-tab {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 14px 24px;
+                    background: transparent;
+                    border: none;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #666;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
+                }
+
+                .main-promo-tab:hover {
+                    background: rgba(255, 255, 255, 0.5);
+                    color: #333;
+                }
+
+                .main-promo-tab.active {
+                    background: #fff;
+                    color: #12403C;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                }
+
+                .main-promo-tab .tab-icon {
+                    font-size: 18px;
+                }
+
+                .main-promo-tab .tab-label {
+                    font-weight: 600;
+                }
+
+                .section-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 24px;
+                    flex-wrap: wrap;
+                    gap: 16px;
+                }
+
+                .section-header h2 {
+                    font-size: 20px;
+                    font-weight: 600;
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .section-actions {
+                    display: flex;
+                    gap: 12px;
                 }
 
                 .promos-header-actions {
@@ -687,6 +1061,674 @@ export default function PromosPage() {
                         overflow-x: auto;
                     }
                 }
+            `}</style>
+        </div>
+    );
+}
+
+// ==========================================
+// Flash Sales Section
+// ==========================================
+
+// ==========================================
+// Flash Sales Section
+// ==========================================
+
+function FlashSalesSection({ 
+    flashSales, 
+    onCreate,
+    onToggle,
+    onDelete
+}: { 
+    flashSales: FlashSaleWithStats[];
+    onCreate: () => void;
+    onToggle: (id: string) => void;
+    onDelete: (id: string) => void;
+}) {
+    return (
+        <div className="promo-section">
+            <div className="section-header">
+                <h2>⚡ Flash Sales</h2>
+                <div className="section-actions">
+                    <button 
+                        type="button" 
+                        className="admin-btn admin-btn-primary"
+                        onClick={onCreate}
+                    >
+                        <span>+</span> Create Flash Sale
+                    </button>
+                </div>
+            </div>
+            
+            {flashSales.length === 0 ? (
+                <>
+                    <div className="admin-card promo-feature-card">
+                        {/* Feature Grid (Same as before) */}
+                        <div className="feature-grid">
+                            <div className="feature-item">
+                                <div className="feature-icon">⏰</div>
+                                <div className="feature-content">
+                                    <h3>Time-Limited Offers</h3>
+                                    <p>Create urgency with countdown timers. Sales automatically end when time expires.</p>
+                                </div>
+                            </div>
+                            <div className="feature-item">
+                                <div className="feature-icon">📊</div>
+                                <div className="feature-content">
+                                    <h3>Limited Quantities</h3>
+                                    <p>Set maximum quantities to create scarcity and drive immediate purchases.</p>
+                                </div>
+                            </div>
+                            <div className="feature-item">
+                                <div className="feature-icon">🏷️</div>
+                                <div className="feature-content">
+                                    <h3>Deep Discounts</h3>
+                                    <p>Apply significant discounts for short periods to boost sales volume.</p>
+                                </div>
+                            </div>
+                            <div className="feature-item">
+                                <div className="feature-icon">📱</div>
+                                <div className="feature-content">
+                                    <h3>Homepage Banner</h3>
+                                    <p>Automatically display flash sales on the homepage with countdown.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="promo-empty-state">
+                        <div className="empty-icon">⚡</div>
+                        <h3>No Active Flash Sales</h3>
+                        <p>Create your first flash sale to drive urgent purchases</p>
+                        <button className="admin-btn admin-btn-primary" onClick={onCreate}>Create Flash Sale</button>
+                    </div>
+                </>
+            ) : (
+                <div className="admin-card">
+                    <div className="admin-table-container">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Discount</th>
+                                    <th>Duration</th>
+                                    <th>Products</th>
+                                    <th>Revenue</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {flashSales.map(sale => (
+                                    <tr key={sale.id}>
+                                        <td>
+                                            <div className="fw-500">{sale.name}</div>
+                                            {sale.description && <div className="text-muted text-sm">{sale.description}</div>}
+                                        </td>
+                                        <td>
+                                            <span className={`status-badge status-${sale.status}`}>
+                                                {sale.status.toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="fw-600">
+                                                {sale.discountType === 'PERCENTAGE' 
+                                                    ? `${sale.discountValue}% OFF` 
+                                                    : `- ${formatCurrency(sale.discountValue)}`}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="text-sm">
+                                                <div>From: {new Date(sale.startDate).toLocaleDateString()}</div>
+                                                <div>To: {new Date(sale.endDate).toLocaleDateString()}</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="text-center">
+                                                <div className="fw-500">{sale.productCount}</div>
+                                                <div className="text-xs text-muted">items</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="fw-500">{formatCurrency(sale.revenue)}</div>
+                                            <div className="text-xs text-muted">{sale.soldCount} sold</div>
+                                        </td>
+                                        <td>
+                                            <div className="coupon-actions">
+                                                <button 
+                                                    className="action-btn" 
+                                                    title={sale.isActive ? 'Deactivate' : 'Activate'}
+                                                    onClick={() => onToggle(sale.id)}
+                                                >
+                                                    {sale.isActive ? '🚫' : '✅'}
+                                                </button>
+                                                <button 
+                                                    className="action-btn" 
+                                                    title="Delete"
+                                                    onClick={() => onDelete(sale.id)}
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            <style jsx>{`
+                .promo-section { margin-top: 24px; }
+                .promo-feature-card { padding: 32px; margin-bottom: 24px; }
+                .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+                .feature-item { display: flex; gap: 16px; }
+                .feature-icon { font-size: 32px; flex-shrink: 0; }
+                .feature-content h3 { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+                .feature-content p { font-size: 13px; color: var(--admin-text-muted); margin: 0; }
+                .promo-empty-state { text-align: center; padding: 60px 24px; background: #f9f9f9; border-radius: 16px; }
+                .empty-icon { font-size: 48px; margin-bottom: 16px; }
+                .promo-empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+                .promo-empty-state p { color: var(--admin-text-muted); margin-bottom: 24px; }
+            `}</style>
+        </div>
+    );
+}
+
+// ==========================================
+// BOGO Section
+// ==========================================
+
+function BOGOSection({
+    deals,
+    onCreate,
+    onToggle,
+    onDelete
+}: {
+    deals: BOGOWithStats[];
+    onCreate: () => void;
+    onToggle: (id: string) => void;
+    onDelete: (id: string) => void;
+}) {
+    // Helper to format deal description
+    const getDealDescription = (deal: BOGOWithStats) => {
+        const buy = `Buy ${deal.buyQuantity}`;
+        const get = `Get ${deal.getQuantity}`;
+        const discount = deal.discountPercent === 100 
+            ? 'Free' 
+            : `${deal.discountPercent}% Off`;
+        return `${buy}, ${get} ${discount}`;
+    };
+
+    return (
+        <div className="promo-section">
+            <div className="section-header">
+                <h2>🎁 Buy One Get One (BOGO)</h2>
+                <div className="section-actions">
+                    <button 
+                        type="button" 
+                        className="admin-btn admin-btn-primary"
+                        onClick={onCreate}
+                    >
+                        <span>+</span> Create BOGO Deal
+                    </button>
+                </div>
+            </div>
+
+            {deals.length === 0 ? (
+                <div className="admin-card promo-feature-card">
+                    {/* Keep existing feature grid */}
+                    <div className="feature-grid">
+                        <div className="feature-item">
+                            <div className="feature-icon">🆓</div>
+                            <div className="feature-content">
+                                <h3>Buy X Get Y Free</h3>
+                                <p>Classic BOGO: Buy one item, get another free.</p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon">💰</div>
+                            <div className="feature-content">
+                                <h3>Buy X Get Y at Discount</h3>
+                                <p>Buy one item, get second at 50% off or any percentage.</p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon">🔀</div>
+                            <div className="feature-content">
+                                <h3>Mix & Match</h3>
+                                <p>Allow customers to mix different products in the deal.</p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon">📦</div>
+                            <div className="feature-content">
+                                <h3>Quantity Tiers</h3>
+                                <p>Buy 2 get 1 free, buy 3 get 2 free, and more.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="promo-empty-state">
+                        <div className="empty-icon">🎁</div>
+                        <h3>No BOGO Deals</h3>
+                        <p>Create compelling buy-one-get-one offers to increase average order value</p>
+                        <button className="admin-btn admin-btn-primary" onClick={onCreate}>Create BOGO Deal</button>
+                    </div>
+                </div>
+            ) : (
+                <div className="admin-card">
+                    <div className="admin-table-container">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Configuration</th>
+                                    <th>Dates</th>
+                                    <th>Usage</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {deals.map(deal => (
+                                    <tr key={deal.id}>
+                                        <td>
+                                            <div className="fw-500">{deal.name}</div>
+                                            {deal.description && <div className="text-muted text-sm">{deal.description}</div>}
+                                        </td>
+                                        <td>
+                                            <span className="badge badge-blue">
+                                                {deal.dealType === 'BUY_X_GET_Y_FREE' ? 'Free Gift' : 'Discounted Item'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="fw-600 text-primary">
+                                                {getDealDescription(deal)}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="text-sm">
+                                                <div>Starts: {new Date(deal.startDate).toLocaleDateString()}</div>
+                                                {deal.endDate && <div>Ends: {new Date(deal.endDate).toLocaleDateString()}</div>}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="text-center">
+                                                <div className="fw-500">{deal.currentUsage}</div>
+                                                <div className="text-xs text-muted">uses</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span className={`status-badge status-${deal.status}`}>
+                                                {deal.status.toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="coupon-actions">
+                                                <button 
+                                                    className="action-btn" 
+                                                    title={deal.isActive ? 'Deactivate' : 'Activate'}
+                                                    onClick={() => onToggle(deal.id)}
+                                                >
+                                                    {deal.isActive ? '🚫' : '✅'}
+                                                </button>
+                                                <button 
+                                                    className="action-btn" 
+                                                    title="Delete"
+                                                    onClick={() => onDelete(deal.id)}
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            <style jsx>{`
+                .promo-section { margin-top: 24px; }
+                .promo-feature-card { padding: 32px; margin-bottom: 24px; }
+                .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+                .feature-item { display: flex; gap: 16px; }
+                .feature-icon { font-size: 32px; flex-shrink: 0; }
+                .feature-content h3 { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+                .feature-content p { font-size: 13px; color: var(--admin-text-muted); margin: 0; }
+                .promo-empty-state { text-align: center; padding: 60px 24px; background: #f9f9f9; border-radius: 16px; margin-top: 24px; }
+                .empty-icon { font-size: 48px; margin-bottom: 16px; }
+                .promo-empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+                .promo-empty-state p { color: var(--admin-text-muted); margin-bottom: 24px; }
+                .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+                .badge-blue { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
+            `}</style>
+        </div>
+    );
+}
+
+// ==========================================
+// Bundles Section
+// ==========================================
+
+function BundlesSection({
+    bundles,
+    onCreate,
+    onToggle,
+    onDelete
+}: {
+    bundles: BundleWithStats[];
+    onCreate: () => void;
+    onToggle: (id: string) => void;
+    onDelete: (id: string) => void;
+}) {
+    return (
+        <div className="promo-section">
+            <div className="section-header">
+                <h2>📦 Product Bundles</h2>
+                <div className="section-actions">
+                    <button 
+                        type="button" 
+                        className="admin-btn admin-btn-primary"
+                        onClick={onCreate}
+                    >
+                        <span>+</span> Create Bundle
+                    </button>
+                </div>
+            </div>
+
+            {bundles.length === 0 ? (
+                <div className="admin-card promo-feature-card">
+                    <div className="feature-grid">
+                        <div className="feature-item">
+                            <div className="feature-icon">🛒</div>
+                            <div className="feature-content">
+                                <h3>Product Bundles</h3>
+                                <p>Group complementary products together at a discounted price.</p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon">👔</div>
+                            <div className="feature-content">
+                                <h3>Complete the Look</h3>
+                                <p>Suggest matching items that go together for a complete outfit.</p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon">📈</div>
+                            <div className="feature-content">
+                                <h3>Tiered Pricing</h3>
+                                <p>Buy more, save more - progressive discount tiers.</p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon">🎯</div>
+                            <div className="feature-content">
+                                <h3>Custom Bundles</h3>
+                                <p>Let customers build their own bundle from selected items.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="promo-empty-state">
+                        <div className="empty-icon">📦</div>
+                        <h3>No Bundles Created</h3>
+                        <p>Create product bundles to increase average order value and move inventory</p>
+                        <button className="admin-btn admin-btn-primary" onClick={onCreate}>Create Bundle</button>
+                    </div>
+                </div>
+            ) : (
+                <div className="admin-card">
+                    <div className="admin-table-container">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Bundle Name</th>
+                                    <th>Price</th>
+                                    <th>Duration</th>
+                                    <th>Products</th>
+                                    <th>Sales</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {bundles.map(bundle => (
+                                    <tr key={bundle.id}>
+                                        <td>
+                                            <div className="fw-500">{bundle.name}</div>
+                                            {bundle.description && <div className="text-muted text-sm">{bundle.description}</div>}
+                                        </td>
+                                        <td>
+                                            <div className="fw-600 text-primary">
+                                                EGP {bundle.bundlePrice.toLocaleString()}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="text-sm">
+                                                <div>Starts: {new Date(bundle.startDate).toLocaleDateString()}</div>
+                                                {bundle.endDate && <div>Ends: {new Date(bundle.endDate).toLocaleDateString()}</div>}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="text-center">
+                                                <div className="fw-500">{bundle.productCount}</div>
+                                                <div className="text-xs text-muted">items</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="fw-500">EGP {bundle.revenue.toLocaleString()}</div>
+                                            <div className="text-xs text-muted">{bundle.soldCount} sold</div>
+                                        </td>
+                                        <td>
+                                            <span className={`status-badge status-${bundle.status}`}>
+                                                {bundle.status.toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="coupon-actions">
+                                                <button 
+                                                    className="action-btn" 
+                                                    title={bundle.isActive ? 'Deactivate' : 'Activate'}
+                                                    onClick={() => onToggle(bundle.id)}
+                                                >
+                                                    {bundle.isActive ? '🚫' : '✅'}
+                                                </button>
+                                                <button 
+                                                    className="action-btn" 
+                                                    title="Delete"
+                                                    onClick={() => onDelete(bundle.id)}
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            <style jsx>{`
+                .promo-section { margin-top: 24px; }
+                .promo-feature-card { padding: 32px; margin-bottom: 24px; }
+                .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+                .feature-item { display: flex; gap: 16px; }
+                .feature-icon { font-size: 32px; flex-shrink: 0; }
+                .feature-content h3 { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+                .feature-content p { font-size: 13px; color: var(--admin-text-muted); margin: 0; }
+                .promo-empty-state { text-align: center; padding: 60px 24px; background: #f9f9f9; border-radius: 16px; margin-top: 24px; }
+                .empty-icon { font-size: 48px; margin-bottom: 16px; }
+                .promo-empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+                .promo-empty-state p { color: var(--admin-text-muted); margin-bottom: 24px; }
+            `}</style>
+        </div>
+    );
+}
+
+// ==========================================
+// Product Offers Section
+// ==========================================
+
+function ProductOffersSection({
+    offers,
+    onCreate,
+    onToggle,
+    onDelete
+}: {
+    offers: ProductOfferWithStats[];
+    onCreate: () => void;
+    onToggle: (id: string) => void;
+    onDelete: (id: string) => void;
+}) {
+    return (
+        <div className="promo-section">
+            <div className="section-header">
+                <h2>🏷️ Product & Category Discounts</h2>
+                <div className="section-actions">
+                    <button 
+                        type="button" 
+                        className="admin-btn admin-btn-primary"
+                        onClick={onCreate}
+                    >
+                        <span>+</span> Create Offer
+                    </button>
+                </div>
+            </div>
+
+            {offers.length === 0 ? (
+                <div className="admin-card promo-feature-card">
+                    <div className="feature-grid">
+                        <div className="feature-item">
+                            <div className="feature-icon">🛍️</div>
+                            <div className="feature-content">
+                                <h3>Product Discounts</h3>
+                                <p>Set specific discounts on individual products.</p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon">📂</div>
+                            <div className="feature-content">
+                                <h3>Category Sales</h3>
+                                <p>Run sales on entire categories (e.g., &ldquo;20% Off All Shoes&rdquo;).</p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon">🏢</div>
+                            <div className="feature-content">
+                                <h3>Brand Deals</h3>
+                                <p>Promote specific brands with site-wide discounts.</p>
+                            </div>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon">🌐</div>
+                            <div className="feature-content">
+                                <h3>Storewide Sales</h3>
+                                <p>Apply discounts across the catalog for major events.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="promo-empty-state">
+                        <div className="empty-icon">🏷️</div>
+                        <h3>No Active Offers</h3>
+                        <p>Create targeted discounts to drive sales and clear inventory</p>
+                        <button className="admin-btn admin-btn-primary" onClick={onCreate}>Create Offer</button>
+                    </div>
+                </div>
+            ) : (
+                <div className="admin-card">
+                    <div className="admin-table-container">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Offer Name</th>
+                                    <th>Target</th>
+                                    <th>Discount</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {offers.map(offer => (
+                                    <tr key={offer.id}>
+                                        <td>
+                                            <div className="fw-500">{offer.name}</div>
+                                            {offer.description && <div className="text-muted text-sm">{offer.description}</div>}
+                                            <div className="text-xs text-muted">Priority: {offer.priority}</div>
+                                        </td>
+                                        <td>
+                                            <div className="badge badge-neutral">
+                                                {offer.offerType === 'ALL_PRODUCTS' ? 'Storewide' : offer.offerType}
+                                            </div>
+                                            {offer.targetName && offer.offerType !== 'ALL_PRODUCTS' && (
+                                                <div className="mt-1 fw-500 text-sm">{offer.targetName}</div>
+                                            )}
+                                        </td>
+                                        <td>
+                                            <div className="fw-600 text-primary">
+                                                {offer.discountType === 'PERCENTAGE' 
+                                                    ? `${offer.discountValue}% OFF` 
+                                                    : `EGP ${offer.discountValue} OFF`
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="text-sm">
+                                                <div>Starts: {new Date(offer.startDate).toLocaleDateString()}</div>
+                                                {offer.endDate && <div>Ends: {new Date(offer.endDate).toLocaleDateString()}</div>}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span className={`status-badge status-${offer.status}`}>
+                                                {offer.status.toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="coupon-actions">
+                                                <button 
+                                                    className="action-btn" 
+                                                    title={offer.isActive ? 'Deactivate' : 'Activate'}
+                                                    onClick={() => onToggle(offer.id)}
+                                                >
+                                                    {offer.isActive ? '🚫' : '✅'}
+                                                </button>
+                                                <button 
+                                                    className="action-btn" 
+                                                    title="Delete"
+                                                    onClick={() => onDelete(offer.id)}
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            <style jsx>{`
+                .promo-section { margin-top: 24px; }
+                .promo-feature-card { padding: 32px; margin-bottom: 24px; }
+                .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+                .feature-item { display: flex; gap: 16px; }
+                .feature-icon { font-size: 32px; flex-shrink: 0; }
+                .feature-content h3 { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+                .feature-content p { font-size: 13px; color: var(--admin-text-muted); margin: 0; }
+                .promo-empty-state { text-align: center; padding: 60px 24px; background: #f9f9f9; border-radius: 16px; margin-top: 24px; }
+                .empty-icon { font-size: 48px; margin-bottom: 16px; }
+                .promo-empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+                .promo-empty-state p { color: var(--admin-text-muted); margin-bottom: 24px; }
             `}</style>
         </div>
     );
@@ -1275,6 +2317,1239 @@ function BulkCreateModal({
                     }
                 `}</style>
             </div>
+        </div>
+    );
+}
+
+// ==========================================
+// Flash Sale Modal
+// ==========================================
+
+function FlashSaleModal({ 
+    onClose, 
+    onSave 
+}: { 
+    onClose: () => void; 
+    onSave: (data: FlashSaleInput) => Promise<void>; 
+}) {
+    const [form, setForm] = useState<Partial<FlashSaleInput>>({
+        name: '',
+        discountType: 'PERCENTAGE',
+        discountValue: 0,
+        maxQuantity: undefined,
+        isActive: true,
+        showOnHomepage: true,
+        productIds: []
+    });
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState<ProductSearchResult[]>([]);
+    const [selectedProducts, setSelectedProducts] = useState<ProductSearchResult[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const delayDebounce = setTimeout(async () => {
+            if (searchTerm.length >= 2) {
+                const results = await searchProducts(searchTerm);
+                setSearchResults(results);
+            } else {
+                setSearchResults([]);
+            }
+        }, 300);
+        return () => clearTimeout(delayDebounce);
+    }, [searchTerm]);
+
+    const handleAddProduct = (product: ProductSearchResult) => {
+        if (!selectedProducts.find(p => p.id === product.id)) {
+            const newSelected = [...selectedProducts, product];
+            setSelectedProducts(newSelected);
+            setForm(f => ({ ...f, productIds: newSelected.map(p => p.id) }));
+            setSearchTerm('');
+            setSearchResults([]);
+        }
+    };
+
+    const handleRemoveProduct = (id: string) => {
+        const newSelected = selectedProducts.filter(p => p.id !== id);
+        setSelectedProducts(newSelected);
+        setForm(f => ({ ...f, productIds: newSelected.map(p => p.id) }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        await onSave(form as FlashSaleInput);
+    };
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h2>⚡ Create Flash Sale</h2>
+                    <button className="modal-close" onClick={onClose}>&times;</button>
+                </div>
+                <form onSubmit={handleSubmit} className="modal-body">
+                    <div className="form-group">
+                        <label>Campaign Name</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={form.name}
+                            onChange={e => setForm({ ...form, name: e.target.value })}
+                            placeholder="e.g., Weekend Flash Sale"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Discount Type</label>
+                            <div className="toggle-group">
+                                <button
+                                    type="button"
+                                    className={`toggle-btn ${form.discountType === 'PERCENTAGE' ? 'active' : ''}`}
+                                    onClick={() => setForm({ ...form, discountType: 'PERCENTAGE' })}
+                                >
+                                    Percentage (%)
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`toggle-btn ${form.discountType === 'FIXED_AMOUNT' ? 'active' : ''}`}
+                                    onClick={() => setForm({ ...form, discountType: 'FIXED_AMOUNT' })}
+                                >
+                                    Fixed Amount
+                                </button>
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Value</label>
+                            <input
+                                type="number"
+                                className="form-input"
+                                value={form.discountValue || ''}
+                                onChange={e => setForm({ ...form, discountValue: Number(e.target.value) })}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Starts At</label>
+                            <input
+                                type="datetime-local"
+                                className="form-input"
+                                value={form.startDate ? new Date(form.startDate).toISOString().slice(0, 16) : ''}
+                                onChange={e => setForm({ ...form, startDate: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Ends At</label>
+                            <input
+                                type="datetime-local"
+                                className="form-input"
+                                value={form.endDate ? new Date(form.endDate).toISOString().slice(0, 16) : ''}
+                                onChange={e => setForm({ ...form, endDate: e.target.value })}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Include Products</label>
+                        <div className="product-search-container">
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Search products..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                            {searchResults.length > 0 && (
+                                <div className="search-results">
+                                    {searchResults.map(product => (
+                                        <div 
+                                            key={product.id} 
+                                            className="search-result-item"
+                                            onClick={() => handleAddProduct(product)}
+                                        >
+                                            <div className="product-info">
+                                                <div className="product-name">{product.name}</div>
+                                                <div className="product-price">EGP {product.price}</div>
+                                            </div>
+                                            <button type="button" className="add-btn">+</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        
+                        {selectedProducts.length > 0 && (
+                            <div className="selected-products">
+                                {selectedProducts.map(product => (
+                                    <div key={product.id} className="selected-product-item">
+                                        <span>{product.name}</span>
+                                        <button 
+                                            type="button" 
+                                            className="remove-btn"
+                                            onClick={() => handleRemoveProduct(product.id)}
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="form-actions modal-footer">
+                        <button type="button" className="admin-btn" onClick={onClose} disabled={loading}>
+                            Cancel
+                        </button>
+                        <button type="submit" className="admin-btn admin-btn-primary" disabled={loading}>
+                            {loading ? 'Creating...' : 'Create Flash Sale'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <style jsx>{`
+                .toggle-group {
+                    display: flex;
+                    border: 1px solid var(--admin-border);
+                    border-radius: 6px;
+                    overflow: hidden;
+                }
+                .toggle-btn {
+                    flex: 1;
+                    padding: 8px;
+                    border: none;
+                    background: #f5f5f5;
+                    cursor: pointer;
+                    font-size: 13px;
+                }
+                .toggle-btn.active {
+                    background: #fff;
+                    font-weight: 600;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                }
+                .product-search-container {
+                    position: relative;
+                }
+                .search-results {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: #fff;
+                    border: 1px solid var(--admin-border);
+                    border-radius: 6px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    z-index: 10;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+                .search-result-item {
+                    padding: 8px 12px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    cursor: pointer;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+                .search-result-item:hover {
+                    background: #f9f9f9;
+                }
+                .selected-products {
+                    margin-top: 8px;
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 8px;
+                }
+                .selected-product-item {
+                    background: #f0fdf4;
+                    border: 1px solid #dcfce7;
+                    color: #166534;
+                    padding: 4px 10px;
+                    border-radius: 16px;
+                    font-size: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .remove-btn {
+                    background: none;
+                    border: none;
+                    color: #166534;
+                    cursor: pointer;
+                    font-size: 16px;
+                    padding: 0;
+                    line-height: 1;
+                }
+            `}</style>
+        </div>
+    );
+}
+
+// ==========================================
+// BOGO Modal
+// ==========================================
+
+function BOGOModal({ 
+    onClose, 
+    onSave 
+}: { 
+    onClose: () => void; 
+    onSave: (data: BOGOInput) => Promise<void>; 
+}) {
+    const [form, setForm] = useState<Partial<BOGOInput>>({
+        name: '',
+        dealType: 'BUY_X_GET_Y_FREE',
+        buyQuantity: 1,
+        getQuantity: 1,
+        discountPercent: 100,
+        mixAndMatch: false,
+        isActive: true,
+        buyProductIds: [],
+        getProductIds: []
+    });
+    
+    // Search states
+    const [buySearch, setBuySearch] = useState('');
+    const [buyResults, setBuyResults] = useState<ProductSearchResult[]>([]);
+    const [selectedBuyProducts, setSelectedBuyProducts] = useState<ProductSearchResult[]>([]);
+    
+    const [getSearch, setGetSearch] = useState('');
+    const [getResults, setGetResults] = useState<ProductSearchResult[]>([]);
+    const [selectedGetProducts, setSelectedGetProducts] = useState<ProductSearchResult[]>([]);
+
+    const [loading, setLoading] = useState(false);
+
+    // Search Effects
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (buySearch.length >= 2) {
+                const results = await searchProducts(buySearch);
+                setBuyResults(results);
+            } else {
+                setBuyResults([]);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [buySearch]);
+
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (getSearch.length >= 2) {
+                const results = await searchProducts(getSearch);
+                setGetResults(results);
+            } else {
+                setGetResults([]);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [getSearch]);
+
+    // Handlers
+    const handleAddProduct = (type: 'buy' | 'get', product: ProductSearchResult) => {
+        if (type === 'buy') {
+            if (!selectedBuyProducts.find(p => p.id === product.id)) {
+                const newSelected = [...selectedBuyProducts, product];
+                setSelectedBuyProducts(newSelected);
+                setForm(f => ({ ...f, buyProductIds: newSelected.map(p => p.id) }));
+                setBuySearch('');
+                setBuyResults([]);
+            }
+        } else {
+            if (!selectedGetProducts.find(p => p.id === product.id)) {
+                const newSelected = [...selectedGetProducts, product];
+                setSelectedGetProducts(newSelected);
+                setForm(f => ({ ...f, getProductIds: newSelected.map(p => p.id) }));
+                setGetSearch('');
+                setGetResults([]);
+            }
+        }
+    };
+
+    const handleRemoveProduct = (type: 'buy' | 'get', id: string) => {
+        if (type === 'buy') {
+            const newSelected = selectedBuyProducts.filter(p => p.id !== id);
+            setSelectedBuyProducts(newSelected);
+            setForm(f => ({ ...f, buyProductIds: newSelected.map(p => p.id) }));
+        } else {
+            const newSelected = selectedGetProducts.filter(p => p.id !== id);
+            setSelectedGetProducts(newSelected);
+            setForm(f => ({ ...f, getProductIds: newSelected.map(p => p.id) }));
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        await onSave(form as BOGOInput);
+    };
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h2>🎁 Create BOGO Deal</h2>
+                    <button className="modal-close" onClick={onClose}>&times;</button>
+                </div>
+                <form onSubmit={handleSubmit} className="modal-body">
+                    <div className="form-group">
+                        <label>Campaign Name</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={form.name}
+                            onChange={e => setForm({ ...form, name: e.target.value })}
+                            placeholder="e.g., Buy T-Shirt Get Cap Free"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Deal Type</label>
+                            <select 
+                                className="form-input"
+                                value={form.dealType}
+                                onChange={e => {
+                                    const type = e.target.value as BOGOInput['dealType'];
+                                    setForm(f => ({ 
+                                        ...f, 
+                                        dealType: type,
+                                        discountPercent: type === 'BUY_X_GET_Y_FREE' ? 100 : 50
+                                    }));
+                                }}
+                            >
+                                <option value="BUY_X_GET_Y_FREE">Buy X Get Y Free</option>
+                                <option value="BUY_X_GET_Y_DISCOUNT">Buy X Get Y Discounted</option>
+                            </select>
+                        </div>
+                        {form.dealType === 'BUY_X_GET_Y_DISCOUNT' && (
+                            <div className="form-group">
+                                <label>Discount % on 2nd Item</label>
+                                <input
+                                    type="number"
+                                    className="form-input"
+                                    value={form.discountPercent}
+                                    onChange={e => setForm({ ...form, discountPercent: Number(e.target.value) })}
+                                    min={1}
+                                    max={100}
+                                    required
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Buy Quantity</label>
+                            <input
+                                type="number"
+                                className="form-input"
+                                value={form.buyQuantity}
+                                onChange={e => setForm({ ...form, buyQuantity: Number(e.target.value) })}
+                                min={1}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Get Quantity</label>
+                            <input
+                                type="number"
+                                className="form-input"
+                                value={form.getQuantity}
+                                onChange={e => setForm({ ...form, getQuantity: Number(e.target.value) })}
+                                min={1}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Starts At</label>
+                            <input
+                                type="datetime-local"
+                                className="form-input"
+                                value={form.startDate ? new Date(form.startDate).toISOString().slice(0, 16) : ''}
+                                onChange={e => setForm({ ...form, startDate: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Ends At (Optional)</label>
+                            <input
+                                type="datetime-local"
+                                className="form-input"
+                                value={form.endDate ? new Date(form.endDate).toISOString().slice(0, 16) : ''}
+                                onChange={e => setForm({ ...form, endDate: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="product-selection-grids">
+                        {/* Buy Products Section */}
+                        <div className="form-group">
+                            <label>Buy These Products (Triggers)</label>
+                            <div className="product-search-container">
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Search buy products..."
+                                    value={buySearch}
+                                    onChange={e => setBuySearch(e.target.value)}
+                                />
+                                {buyResults.length > 0 && (
+                                    <div className="search-results">
+                                        {buyResults.map(product => (
+                                            <div 
+                                                key={product.id} 
+                                                className="search-result-item"
+                                                onClick={() => handleAddProduct('buy', product)}
+                                            >
+                                                <div className="product-info">
+                                                    <div className="product-name">{product.name}</div>
+                                                    <div className="product-price">EGP {product.price}</div>
+                                                </div>
+                                                <button type="button" className="add-btn">+</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            {selectedBuyProducts.length > 0 && (
+                                <div className="selected-products">
+                                    {selectedBuyProducts.map(product => (
+                                        <div key={product.id} className="selected-product-item">
+                                            <span>{product.name}</span>
+                                            <button 
+                                                type="button" 
+                                                className="remove-btn"
+                                                onClick={() => handleRemoveProduct('buy', product.id)}
+                                            >
+                                                &times;
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Get Products Section */}
+                        <div className="form-group">
+                            <label>Get These Products (Rewards)</label>
+                            <div className="product-search-container">
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Search reward products..."
+                                    value={getSearch}
+                                    onChange={e => setGetSearch(e.target.value)}
+                                />
+                                {getResults.length > 0 && (
+                                    <div className="search-results">
+                                        {getResults.map(product => (
+                                            <div 
+                                                key={product.id} 
+                                                className="search-result-item"
+                                                onClick={() => handleAddProduct('get', product)}
+                                            >
+                                                <div className="product-info">
+                                                    <div className="product-name">{product.name}</div>
+                                                    <div className="product-price">EGP {product.price}</div>
+                                                </div>
+                                                <button type="button" className="add-btn">+</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            {selectedGetProducts.length > 0 && (
+                                <div className="selected-products">
+                                    {selectedGetProducts.map(product => (
+                                        <div key={product.id} className="selected-product-item">
+                                            <span>{product.name}</span>
+                                            <button 
+                                                type="button" 
+                                                className="remove-btn"
+                                                onClick={() => handleRemoveProduct('get', product.id)}
+                                            >
+                                                &times;
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="form-actions modal-footer">
+                        <button type="button" className="admin-btn" onClick={onClose} disabled={loading}>
+                            Cancel
+                        </button>
+                        <button type="submit" className="admin-btn admin-btn-primary" disabled={loading}>
+                            {loading ? 'Creating...' : 'Create BOGO Deal'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <style jsx>{`
+                .product-search-container {
+                    position: relative;
+                }
+                .search-results {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: #fff;
+                    border: 1px solid var(--admin-border);
+                    border-radius: 6px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    z-index: 10;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+                .search-result-item {
+                    padding: 8px 12px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    cursor: pointer;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+                .search-result-item:hover {
+                    background: #f9f9f9;
+                }
+                .selected-products {
+                    margin-top: 8px;
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 8px;
+                }
+                .selected-product-item {
+                    background: #f0fdf4;
+                    border: 1px solid #dcfce7;
+                    color: #166534;
+                    padding: 4px 10px;
+                    border-radius: 16px;
+                    font-size: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .remove-btn {
+                    background: none;
+                    border: none;
+                    color: #166534;
+                    cursor: pointer;
+                    font-size: 16px;
+                    padding: 0;
+                    line-height: 1;
+                }
+                .product-selection-grids {
+                    display: grid;
+                    gap: 16px;
+                    padding: 16px;
+                    background: var(--admin-surface-light);
+                    border-radius: 8px;
+                    margin-bottom: 16px;
+                }
+            `}</style>
+        </div>
+    );
+}
+
+// ==========================================
+// Bundle Modal
+// ==========================================
+
+function BundleModal({ 
+    onClose, 
+    onSave 
+}: { 
+    onClose: () => void; 
+    onSave: (data: BundleInput) => Promise<void>; 
+}) {
+    const [form, setForm] = useState<Partial<BundleInput>>({
+        name: '',
+        originalPrice: 0,
+        bundlePrice: 0,
+        isActive: true,
+        showOnHomepage: false,
+        productIds: []
+    });
+    
+    // Search states
+    const [search, setSearch] = useState('');
+    const [results, setResults] = useState<ProductSearchResult[]>([]);
+    const [selectedProducts, setSelectedProducts] = useState<ProductSearchResult[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    // Search Effects
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (search.length >= 2) {
+                const results = await searchProducts(search);
+                setResults(results);
+            } else {
+                setResults([]);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    // Handlers
+    const handleAddProduct = (product: ProductSearchResult) => {
+        if (!selectedProducts.find(p => p.id === product.id)) {
+            const newSelected = [...selectedProducts, product];
+            setSelectedProducts(newSelected);
+            setForm(f => ({ ...f, productIds: newSelected.map(p => p.id) }));
+            setSearch('');
+            setResults([]);
+        }
+    };
+
+    const handleRemoveProduct = (id: string) => {
+        const newSelected = selectedProducts.filter(p => p.id !== id);
+        setSelectedProducts(newSelected);
+        setForm(f => ({ ...f, productIds: newSelected.map(p => p.id) }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if ((form.productIds?.length || 0) < 2) {
+            toast.error('Please select at least 2 products for the bundle');
+            return;
+        }
+        setLoading(true);
+        await onSave(form as BundleInput);
+    };
+
+    // Calculate total original price
+    const totalOriginalPrice = selectedProducts.reduce((sum, p) => sum + p.price, 0);
+    const savings = totalOriginalPrice - (form.bundlePrice || 0);
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h2>📦 Create Bundle</h2>
+                    <button className="modal-close" onClick={onClose}>&times;</button>
+                </div>
+                <form onSubmit={handleSubmit} className="modal-body">
+                    <div className="form-group">
+                        <label>Bundle Name</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={form.name}
+                            onChange={e => setForm({ ...form, name: e.target.value })}
+                            placeholder="e.g., Summer Essentials Pack"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Description (Optional)</label>
+                        <textarea
+                            className="form-input"
+                            value={form.description || ''}
+                            onChange={e => setForm({ ...form, description: e.target.value })}
+                            placeholder="Describe what's in this bundle..."
+                            rows={2}
+                        />
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Starts At</label>
+                            <input
+                                type="datetime-local"
+                                className="form-input"
+                                value={form.startDate ? new Date(form.startDate).toISOString().slice(0, 16) : ''}
+                                onChange={e => setForm({ ...form, startDate: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Ends At (Optional)</label>
+                            <input
+                                type="datetime-local"
+                                className="form-input"
+                                value={form.endDate ? new Date(form.endDate).toISOString().slice(0, 16) : ''}
+                                onChange={e => setForm({ ...form, endDate: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="products-section">
+                        <label className="section-label">Included Products</label>
+                        <div className="product-search-container">
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="Search products to add..."
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                            />
+                            {results.length > 0 && (
+                                <div className="search-results">
+                                    {results.map(product => (
+                                        <div 
+                                            key={product.id} 
+                                            className="search-result-item"
+                                            onClick={() => handleAddProduct(product)}
+                                        >
+                                            <div className="product-info">
+                                                <div className="product-name">{product.name}</div>
+                                                <div className="product-price">EGP {product.price}</div>
+                                            </div>
+                                            <button type="button" className="add-btn">+</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {selectedProducts.length > 0 && (
+                            <div className="selected-products-list">
+                                {selectedProducts.map(product => (
+                                    <div key={product.id} className="selected-product-row">
+                                        <div className="product-details">
+                                            {product.image && <Image src={product.image} alt="" width={40} height={40} className="product-thumb" />}
+                                            <div>
+                                                <div className="name">{product.name}</div>
+                                                <div className="price">EGP {product.price}</div>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            type="button" 
+                                            className="remove-btn"
+                                            onClick={() => handleRemoveProduct(product.id)}
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+                                ))}
+                                <div className="total-original-price">
+                                    Total Value: EGP {totalOriginalPrice.toLocaleString()}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="price-section">
+                        <div className="form-group">
+                            <label>Bundle Price</label>
+                            <div className="price-input-wrapper">
+                                <span className="currency">EGP</span>
+                                <input
+                                    type="number"
+                                    className="form-input price-input"
+                                    value={form.bundlePrice}
+                                    onChange={e => setForm({ ...form, bundlePrice: Number(e.target.value) })}
+                                    min={0}
+                                    required
+                                />
+                            </div>
+                            {form.bundlePrice && form.bundlePrice > 0 && (
+                                <div className="savings-badge">
+                                    Save EGP {savings.toLocaleString()} 
+                                    ({Math.round((savings / totalOriginalPrice) * 100)}% OFF)
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="form-actions modal-footer">
+                        <button type="button" className="admin-btn" onClick={onClose} disabled={loading}>
+                            Cancel
+                        </button>
+                        <button type="submit" className="admin-btn admin-btn-primary" disabled={loading}>
+                            {loading ? 'Creating...' : 'Create Bundle'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <style jsx>{`
+                .products-section {
+                    background: var(--admin-surface-light);
+                    padding: 16px;
+                    border-radius: 8px;
+                    margin-bottom: 24px;
+                }
+                .section-label {
+                    display: block;
+                    font-size: 12px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    color: var(--admin-text-muted);
+                    margin-bottom: 8px;
+                }
+                .product-search-container {
+                    position: relative;
+                    margin-bottom: 12px;
+                }
+                .search-results {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: #fff;
+                    border: 1px solid var(--admin-border);
+                    border-radius: 6px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    z-index: 10;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+                .search-result-item {
+                    padding: 8px 12px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    cursor: pointer;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+                .search-result-item:hover {
+                    background: #f9f9f9;
+                }
+                .selected-products-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                .selected-product-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    background: #fff;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    border: 1px solid var(--admin-border);
+                }
+                .product-details {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                .product-thumb {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 4px;
+                    object-fit: cover;
+                }
+                .product-details .name {
+                    font-size: 13px;
+                    font-weight: 500;
+                }
+                .product-details .price {
+                    font-size: 11px;
+                    color: var(--admin-text-muted);
+                }
+                .total-original-price {
+                    text-align: right;
+                    font-size: 12px;
+                    color: var(--admin-text-muted);
+                    margin-top: 4px;
+                }
+                .price-input-wrapper {
+                    position: relative;
+                }
+                .currency {
+                    position: absolute;
+                    left: 12px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: var(--admin-text-muted);
+                    font-size: 13px;
+                }
+                .price-input {
+                    padding-left: 44px;
+                    font-size: 16px;
+                    font-weight: 600;
+                }
+                .savings-badge {
+                    margin-top: 6px;
+                    display: inline-block;
+                    background: #dcfce7;
+                    color: #166534;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+                .remove-btn {
+                    background: none;
+                    border: none;
+                    color: #ef4444;
+                    cursor: pointer;
+                    font-size: 18px;
+                    line-height: 1;
+                    padding: 4px;
+                }
+            `}</style>
+        </div>
+    );
+}
+
+// ==========================================
+// Product Offer Modal
+// ==========================================
+
+function ProductOfferModal({ 
+    onClose, 
+    onSave 
+}: { 
+    onClose: () => void; 
+    onSave: (data: ProductOfferInput) => Promise<void>; 
+}) {
+    const [form, setForm] = useState<Partial<ProductOfferInput>>({
+        name: '',
+        offerType: 'PRODUCT',
+        discountType: 'PERCENTAGE',
+        discountValue: 0,
+        minQuantity: 1,
+        isActive: true,
+        priority: 0
+    });
+    
+    // Search states
+    const [search, setSearch] = useState('');
+    const [results, setResults] = useState<{ id: string; name: string; image?: string | null; price?: number }[]>([]);
+    const [selectedTarget, setSelectedTarget] = useState<{id: string, name: string} | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    // Search Effects
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (search.length >= 2) {
+                if (form.offerType === 'PRODUCT') {
+                    const res = await searchProducts(search);
+                    setResults(res);
+                } else if (form.offerType === 'CATEGORY') {
+                    const res = await searchCategories(search);
+                    setResults(res);
+                }
+            } else {
+                setResults([]);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [search, form.offerType]);
+
+    // Handle offerType change - reset search state when type changes
+    const handleOfferTypeChange = (newType: ProductOfferInput['offerType']) => {
+        setSearch('');
+        setResults([]);
+        setSelectedTarget(null);
+        setForm(f => ({ ...f, offerType: newType, targetId: undefined }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (form.offerType !== 'ALL_PRODUCTS' && !form.targetId && !selectedTarget) {
+            toast.error('Please select a target for this offer');
+            return;
+        }
+        
+        // Build final form data with brand name as targetId if needed
+        let finalTargetId = form.targetId;
+        if (form.offerType === 'BRAND' && !form.targetId && search) {
+             // For brand, we might just use the search text as the ID/Name
+             finalTargetId = search;
+        }
+
+        setLoading(true);
+        await onSave({ ...form, targetId: finalTargetId } as ProductOfferInput);
+    };
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h2>🏷️ Create Product Offer</h2>
+                    <button className="modal-close" onClick={onClose}>&times;</button>
+                </div>
+                <form onSubmit={handleSubmit} className="modal-body">
+                    <div className="form-group">
+                        <label>Offer Name</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={form.name}
+                            onChange={e => setForm({ ...form, name: e.target.value })}
+                            placeholder="e.g., Summer Shoe Sale"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Offer Type</label>
+                            <select 
+                                className="form-input"
+                                value={form.offerType}
+                                onChange={e => handleOfferTypeChange(e.target.value as ProductOfferInput['offerType'])}
+                            >
+                                <option value="PRODUCT">Single Product</option>
+                                <option value="CATEGORY">Category</option>
+                                <option value="BRAND">Brand</option>
+                                <option value="ALL_PRODUCTS">Storewide (All Products)</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Priority (Higher runs first)</label>
+                            <input
+                                type="number"
+                                className="form-input"
+                                value={form.priority}
+                                onChange={e => setForm({ ...form, priority: Number(e.target.value) })}
+                                min={0}
+                            />
+                        </div>
+                    </div>
+
+                    {form.offerType !== 'ALL_PRODUCTS' && (
+                        <div className="form-group">
+                            <label>Target {form.offerType === 'PRODUCT' ? 'Product' : form.offerType === 'CATEGORY' ? 'Category' : 'Brand'}</label>
+                            
+                            {selectedTarget ? (
+                                <div className="selected-target-item">
+                                    <span>{selectedTarget.name}</span>
+                                    <button 
+                                        type="button" 
+                                        className="remove-btn"
+                                        onClick={() => {
+                                            setSelectedTarget(null);
+                                            setForm(f => ({ ...f, targetId: undefined }));
+                                            setSearch('');
+                                        }}
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="product-search-container">
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder={`Search ${(form.offerType || 'product').toLowerCase()}...`}
+                                        value={search}
+                                        onChange={e => {
+                                            setSearch(e.target.value);
+                                            if (form.offerType === 'BRAND') {
+                                                setForm(f => ({ ...f, targetId: e.target.value }));
+                                            }
+                                        }}
+                                    />
+                                    {results.length > 0 && (
+                                        <div className="search-results">
+                                            {results.map(item => (
+                                                <div 
+                                                    key={item.id} 
+                                                    className="search-result-item"
+                                                    onClick={() => {
+                                                        setSelectedTarget(item);
+                                                        setForm(f => ({ ...f, targetId: item.id }));
+                                                        setSearch('');
+                                                        setResults([]);
+                                                    }}
+                                                >
+                                                    <div className="product-info">
+                                                        <div className="product-name">{item.name}</div>
+                                                    </div>
+                                                    <button type="button" className="add-btn">+</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Discount Type</label>
+                            <select 
+                                className="form-input"
+                                value={form.discountType}
+                                onChange={e => setForm({ ...form, discountType: e.target.value as ProductOfferInput['discountType'] })}
+                            >
+                                <option value="PERCENTAGE">Percentage (%)</option>
+                                <option value="FIXED_AMOUNT">Fixed Amount (EGP)</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Value</label>
+                            <input
+                                type="number"
+                                className="form-input"
+                                value={form.discountValue}
+                                onChange={e => setForm({ ...form, discountValue: Number(e.target.value) })}
+                                min={0}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Starts At</label>
+                            <input
+                                type="datetime-local"
+                                className="form-input"
+                                value={form.startDate ? new Date(form.startDate).toISOString().slice(0, 16) : ''}
+                                onChange={e => setForm({ ...form, startDate: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Ends At (Optional)</label>
+                            <input
+                                type="datetime-local"
+                                className="form-input"
+                                value={form.endDate ? new Date(form.endDate).toISOString().slice(0, 16) : ''}
+                                onChange={e => setForm({ ...form, endDate: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-actions modal-footer">
+                        <button type="button" className="admin-btn" onClick={onClose} disabled={loading}>
+                            Cancel
+                        </button>
+                        <button type="submit" className="admin-btn admin-btn-primary" disabled={loading}>
+                            {loading ? 'Creating...' : 'Create Offer'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <style jsx>{`
+                .product-search-container { position: relative; }
+                .search-results {
+                    position: absolute; top: 100%; left: 0; right: 0;
+                    background: #fff; border: 1px solid var(--admin-border);
+                    border-radius: 6px; max-height: 200px; overflow-y: auto;
+                    z-index: 10;
+                }
+                .search-result-item {
+                    padding: 8px 12px; display: flex; justify-content: space-between;
+                    align-items: center; cursor: pointer; border-bottom: 1px solid #f0f0f0;
+                }
+                .search-result-item:hover { background: #f9f9f9; }
+                .selected-target-item {
+                    background: #eff6ff; border: 1px solid #dbeafe; color: #1e40af;
+                    padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between;
+                    align-items: center;
+                }
+                .remove-btn { background: none; border: none; color: #1e40af; cursor: pointer; font-size: 18px; line-height: 1; }
+            `}</style>
         </div>
     );
 }

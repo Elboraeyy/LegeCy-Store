@@ -89,7 +89,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     // ========================================
     // PRICE VERIFICATION FROM DATABASE
     // ========================================
-    let calculatedTotal = 0;
+
     
     for (const item of input.cartItems) {
       // Fetch actual price from database
@@ -123,22 +123,44 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         return { success: false, error: `Price has changed for "${item.name}". Please refresh and try again.` };
       }
       
-      calculatedTotal += dbPrice * item.qty;
+      // Price verified - continue to next item
     }
     
     // Get User Session (if any) - needed for coupon per-user check
     const { getCurrentUser } = await import('@/lib/actions/auth');
     const user = await getCurrentUser();
     
-    let finalTotal = calculatedTotal;
+    // ========================================
+    // AUTOMATIC PROMOTION DISCOUNTS
+    // ========================================
+    // Apply discounts from Product Offers, BOGO, etc. (before coupon)
+    const { calculateCartDiscounts, enrichCartItemsWithCategories } = await import('@/lib/services/discountService');
+    
+    // Prepare cart items with category info for discount calculation
+    const itemsForDiscount = await enrichCartItemsWithCategories(
+        input.cartItems.map(item => ({
+            productId: item.id,
+            variantId: item.variantId || undefined,
+            price: item.price,
+            quantity: item.qty
+        }))
+    );
+    
+    const discountResult = await calculateCartDiscounts(itemsForDiscount);
+    
+    let finalTotal = discountResult.finalTotal;
     let couponId: string | null = null;
+    
+    // Applied automatic discounts are stored in discountResult.appliedDiscounts
+    // TODO: Save these to order record for receipt display
 
     // Validate Coupon if provided (with per-user check)
+    // Coupon is applied ON TOP of automatic discounts
     if (input.couponCode) {
         const { validateCoupon } = await import('./coupons');
         const validation = await validateCoupon(
             input.couponCode, 
-            calculatedTotal,
+            finalTotal, // Apply coupon to already-discounted total
             input.customerEmail,  // For per-user limit
             user?.id              // For per-user limit
         );

@@ -379,11 +379,18 @@ export async function createExpenseCategory(name: string, budgetLimit?: number) 
   return category;
 }
 
-export async function createExpense(data: { description: string; amount: number; categoryId: string; date?: Date }) {
+export async function createExpense(data: { description: string; amount: number; categoryId: string; date?: Date; vaultId?: string }) {
   const admin = await requireAdmin();
   if(!admin) throw new Error('Unauthorized'); // Use admin variable explicitly
 
-  const cashAccount = await prisma.account.findFirst({ where: { code: '1001' } }); // Cash
+  // Get vault (default to 1001 Cash if not specified)
+  let cashAccount = null;
+  if (data.vaultId) {
+    cashAccount = await prisma.account.findUnique({ where: { id: data.vaultId } });
+  }
+  if (!cashAccount) {
+    cashAccount = await prisma.account.findFirst({ where: { code: '1001' } }); // Cash
+  }
   if (!cashAccount) throw new Error('Cash Account (1001) not found');
 
   // Find or determine the expense account
@@ -406,11 +413,11 @@ export async function createExpense(data: { description: string; amount: number;
         date: data.date || new Date(),
         status: 'PAID', // Assume immediate payment for now (Cash Basin)
         approvedBy: admin.id,
-        paidBy: 'Cash',
+        paidBy: cashAccount!.name,
       },
     });
 
-    // 2. Create Journal Entry (Dr Expense, Cr Cash)
+    // 2. Create Journal Entry (Dr Expense, Cr Vault)
     const journal = await tx.journalEntry.create({
       data: {
         description: `Expense: ${data.description}`,
@@ -436,18 +443,18 @@ export async function createExpense(data: { description: string; amount: number;
         data: { balance: { increment: data.amount } } 
     });
 
-    // Line 2: Credit Cash Account
+    // Line 2: Credit Vault Account
     await tx.transactionLine.create({
       data: {
         journalEntryId: journal.id,
-        accountId: cashAccount.id,
+        accountId: cashAccount!.id,
         debit: 0,
         credit: data.amount
       }
     });
-    // Update Cash Account Balance (Asset decreases with Credit)
+    // Update Vault Account Balance (Asset decreases with Credit)
     await tx.account.update({ 
-        where: { id: cashAccount.id }, 
+        where: { id: cashAccount!.id }, 
         data: { balance: { decrement: data.amount } } 
     });
 
@@ -459,6 +466,7 @@ export async function createExpense(data: { description: string; amount: number;
   });
 
   revalidatePath('/admin/finance/expenses');
+  revalidatePath('/admin/finance/treasury');
   revalidatePath('/admin/finance'); // Dashboard updates too
 }
 

@@ -1,13 +1,12 @@
 import { validateAdminSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
-import EnhancedTeamPage from './EnhancedTeamPage';
-import '@/app/admin/admin.css';
+import TreasuryClient from './TreasuryClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function TeamPage() {
+export default async function TreasuryPage() {
     const { user: adminUser } = await validateAdminSession();
     if (!adminUser) redirect('/admin/login');
 
-    return <EnhancedTeamPage />;
+    return <TreasuryClient />;
 }
