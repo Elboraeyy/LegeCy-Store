@@ -118,6 +118,11 @@ model AdminUser {
   
   // POS Relations
   posSessions          POSSession[]
+  
+  // Employee Management Relations
+  ratings              EmployeeRating[]
+  salaryPayments       SalaryPayment[]
+  leaves               EmployeeLeave[]
 }
 
 model AdminRole {
@@ -307,6 +312,11 @@ model Product {
   supplier       Supplier? @relation(fields: [supplierId], references: [id]) // Primary supplier
 
   purchaseItems  PurchaseInvoiceItem[]
+
+  // Promotion Relations
+  flashSales     FlashSaleProduct[]
+  bogoDeals      BOGOProduct[]
+  bundles        BundleProduct[]
 
   @@index([name])
   @@index([category])
@@ -1951,4 +1961,212 @@ model CustomerRiskProfile {
   @@index([riskScore])
   @@index([email])
   @@index([phone])
+}
+
+// ==========================================
+// Employee Management System
+// ==========================================
+
+// Daily performance rating for each employee
+model EmployeeRating {
+  id          String    @id @default(uuid())
+  employeeId  String
+  employee    AdminUser @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  score       Int       // 0-10
+  date        DateTime  @db.Date  // Date only, no time
+  notes       String?
+  ratedById   String?   // Admin who gave the rating
+  createdAt   DateTime  @default(now())
+  
+  @@unique([employeeId, date]) // One rating per employee per day
+  @@index([employeeId])
+  @@index([date])
+}
+
+// Salary payment records
+model SalaryPayment {
+  id              String    @id @default(uuid())
+  employeeId      String
+  employee        AdminUser @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  baseSalary      Decimal   // Base salary amount
+  bonusAmount     Decimal   @default(0)
+  deductions      Decimal   @default(0)
+  netAmount       Decimal   // baseSalary + bonus - deductions
+  month           Int       // 1-12
+  year            Int
+  paymentDate     DateTime  @default(now())
+  paymentMethod   String?   // cash, bank_transfer, vodafone_cash
+  reference       String?   // Transaction reference
+  notes           String?
+  paidById        String?   // Admin who processed the payment
+  journalEntryId  String?   // Link to finance journal entry
+  createdAt       DateTime  @default(now())
+  
+  @@index([employeeId])
+  @@index([year, month])
+}
+
+// Employee leave/vacation requests
+model EmployeeLeave {
+  id            String    @id @default(uuid())
+  employeeId    String
+  employee      AdminUser @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type          String    // annual, sick, unpaid, emergency
+  startDate     DateTime
+  endDate       DateTime
+  totalDays     Int
+  status        String    @default("pending") // pending, approved, rejected
+  reason        String?
+  approvedById  String?   // Admin who approved/rejected
+  approvedAt    DateTime?
+  rejectionNote String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([employeeId])
+  @@index([status])
+  @@index([startDate, endDate])
+}
+
+// ==========================================
+// Promotions & Offers System
+// ==========================================
+
+// Flash Sales - Time-limited discounts
+model FlashSale {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  discountType    String    @default("PERCENTAGE") // PERCENTAGE, FIXED_AMOUNT
+  discountValue   Decimal
+  startDate       DateTime
+  endDate         DateTime
+  maxQuantity     Int?      // Max items that can be sold at this price
+  soldQuantity    Int       @default(0)
+  isActive        Boolean   @default(true)
+  showOnHomepage  Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  products        FlashSaleProduct[]
+  
+  @@index([startDate, endDate])
+  @@index([isActive])
+}
+
+// Products in a Flash Sale
+model FlashSaleProduct {
+  id            String    @id @default(uuid())
+  flashSaleId   String
+  flashSale     FlashSale @relation(fields: [flashSaleId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  originalPrice Decimal
+  salePrice     Decimal
+  maxQuantity   Int?
+  soldQuantity  Int       @default(0)
+  
+  @@unique([flashSaleId, productId])
+  @@index([productId])
+}
+
+// BOGO (Buy One Get One) Deals
+model BOGODeal {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  dealType        String    @default("BUY_X_GET_Y_FREE") // BUY_X_GET_Y_FREE, BUY_X_GET_Y_DISCOUNT
+  buyQuantity     Int       @default(1)  // Buy X items
+  getQuantity     Int       @default(1)  // Get Y items
+  discountPercent Int       @default(100) // 100 = free, 50 = half price
+  mixAndMatch     Boolean   @default(false) // Allow different products
+  startDate       DateTime  @default(now())
+  endDate         DateTime?
+  usageLimit      Int?
+  currentUsage    Int       @default(0)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Products that trigger and qualify for this deal
+  products        BOGOProduct[]
+  
+  @@index([startDate, endDate])
+  @@index([isActive])
+}
+
+// Products eligible for BOGO deal
+model BOGOProduct {
+  id          String    @id @default(uuid())
+  bogoId      String
+  bogo        BOGODeal  @relation(fields: [bogoId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  isTrigger   Boolean   @default(true)  // Is this the "Buy" product?
+  isReward    Boolean   @default(true)  // Is this the "Get" product?
+  
+  @@unique([bogoId, productId])
+  @@index([productId])
+}
+
+// Product Bundles
+model Bundle {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  bundleType      String    @default("FIXED") // FIXED, CUSTOM (build your own)
+  originalPrice   Decimal   // Sum of individual product prices
+  bundlePrice     Decimal   // Discounted bundle price
+  discountPercent Decimal?  // Auto-calculated: ((original - bundle) / original) * 100
+  image           String?
+  startDate       DateTime  @default(now())
+  endDate         DateTime?
+  maxSales        Int?
+  currentSales    Int       @default(0)
+  isActive        Boolean   @default(true)
+  showOnHomepage  Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  products        BundleProduct[]
+  
+  @@index([isActive])
+  @@index([startDate, endDate])
+}
+
+// Products in a bundle
+model BundleProduct {
+  id          String    @id @default(uuid())
+  bundleId    String
+  bundle      Bundle    @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity    Int       @default(1)
+  
+  @@unique([bundleId, productId])
+  @@index([productId])
+}
+
+// Product-level Offers (category, brand, individual product discounts)
+model ProductOffer {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  offerType       String    // PRODUCT, CATEGORY, BRAND, ALL_PRODUCTS
+  targetId        String?   // Product ID, Category ID, or Brand name
+  discountType    String    @default("PERCENTAGE") // PERCENTAGE, FIXED_AMOUNT
+  discountValue   Decimal
+  minQuantity     Int       @default(1) // Minimum quantity to qualify
+  maxDiscount     Decimal?  // Cap on discount amount
+  startDate       DateTime  @default(now())
+  endDate         DateTime?
+  isActive        Boolean   @default(true)
+  priority        Int       @default(0) // Higher = applied first if multiple offers
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([offerType, targetId])
+  @@index([isActive])
+  @@index([startDate, endDate])
 }

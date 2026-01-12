@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import { fadeUpSlow, staggerContainerSlow } from "@/lib/motion";
 import { Reveal } from "@/components/ui/Reveal";
 import ProductCarousel from "@/components/ProductCarousel";
+import { FlashSalesSection } from "./FlashSalesSection";
+import { BundlesSection } from "./BundlesSection";
 import type { HomepageSettings } from "@/lib/settings";
 import type { Product } from "@/types/product";
 
@@ -15,9 +17,37 @@ type Props = {
   storeName: string;
   featuredProducts: Product[];
   newArrivals: Product[];
+  flashSales?: {
+    id: string;
+    name: string;
+    endDate: Date;
+    products: {
+      id: string;
+      name: string;
+      image: string | null;
+      originalPrice: number;
+      salePrice: number;
+    }[];
+  }[];
+  bundles?: {
+    id: string;
+    name: string;
+    description: string | null;
+    originalPrice: number;
+    bundlePrice: number;
+    savings: number;
+    images: string[];
+  }[];
 };
 
-export function HomeContentClient({ homepage, storeName, featuredProducts, newArrivals }: Props) {
+export function HomeContentClient({ 
+  homepage, 
+  storeName, 
+  featuredProducts, 
+  newArrivals,
+  flashSales,
+  bundles
+}: Props) {
   return (
     <main>
       {/* Hero Section */}
@@ -52,6 +82,11 @@ export function HomeContentClient({ homepage, storeName, featuredProducts, newAr
             </Reveal>
           </div>
         </section>
+      )}
+
+      {/* Flash Sales Section */}
+      {flashSales && flashSales.length > 0 && (
+         <FlashSalesSection sales={flashSales} />
       )}
 
       {/* Featured Products Carousel */}
@@ -100,6 +135,11 @@ export function HomeContentClient({ homepage, storeName, featuredProducts, newAr
           </motion.div>
         </motion.div>
       </section>
+
+      {/* Bundle Deals Section */}
+      {bundles && bundles.length > 0 && (
+         <BundlesSection bundles={bundles} />
+      )}
 
       {/* New Arrivals Carousel */}
       {newArrivals && newArrivals.length > 0 && (

@@ -600,6 +600,42 @@ export default function ReturnsPage() {
                     border: 1px solid rgba(239, 68, 68, 0.2);
                 }
 
+                .admin-tabs {
+                    display: flex;
+                    gap: 8px;
+                    background: var(--admin-surface-light);
+                    padding: 6px;
+                    border-radius: 999px;
+                    flex-wrap: nowrap;
+                }
+
+                .admin-tab {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 10px 18px;
+                    border: none;
+                    background: transparent;
+                    color: var(--admin-text-muted);
+                    font-size: 13px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    border-radius: 999px;
+                    transition: all 0.2s ease;
+                    white-space: nowrap;
+                }
+
+                .admin-tab:hover {
+                    background: rgba(0, 0, 0, 0.05);
+                    color: var(--admin-text-on-light);
+                }
+
+                .admin-tab.active {
+                    background: var(--admin-bg-dark);
+                    color: #fff;
+                    box-shadow: 0 2px 8px rgba(18, 64, 60, 0.15);
+                }
+
                 .tab-count {
                     font-size: 11px;
                     opacity: 0.7;

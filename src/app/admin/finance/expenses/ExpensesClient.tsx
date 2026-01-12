@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { createExpense, createExpenseCategory } from '@/lib/actions/finance';
+import { getVaults, Vault } from '@/lib/actions/treasury';
 import { formatCurrency } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
@@ -31,6 +32,18 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
   const [categoryId, setCategoryId] = useState('');
   const [isNewCategory, setIsNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [vaults, setVaults] = useState<Vault[]>([]);
+  const [selectedVaultId, setSelectedVaultId] = useState('');
+
+  useEffect(() => {
+    const loadVaults = async () => {
+      const vaultsData = await getVaults();
+      setVaults(vaultsData);
+      const defaultVault = vaultsData.find(v => v.code === '1001');
+      if (defaultVault) setSelectedVaultId(defaultVault.id);
+    };
+    loadVaults();
+  }, []);
 
   const handleCreateExpense = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +59,8 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
         await createExpense({
           description,
           amount: Number(amount),
-          categoryId: finalCategoryId
+          categoryId: finalCategoryId,
+          vaultId: selectedVaultId
         });
         
         setShowModal(false);
@@ -228,7 +242,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h2 className="modal-title">Record New Expense</h2>
             <p className="modal-subtitle">
-              This will create a journal entry deducting from Cash on Hand
+              This will deduct from the selected vault
             </p>
             
             <form onSubmit={handleCreateExpense} className="modal-form">
@@ -299,6 +313,22 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
                     </div>
                   </div>
                 )}
+              </div>
+              
+              {/* Vault Selection */}
+              <div className="form-group">
+                <label>🏦 Pay From Vault</label>
+                <select
+                  value={selectedVaultId}
+                  onChange={e => setSelectedVaultId(e.target.value)}
+                  className="form-input"
+                >
+                  {vaults.map(v => (
+                    <option key={v.id} value={v.id}>
+                      {v.icon} {v.name} ({formatCurrency(v.balance)})
+                    </option>
+                  ))}
+                </select>
               </div>
               
               <div className="modal-actions">

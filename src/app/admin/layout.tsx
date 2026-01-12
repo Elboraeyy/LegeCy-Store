@@ -146,7 +146,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         
                         {/* Finance Section */}
                         <div className="nav-label">Finance</div>
-                        <NavLink href="/admin/finance" icon="💰" label="Treasury" active={pathname?.startsWith('/admin/finance') && !pathname?.includes('/reports') && !pathname?.includes('/periods')} onClick={closeSidebar} />
+                        <NavLink href="/admin/finance" icon="💰" label="Dashboard" active={pathname === '/admin/finance'} onClick={closeSidebar} />
+                        <NavLink href="/admin/finance/treasury" icon="🏦" label="Treasury / Vaults" active={pathname === '/admin/finance/treasury'} onClick={closeSidebar} />
                         <NavLink href="/admin/finance/periods" icon="📅" label="Periods" active={pathname === '/admin/finance/periods'} onClick={closeSidebar} />
                         <NavLink href="/admin/finance/reports/pnl" icon="📊" label="P&L Report" active={pathname === '/admin/finance/reports/pnl'} onClick={closeSidebar} />
                         <NavLink href="/admin/finance/reports/cashflow" icon="💵" label="Cash Flow" active={pathname === '/admin/finance/reports/cashflow'} onClick={closeSidebar} />
@@ -157,6 +158,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <NavLink href="/admin/team" icon="👨‍💼" label="Team" active={pathname?.startsWith('/admin/team')} onClick={closeSidebar} />
                         {pathname?.startsWith('/admin/team') && (
                             <div style={{ marginLeft: '24px', marginBottom: '8px' }}>
+                                <NavLink href="/admin/team/rankings" icon="🏆" label="Rankings" active={pathname === '/admin/team/rankings'} onClick={closeSidebar} />
+                                <NavLink href="/admin/team/payroll" icon="💰" label="Payroll" active={pathname === '/admin/team/payroll'} onClick={closeSidebar} />
                                 <NavLink href="/admin/team/approvals" icon="✅" label="Approvals" active={pathname === '/admin/team/approvals'} onClick={closeSidebar} />
                             </div>
                         )}
