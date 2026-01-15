@@ -7,6 +7,15 @@ import SettingsField from '@/components/admin/settings/SettingsField';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
 import { toast } from 'sonner';
 
+// All Egyptian governorates/cities
+const EGYPT_CITIES = [
+    'Cairo', 'Giza', 'Alexandria', 'Mansoura', 'Tanta', 'Zagazig', 'Assiut',
+    'Sohag', 'Luxor', 'Aswan', 'Port Said', 'Suez', 'Ismailia', 'Damietta',
+    'Minya', 'Beni Suef', 'Fayoum', 'Qena', 'Sharm El Sheikh', 'Hurghada',
+    'Marsa Matrouh', 'Kafr El Sheikh', 'Beheira', 'Gharbia', 'Monufia',
+    'Sharqia', 'Dakahlia', 'Red Sea', 'New Valley', 'North Sinai', 'South Sinai', 'Matrouh'
+];
+
 const defaultSettings: ShippingSettings = {
     enableShipping: true,
     freeShippingThreshold: 0,
@@ -55,6 +64,20 @@ export default function ShippingSettingsPage() {
         const newZones = [...settings.shippingZones];
         newZones[index] = { ...newZones[index], [field]: value };
         setSettings({ ...settings, shippingZones: newZones });
+    };
+
+    const updateZoneCities = (index: number, cities: string[]) => {
+        const newZones = [...settings.shippingZones];
+        newZones[index] = { ...newZones[index], cities };
+        setSettings({ ...settings, shippingZones: newZones });
+    };
+
+    const toggleCityInZone = (index: number, city: string) => {
+        const zone = settings.shippingZones[index];
+        const cities = zone.cities.includes(city)
+            ? zone.cities.filter(c => c !== city)
+            : [...zone.cities, city];
+        updateZoneCities(index, cities);
     };
 
     const addZone = () => {
@@ -222,6 +245,45 @@ export default function ShippingSettingsPage() {
                                     min={0}
                                 />
                             </SettingsField>
+                        </div>
+                        <div style={{ marginTop: '16px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '8px', color: 'var(--admin-text-secondary)' }}>
+                                Cities in this zone ({zone.cities.length} selected)
+                            </label>
+                            <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '6px',
+                                maxHeight: '150px',
+                                overflowY: 'auto',
+                                padding: '8px',
+                                background: 'var(--admin-bg)',
+                                borderRadius: '8px',
+                                border: '1px solid var(--admin-border)'
+                            }}>
+                                {EGYPT_CITIES.map(city => (
+                                    <button
+                                        key={city}
+                                        type="button"
+                                        onClick={() => toggleCityInZone(index, city)}
+                                        style={{
+                                            padding: '4px 10px',
+                                            fontSize: '12px',
+                                            borderRadius: '99px',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            background: zone.cities.includes(city) ? '#12403C' : 'var(--admin-surface)',
+                                            color: zone.cities.includes(city) ? '#fff' : 'var(--admin-text)',
+                                            transition: 'all 0.15s ease'
+                                        }}
+                                    >
+                                        {city}
+                                    </button>
+                                ))}
+                            </div>
+                            <p style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginTop: '6px' }}>
+                                Click cities to add/remove. Cities not in any zone use the default rate.
+                            </p>
                         </div>
                     </div>
                 ))}

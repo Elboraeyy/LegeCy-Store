@@ -1852,24 +1852,27 @@ function CouponModal({
                                 <select
                                     className="form-input"
                                     value={form.discountType}
-                                    onChange={e => setForm(f => ({ ...f, discountType: e.target.value as 'PERCENTAGE' | 'FIXED_AMOUNT' }))}
+                                    onChange={e => setForm(f => ({ ...f, discountType: e.target.value as 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING' }))}
                                 >
                                     <option value="PERCENTAGE">Percentage (%)</option>
                                     <option value="FIXED_AMOUNT">Fixed Amount (EGP)</option>
+                                    <option value="FREE_SHIPPING">Free Shipping</option>
                                 </select>
                             </div>
-                            <div className="form-group">
-                                <label>Discount Value</label>
-                                <input
-                                    type="number"
-                                    className="form-input"
-                                    value={form.discountValue}
-                                    onChange={e => setForm(f => ({ ...f, discountValue: Number(e.target.value) }))}
-                                    min={0}
-                                    max={form.discountType === 'PERCENTAGE' ? 100 : 999999}
-                                    required
-                                />
-                            </div>
+                            {form.discountType !== 'FREE_SHIPPING' && (
+                                <div className="form-group">
+                                    <label>Discount Value</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={form.discountValue}
+                                        onChange={e => setForm(f => ({ ...f, discountValue: Number(e.target.value) }))}
+                                        min={0}
+                                        max={form.discountType === 'PERCENTAGE' ? 100 : 999999}
+                                        required
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Min Order & Max Discount */}

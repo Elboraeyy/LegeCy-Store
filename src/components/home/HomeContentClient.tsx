@@ -7,8 +7,7 @@ import { motion } from "framer-motion";
 import { fadeUpSlow, staggerContainerSlow } from "@/lib/motion";
 import { Reveal } from "@/components/ui/Reveal";
 import ProductCarousel from "@/components/ProductCarousel";
-import { FlashSalesSection } from "./FlashSalesSection";
-import { BundlesSection } from "./BundlesSection";
+import { PromotionsHub, FlashSale, BOGODeal, Bundle } from "@/components/home/PromotionsHub";
 import type { HomepageSettings } from "@/lib/settings";
 import type { Product } from "@/types/product";
 
@@ -17,27 +16,9 @@ type Props = {
   storeName: string;
   featuredProducts: Product[];
   newArrivals: Product[];
-  flashSales?: {
-    id: string;
-    name: string;
-    endDate: Date;
-    products: {
-      id: string;
-      name: string;
-      image: string | null;
-      originalPrice: number;
-      salePrice: number;
-    }[];
-  }[];
-  bundles?: {
-    id: string;
-    name: string;
-    description: string | null;
-    originalPrice: number;
-    bundlePrice: number;
-    savings: number;
-    images: string[];
-  }[];
+  flashSales?: FlashSale[];
+  bundles?: Bundle[];
+  bogos?: BOGODeal[];
 };
 
 export function HomeContentClient({ 
@@ -46,7 +27,8 @@ export function HomeContentClient({
   featuredProducts, 
   newArrivals,
   flashSales,
-  bundles
+  bundles,
+  bogos
 }: Props) {
   return (
     <main>
@@ -84,10 +66,12 @@ export function HomeContentClient({
         </section>
       )}
 
-      {/* Flash Sales Section */}
-      {flashSales && flashSales.length > 0 && (
-         <FlashSalesSection sales={flashSales} />
-      )}
+      {/* Promotions Hub (Flash Sales, BOGO, Bundles) */}
+      <PromotionsHub 
+          flashSales={flashSales || []} 
+          bogos={bogos || []} 
+          bundles={bundles || []} 
+      />
 
       {/* Featured Products Carousel */}
       {featuredProducts && featuredProducts.length > 0 && (
@@ -136,10 +120,7 @@ export function HomeContentClient({
         </motion.div>
       </section>
 
-      {/* Bundle Deals Section */}
-      {bundles && bundles.length > 0 && (
-         <BundlesSection bundles={bundles} />
-      )}
+
 
       {/* New Arrivals Carousel */}
       {newArrivals && newArrivals.length > 0 && (

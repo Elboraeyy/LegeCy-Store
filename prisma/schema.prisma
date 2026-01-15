@@ -317,6 +317,7 @@ model Product {
   flashSales     FlashSaleProduct[]
   bogoDeals      BOGOProduct[]
   bundles        BundleProduct[]
+  bundleOptions  BundleItemProduct[]
 
   @@index([name])
   @@index([category])
@@ -688,6 +689,11 @@ model CartItem {
   quantity  Int      @default(1)
   
   @@unique([cartId, productId, variantId])
+  
+  // Context-Aware Pricing Fields
+  pricingContext String?  // FLASH_SALE, BUNDLE, BOGO, STANDARD
+  contextId      String?  // ID of the active FlashSale or Bundle
+  bundleConfig   Json?    // For Mix & Match bundles: { "groupId": "variantId" }
 }
 
 // ==========================================
@@ -2115,7 +2121,8 @@ model Bundle {
   id              String    @id @default(uuid())
   name            String
   description     String?
-  bundleType      String    @default("FIXED") // FIXED, CUSTOM (build your own)
+  slug            String?   @unique // For dedicated landing page
+  bundleType      String    @default("FIXED") // FIXED, MIX_AND_MATCH
   originalPrice   Decimal   // Sum of individual product prices
   bundlePrice     Decimal   // Discounted bundle price
   discountPercent Decimal?  // Auto-calculated: ((original - bundle) / original) * 100
@@ -2129,7 +2136,8 @@ model Bundle {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   
-  products        BundleProduct[]
+  products        BundleProduct[] // For FIXED bundles
+  groups          BundleItem[]    // For MIX_AND_MATCH bundles
   
   @@index([isActive])
   @@index([startDate, endDate])
@@ -2146,6 +2154,36 @@ model BundleProduct {
   
   @@unique([bundleId, productId])
   @@index([productId])
+}
+
+// Smart Bundle Structure (Mix & Match)
+model BundleItem {
+  id           String             @id @default(uuid())
+  bundleId     String
+  bundle       Bundle             @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  name         String             // e.g. "Select a Watch"
+  description  String?
+  required     Boolean            @default(true)
+  minQuantity  Int                @default(1)
+  maxQuantity  Int                @default(1)
+  sortOrder    Int                @default(0)
+  
+  options      BundleItemProduct[]
+  
+  @@index([bundleId])
+}
+
+model BundleItemProduct {
+  id           String     @id @default(uuid())
+  bundleItemId String
+  bundleItem   BundleItem @relation(fields: [bundleItemId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  additionalPrice Decimal @default(0) // Extra cost for this choice
+  isDefault       Boolean @default(false)
+  
+  @@unique([bundleItemId, productId])
 }
 
 // Product-level Offers (category, brand, individual product discounts)

@@ -153,7 +153,7 @@ export default function CartClient() {
                   </div>
                   <div className="summary-row">
                     <span>Shipping</span>
-                    <span style={{ color: "#16a34a" }}>Free</span>
+                    <span style={{ color: "var(--text-muted)", fontSize: "13px" }}>Calculated at checkout</span>
                   </div>
                   <div className="summary-row total">
                     <span>Total</span>
