@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { CartItemDTO } from './cart';
 
 // ==========================================
 // Types & Interfaces
@@ -10,7 +11,7 @@ import { revalidatePath } from 'next/cache';
 export interface CouponData {
     id: string;
     code: string;
-    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING';
     discountValue: number;
     minOrderValue: number | null;
     maxDiscount: number | null;
@@ -19,9 +20,11 @@ export interface CouponData {
 export interface CouponValidationResult {
     isValid: boolean;
     error?: string;
+    message?: string; // Detailed success/partial message
     coupon?: CouponData;
     discountAmount?: number;
     finalTotal?: number;
+    shippingFree?: boolean; // New flag for Free Shipping
 }
 
 export interface CouponFilters {
@@ -34,7 +37,7 @@ export interface CouponFilters {
 
 export interface CouponInput {
     code: string;
-    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING';
     discountValue: number;
     minOrderValue?: number | null;
     maxDiscount?: number | null;
@@ -94,6 +97,221 @@ function generateCouponCode(prefix: string = '', length: number = 8): string {
     }
     return code;
 }
+
+/**
+ * Validates a coupon code with item-level context awareness.
+ * Ensures Flash Sale/Bundle items are excluded from discount.
+ */
+export async function validateCoupon(
+    code: string, 
+    cartTotal: number, // Legacy param for backward compat, but we calculate real eligible total inside
+    userEmail?: string,
+    userId?: string,
+    cartItems?: CartItemDTO[] // New: Pass items to check context!
+): Promise<CouponValidationResult> {
+    try {
+        if (!code) {
+            return { isValid: false, error: 'Coupon code is required' };
+        }
+
+        const coupon = await prisma.coupon.findUnique({
+            where: { code: code.toUpperCase() }
+        });
+
+        if (!coupon) {
+            return { isValid: false, error: 'Invalid coupon code' };
+        }
+
+        if (!coupon.isActive) {
+            return { isValid: false, error: 'Coupon is inactive' };
+        }
+
+        // Check dates
+        const now = new Date();
+        if (coupon.startDate > now) {
+            return { isValid: false, error: 'Coupon is not yet active' };
+        }
+        if (coupon.endDate && coupon.endDate < now) {
+            return { isValid: false, error: 'Coupon has expired' };
+        }
+
+        // Check global usage limit
+        if (coupon.usageLimit !== null && coupon.currentUsage >= coupon.usageLimit) {
+            return { isValid: false, error: 'Coupon usage limit reached' };
+        }
+
+        // PER-USER USAGE CHECK
+        if (userEmail || userId) {
+            const existingUsage = await prisma.couponUsage.findFirst({
+                where: {
+                    couponId: coupon.id,
+                    OR: [
+                        ...(userEmail ? [{ userEmail }] : []),
+                        ...(userId ? [{ userId }] : [])
+                    ]
+                }
+            });
+            
+            if (existingUsage) {
+                return { isValid: false, error: 'You have already used this coupon' };
+            }
+        }
+
+        // CALCULATE ELIGIBLE TOTAL (Filtering out Flash Sales / Bundles)
+        let eligibleTotal = 0;
+        let eligibleItemsCount = 0;
+        let excludedItemsCount = 0;
+        let excludedReason = "";
+
+        if (cartItems && cartItems.length > 0) {
+            for (const item of cartItems) {
+                // Check Context
+                if (item.pricingContext === 'FLASH_SALE' || item.pricingContext === 'BUNDLE') {
+                    excludedItemsCount++;
+                    excludedReason = item.pricingContext === 'FLASH_SALE' ? "Flash Sale items" : "Bundles";
+                } else if (item.pricingContext === 'BOGO' && item.price === 0) {
+                     // Free item in BOGO is 0 anyway, but technically excluded from further calc
+                     excludedItemsCount++;
+                } else {
+                    eligibleTotal += (item.price * item.qty);
+                    eligibleItemsCount++;
+                }
+            }
+        } else {
+            // Fallback if no items passed (legacy or empty)
+            eligibleTotal = cartTotal; 
+            eligibleItemsCount = 1; // Assume generic
+        }
+
+        // Check Min Order Value against ELIGIBLE TOTAL
+        if (coupon.minOrderValue && eligibleTotal < Number(coupon.minOrderValue)) {
+            // If we have items but they are all excluded
+            if (eligibleItemsCount === 0 && excludedItemsCount > 0) {
+                 return { 
+                    isValid: false, 
+                    error: `Coupon not applicable. Cart contains only ${excludedReason} which are excluded from additional discounts.` 
+                };
+            }
+            return { 
+                isValid: false, 
+                error: `Minimum eligible order value of EGP ${coupon.minOrderValue} required (Flash Sales/Bundles excluded)` 
+            };
+        }
+
+        // Calculate discount
+        let discountAmount = 0;
+        const discountValue = Number(coupon.discountValue);
+        let isFreeShipping = false;
+
+        if (coupon.discountType === 'PERCENTAGE') {
+            discountAmount = (eligibleTotal * discountValue) / 100;
+            
+            // Cap at max discount if set
+            if (coupon.maxDiscount) {
+                const maxDiscount = Number(coupon.maxDiscount);
+                discountAmount = Math.min(discountAmount, maxDiscount);
+            }
+        } else if (coupon.discountType === 'FIXED_AMOUNT') {
+            // Fixed amount is applied once. Warning: if eligibleTotal < fixed, we cap it.
+            discountAmount = Math.min(discountValue, eligibleTotal);
+        } else if (coupon.discountType === 'FREE_SHIPPING') {
+            isFreeShipping = true;
+            discountAmount = 0; // Discount is applied on Shipping Line, not Subtotal
+        }
+
+        // Ensure discount doesn't exceed total (Double check)
+        discountAmount = Math.min(discountAmount, eligibleTotal);
+
+        // Generate Detailed Message
+        let message = "Coupon applied successfully!";
+        if (excludedItemsCount > 0) {
+            if (eligibleItemsCount > 0) {
+                 message = `Coupon applied to ${eligibleItemsCount} item(s). ${excludedItemsCount} item(s) excluded (Flash Sale/Bundle/Offer).`; // Partial
+            } else if (!isFreeShipping) {
+                 // Should have been caught by minOrderValue check technically if min > 0
+                 // But if min is 0, we might have 0 discount on 0 eligible total
+                 return { isValid: false, error: `Coupon cannot be applied. All items in cart are part of exclusive offers.` }; 
+            }
+        }
+        
+        if (isFreeShipping) {
+             message = excludedItemsCount > 0 
+                ? `Free Shipping applied! Note: ${excludedItemsCount} items are excluded from other discounts.`
+                : "Free Shipping applied successfully!";
+        }
+
+        return {
+            isValid: true,
+            message, // Pass the message to UI
+            coupon: {
+                id: coupon.id,
+                code: coupon.code,
+                discountType: coupon.discountType as 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING',
+                discountValue: Number(coupon.discountValue),
+                minOrderValue: coupon.minOrderValue ? Number(coupon.minOrderValue) : null,
+                maxDiscount: coupon.maxDiscount ? Number(coupon.maxDiscount) : null,
+            },
+            discountAmount,
+            shippingFree: isFreeShipping,
+            finalTotal: cartTotal - discountAmount
+        };
+    } catch (error) {
+        console.error('Validate Coupon Error:', error);
+        return { isValid: false, error: 'Failed to validate coupon' };
+    }
+}
+
+export interface CouponFilters {
+    search?: string;
+    status?: 'all' | 'active' | 'inactive' | 'expired' | 'scheduled';
+    type?: 'all' | 'PERCENTAGE' | 'FIXED_AMOUNT';
+    page?: number;
+    limit?: number;
+}
+
+export interface CouponInput {
+    code: string;
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING';
+    discountValue: number;
+    minOrderValue?: number | null;
+    maxDiscount?: number | null;
+    startDate?: Date | string;
+    endDate?: Date | string | null;
+    usageLimit?: number | null;
+    isActive?: boolean;
+}
+
+export interface CouponWithStats {
+    id: string;
+    code: string;
+    discountType: string;
+    discountValue: number;
+    minOrderValue: number | null;
+    maxDiscount: number | null;
+    startDate: Date;
+    endDate: Date | null;
+    usageLimit: number | null;
+    currentUsage: number;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    // Calculated stats
+    status: 'active' | 'inactive' | 'expired' | 'scheduled';
+    totalRevenue?: number;
+    totalDiscount?: number;
+}
+
+export interface CouponAnalytics {
+    totalCoupons: number;
+    activeCoupons: number;
+    totalUsage: number;
+    totalDiscountGiven: number;
+    ordersWithCoupons: number;
+    conversionRate: number;
+    topCoupons: { code: string; usage: number; discount: number }[];
+}
+
+
 
 // ==========================================
 // CRUD Operations
@@ -572,115 +790,4 @@ export async function getCouponAnalytics(): Promise<CouponAnalytics> {
     }
 }
 
-// ==========================================
-// Validation (Original Function - Preserved)
-// ==========================================
 
-/**
- * Validates a coupon code and checks per-user usage limits
- * @param code - Coupon code
- * @param cartTotal - Cart total before discount
- * @param userEmail - Optional email for per-user limit check
- * @param userId - Optional user ID for per-user limit check
- */
-export async function validateCoupon(
-    code: string, 
-    cartTotal: number,
-    userEmail?: string,
-    userId?: string
-): Promise<CouponValidationResult> {
-    try {
-        if (!code) {
-            return { isValid: false, error: 'Coupon code is required' };
-        }
-
-        const coupon = await prisma.coupon.findUnique({
-            where: { code: code.toUpperCase() }
-        });
-
-        if (!coupon) {
-            return { isValid: false, error: 'Invalid coupon code' };
-        }
-
-        if (!coupon.isActive) {
-            return { isValid: false, error: 'Coupon is inactive' };
-        }
-
-        // Check dates
-        const now = new Date();
-        if (coupon.startDate > now) {
-            return { isValid: false, error: 'Coupon is not yet active' };
-        }
-        if (coupon.endDate && coupon.endDate < now) {
-            return { isValid: false, error: 'Coupon has expired' };
-        }
-
-        // Check global usage limit
-        if (coupon.usageLimit !== null && coupon.currentUsage >= coupon.usageLimit) {
-            return { isValid: false, error: 'Coupon usage limit reached' };
-        }
-
-        // PER-USER USAGE CHECK
-        if (userEmail || userId) {
-            const existingUsage = await prisma.couponUsage.findFirst({
-                where: {
-                    couponId: coupon.id,
-                    OR: [
-                        ...(userEmail ? [{ userEmail }] : []),
-                        ...(userId ? [{ userId }] : [])
-                    ]
-                }
-            });
-            
-            if (existingUsage) {
-                return { isValid: false, error: 'You have already used this coupon' };
-            }
-        }
-
-        // Check min order value
-        if (coupon.minOrderValue && cartTotal < Number(coupon.minOrderValue)) {
-            return { 
-                isValid: false, 
-                error: `Minimum order value of EGP ${coupon.minOrderValue} required` 
-            };
-        }
-
-        // Calculate discount
-        let discountAmount = 0;
-        const discountValue = Number(coupon.discountValue);
-
-        if (coupon.discountType === 'PERCENTAGE') {
-            discountAmount = (cartTotal * discountValue) / 100;
-            
-            // Cap at max discount if set
-            if (coupon.maxDiscount) {
-                const maxDiscount = Number(coupon.maxDiscount);
-                discountAmount = Math.min(discountAmount, maxDiscount);
-            }
-        } else {
-            // Fixed amount
-            discountAmount = discountValue;
-        }
-
-        // Ensure discount doesn't exceed total
-        discountAmount = Math.min(discountAmount, cartTotal);
-
-        return {
-            isValid: true,
-            coupon: {
-                id: coupon.id,
-                code: coupon.code,
-                discountType: coupon.discountType as 'PERCENTAGE' | 'FIXED_AMOUNT',
-                discountValue: Number(coupon.discountValue),
-                minOrderValue: coupon.minOrderValue ? Number(coupon.minOrderValue) : null,
-                maxDiscount: coupon.maxDiscount ? Number(coupon.maxDiscount) : null,
-            },
-            discountAmount,
-            finalTotal: cartTotal - discountAmount
-        };
-
-    } catch (error) {
-        console.error('Validate Coupon Error:', error);
-        return { isValid: false, error: 'Failed to validate coupon' };
-    }
-}

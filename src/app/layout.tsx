@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter, Playfair_Display } from "next/font/google";
+import { Geist, Inter, Playfair_Display } from "next/font/google"; // Removed Geist_Mono due to build error
 import "./globals.css";
 import "./mobile-fixes.css";
 import NavbarWrapper from "@/components/NavbarWrapper";
@@ -12,10 +12,10 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
 
 const inter = Inter({
   variable: "--font-inter",
@@ -68,7 +68,7 @@ export default async function RootLayout({
       <head>
         <style dangerouslySetInnerHTML={{ __html: cssVars }} />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${playfair.variable}`}>
+      <body className={`${geistSans.variable} ${inter.variable} ${playfair.variable}`}>
         <ClientLayout navbar={<NavbarWrapper />} footer={<Footer />}>
           {children}
         </ClientLayout>

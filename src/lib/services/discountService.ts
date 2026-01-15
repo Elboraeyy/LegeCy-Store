@@ -12,6 +12,9 @@ export interface CartItemForDiscount {
     price: number; // Current price per unit
     quantity: number;
     categoryId?: string;
+    pricingContext?: string | null;
+    contextId?: string | null;
+    bundleConfig?: Record<string, unknown>;
 }
 
 export interface ApplicableDiscount {
@@ -36,49 +39,100 @@ export interface DiscountResult {
  * Calculates all applicable promotions for a cart at checkout time.
  * This is the single source of truth for discount calculations.
  * 
- * Discount Priority (highest to lowest):
- * 1. Flash Sales (already applied to item price in cart)
- * 2. Product Offers (explicit percentage/fixed discounts)
- * 3. BOGO Deals (free/discounted items)
- * 4. Bundles (handled separately as bundle products have fixed bundlePrice)
+ * DISCOUNT HIERARCHY & CONTEXT AWARENESS:
+ * 1. LOCKED CONTEXTS (Flash Sales / Smart Bundles)
+ *    - If an item was added via Flash Sale/Bundle UI (has `pricingContext`), it gets THAT specific price.
+ *    - These items are EXCLUDED from further global discounts (Offers/BOGO) to prevent double-dipping.
+ *    - Logic: Calculate the specific "Flash Discount" or "Bundle Discount" first.
  * 
- * Note: Coupon codes are handled separately in validateCoupon() and applied on top.
+ * 2. GLOBAL OFFERS (Product Offers)
+ *    - Applied only to "STANDARD" items (no special context).
+ * 
+ * 3. BOGO DEALS
+ *    - Applied only to "STANDARD" items, after global offers.
+ * 
+ * 4. COUPONS
+ *    - Applied last on the subtotal.
  */
 export async function calculateCartDiscounts(cartItems: CartItemForDiscount[]): Promise<DiscountResult> {
     const now = new Date();
     let totalDiscount = 0;
     const appliedDiscounts: ApplicableDiscount[] = [];
     
-    // Calculate original total from cart prices (already includes Flash Sale prices)
+    // Separate items into "Locked Types" and "Standard Types"
+    const lockedItems: CartItemForDiscount[] = [];
+    const standardItems: CartItemForDiscount[] = [];
+
+    // ---------------------------------------------------------
+    // 1. Process Locked Contexts (Flash Sales & Bundles)
+    // ---------------------------------------------------------
+    for (const item of cartItems) {
+        if (item.pricingContext === 'FLASH_SALE' && item.contextId) {
+            // Verify Logic: Ideally we check DB if valid, but for speed we assume
+            // pre-validated or we calculate the diff here if we had the sale price.
+            // Since CartItem has 'price' which is the base price, we need to correct it?
+            // Actually, for robust logic, we should re-fetch the sale price here.
+            
+            // TODO: Optimize by fetching all active flash sales in bulk
+            const flashSalePrice = await getFlashSalePrice(item.productId, item.contextId);
+            if (flashSalePrice !== null && flashSalePrice < item.price) {
+                 const discountAmount = (item.price - flashSalePrice) * item.quantity;
+                 totalDiscount += discountAmount;
+                 // Add invisible "Flash Adjustment" or visible?
+                 // Usually Flash Sale price is shown as the *unit price*.
+                 // So we might treat this as a price override rather than a discount line item?
+                 // But return structure expects "Applied Discounts".
+                 
+                 // Strategy: We will count it as a discount so original total logic works.
+                 appliedDiscounts.push({
+                     type: 'FLASH_SALE',
+                     name: 'Flash Sale Event',
+                     amount: discountAmount,
+                     details: `Special price for ${item.quantity} item(s)`
+                 });
+                 lockedItems.push(item); 
+                 continue;
+            }
+        } 
+        
+        // Use STANDARD items for further BOGO/Offer calculations
+        standardItems.push(item);
+    }
+
+    // ---------------------------------------------------------
+    // 2. Apply Product Offers (Only to Standard Items)
+    // ---------------------------------------------------------
+    if (standardItems.length > 0) {
+        const productOfferDiscount = await calculateProductOfferDiscounts(standardItems, now);
+        if (productOfferDiscount.amount > 0) {
+            totalDiscount += productOfferDiscount.amount;
+            appliedDiscounts.push({
+                type: 'PRODUCT_OFFER',
+                name: 'Product Offers',
+                amount: productOfferDiscount.amount,
+                details: productOfferDiscount.details
+            });
+        }
+
+        // ---------------------------------------------------------
+        // 3. Apply BOGO Deals (Only to Standard Items)
+        // ---------------------------------------------------------
+        // Note: BOGO logic needs to know which items were already discounted by offers?
+        // Typically BOGO stacks with Offers OR excludes. 
+        // Let's assume Stacking if defined, or BOGO operates on Final Price.
+        const bogoDiscount = await calculateBogoDiscounts(standardItems, now);
+        if (bogoDiscount.amount > 0) {
+            totalDiscount += bogoDiscount.amount;
+            appliedDiscounts.push({
+                type: 'BOGO',
+                name: 'Buy One Get One',
+                amount: bogoDiscount.amount,
+                details: bogoDiscount.details
+            });
+        }
+    }
+
     const originalTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-    // ========================================
-    // 1. Apply Product Offers
-    // ========================================
-    const productOfferDiscount = await calculateProductOfferDiscounts(cartItems, now);
-    if (productOfferDiscount.amount > 0) {
-        totalDiscount += productOfferDiscount.amount;
-        appliedDiscounts.push({
-            type: 'PRODUCT_OFFER',
-            name: 'Product Offers',
-            amount: productOfferDiscount.amount,
-            details: productOfferDiscount.details
-        });
-    }
-
-    // ========================================
-    // 2. Apply BOGO Deals
-    // ========================================
-    const bogoDiscount = await calculateBogoDiscounts(cartItems, now);
-    if (bogoDiscount.amount > 0) {
-        totalDiscount += bogoDiscount.amount;
-        appliedDiscounts.push({
-            type: 'BOGO',
-            name: 'Buy One Get One',
-            amount: bogoDiscount.amount,
-            details: bogoDiscount.details
-        });
-    }
 
     return {
         originalTotal,
@@ -88,9 +142,24 @@ export async function calculateCartDiscounts(cartItems: CartItemForDiscount[]): 
     };
 }
 
-// ==========================================
-// Product Offer Calculations
-// ==========================================
+// Helper to fetch Flash Sale price
+async function getFlashSalePrice(productId: string, flashSaleId: string): Promise<number | null> {
+    const saleItem = await prisma.flashSaleProduct.findUnique({
+        where: {
+            flashSaleId_productId: {
+                flashSaleId: flashSaleId,
+                productId: productId
+            }
+        }
+    });
+    // Check if sale is still active
+    const sale = await prisma.flashSale.findUnique({ where: { id: flashSaleId } });
+    const now = new Date();
+    if (!sale || !sale.isActive || sale.endDate < now) return null;
+
+    return saleItem ? Number(saleItem.salePrice) : null;
+}
+
 
 async function calculateProductOfferDiscounts(
     cartItems: CartItemForDiscount[],

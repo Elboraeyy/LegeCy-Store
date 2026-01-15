@@ -25,6 +25,7 @@ interface CheckoutInput {
   paymentMethod: 'cod' | 'paymob' | 'wallet';
   cartItems: CartItemInput[];
   totalPrice: number;
+  shippingCost?: number; // Shipping cost calculated at checkout
   couponCode?: string;
   walletNumber?: string;
   idempotencyKey?: string; // Prevents duplicate orders on refresh/retry
@@ -409,6 +410,8 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     // Send confirmation email ONLY for COD orders
     // For online payments, email will be sent after payment confirmation (in paymentService.ts)
     if (input.paymentMethod === 'cod') {
+      const shippingAmount = input.shippingCost || 0;
+      const itemsSubtotal = input.cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
       sendOrderConfirmationEmail({
       orderId: order.id,
       customerName: input.customerName,
@@ -418,8 +421,8 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         quantity: item.qty,
         price: item.price
       })),
-      subtotal: finalTotal,
-      shipping: 0,
+        subtotal: itemsSubtotal,
+        shipping: shippingAmount,
       total: finalTotal,
       shippingAddress: `${input.shippingAddress}, ${input.shippingCity}`,
       paymentMethod: 'cod'
