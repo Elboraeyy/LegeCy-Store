@@ -1,0 +1,758 @@
+/* Account Page Styles - Premium Design */
+
+/* Page Layout */
+.accountPage {
+    padding-bottom: 80px;
+}
+
+.accountHero {
+    background: linear-gradient(135deg, #12403C 0%, #1a5650 100%);
+    padding: 48px 24px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.accountHero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+}
+
+.accountHero::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-30%, 30%);
+}
+
+.heroTitle {
+    color: #fff;
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.heroSubtitle {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin: 8px 0 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* Container */
+.accountContainer {
+    max-width: 900px;
+    margin: -40px auto 0;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+}
+
+/* Profile Card */
+.profileCard {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 8px 32px rgba(18, 64, 60, 0.12);
+    margin-bottom: 24px;
+}
+
+.profileHeader {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+/* Avatar Section */
+.avatarContainer {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #d4af37 0%, #c4a030 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: 700;
+    color: #12403C;
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+    border: 4px solid #fff;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatarEdit {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    background: #12403C;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #fff;
+}
+
+.avatarEdit:hover {
+    background: #0E3330;
+    transform: scale(1.1);
+}
+
+/* Avatar Menu Dropdown */
+.avatarMenuBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+}
+
+.avatarMenu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    overflow: hidden;
+    z-index: 100;
+    animation: menuSlideIn 0.2s ease;
+}
+
+@keyframes menuSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.avatarMenuItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 18px;
+    background: transparent;
+    border: none;
+    color: #12403C;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-align: left;
+}
+
+.avatarMenuItem:hover {
+    background: rgba(18, 64, 60, 0.06);
+}
+
+.avatarMenuItem:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.avatarMenuItem svg {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.avatarMenuItemDanger {
+    color: #dc2626;
+}
+
+.avatarMenuItemDanger:hover {
+    background: #fef2f2;
+}
+
+.avatarMenuItemDanger svg {
+    color: #dc2626;
+}
+
+/* Profile Info */
+.profileInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.userName {
+    font-size: 28px;
+    font-weight: 700;
+    color: #12403C;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.verifiedBadge {
+    width: 22px;
+    height: 22px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.userEmail {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 0 0 12px;
+}
+
+.memberSince {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Edit Button */
+.editProfileBtn {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 10px 20px;
+    border-radius: 30px;
+    color: #12403C;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editProfileBtn:hover {
+    background: #12403C;
+    color: #fff;
+    border-color: #12403C;
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 28px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+}
+
+.statItem {
+    text-align: center;
+}
+
+.statValue {
+    font-size: 28px;
+    font-weight: 700;
+    color: #12403C;
+    display: block;
+}
+
+.statLabel {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Loyalty Card */
+.loyaltyCard {
+    background: linear-gradient(135deg, #1a3c34 0%, #2d5a4e 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 16px rgba(26, 60, 52, 0.25);
+}
+
+.loyaltyInfo h3 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.loyaltyPoints {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.loyaltyMeta {
+    text-align: right;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* Quick Links */
+.quickLinks {
+    display: grid;
+    gap: 12px;
+}
+
+.quickLink {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #fff;
+    border-radius: 14px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease;
+    border: 1px solid transparent;
+}
+
+.quickLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    border-color: var(--accent);
+}
+
+.quickLinkIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(18, 64, 60, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.quickLinkContent {
+    flex: 1;
+}
+
+.quickLinkTitle {
+    font-weight: 600;
+    font-size: 15px;
+    color: #12403C;
+    margin: 0 0 4px;
+}
+
+.quickLinkDesc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.quickLinkArrow {
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+}
+
+.quickLink:hover .quickLinkArrow {
+    transform: translateX(4px);
+    color: var(--accent);
+}
+
+/* Logout Button */
+.logoutBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid #dc2626;
+    border-radius: 12px;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 24px;
+}
+
+.logoutBtn:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
+/* Modal Overlay */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal {
+    background: #fff;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 440px;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.modalTitle {
+    font-size: 22px;
+    font-weight: 700;
+    color: #12403C;
+    margin: 0;
+}
+
+.modalClose {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+}
+
+.modalClose:hover {
+    background: #12403C;
+    color: #fff;
+}
+
+/* Form Fields */
+.formGroup {
+    margin-bottom: 20px;
+}
+
+.formLabel {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #12403C;
+    margin-bottom: 8px;
+}
+
+.formInput {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 15px;
+    color: var(--text);
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.formInput:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+}
+
+.formInput:disabled {
+    background: var(--surface);
+    color: var(--text-muted);
+}
+
+.formHint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+/* Modal Actions */
+.modalActions {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.btnCancel {
+    flex: 1;
+    padding: 14px;
+    background: var(--surface);
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btnCancel:hover {
+    background: #e5e5e5;
+}
+
+.btnSave {
+    flex: 1;
+    padding: 14px;
+    background: #12403C;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btnSave:hover {
+    background: #0E3330;
+}
+
+.btnSave:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Recent Orders Section */
+.sectionTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: #12403C;
+    margin: 32px 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.viewAllLink {
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.viewAllLink:hover {
+    text-decoration: underline;
+}
+
+.recentOrders {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.orderCard {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.orderIcon {
+    width: 44px;
+    height: 44px;
+    background: rgba(18, 64, 60, 0.06);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #12403C;
+}
+
+.orderInfo {
+    flex: 1;
+}
+
+.orderId {
+    font-weight: 600;
+    font-size: 14px;
+    color: #12403C;
+    margin: 0 0 4px;
+}
+
+.orderDate {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.orderStatus {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.orderPrice {
+    font-weight: 600;
+    color: #12403C;
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .accountHero {
+        padding: 32px 20px 50px;
+    }
+
+    .heroTitle {
+        font-size: 26px;
+    }
+
+    .accountContainer {
+        padding: 0 16px;
+    }
+
+    .profileCard {
+        padding: 24px;
+    }
+
+    .profileHeader {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .userName {
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .memberSince {
+        justify-content: center;
+    }
+
+    .editProfileBtn {
+        width: 100%;
+        justify-content: center;
+        margin-top: 16px;
+    }
+
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .loyaltyCard {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .loyaltyMeta {
+        text-align: center;
+    }
+
+    .quickLink {
+        padding: 16px 18px;
+    }
+
+    .quickLinkIcon {
+        width: 42px;
+        height: 42px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 32px;
+    }
+
+    .avatarEdit {
+        width: 32px;
+        height: 32px;
+    }
+
+    .userName {
+        font-size: 20px;
+    }
+
+    .statValue {
+        font-size: 22px;
+    }
+
+    .loyaltyPoints {
+        font-size: 28px;
+    }
+
+    .modal {
+        padding: 24px;
+    }
+}

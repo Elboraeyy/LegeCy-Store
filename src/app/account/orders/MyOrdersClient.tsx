@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
 import { createReturnRequest } from "@/lib/actions/returns";
 import { toast } from "sonner";
+import styles from "./Orders.module.css";
 
 interface OrderItem {
   id: string;
@@ -56,38 +57,38 @@ export default function MyOrdersClient({ orders }: Props) {
   const handleCreateReturn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeReturn) return;
-    
-    // Construct items array
+
     const itemsToReturn = Object.entries(selectedItems)
-        .filter((entry) => entry[1] > 0)
-        .map(([id, qty]) => ({ id, quantity: qty }));
+      .filter((entry) => entry[1] > 0)
+      .map(([id, qty]) => ({ id, quantity: qty }));
 
     if (itemsToReturn.length === 0) {
-        toast.error("Please select at least one item to return");
-        return;
+      toast.error("Please select at least one item to return");
+      return;
     }
 
     setLoading(true);
     try {
-        const result = await createReturnRequest(activeReturn, returnReason, itemsToReturn);
-        if (result.success) {
-            toast.success("Return request submitted");
-            setActiveReturn(null);
-            setReturnReason("");
-            setSelectedItems({});
-            window.location.reload(); 
-        } else {
-            toast.error(result.error || "Failed to submit request");
-        }
+      const result = await createReturnRequest(activeReturn, returnReason, itemsToReturn);
+      if (result.success) {
+        toast.success("Return request submitted");
+        setActiveReturn(null);
+        setReturnReason("");
+        setSelectedItems({});
+        window.location.reload();
+      } else {
+        toast.error(result.error || "Failed to submit request");
+      }
     } catch {
-        toast.error("An error occurred");
+      toast.error("An error occurred");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   }
 
   return (
-    <main>
+    <main className={styles.ordersPage}>
+      {/* Hero Section */}
       <section className="shop-hero">
         <div className="container">
           <Reveal>
@@ -102,16 +103,10 @@ export default function MyOrdersClient({ orders }: Props) {
       <section className="container" style={{ marginBottom: "80px" }}>
         {orders.length === 0 ? (
           <Reveal>
-            <div style={{
-              textAlign: "center",
-              padding: "60px 20px",
-              background: "#fff",
-              borderRadius: "16px",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.06)"
-            }}>
-              <div style={{ fontSize: "48px", marginBottom: "16px" }}>📦</div>
-              <h2 style={{ marginBottom: "12px" }}>No orders yet</h2>
-              <p style={{ color: "var(--text-muted)", marginBottom: "24px" }}>
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}>📦</div>
+              <h2 className={styles.emptyTitle}>No orders yet</h2>
+              <p className={styles.emptyText}>
                 Browse our collection and discover luxury timepieces
               </p>
               <Link href="/shop" className="btn btn-primary">
@@ -120,105 +115,63 @@ export default function MyOrdersClient({ orders }: Props) {
             </div>
           </Reveal>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div className={styles.ordersList}>
             {orders.map((order, idx) => {
               const status = statusConfig[order.status] || statusConfig.pending;
               
               return (
                 <Reveal key={order.id} delay={idx * 0.1}>
-                  <div style={{
-                    background: "#fff",
-                    borderRadius: "16px",
-                    padding: "24px",
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-                    display: "grid",
-                    gridTemplateColumns: "1fr auto",
-                    gap: "20px",
-                    alignItems: "center"
-                  }}>
-                    <div>
-                      {/* Order Header */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
-                        <span style={{
-                          fontWeight: 700,
-                          fontSize: "18px",
-                          color: "#1a3c34"
-                        }}>
+                  <div className={styles.orderCard}>
+                    {/* Order Content */}
+                    <div className={styles.orderContent}>
+                      {/* Header with ID and Status */}
+                      <div className={styles.orderHeader}>
+                        <span className={styles.orderId}>
                           #{order.id.slice(0, 8).toUpperCase()}
                         </span>
-                        <span style={{
-                          padding: "4px 12px",
-                          borderRadius: "20px",
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          color: status.color,
-                          background: status.bg
-                        }}>
+                        <span
+                          className={styles.statusBadge}
+                          style={{ color: status.color, background: status.bg }}
+                        >
                           {status.label}
                         </span>
                         {order.returnStatus && (
-                            <span style={{
-                                padding: "4px 12px",
-                                borderRadius: "20px",
-                                fontSize: "12px",
-                                fontWeight: 600,
-                                color: "#dc2626",
-                                background: "#fee2e2"
-                            }}>
-                                Return: {order.returnStatus}
-                            </span>
+                          <span className={styles.returnBadge}>
+                            Return: {order.returnStatus}
+                          </span>
                         )}
                       </div>
 
-                      {/* Order Info */}
-                      <div style={{ 
-                        display: "flex", 
-                        gap: "24px", 
-                        fontSize: "14px", 
-                        color: "var(--text-muted)",
-                        flexWrap: "wrap"
-                      }}>
+                      {/* Meta Info */}
+                      <div className={styles.orderMeta}>
                         <span>📅 {formatDate(order.createdAt)}</span>
                         <span>📦 {order.itemCount} item{order.itemCount > 1 ? 's' : ''}</span>
-                        <span style={{ fontWeight: 600, color: "#1a3c34" }}>
-                          {formatPrice(order.totalPrice)}
-                        </span>
+                      </div>
+
+                      {/* Price */}
+                      <div className={styles.orderPrice}>
+                        {formatPrice(order.totalPrice)}
                       </div>
 
                       {/* Items Preview */}
-                      <p style={{ 
-                        marginTop: "12px", 
-                        fontSize: "13px", 
-                        color: "var(--text-muted)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
-                      }}>
+                      <p className={styles.itemsPreview}>
                         {order.items.map(i => `${i.name} (${i.quantity})`).join(', ')}
                       </p>
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                        {order.status === 'delivered' && !order.returnStatus && (
-                            <button
-                                onClick={() => setActiveReturn(order.id)}
-                                style={{ 
-                                    background: 'none', 
-                                    border: '1px solid #dc2626', 
-                                    color: '#dc2626', 
-                                    padding: '10px 16px', 
-                                    borderRadius: '8px', 
-                                    cursor: 'pointer' 
-                                }}
-                            >
-                                Request Return
-                            </button>
-                        )}
+                    <div className={styles.orderActions}>
+                      {order.status === 'delivered' && !order.returnStatus && (
+                        <Link
+                          href={`/account/returns/${order.id}`}
+                          className={styles.btnReturn}
+                        >
+                          Request Return
+                        </Link>
+                      )}
                       <Link 
                         href={`/track/${order.id}`}
-                        className="btn btn-outline"
-                        style={{ fontSize: "14px", padding: "10px 20px" }}
+                        className={styles.btnTrack}
                       >
                         Track Order
                       </Link>
@@ -232,82 +185,64 @@ export default function MyOrdersClient({ orders }: Props) {
 
         {/* Return Modal */}
         {activeReturn && activeOrder && (
-            <div style={{
-                position: 'fixed',
-                top: 0, 
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 1000
-            }}>
-                <div style={{
-                    background: '#fff',
-                    padding: '32px',
-                    borderRadius: '16px',
-                    width: '100%',
-                    maxWidth: '500px',
-                    maxHeight: '90vh',
-                    overflowY: 'auto'
-                }}>
-                    <h2 style={{ marginBottom: '16px' }}>Request Return</h2>
-                    <form onSubmit={handleCreateReturn}>
-                         <div style={{ marginBottom: '16px', maxHeight: '200px', overflowY: 'auto', border: '1px solid #eee', borderRadius: '8px', padding: '12px' }}>
-                            <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>Select Items to Return:</p>
-                            {activeOrder.items.map(item => (
-                                <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{ fontSize: '14px' }}>{item.name}</span>
-                                    <select 
-                                      value={selectedItems[item.id] || 0}
-                                      onChange={(e) => setSelectedItems({...selectedItems, [item.id]: Number(e.target.value)})}
-                                      style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ddd' }}
-                                    >
-                                       <option value={0}>0</option>
-                                       {[...Array(item.quantity)].map((_, i) => (
-                                           <option key={i+1} value={i+1}>{i+1}</option>
-                                       ))}
-                                    </select>
-                                </div>
-                            ))}
-                        </div>
-
-                        <textarea 
-                            placeholder="Reason for return..."
-                            value={returnReason}
-                            onChange={(e) => setReturnReason(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                borderRadius: '8px',
-                                border: '1px solid #ddd',
-                                minHeight: '100px',
-                                marginBottom: '16px',
-                                fontFamily: 'inherit'
-                            }}
-                            required
-                        />
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <button 
-                                type="button" 
-                                onClick={() => { setActiveReturn(null); setSelectedItems({}); }}
-                                style={{ padding: '10px 20px', background: '#eee', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
-                            >
-                                Cancel
-                            </button>
-                            <button 
-                                type="submit" 
-                                disabled={loading}
-                                className="btn btn-primary"
-                            >
-                                {loading ? 'Submitting...' : 'Submit Request'}
-                            </button>
-                        </div>
-                    </form>
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <h2 className={styles.modalTitle}>Request Return</h2>
+              <form onSubmit={handleCreateReturn}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Select Items to Return:</label>
+                  <div className={styles.itemSelector}>
+                    {activeOrder.items.map(item => (
+                      <div key={item.id} className={styles.itemRow}>
+                        <span className={styles.itemName}>{item.name}</span>
+                        <select
+                          value={selectedItems[item.id] || 0}
+                          onChange={(e) => setSelectedItems({
+                            ...selectedItems,
+                            [item.id]: Number(e.target.value)
+                          })}
+                          className={styles.qtySelect}
+                        >
+                          <option value={0}>0</option>
+                          {[...Array(item.quantity)].map((_, i) => (
+                            <option key={i + 1} value={i + 1}>{i + 1}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Reason for Return</label>
+                  <textarea 
+                    placeholder="Please describe why you want to return..."
+                    value={returnReason}
+                    onChange={(e) => setReturnReason(e.target.value)}
+                    className={styles.textarea}
+                    required
+                  />
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveReturn(null); setSelectedItems({}); }}
+                    className={styles.btnCancel}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={styles.btnSubmit}
+                  >
+                    {loading ? 'Submitting...' : 'Submit Request'}
+                  </button>
+                </div>
+              </form>
             </div>
+          </div>
         )}
 
         {/* Back Link */}

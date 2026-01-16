@@ -1,0 +1,700 @@
+/* Track Order Page - Premium Design */
+
+/* Page Layout */
+.trackPage {
+  padding-bottom: 80px;
+  min-height: 100vh;
+}
+
+/* Hero Section */
+.hero {
+  background: linear-gradient(135deg, #12403C 0%, #1a5650 100%);
+  padding: 48px 24px 70px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.heroContent {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.heroLabel {
+  display: inline-block;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.9);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.heroTitle {
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.heroSubtitle {
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Container */
+.container {
+  max-width: 900px;
+  margin: -50px auto 0;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Status Card */
+.statusCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 10px 40px rgba(18, 64, 60, 0.12);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.statusIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 40px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+.statusTitle {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.statusDate {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+.statusMeta {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.metaItem strong {
+  color: #12403C;
+}
+
+/* Timeline */
+.timelineCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  margin-bottom: 24px;
+}
+
+.timelineTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #12403C;
+  margin: 0 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timeline {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  padding: 0 10px;
+}
+
+.timelineTrack {
+  position: absolute;
+  top: 24px;
+  left: 40px;
+  right: 40px;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+}
+
+.timelineProgress {
+  height: 100%;
+  background: linear-gradient(90deg, #12403C 0%, #d4af37 100%);
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.timelineStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+  flex: 1;
+}
+
+.stepDot {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  border: 3px solid transparent;
+}
+
+.stepDot.completed {
+  background: #12403C;
+  color: #fff;
+}
+
+.stepDot.current {
+  background: #d4af37;
+  color: #fff;
+  box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.2);
+  animation: currentPulse 2s ease-in-out infinite;
+}
+
+@keyframes currentPulse {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.2); }
+  50% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0.1); }
+}
+
+.stepDot.pending {
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+
+.stepLabel {
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.stepLabel.active {
+  color: #12403C;
+  font-weight: 600;
+}
+
+/* Info Grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #12403C;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cardIcon {
+  width: 36px;
+  height: 36px;
+  background: rgba(18, 64, 60, 0.08);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+/* Shipping Info */
+.shippingDetails {
+  line-height: 1.7;
+}
+
+.shippingName {
+  font-weight: 600;
+  color: #12403C;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.shippingAddress {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.shippingContact {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Order Items */
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.orderItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.itemImage {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.itemImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.itemInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemName {
+  font-weight: 600;
+  font-size: 14px;
+  color: #12403C;
+  margin-bottom: 4px;
+}
+
+.itemMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.itemPrice {
+  font-weight: 700;
+  font-size: 14px;
+  color: #12403C;
+  white-space: nowrap;
+}
+
+/* Pricing Summary */
+.pricingSummary {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.priceRow.discount {
+  color: #16a34a;
+}
+
+.priceRow.total {
+  padding-top: 12px;
+  margin-top: 8px;
+  border-top: 1px dashed #e5e7eb;
+  font-weight: 700;
+  font-size: 18px;
+  color: #12403C;
+}
+
+.priceRow.total span:last-child {
+  color: #d4af37;
+}
+
+/* History Timeline */
+.historyList {
+  display: flex;
+  flex-direction: column;
+}
+
+.historyItem {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.historyItem:last-child {
+  border-bottom: none;
+}
+
+.historyDot {
+  width: 12px;
+  height: 12px;
+  background: #12403C;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.historyDot::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: calc(100% + 16px);
+  background: #e5e7eb;
+}
+
+.historyItem:last-child .historyDot::before {
+  display: none;
+}
+
+.historyContent {
+  flex: 1;
+}
+
+.historyStatus {
+  font-weight: 600;
+  font-size: 14px;
+  color: #12403C;
+  margin-bottom: 4px;
+}
+
+.historyTime {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Rewards Card */
+.rewardsCard {
+  background: linear-gradient(135deg, #1a3c34 0%, #2d5a4e 100%);
+  border-radius: 16px;
+  padding: 24px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.rewardsInfo h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.rewardsPoints {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.rewardsIcon {
+  font-size: 48px;
+}
+
+/* Help Card */
+.helpCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+}
+
+.helpTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #12403C;
+  margin: 0 0 16px;
+}
+
+.helpActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.helpBtn {
+  flex: 1;
+  min-width: 140px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.helpBtnWhatsapp {
+  background: #25D366;
+  color: #fff;
+}
+
+.helpBtnWhatsapp:hover {
+  background: #1da851;
+}
+
+.helpBtnEmail {
+  background: var(--surface);
+  color: #12403C;
+  border: 1px solid var(--border);
+}
+
+.helpBtnEmail:hover {
+  background: #12403C;
+  color: #fff;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 32px;
+}
+
+.actionBtn {
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btnPrimary {
+  background: #12403C;
+  color: #fff;
+  border: none;
+}
+
+.btnPrimary:hover {
+  background: #0e3330;
+}
+
+.btnOutline {
+  background: transparent;
+  color: #12403C;
+  border: 1.5px solid #12403C;
+}
+
+.btnOutline:hover {
+  background: #12403C;
+  color: #fff;
+}
+
+/* Copy Button */
+.copyBtn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.copyBtn:hover {
+  color: #12403C;
+}
+
+/* Payment Badge */
+.paymentBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.paymentCod {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.paymentOnline {
+  background: #d1fae5;
+  color: #059669;
+}
+
+/* Cancelled State */
+.cancelledCard {
+  background: #fef2f2;
+  border: 2px solid #fecaca;
+}
+
+.cancelledCard .statusIcon {
+  background: #fee2e2;
+}
+
+.cancelledCard .statusTitle {
+  color: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero {
+    padding: 36px 20px 60px;
+  }
+
+  .heroTitle {
+    font-size: 26px;
+  }
+
+  .container {
+    padding: 0 16px;
+    margin-top: -40px;
+  }
+
+  .statusCard {
+    padding: 24px;
+  }
+
+  .statusIcon {
+    width: 64px;
+    height: 64px;
+    font-size: 32px;
+  }
+
+  .statusTitle {
+    font-size: 24px;
+  }
+
+  .statusMeta {
+    gap: 16px;
+  }
+
+  .timeline {
+    padding: 0;
+  }
+
+  .timelineTrack {
+    left: 24px;
+    right: 24px;
+  }
+
+  .stepDot {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .stepLabel {
+    font-size: 10px;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rewardsCard {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .helpActions {
+    flex-direction: column;
+  }
+
+  .helpBtn {
+    width: 100%;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actionBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}

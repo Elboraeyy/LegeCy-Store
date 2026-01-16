@@ -1,0 +1,356 @@
+/* Orders Page Styles - Premium Mobile Design */
+
+.ordersPage {
+  padding-bottom: 80px;
+}
+
+/* Orders List */
+.ordersList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Order Card */
+.orderCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  align-items: center;
+}
+
+.orderContent {
+  min-width: 0;
+}
+
+/* Order Header - ID and Status */
+.orderHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.orderId {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a3c34;
+}
+
+.statusBadge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.returnBadge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #dc2626;
+  background: #fee2e2;
+}
+
+/* Order Meta Info */
+.orderMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.orderMeta span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.orderPrice {
+  font-weight: 700;
+  color: #12403C;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+/* Items Preview */
+.itemsPreview {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Actions */
+.orderActions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.btnReturn {
+  background: none;
+  border: 1.5px solid #d4af37;
+  color: #d4af37;
+  padding: 8px 18px;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.btnReturn:hover {
+  background: #d4af37;
+  color: #fff;
+}
+
+.btnTrack {
+  background: none;
+  border: 1.5px solid #12403C;
+  color: #12403C;
+  padding: 8px 18px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btnTrack:hover {
+  background: #12403C;
+  color: #fff;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  margin-bottom: 12px;
+  color: #12403C;
+}
+
+.emptyText {
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #12403C;
+  margin-bottom: 20px;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #12403C;
+  margin-bottom: 8px;
+}
+
+.textarea {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #d4af37;
+}
+
+/* Return Item Selector */
+.itemSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-radius: 10px;
+  gap: 12px;
+}
+
+.itemName {
+  flex: 1;
+  font-size: 14px;
+  color: #12403C;
+}
+
+.qtySelect {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+}
+
+/* Modal Actions */
+.modalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btnCancel {
+  flex: 1;
+  padding: 14px;
+  background: var(--surface);
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.btnSubmit {
+  flex: 1;
+  padding: 14px;
+  background: #12403C;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+}
+
+.btnSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .orderCard {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .orderId {
+    font-size: 15px;
+  }
+
+  .orderMeta {
+    gap: 8px 16px;
+    font-size: 12px;
+  }
+
+  .orderPrice {
+    font-size: 15px;
+  }
+
+  .itemsPreview {
+    white-space: normal;
+    margin-bottom: 16px;
+  }
+
+  .orderActions {
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .btnReturn,
+  .btnTrack {
+    flex: 1;
+    padding: 12px 16px;
+    text-align: center;
+  }
+
+  .modal {
+    padding: 20px;
+    margin: 16px;
+  }
+
+  .modalTitle {
+    font-size: 18px;
+  }
+
+  .itemRow {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}

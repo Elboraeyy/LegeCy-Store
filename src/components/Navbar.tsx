@@ -529,7 +529,7 @@ export default function Navbar({
                   setIsOpen(false);
                 }
               }}
-              className="fixed top-0 right-0 bottom-0 w-[85%] max-w-[320px] bg-[#F5F0E3] z-[70] shadow-2xl flex flex-col touch-pan-y"
+              className="fixed top-0 right-0 bottom-0 w-[85%] max-w-[320px] bg-[#F5F0E3] z-[70] shadow-2xl flex flex-col touch-pan-y rounded-l-[20px]"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-5 border-b border-[rgba(18,64,60,0.1)]">
@@ -564,7 +564,7 @@ export default function Navbar({
                   className="block p-5 bg-[#12403C] text-white hover:bg-[#0e3330] transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-[#d4af37] text-[#12403C] flex items-center justify-center text-xl font-bold">
+                    <div className="w-12 h-12 min-w-[48px] min-h-[48px] flex-shrink-0 aspect-square rounded-full bg-[#d4af37] text-[#12403C] flex items-center justify-center text-xl font-bold">
                       {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                     </div>
                     <div>
