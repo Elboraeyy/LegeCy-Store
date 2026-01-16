@@ -55,7 +55,7 @@ export const defaultHomepage: HomepageSettings = {
   heroEnabled: true,
   heroTitle: "Built on Time. Made for Legacy.",
   heroSubtitle: "Since our inception, we've remained devoted to one pursuit — crafting timepieces that honour tradition while embracing innovation.",
-  heroButtonText: "Unveil Our Legacy",
+  heroButtonText: "Discover Our Legacy",
   heroButtonLink: "/shop",
   heroBackgroundImage: "",
   featuredCategoriesEnabled: true,

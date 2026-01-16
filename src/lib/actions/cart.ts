@@ -41,10 +41,9 @@ export async function getCartAction(): Promise<CartItemDTO[]> {
                     product: true,
                     variant: { include: { inventory: true } }
                 },
-                orderBy: { createdAt: 'desc' } // Newest first
+                orderBy: { id: 'desc' } // Order by id since CartItem doesn't have createdAt
             }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any // Cast to any to bypass stale Client types
+        }
     });
 
     if (!cart) return [];

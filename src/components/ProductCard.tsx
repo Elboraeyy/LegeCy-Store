@@ -19,7 +19,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const { addToCart, toggleFav, isFav } = useStore();
   const isClient = useIsClient();
 
-  const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
+  const formatPrice = (p: number) => `EGP ${p.toLocaleString('en-EG')}`;
   
   const productImage = product.imageUrl || product.img || '/placeholder.jpg';
   const [imgSrc, setImgSrc] = React.useState(productImage);
@@ -35,7 +35,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
   return (
     <div 
-      className="group relative w-full bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+      className="group relative w-full min-w-0 bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
       style={{ touchAction: 'manipulation' }}
     >
       {/* 1. Image Area - Aspect 3:4 */}
@@ -160,21 +160,21 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       </div>
 
       {/* 2. Content Area */}
-      <div className="p-3 md:p-4 bg-white">
+      <div className="p-2.5 sm:p-3 md:p-4 bg-white">
         <div className="mb-1">
            <Link href={`/product/${product.id}`}>
-             <h3 className="text-[13px] md:text-[15px] font-medium text-gray-900 leading-tight line-clamp-2 min-h-[2.5em] group-hover:text-[#d4af37] transition-colors">
+            <h3 className="text-xs sm:text-[13px] md:text-[15px] font-medium text-gray-900 leading-tight line-clamp-2 min-h-[2.5em] group-hover:text-[#d4af37] transition-colors">
                {product.name}
              </h3>
            </Link>
         </div>
         
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-[14px] md:text-[16px] font-bold text-[#12403C]">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 mt-1.5 sm:mt-2">
+          <span className="text-sm sm:text-[14px] md:text-[16px] font-bold text-[#12403C]">
             {formatPrice(product.price)}
           </span>
           {isOnSale && (
-            <span className="text-[11px] md:text-[13px] text-gray-400 line-through decoration-gray-400">
+            <span className="text-[10px] sm:text-[11px] md:text-[13px] text-gray-400 line-through decoration-gray-400">
               {formatPrice(product.compareAtPrice!)}
             </span>
           )}
