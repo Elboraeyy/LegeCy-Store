@@ -15,6 +15,7 @@ export interface Product {
     inStock?: boolean;
     isNew?: boolean;
     totalStock?: number;
+    createdAt?: string; // For sorting by newest
     cat?: string; // Legacy field
     specs?: {
         movement?: string;
