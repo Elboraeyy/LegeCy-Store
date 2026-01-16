@@ -717,15 +717,18 @@ model Address {
 }
 
 model ReturnRequest {
-  id        String   @id @default(uuid())
-  orderId   String   @unique
-  order     Order    @relation(fields: [orderId], references: [id])
-  reason    String
-  items     Json?    // Snapshot of items being returned: [{ sku: '...', qty: 1 }]
-  status    String   @default("pending") // pending, approved, rejected, completed
-  adminNote String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  orderId     String   @unique
+  order       Order    @relation(fields: [orderId], references: [id])
+  reason      String
+  description String?  // Customer's additional description
+  items       Json?    // Snapshot of items being returned: [{ id: '...', qty: 1, images: ['url1', 'url2'] }]
+  images      String[] // All uploaded images for this return
+  returnType  String   @default("refund") // refund, exchange, store_credit
+  status      String   @default("pending") // pending, approved, rejected, completed
+  adminNote   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // ==========================================

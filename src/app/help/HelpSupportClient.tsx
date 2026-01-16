@@ -100,7 +100,7 @@ export default function HelpSupportClient() {
   const { showToast } = useStore();
   const [activeCategory, setActiveCategory] = useState("All");
   const [openItems, setOpenItems] = useState<number[]>([]);
-  const [activeTab, setActiveTab] = useState<"faq" | "contact">("faq");
+  const [activeTab, setActiveTab] = useState<"faq" | "contact">("contact");
   const [subject, setSubject] = useState("");
 
   const filteredFAQs = activeCategory === "All" 

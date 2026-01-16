@@ -800,13 +800,48 @@ function ReturnModal({
                         </div>
                     </div>
 
-                    {/* Reason */}
-                    <div style={{ marginBottom: '24px' }}>
-                        <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px' }}>Return Reason</div>
-                        <div style={{ padding: '12px', background: '#fff8e1', borderRadius: '8px', border: '1px solid #ffe082' }}>
-                            {returnItem.reason}
+                    {/* Return Type */}
+                    <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div>
+                            <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px' }}>Return Type</div>
+                            <div style={{ padding: '8px 12px', background: '#e0f2f1', borderRadius: '8px', color: '#00695c', fontWeight: 600, display: 'inline-block' }}>
+                                {returnItem.returnType === 'store_credit' ? 'Store Credit' :
+                                    returnItem.returnType === 'exchange' ? 'Exchange' : 'Refund'}
+                            </div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px' }}>Reason</div>
+                            <div style={{ padding: '8px 12px', background: '#fff8e1', borderRadius: '8px', border: '1px solid #ffe082', display: 'inline-block' }}>
+                                {returnItem.reason}
+                            </div>
                         </div>
                     </div>
+
+                    {/* Customer Description */}
+                    {returnItem.description && (
+                        <div style={{ marginBottom: '24px' }}>
+                            <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px' }}>Customer Comments</div>
+                            <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '8px', fontStyle: 'italic' }}>
+                                "{returnItem.description}"
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Photos */}
+                    {returnItem.images && returnItem.images.length > 0 && (
+                        <div style={{ marginBottom: '24px' }}>
+                            <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px' }}>
+                                Uploaded Photos ({returnItem.images.length})
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                {returnItem.images.map((url, idx) => (
+                                    <a key={idx} href={url} target="_blank" rel="noreferrer" style={{ display: 'block', width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd' }}>
+                                        <img src={url} alt={`Return photo ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Items */}
                     <div style={{ marginBottom: '24px' }}>

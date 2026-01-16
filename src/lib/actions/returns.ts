@@ -32,7 +32,10 @@ export interface ReturnWithDetails {
         }>;
     };
     reason: string;
+    description: string | null;
     items: unknown;
+    images: string[];
+    returnType: string;
     status: string;
     adminNote: string | null;
     createdAt: Date;
@@ -134,7 +137,10 @@ export async function getReturnRequests(filters: ReturnFilters = {}): Promise<{
                 }))
             },
             reason: r.reason,
+            description: r.description || null,
             items: r.items,
+            images: r.images || [],
+            returnType: r.returnType || 'refund',
             status: r.status,
             adminNote: r.adminNote,
             createdAt: r.createdAt,
@@ -194,7 +200,10 @@ export async function getReturnRequestById(id: string): Promise<ReturnWithDetail
                 }))
             },
             reason: r.reason,
+            description: r.description || null,
             items: r.items,
+            images: r.images || [],
+            returnType: r.returnType || 'refund',
             status: r.status,
             adminNote: r.adminNote,
             createdAt: r.createdAt,
