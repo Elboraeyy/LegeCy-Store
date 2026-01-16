@@ -36,8 +36,7 @@ export default async function FlashSalePage({ params }: Props) {
         brand: '',
         materialId: '',
         material: '',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().toISOString(),
     }));
 
     return (
