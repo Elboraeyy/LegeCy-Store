@@ -68,7 +68,7 @@ export default function ProductGrid({
                     No Products Found
                 </h3>
                 <p className="text-gray-600 max-w-md">
-                    We couldn't find any products matching your filters. Try adjusting your search criteria.
+                    We couldn&apos;t find any products matching your filters. Try adjusting your search criteria.
                 </p>
             </div>
         );

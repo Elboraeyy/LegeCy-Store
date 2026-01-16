@@ -95,7 +95,7 @@ export default function ShopClient({
 
     // Filter and sort products
     const filteredAndSortedProducts = useMemo(() => {
-        let result = [...products];
+        const result = [...products];
 
         // Apply sorting
         switch (sortBy) {
