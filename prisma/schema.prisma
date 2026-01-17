@@ -270,7 +270,8 @@ model OrderItem {
   productId String
   name      String
   sku       String? // SKU snapshot at time of order (for historical reference)
-  price     Decimal // @db.Decimal(10, 2)
+  price     Decimal // Original price before any discount
+  discountedPrice Decimal? // Price after proportional coupon discount (null = no discount)
   quantity  Int
   orderId   String
   order     Order  @relation(fields: [orderId], references: [id])

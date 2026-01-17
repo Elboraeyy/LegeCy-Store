@@ -144,7 +144,7 @@ export async function logoutAction() {
 }
 
 // Get current user for client components
-export async function getCurrentUser(): Promise<{ id: string; name: string | null; email: string } | null> {
+export async function getCurrentUser(): Promise<{ id: string; name: string | null; email: string; image: string | null } | null> {
     const { validateCustomerSession } = await import('@/lib/auth/session');
     const { user } = await validateCustomerSession();
     
@@ -153,7 +153,8 @@ export async function getCurrentUser(): Promise<{ id: string; name: string | nul
     return {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        image: user.image || null
     };
 }
 

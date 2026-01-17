@@ -707,10 +707,20 @@ function ReturnModal({
     formatDate: (d: Date) => string;
 }) {
     const [rejectReason, setRejectReason] = useState('');
-    const [refundAmount, setRefundAmount] = useState(returnItem.order.totalPrice);
     const [transactionRef, setTransactionRef] = useState('');
     const [note, setNote] = useState('');
     const [processing, setProcessing] = useState(false);
+
+    // Calculate suggested refund based on discounted prices of returned items
+    const suggestedRefund = (returnItem.items as any[]).reduce((sum, lineItem) => {
+        const original = returnItem.order.items.find(i => i.id === lineItem.id);
+        if (!original) return sum;
+        // Use discounted price if available, otherwise original price
+        const pricePerUnit = original.discountedPrice ?? original.price;
+        return sum + (pricePerUnit * lineItem.quantity);
+    }, 0);
+
+    const [refundAmount, setRefundAmount] = useState(suggestedRefund);
 
     const handleSubmit = async () => {
         setProcessing(true);
@@ -845,18 +855,42 @@ function ReturnModal({
 
                     {/* Items */}
                     <div style={{ marginBottom: '24px' }}>
-                        <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px' }}>Order Items</div>
+                        <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px' }}>Returned Items</div>
                         <div style={{ border: '1px solid #eee', borderRadius: '8px', overflow: 'hidden' }}>
-                            {returnItem.order.items.map(item => (
-                                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderBottom: '1px solid #eee' }}>
-                                    <div>
-                                        <div style={{ fontWeight: 500 }}>{item.name}</div>
-                                        <div style={{ fontSize: '12px', color: '#666' }}>Qty: {item.quantity}</div>
+                            {(returnItem.items as any[]).map((linesItem: any) => {
+                                const originalItem = returnItem.order.items.find(i => i.id === linesItem.id);
+                                if (!originalItem) return null;
+                                const hasDiscount = originalItem.discountedPrice !== null;
+                                const effectivePrice = originalItem.discountedPrice ?? originalItem.price;
+                                const refundForItem = effectivePrice * linesItem.quantity;
+                                const originalTotal = originalItem.price * linesItem.quantity;
+                                return (
+                                    <div key={linesItem.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderBottom: '1px solid #eee' }}>
+                                        <div>
+                                            <div style={{ fontWeight: 500 }}>{originalItem.name}</div>
+                                            <div style={{ fontSize: '12px', color: '#666' }}>
+                                                Returned Qty: {linesItem.quantity} / {originalItem.quantity}
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontWeight: 500, color: hasDiscount ? '#15803d' : 'inherit' }}>
+                                                {formatCurrency(refundForItem)}
+                                            </div>
+                                            {hasDiscount && (
+                                                <div style={{ fontSize: '11px', color: '#999', textDecoration: 'line-through' }}>
+                                                    {formatCurrency(originalTotal)}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div style={{ fontWeight: 500 }}>{formatCurrency(item.price * item.quantity)}</div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
+                        {suggestedRefund < returnItem.order.totalPrice && (
+                            <div style={{ marginTop: '8px', padding: '8px 12px', background: '#e0f2f1', borderRadius: '6px', fontSize: '12px', color: '#00695c' }}>
+                                💡 Refund includes coupon discount distribution
+                            </div>
+                        )}
                     </div>
 
                     {/* Admin Note */}

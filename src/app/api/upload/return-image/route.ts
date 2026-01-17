@@ -12,6 +12,13 @@ cloudinary.config({
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+// Validate config
+if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
+    !process.env.CLOUDINARY_API_KEY ||
+    !process.env.CLOUDINARY_API_SECRET) {
+    console.error('Missing Cloudinary configuration');
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Validate customer session
@@ -86,8 +93,13 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Return image upload error:', error);
+      const errorMessage = error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error !== null && 'error' in error
+              ? (error as any).error?.message || JSON.stringify(error)
+              : 'Failed to upload image';
     return NextResponse.json(
-      { error: 'Failed to upload image' },
+        { error: errorMessage },
       { status: 500 }
     );
   }

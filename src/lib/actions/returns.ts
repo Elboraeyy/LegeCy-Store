@@ -28,6 +28,7 @@ export interface ReturnWithDetails {
             name: string;
             sku: string | null;
             price: number;
+            discountedPrice: number | null; // Price after proportional coupon discount
             quantity: number;
         }>;
     };
@@ -133,6 +134,7 @@ export async function getReturnRequests(filters: ReturnFilters = {}): Promise<{
                     name: item.name,
                     sku: item.sku,
                     price: Number(item.price),
+                    discountedPrice: (item as any).discountedPrice ? Number((item as any).discountedPrice) : null,
                     quantity: item.quantity
                 }))
             },
@@ -196,6 +198,7 @@ export async function getReturnRequestById(id: string): Promise<ReturnWithDetail
                     name: item.name,
                     sku: item.sku,
                     price: Number(item.price),
+                    discountedPrice: (item as any).discountedPrice ? Number((item as any).discountedPrice) : null,
                     quantity: item.quantity
                 }))
             },
