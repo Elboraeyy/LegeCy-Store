@@ -327,3 +327,57 @@ html, body {
       height: 16px;
   }
 }
+/* ========== FIX 11: Comparison Table Mobile/Sticky ========== */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Sticky Column & Header Styles */
+.sticky-col {
+  position: sticky !important;
+  left: 0;
+  background: var(--bg);
+  z-index: 30;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.sticky-header {
+  position: sticky !important;
+  top: 0;
+  z-index: 40 !important;
+  background: var(--bg) !important;
+}
+
+/* Default Desktop Widths */
+.specs-label {
+  width: 200px;
+  min-width: 200px;
+}
+
+.product-col {
+  width: 300px;
+  min-width: 300px;
+  max-width: 300px;
+}
+
+/* Mobile Layout Adjustments */
+@media (max-width: 768px) {
+  .specs-label {
+    width: 120px !important;
+    min-width: 120px !important;
+    font-size: 12px !important;
+    padding-left: 12px !important;
+    padding-right: 8px !important;
+  }
+
+  .product-col {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+  }
+}

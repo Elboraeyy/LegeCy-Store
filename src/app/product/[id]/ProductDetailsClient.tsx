@@ -381,7 +381,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                       cat: product.category || undefined,
                       description: product.description || undefined,
                     });
-                    router.push("/compare");
+                    router.push("/compare?fromLabel=Product");
                   }
                 }}
               >
