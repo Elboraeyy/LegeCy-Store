@@ -32,7 +32,7 @@ export default function SpecRow({ label, values, highlightDiff = false, isHeader
                 fontSize: "13px",
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
-                background: shouldHighlight ? "rgba(212, 175, 55, 0.15)" : "var(--bg)"
+                background: shouldHighlight ? "rgba(212, 175, 55, 0.15)" : "#F5F0E3"
             }}>
                 {label}
                 {shouldHighlight && (
