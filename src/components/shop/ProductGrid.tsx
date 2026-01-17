@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import ProductCard from "@/components/ProductCard";
 import { Product } from "@/types/product";
 
@@ -142,10 +143,11 @@ function ProductListCard({ product }: { product: Product }) {
             <div className="flex flex-col sm:flex-row gap-4 p-4">
                 {/* Image */}
                 <div className="relative w-full sm:w-48 aspect-[3/4] sm:aspect-square flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
-                    <img
+                    <Image
                         src={imgSrc}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                         onError={() => setImgSrc('/placeholder.jpg')}
                     />
                     {isOnSale && (

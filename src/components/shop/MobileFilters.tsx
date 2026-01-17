@@ -39,8 +39,8 @@ export default function MobileFilters({
     selectedBrands,
     selectedMaterials,
     priceRange,
-    minPrice: _minPrice,
-    maxPrice: _maxPrice,
+    minPrice,
+    maxPrice,
     inStock,
     onSale,
     isNew,
@@ -217,14 +217,14 @@ export default function MobileFilters({
                                         <div
                                             className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-gradient-to-r from-[#12403C] to-[#d4af37] rounded-full"
                                             style={{
-                                                left: `${(priceRange.min / 3000) * 100}%`,
-                                                right: `${100 - (priceRange.max / 3000) * 100}%`,
+                                                left: `${(priceRange.min / maxPrice) * 100}%`,
+                                                right: `${100 - (priceRange.max / maxPrice) * 100}%`,
                                             }}
                                         />
                                         <input
                                             type="range"
-                                            min={0}
-                                            max={3000}
+                                            min={minPrice}
+                                            max={maxPrice}
                                             step={50}
                                             value={priceRange.min}
                                             onChange={(e) => onPriceChange({ ...priceRange, min: Math.min(Number(e.target.value), priceRange.max - 50) })}
@@ -233,8 +233,8 @@ export default function MobileFilters({
                                         />
                                         <input
                                             type="range"
-                                            min={0}
-                                            max={3000}
+                                            min={minPrice}
+                                            max={maxPrice}
                                             step={50}
                                             value={priceRange.max}
                                             onChange={(e) => onPriceChange({ ...priceRange, max: Math.max(Number(e.target.value), priceRange.min + 50) })}

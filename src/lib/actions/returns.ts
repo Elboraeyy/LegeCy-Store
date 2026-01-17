@@ -2,14 +2,10 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@prisma/client";
+import { Prisma, OrderItem } from "@prisma/client";
 import { approveReturnRequest, rejectReturnRequest, completeRefund, checkRefundEligibility } from "@/lib/services/refundService";
 import { requireAdminPermission } from "@/lib/auth/guards";
 import { AdminPermissions } from "@/lib/auth/permissions";
-
-// ==========================================
-// Types
-// ==========================================
 
 export interface ReturnWithDetails {
     id: string;
@@ -34,7 +30,7 @@ export interface ReturnWithDetails {
     };
     reason: string;
     description: string | null;
-    items: unknown;
+    items: Prisma.JsonValue; 
     images: string[];
     returnType: string;
     status: string;
@@ -134,7 +130,7 @@ export async function getReturnRequests(filters: ReturnFilters = {}): Promise<{
                     name: item.name,
                     sku: item.sku,
                     price: Number(item.price),
-                    discountedPrice: (item as any).discountedPrice ? Number((item as any).discountedPrice) : null,
+                    discountedPrice: (item as unknown as OrderItem).discountedPrice ? Number((item as unknown as OrderItem).discountedPrice) : null,
                     quantity: item.quantity
                 }))
             },
@@ -198,7 +194,7 @@ export async function getReturnRequestById(id: string): Promise<ReturnWithDetail
                     name: item.name,
                     sku: item.sku,
                     price: Number(item.price),
-                    discountedPrice: (item as any).discountedPrice ? Number((item as any).discountedPrice) : null,
+                    discountedPrice: (item as unknown as OrderItem).discountedPrice ? Number((item as unknown as OrderItem).discountedPrice) : null,
                     quantity: item.quantity
                 }))
             },
