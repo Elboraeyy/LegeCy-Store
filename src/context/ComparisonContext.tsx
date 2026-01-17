@@ -36,8 +36,8 @@ export function ComparisonProvider({ children }: { children: ReactNode }) {
   }, [selectedProducts]);
 
   const addToCompare = (product: Product) => {
-    if (selectedProducts.length >= 3) {
-      alert("You can compare up to 3 products only.");
+    if (selectedProducts.length >= 5) {
+      alert("You can compare up to 5 products only.");
       return;
     }
     if (selectedProducts.find((p) => String(p.id) === String(product.id))) {
