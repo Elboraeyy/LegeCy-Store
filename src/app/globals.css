@@ -281,6 +281,7 @@ h6 {
   
     .footer-links-group a {
       font-size: 10px;
+      white-space: nowrap;
     }
   
     .footer-contact {
@@ -1021,6 +1022,7 @@ select:disabled {
   transition: all 0.3s ease;
   font-weight: 600;
     display: inline-block;
+    white-space: nowrap;
 }
 
 .btn-link-gold:hover {

@@ -290,8 +290,26 @@ export async function completeRefund(
       }
 
       // 3. CRITICAL: Create reversing journal entry for financial accuracy
-      // This reverses the original revenue recognition
-      const refundAmount = Number(returnRequest.order.totalPrice);
+      // This reverses the revenue for returned items only (with proportional discount)
+      const returnedItems = returnRequest.items as Array<{ id: string; quantity: number }> | null;
+      let refundAmount = 0;
+
+      if (returnedItems && returnedItems.length > 0) {
+        // Calculate refund from returned items using discounted prices
+        for (const ri of returnedItems) {
+          const orderItem = returnRequest.order.items.find(i => i.id === ri.id);
+          if (orderItem) {
+            // Use discounted price if available, otherwise original price
+            const pricePerUnit = (orderItem as any).discountedPrice
+              ? Number((orderItem as any).discountedPrice)
+              : Number(orderItem.price);
+            refundAmount += pricePerUnit * ri.quantity;
+          }
+        }
+      } else {
+        // Fallback for orders without item-level return tracking (legacy)
+        refundAmount = Number(returnRequest.order.totalPrice);
+      }
       
       // Find the original revenue journal entry
       const originalJournal = await tx.journalEntry.findFirst({

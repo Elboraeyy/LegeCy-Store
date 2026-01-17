@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import SearchBar from "@/components/SearchBar";
 import { AnimatePresence, motion } from "framer-motion";
 import { GeneralSettings, HeaderSettings } from "@/lib/settings";
+import { useComparison } from "@/context/ComparisonContext";
 
 interface NavbarProps {
   generalSettings?: GeneralSettings;
@@ -22,6 +23,7 @@ interface UserData {
   id: string;
   name: string | null;
   email: string;
+  image: string | null;
 }
 
 export default function Navbar({
@@ -43,6 +45,7 @@ export default function Navbar({
   const pathname = usePathname();
   const router = useRouter();
   const { cart, fav, openCart } = useStore();
+  const { selectedProducts } = useComparison();
   const isClient = useIsClient();
 
   const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
@@ -207,6 +210,8 @@ export default function Navbar({
                   </svg>
                 </NavLink>
 
+
+
                 <AnimatePresence>
                   {showCategoryMenu && (
                     <motion.div
@@ -257,10 +262,10 @@ export default function Navbar({
             </div>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-4 lg:gap-6">
+            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
               {/* Search Trigger (Mobile) */}
               <button
-                className="lg:hidden p-2 text-[#12403C] hover:text-[#d4af37] transition-colors"
+                className="lg:hidden p-1 lg:p-2 text-[#12403C] hover:text-[#d4af37] transition-colors"
                 onClick={() => setShowMobileSearch(!showMobileSearch)}
               >
                 <svg
@@ -282,7 +287,7 @@ export default function Navbar({
               {(headerSettings?.showWishlist ?? true) && (
                 <Link
                   href="/wishlist"
-                  className="relative p-2 text-[#12403C] hover:text-[#d4af37] transition-colors group"
+                  className="relative p-1 lg:p-2 text-[#12403C] hover:text-[#d4af37] transition-colors group"
                 >
                   <svg
                     width="22"
@@ -305,11 +310,40 @@ export default function Navbar({
                 </Link>
               )}
 
+              {/* Compare Icon */}
+              <Link
+                href="/compare"
+                className="relative p-1 lg:p-2 text-[#12403C] hover:text-[#d4af37] transition-colors group"
+                title="Compare"
+              >
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="group-hover:stroke-[#d4af37] transition-colors"
+                >
+                  <path d="M8 3 4 7 8 11" />
+                  <path d="M4 7 h16" />
+                  <path d="m16 21 4-4-4-4" />
+                  <path d="M20 17 H4" />
+                </svg>
+                {isClient && selectedProducts.length > 0 && (
+                  <span className="absolute top-0 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#d4af37] text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                    {selectedProducts.length}
+                  </span>
+                )}
+              </Link>
+
               {/* Cart */}
               {(headerSettings?.showCart ?? true) && (
                 <button
                   onClick={openCart}
-                  className="relative p-2 text-[#12403C] hover:text-[#d4af37] transition-colors group"
+                  className="relative p-1 lg:p-2 text-[#12403C] hover:text-[#d4af37] transition-colors group"
                 >
                   <svg
                     width="22"
@@ -342,10 +376,20 @@ export default function Navbar({
                         onClick={() => setShowUserMenu(!showUserMenu)}
                         className="flex items-center gap-2 p-1 pl-2 pr-3 rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all"
                       >
-                        <div className="w-8 h-8 rounded-full bg-[#12403C] text-white flex items-center justify-center text-sm font-semibold shadow-sm">
-                          {user.name?.charAt(0).toUpperCase() ||
-                            user.email.charAt(0).toUpperCase()}
-                        </div>
+                        {user.image ? (
+                          <Image
+                            src={user.image}
+                            alt={user.name || 'User'}
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 rounded-full object-cover shadow-sm"
+                          />
+                        ) : (
+                            <div className="w-8 h-8 rounded-full bg-[#12403C] text-white flex items-center justify-center text-sm font-semibold shadow-sm">
+                              {user.name?.charAt(0).toUpperCase() ||
+                                user.email.charAt(0).toUpperCase()}
+                            </div>
+                        )}
                       </button>
 
                       <AnimatePresence>
@@ -447,7 +491,7 @@ export default function Navbar({
 
               {/* Mobile Menu Toggle */}
               <button
-                className="lg:hidden p-2 -mr-2 text-[#12403C]"
+                className="lg:hidden p-1 lg:p-2 -mr-1 lg:-mr-2 text-[#12403C]"
                 onClick={() => setIsOpen(true)}
               >
                 <svg
@@ -564,9 +608,19 @@ export default function Navbar({
                   className="block p-5 bg-[#12403C] text-white hover:bg-[#0e3330] transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 min-w-[48px] min-h-[48px] flex-shrink-0 aspect-square rounded-full bg-[#d4af37] text-[#12403C] flex items-center justify-center text-xl font-bold">
-                      {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
-                    </div>
+                    {user.image ? (
+                      <Image
+                        src={user.image}
+                        alt={user.name || 'User'}
+                        width={48}
+                        height={48}
+                        className="w-12 h-12 min-w-[48px] min-h-[48px] flex-shrink-0 rounded-full object-cover"
+                      />
+                    ) : (
+                        <div className="w-12 h-12 min-w-[48px] min-h-[48px] flex-shrink-0 aspect-square rounded-full bg-[#d4af37] text-[#12403C] flex items-center justify-center text-xl font-bold">
+                          {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                        </div>
+                    )}
                     <div>
                       <p className="font-semibold text-base">
                         {user.name || 'User'}
@@ -606,6 +660,16 @@ export default function Navbar({
                   </MobileNavLink>
                   <MobileNavLink href="/help" onClick={() => setIsOpen(false)}>
                     Help
+                  </MobileNavLink>
+                  <MobileNavLink href="/compare" onClick={() => setIsOpen(false)}>
+                    <div className="flex items-center gap-2">
+                      Compare
+                      {selectedProducts.length > 0 && (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#d4af37] text-xs font-bold text-white">
+                          {selectedProducts.length}
+                        </span>
+                      )}
+                    </div>
                   </MobileNavLink>
                 </nav>
 

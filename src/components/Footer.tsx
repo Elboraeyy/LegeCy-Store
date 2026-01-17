@@ -26,14 +26,13 @@ export default async function Footer() {
             <div className="footer-links-group">
               <span className="footer-group-title">Shop</span>
               <Link href="/shop">All Products</Link>
-              <Link href="/shop?category=watches">Watches</Link>
-              <Link href="/shop?category=wallets">Wallets</Link>
+              <Link href="/account/orders">My Orders</Link>
+              <Link href="/wishlist">Wishlist</Link>
             </div>
             <div className="footer-links-group">
               <span className="footer-group-title">Help</span>
-              <Link href="/help">FAQ</Link>
-              <Link href="/contact">Contact</Link>
-              <Link href="/track">Track Order</Link>
+              <Link href="/help">FAQ & Support</Link>
+              <Link href="/about">About Us</Link>
             </div>
             <div className="footer-links-group">
               <span className="footer-group-title">Policies</span>

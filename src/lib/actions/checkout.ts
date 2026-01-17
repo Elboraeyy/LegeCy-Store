@@ -157,6 +157,9 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
 
     // Validate Coupon if provided (with per-user check)
     // Coupon is applied ON TOP of automatic discounts
+    let totalDiscountFromCoupon = 0; // Track coupon discount for proportional distribution
+    const subtotalBeforeCoupon = finalTotal; // Subtotal after automatic discounts, before coupon
+
     if (input.couponCode) {
         const { validateCoupon } = await import('./coupons');
         const validation = await validateCoupon(
@@ -167,6 +170,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         );
         
         if (validation.isValid && validation.coupon && validation.finalTotal !== undefined) {
+          totalDiscountFromCoupon = finalTotal - validation.finalTotal; // Calculate the discount amount
             finalTotal = validation.finalTotal;
             couponId = validation.coupon.id;
         } else {
@@ -276,14 +280,31 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
           idempotencyKey: input.idempotencyKey || null, // Prevent duplicate orders
           customerIP: customerIP, // Fraud detection
           items: {
-            create: input.cartItems.map(item => ({
-              productId: item.id,
-              variantId: item.variantId,
-              name: item.name,
-              sku: item.variantId ? variantSkuMap[item.variantId] : null, // SKU snapshot
-              price: new Prisma.Decimal(item.price),
-              quantity: item.qty
-            }))
+            create: input.cartItems.map(item => {
+              // Calculate proportional discount per item
+              // Each item's discount share = (item price × qty / subtotal) × total discount
+              const itemTotal = item.price * item.qty;
+              let discountedPricePerUnit: number | null = null;
+
+              if (totalDiscountFromCoupon > 0 && subtotalBeforeCoupon > 0) {
+                const itemDiscountShare = totalDiscountFromCoupon * (itemTotal / subtotalBeforeCoupon);
+                discountedPricePerUnit = item.price - (itemDiscountShare / item.qty);
+                // Ensure discounted price is not negative
+                discountedPricePerUnit = Math.max(0, discountedPricePerUnit);
+              }
+
+              return {
+                productId: item.id,
+                variantId: item.variantId,
+                name: item.name,
+                sku: item.variantId ? variantSkuMap[item.variantId] : null, // SKU snapshot
+                price: new Prisma.Decimal(item.price),
+                discountedPrice: discountedPricePerUnit !== null
+                  ? new Prisma.Decimal(discountedPricePerUnit)
+                  : null,
+                quantity: item.qty
+              };
+            })
           }
         },
         include: {

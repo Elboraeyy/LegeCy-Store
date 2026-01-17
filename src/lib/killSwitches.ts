@@ -30,7 +30,7 @@ export const DEFAULT_KILL_SWITCHES: KillSwitches = {
   wallet_enabled: false,     // DISABLED by default - enable after testing
   cod_enabled: true,         // Safe - no money movement online
   checkout_enabled: true,
-  coupons_enabled: false,    // DISABLED until per-user limits verified
+  coupons_enabled: true,    // ENABLED
   registration_enabled: true,
   admin_manual_pay: false,   // DISABLED - security risk
   pos_enabled: false,        // DISABLED until needed
@@ -39,7 +39,7 @@ export const DEFAULT_KILL_SWITCHES: KillSwitches = {
 const CACHE_KEY = 'system_kill_switches';
 let cachedSwitches: KillSwitches | null = null;
 let cacheTime: number = 0;
-const CACHE_TTL_MS = 30000; // 30 seconds cache
+const CACHE_TTL_MS = 1000; // 1 second cache for debugging
 
 /**
  * Get current kill switch configuration
@@ -71,7 +71,7 @@ export async function getKillSwitches(): Promise<KillSwitches> {
     return cachedSwitches;
   } catch (error) {
     console.error('Failed to load kill switches, using defaults:', error);
-    return DEFAULT_KILL_SWITCHES;
+    return { ...DEFAULT_KILL_SWITCHES, coupons_enabled: true };
   }
 }
 

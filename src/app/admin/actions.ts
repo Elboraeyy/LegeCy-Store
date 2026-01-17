@@ -67,6 +67,7 @@ export async function fetchOrderDetails(orderId: string) {
         items: order.items.map(item => ({
             ...item,
             price: Number(item.price), // Convert Decimal to number
+            discountedPrice: item.discountedPrice ? Number(item.discountedPrice) : null, // Convert Decimal to number
             variant: item.variant ? {
                 id: item.variant.id,
                 sku: item.variant.sku,
