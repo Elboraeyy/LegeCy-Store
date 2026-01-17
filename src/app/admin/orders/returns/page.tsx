@@ -4,6 +4,7 @@ import '@/app/admin/admin.css';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
     getReturnRequests,
     getReturnStats,
@@ -23,6 +24,11 @@ import {
 
 type TabType = 'all' | 'pending' | 'approved' | 'completed' | 'rejected';
 type ModalType = 'view' | 'approve' | 'reject' | 'complete' | null;
+
+interface ReturnLineItem {
+    id: string;
+    quantity: number;
+}
 
 // ==========================================
 // Main Component
@@ -712,7 +718,7 @@ function ReturnModal({
     const [processing, setProcessing] = useState(false);
 
     // Calculate suggested refund based on discounted prices of returned items
-    const suggestedRefund = (returnItem.items as any[]).reduce((sum, lineItem) => {
+    const suggestedRefund = (returnItem.items as unknown as ReturnLineItem[]).reduce((sum, lineItem) => {
         const original = returnItem.order.items.find(i => i.id === lineItem.id);
         if (!original) return sum;
         // Use discounted price if available, otherwise original price
@@ -832,7 +838,7 @@ function ReturnModal({
                         <div style={{ marginBottom: '24px' }}>
                             <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px' }}>Customer Comments</div>
                             <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '8px', fontStyle: 'italic' }}>
-                                "{returnItem.description}"
+                                &quot;{returnItem.description}&quot;
                             </div>
                         </div>
                     )}
@@ -845,8 +851,8 @@ function ReturnModal({
                             </div>
                             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                                 {returnItem.images.map((url, idx) => (
-                                    <a key={idx} href={url} target="_blank" rel="noreferrer" style={{ display: 'block', width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd' }}>
-                                        <img src={url} alt={`Return photo ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <a key={idx} href={url} target="_blank" rel="noreferrer" style={{ display: 'block', width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd', position: 'relative' }}>
+                                        <Image src={url} alt={`Return photo ${idx + 1}`} fill style={{ objectFit: 'cover' }} />
                                     </a>
                                 ))}
                             </div>
@@ -857,7 +863,7 @@ function ReturnModal({
                     <div style={{ marginBottom: '24px' }}>
                         <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px' }}>Returned Items</div>
                         <div style={{ border: '1px solid #eee', borderRadius: '8px', overflow: 'hidden' }}>
-                            {(returnItem.items as any[]).map((linesItem: any) => {
+                            {(returnItem.items as unknown as ReturnLineItem[]).map((linesItem) => {
                                 const originalItem = returnItem.order.items.find(i => i.id === linesItem.id);
                                 if (!originalItem) return null;
                                 const hasDiscount = originalItem.discountedPrice !== null;

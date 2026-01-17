@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateCustomerSession } from '@/lib/auth/session';
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -79,9 +79,10 @@ export async function POST(request: NextRequest) {
             { quality: 'auto:good' }
           ]
         },
-        (error: any, result: any) => {
+        (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
           if (error) reject(error);
-          else resolve(result as { secure_url: string });
+          else if (result) resolve({ secure_url: result.secure_url });
+          else reject(new Error('Upload failed'));
         }
       ).end(buffer);
     });
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
       const errorMessage = error instanceof Error
           ? error.message
           : typeof error === 'object' && error !== null && 'error' in error
-              ? (error as any).error?.message || JSON.stringify(error)
+              ? (error as { error: { message: string } }).error?.message || JSON.stringify(error)
               : 'Failed to upload image';
     return NextResponse.json(
         { error: errorMessage },

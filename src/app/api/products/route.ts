@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get("maxPrice");
     const inStock = searchParams.get("inStock");
     const onSale = searchParams.get("onSale");
-    const isNew = searchParams.get("new");
+
 
     // Build where clause
     const where: Record<string, unknown> = {

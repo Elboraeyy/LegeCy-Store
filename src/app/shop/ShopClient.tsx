@@ -31,12 +31,12 @@ export default function ShopClient({
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "list" | "compact">("grid");
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(12);
+    const itemsPerPage = 12;
 
     // Filters from URL
-    const selectedCategories = searchParams.get("category")?.split(",").filter(Boolean) || [];
-    const selectedBrands = searchParams.get("brands")?.split(",").filter(Boolean) || [];
-    const selectedMaterials = searchParams.get("materials")?.split(",").filter(Boolean) || [];
+    const selectedCategories = useMemo(() => searchParams.get("category")?.split(",").filter(Boolean) || [], [searchParams]);
+    const selectedBrands = useMemo(() => searchParams.get("brands")?.split(",").filter(Boolean) || [], [searchParams]);
+    const selectedMaterials = useMemo(() => searchParams.get("materials")?.split(",").filter(Boolean) || [], [searchParams]);
     const sortBy = searchParams.get("sort") || "featured";
     const searchQuery = searchParams.get("q") || "";
     const minPrice = Number(searchParams.get("minPrice")) || 0;
@@ -50,7 +50,7 @@ export default function ShopClient({
     const absoluteMaxPrice = 3000;
 
     // Update URL
-    const updateFilters = (updates: Record<string, string | null>) => {
+    const updateFilters = React.useCallback((updates: Record<string, string | null>) => {
         const params = new URLSearchParams(searchParams.toString());
 
         Object.entries(updates).forEach(([key, value]) => {
@@ -62,7 +62,7 @@ export default function ShopClient({
         });
 
         router.push(`/shop?${params.toString()}`, { scroll: false });
-    };
+    }, [searchParams, router]);
 
     // Fetch products
     useEffect(() => {
@@ -91,7 +91,7 @@ export default function ShopClient({
         };
 
         fetchProducts();
-    }, [searchParams]);
+    }, [searchParams, selectedCategories, selectedBrands, selectedMaterials, searchQuery, minPrice, maxPrice, inStock, onSale, isNew, absoluteMinPrice, absoluteMaxPrice]);
 
     // Filter and sort products
     const filteredAndSortedProducts = useMemo(() => {

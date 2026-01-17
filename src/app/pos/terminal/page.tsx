@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { POSProvider, usePOS } from '../context/POSContext';
 import '../pos.css';
 
@@ -90,9 +91,9 @@ function ProductCard({ product, onAdd, isRecent }: { product: Product; onAdd: (p
             onClick={handleClick}
         >
             {isRecent && <span className="pos-product-recent">🔥</span>}
-            <div className="pos-product-image">
+            <div className="pos-product-image relative h-full w-full">
                 {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} />
+                    <Image src={product.imageUrl} alt={product.name} fill style={{ objectFit: 'cover' }} />
                 ) : (
                     <span className="placeholder">📦</span>
                 )}
@@ -479,14 +480,14 @@ function PaymentModal({
         1000
     ].filter((v, i, a) => a.indexOf(v) === i && v >= total).slice(0, 6);
 
-    const handleComplete = async () => {
+    const handleComplete = useCallback(async () => {
         if (method === 'CASH' && receivedAmount < total) return;
         setProcessing(true);
         await new Promise(resolve => setTimeout(resolve, 400));
         onComplete(method, method === 'CASH' ? receivedAmount : total);
         setProcessing(false);
         setReceived('');
-    };
+    }, [method, receivedAmount, total, onComplete]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -498,7 +499,7 @@ function PaymentModal({
         };
         window.addEventListener('keydown', handleKey);
         return () => window.removeEventListener('keydown', handleKey);
-    }, [isOpen, method, receivedAmount, total]);
+    }, [isOpen, method, receivedAmount, total, onClose, handleComplete]);
 
     if (!isOpen) return null;
 
@@ -913,41 +914,6 @@ function TerminalContent() {
         fetchData();
     }, []);
 
-    // Keyboard shortcuts
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            const target = e.target as HTMLElement;
-            if (target.tagName === 'INPUT' && target.className !== 'pos-smart-search') return;
-
-            if (e.key === 'F3' || e.key === '/') {
-                e.preventDefault();
-                searchInputRef.current?.focus();
-            }
-            if (e.key === 'F10' && cart.length > 0) {
-                e.preventDefault();
-                setShowPayment(true);
-            }
-            if (e.key === 'F8') {
-                e.preventDefault();
-                if (cart.length > 0) holdCurrentOrder();
-            }
-            if (e.key === 'Escape') {
-                setShowPayment(false);
-                setShowSuccess(false);
-                setShowCustomer(false);
-                setShowDiscount(false);
-                setShowHeld(false);
-                setSearchQuery('');
-            }
-            if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey) {
-                const catIndex = parseInt(e.key) - 1;
-                if (catIndex === 0) setSelectedCategory('all');
-                else if (categories[catIndex - 1]) setSelectedCategory(categories[catIndex - 1].name);
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [cart.length, categories]);
 
     // Barcode scanning simulation
     const handleSearchKeyDown = (e: React.KeyboardEvent) => {
@@ -1038,6 +1004,42 @@ function TerminalContent() {
         localStorage.setItem('pos_held_orders', JSON.stringify(updated));
     }, [cart, heldOrders, addToCart, setCustomer, setDiscount, holdCurrentOrder]);
 
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'INPUT' && target.className !== 'pos-smart-search') return;
+
+            if (e.key === 'F3' || e.key === '/') {
+                e.preventDefault();
+                searchInputRef.current?.focus();
+            }
+            if (e.key === 'F10' && cart.length > 0) {
+                e.preventDefault();
+                setShowPayment(true);
+            }
+            if (e.key === 'F8') {
+                e.preventDefault();
+                if (cart.length > 0) holdCurrentOrder();
+            }
+            if (e.key === 'Escape') {
+                setShowPayment(false);
+                setShowSuccess(false);
+                setShowCustomer(false);
+                setShowDiscount(false);
+                setShowHeld(false);
+                setSearchQuery('');
+            }
+            if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey) {
+                const catIndex = parseInt(e.key) - 1;
+                if (catIndex === 0) setSelectedCategory('all');
+                else if (categories[catIndex - 1]) setSelectedCategory(categories[catIndex - 1].name);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [cart.length, categories, holdCurrentOrder]);
+
     const deleteHeldOrder = (id: string) => {
         const updated = heldOrders.filter(o => o.id !== id);
         setHeldOrders(updated);
@@ -1079,7 +1081,7 @@ function TerminalContent() {
         setTimeout(() => searchInputRef.current?.focus(), 100);
     };
 
-    const handleApplyDiscount = (type: 'percentage' | 'fixed', value: number, reason: string) => {
+    const handleApplyDiscount = (type: 'percentage' | 'fixed', value: number) => {
         setDiscount({ type, value });
     };
 

@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { auditService } from '@/lib/services/auditService';
+import { OrderItem } from '@prisma/client';
 
 /**
  * Refund Service
@@ -300,8 +301,9 @@ export async function completeRefund(
           const orderItem = returnRequest.order.items.find(i => i.id === ri.id);
           if (orderItem) {
             // Use discounted price if available, otherwise original price
-            const pricePerUnit = (orderItem as any).discountedPrice
-              ? Number((orderItem as any).discountedPrice)
+            const itemWithDiscount = orderItem as unknown as OrderItem;
+            const pricePerUnit = itemWithDiscount.discountedPrice
+              ? Number(itemWithDiscount.discountedPrice)
               : Number(orderItem.price);
             refundAmount += pricePerUnit * ri.quantity;
           }
