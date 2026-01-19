@@ -39,6 +39,42 @@ const getFromEmail = () => {
 const formatPrice = (price: number) => `EGP ${price.toLocaleString('en-EG', { minimumFractionDigits: 0 })}`;
 
 // ============================================
+// GENERIC EMAIL SENDER
+// ============================================
+
+export interface SendEmailParams {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+}
+
+export async function sendEmail(params: SendEmailParams): Promise<{ success: boolean; error?: string; id?: string }> {
+  try {
+    const resend = getResendClient();
+    if (!resend) return { success: false, error: 'Email service not configured' };
+
+    const { data, error } = await resend.emails.send({
+      from: getFromEmail(),
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
+      text: params.text
+    });
+
+    if (error) {
+      console.error('❌ [EMAIL] Send error:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, id: data?.id };
+  } catch (error) {
+    console.error('❌ [EMAIL] Exception:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+// ============================================
 // ORDER CONFIRMATION EMAIL
 // ============================================
 
@@ -735,5 +771,75 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationData
     return { success: true };
   } catch {
     return { success: false };
+  }
+}
+// ============================================
+// BACK IN STOCK EMAIL
+// ============================================
+
+interface BackInStockData {
+  customerEmail: string;
+  productName: string;
+  productUrl: string;
+}
+
+export async function sendBackInStockEmail(data: BackInStockData): Promise<{ success: boolean; error?: string }> {
+  console.log('📧 [EMAIL] Sending back in stock email to:', data.customerEmail);
+
+  try {
+    const resend = getResendClient();
+    if (!resend) return { success: false, error: 'Email not configured' };
+
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"></head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden;">
+    
+    <div style="background: linear-gradient(135deg, ${BRAND.primaryColor}, ${BRAND.darkBg}); padding: 40px; text-align: center;">
+      <h1 style="color: ${BRAND.accentColor}; margin: 0; font-size: 28px;">${BRAND.name}</h1>
+    </div>
+
+    <div style="padding: 50px 40px; text-align: center;">
+      <div style="font-size: 50px; margin-bottom: 20px;">🎉</div>
+      <h2 style="color: ${BRAND.primaryColor}; margin: 0 0 15px; font-size: 28px;">
+        It's Back!
+      </h2>
+      <p style="color: #666; font-size: 16px; line-height: 1.6; max-width: 400px; margin: 0 auto 30px;">
+        Good news! <strong>${data.productName}</strong> is back in stock.
+      </p>
+      
+      <a href="${data.productUrl}" style="display: inline-block; background: ${BRAND.primaryColor}; color: white; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 600;">
+        Shop Now →
+      </a>
+    </div>
+
+    <div style="background: ${BRAND.primaryColor}; padding: 20px; text-align: center;">
+      <p style="color: #ffffff; opacity: 0.7; margin: 0; font-size: 12px;">© ${new Date().getFullYear()} LegaCy Store</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    const { error } = await resend.emails.send({
+      from: getFromEmail(),
+      to: data.customerEmail,
+      subject: `🎉 Back in Stock: ${data.productName}`,
+      html: html,
+    });
+
+    if (error) {
+      console.error('❌ [EMAIL] Back in stock email error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('✅ [EMAIL] Back in stock email sent!');
+    return { success: true };
+
+  } catch (error) {
+    console.error('❌ [EMAIL] Exception:', error);
+    return { success: false, error: 'Failed to send email' };
   }
 }

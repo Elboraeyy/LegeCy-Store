@@ -1,17 +1,17 @@
 'use client';
 
 import { useActionState } from 'react';
-import { adminLogin } from '@/lib/actions/admin-auth';
+import { adminLogin, verifyAdminTwoFactor } from '@/lib/actions/admin-auth';
 import '../admin.css';
 import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
 
-function SubmitButton() {
+function SubmitButton({ text = 'AUTHENTICATE' }: { text?: string }) {
     return (
         <button 
             type="submit" 
             style={{ 
                 width: '100%', 
-                marginTop: '24px',
+                marginTop: '12px',
                 padding: '14px 24px',
                 background: '#12403C',
                 color: '#fff',
@@ -36,14 +36,22 @@ function SubmitButton() {
                 e.currentTarget.style.background = '#12403C';
             }}
         >
-            AUTHENTICATE
+            {text}
         </button>
     );
 }
 
 export default function AdminLoginPage() {
-    const [state, formAction] = useActionState(adminLogin, null);
+    const [loginState, loginAction] = useActionState(adminLogin, null);
+    const [otpState, otpAction] = useActionState(verifyAdminTwoFactor, null);
     const { containerRef } = useUncontrolledFormPersistence('admin_login_form');
+
+    // Check if we are in 2FA mode
+    // Either login just finished and asked for it, OR we are already in OTP step (and it returned state to keep us there)
+    const requiresTwoFactor = loginState?.requiresTwoFactor || otpState?.requiresTwoFactor;
+    const adminId = loginState?.adminId || otpState?.adminId;
+    const error = requiresTwoFactor ? otpState?.error : loginState?.error;
+    const message = loginState?.message;
 
     return (
         <div className="admin-auth-container" style={{ 
@@ -77,19 +85,16 @@ export default function AdminLoginPage() {
                         scroll-behavior: smooth;
                     }
 
-                    /* Brand Side (Top 35vh) */
                     .admin-auth-brand { 
                         height: 35vh !important;
                         width: 100% !important;
                         padding: 24px 20px !important;
                         scroll-snap-align: start;
-                        
                         display: flex !important;
                         flex-direction: column !important;
                         justify-content: center !important;
                         align-items: center !important;
                         text-align: center !important;
-                        
                         position: relative;
                         z-index: 1;
                     }
@@ -114,23 +119,19 @@ export default function AdminLoginPage() {
                         display: none !important;
                     }
 
-                    /* Form Side (Full Height) */
                     .admin-auth-form { 
                         height: 100vh !important;
                         width: 100% !important;
                         scroll-snap-align: start;
                         scroll-snap-stop: always;
-                        
                         background: #f4f3f0 !important;
                         border-radius: 30px 30px 0 0 !important;
                         margin-top: -20px !important;
                         padding: 48px 24px !important;
-                        
                         display: flex !important;
                         align-items: flex-start !important;
                         justify-content: center !important;
                         padding-top: 48px !important;
-                        
                         position: relative;
                         z-index: 2;
                         box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
@@ -141,7 +142,6 @@ export default function AdminLoginPage() {
                         width: 100% !important;
                     }
 
-                    /* Drag Handle */
                     .admin-auth-form::before {
                         content: '';
                         display: block;
@@ -166,7 +166,7 @@ export default function AdminLoginPage() {
                 }
             `}</style>
 
-            {/* Left: Brand Side (Green) */}
+            {/* Left Box (Brand) - Keeping existing layout */}
             <div className="admin-auth-brand" style={{ 
                 background: '#12403C', 
                 padding: '60px', 
@@ -177,7 +177,6 @@ export default function AdminLoginPage() {
                 position: 'relative',
                 overflow: 'hidden'
             }}>
-                {/* Decorative background */}
                 <div style={{
                     position: 'absolute',
                     top: '-10%',
@@ -228,7 +227,7 @@ export default function AdminLoginPage() {
                 </div>
             </div>
 
-            {/* Right: Login Form (Beige/Light) */}
+            {/* Right Box (Form) */}
             <div className="admin-auth-form" style={{ 
                 background: '#F5F0E3', 
                 display: 'flex', 
@@ -244,83 +243,153 @@ export default function AdminLoginPage() {
                             marginBottom: '8px', 
                             fontFamily: "'Playfair Display', serif" 
                         }}>
-                            Welcome Back
+                            {requiresTwoFactor ? 'Verification' : 'Welcome Back'}
                         </h2>
                         <p className="form-subtitle" style={{ color: '#5c6b66', fontSize: '15px' }}>
-                            Enter your credentials to access the dashboard.
+                            {requiresTwoFactor
+                                ? 'Enter the 6-digit code sent to your email.'
+                                : 'Enter your credentials to access the dashboard.'}
                         </p>
                     </div>
 
-                    <form ref={containerRef} action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                Email Address
-                            </label>
-                            <input 
-                                name="email" 
-                                type="email" 
-                                autoComplete="email" 
-                                required 
-                                placeholder="admin@legecystore.com"
-                                className="admin-auth-input"
-                                style={{
-                                    width: '100%',
-                                    padding: '16px',
-                                    background: '#fff',
-                                    border: '1px solid #d1cfca',
-                                    borderRadius: '8px',
-                                    fontSize: '15px',
-                                    outline: 'none',
-                                    transition: 'all 0.2s',
-                                    color: '#12403C'
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {!requiresTwoFactor ? (
+                        /* LOGIN FORM */
+                        <form ref={containerRef} action={loginAction} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                    Password
+                                    Email Address
                                 </label>
+                                <input
+                                    name="email"
+                                    type="email"
+                                    autoComplete="email"
+                                    required
+                                    placeholder="admin@legecystore.com"
+                                    className="admin-auth-input"
+                                    style={{
+                                        width: '100%',
+                                        padding: '16px',
+                                        background: '#fff',
+                                        border: '1px solid #d1cfca',
+                                        borderRadius: '8px',
+                                        fontSize: '15px',
+                                        outline: 'none',
+                                        transition: 'all 0.2s',
+                                        color: '#12403C'
+                                    }}
+                                />
                             </div>
-                            <input 
-                                name="password" 
-                                type="password" 
-                                autoComplete="current-password" 
-                                required 
-                                placeholder="••••••••"
-                                className="admin-auth-input"
-                                style={{
-                                    width: '100%',
-                                    padding: '16px',
-                                    background: '#fff',
-                                    border: '1px solid #d1cfca',
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                        Password
+                                    </label>
+                                </div>
+                                <input
+                                    name="password"
+                                    type="password"
+                                    autoComplete="current-password"
+                                    required
+                                    placeholder="••••••••"
+                                    className="admin-auth-input"
+                                    style={{
+                                        width: '100%',
+                                        padding: '16px',
+                                        background: '#fff',
+                                        border: '1px solid #d1cfca',
+                                        borderRadius: '8px',
+                                        fontSize: '15px',
+                                        outline: 'none',
+                                        transition: 'all 0.2s',
+                                        color: '#12403C'
+                                    }}
+                                />
+                            </div>
+
+                            <SubmitButton text="AUTHENTICATE" />
+                        </form>
+                    ) : (
+                        /* OTP FORM */
+                        <form action={otpAction} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            <input type="hidden" name="adminId" value={adminId || ''} />
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                    Verification Code
+                                </label>
+                                <input
+                                    name="otp"
+                                    type="text"
+                                    autoComplete="one-time-code"
+                                    required
+                                    placeholder="123456"
+                                    maxLength={6}
+                                    className="admin-auth-input"
+                                    style={{
+                                        width: '100%',
+                                        padding: '16px',
+                                        background: '#fff',
+                                        border: '1px solid #d1cfca',
+                                        borderRadius: '8px',
+                                        fontSize: '24px',
+                                        textAlign: 'center',
+                                        letterSpacing: '8px',
+                                        outline: 'none',
+                                        transition: 'all 0.2s',
+                                        color: '#12403C',
+                                        fontFamily: 'monospace'
+                                    }}
+                                />
+                            </div>
+
+                            {message && (
+                                <div style={{
+                                    color: '#047857',
+                                    background: '#d1fae5',
+                                    padding: '12px',
                                     borderRadius: '8px',
-                                    fontSize: '15px',
-                                    outline: 'none',
-                                    transition: 'all 0.2s',
-                                    color: '#12403C'
+                                    fontSize: '13px',
+                                    textAlign: 'center'
+                                }}>
+                                    {message}
+                                </div>
+                            )}
+
+                            <SubmitButton text="VERIFY & LOGIN" />
+
+                            <button
+                                type="button"
+                                onClick={() => window.location.reload()}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#5c6b66',
+                                    fontSize: '13px',
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline'
                                 }}
-                            />
+                            >
+                                Cancel and return to login
+                            </button>
+                        </form>
+                    )}
+
+                    {error && (
+                        <div style={{ 
+                            marginTop: '24px',
+                            color: '#b91c1c',
+                            background: '#fef2f2',
+                            border: '1px solid #fca5a5',
+                            padding: '12px',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            textAlign: 'center',
+                            fontWeight: 500
+                        }}>
+                            {error}
                         </div>
-
-                        {state?.error && (
-                            <div style={{ 
-                                color: '#b91c1c', 
-                                background: '#fef2f2', 
-                                border: '1px solid #fca5a5', 
-                                padding: '12px', 
-                                borderRadius: '8px', 
-                                fontSize: '13px', 
-                                textAlign: 'center',
-                                fontWeight: 500
-                            }}>
-                                {state.error}
-                            </div>
-                        )}
-
-                        <SubmitButton />
-                    </form>
+                    )}
 
                     <p style={{ textAlign: 'center', marginTop: '40px', fontSize: '12px', color: '#a3b8b0' }}>
                         🔒 Protected by Legacy Security Systems

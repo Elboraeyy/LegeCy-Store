@@ -4,6 +4,9 @@ import { AdminPermissions } from '@/lib/auth/permissions';
 import prisma from '@/lib/prisma';
 import { getKillSwitches } from '@/lib/killSwitches';
 import Link from 'next/link';
+import CustomerRiskWidget from './_components/dashboard/CustomerRiskWidget';
+import BatchExpiryWidget from './_components/dashboard/BatchExpiryWidget';
+import SystemHealthWidget from './_components/dashboard/SystemHealthWidget';
 
 // Fetch command center stats
 async function getCommandCenterStats() {
@@ -48,7 +51,8 @@ async function getCommandCenterStats() {
             prisma.order.aggregate({
                 where: {
                     createdAt: { gte: today },
-                    status: { not: 'CANCELLED' }
+                    // Fix: Exclude PENDING (abandoned) and other invalid statuses
+                    status: { notIn: ['CANCELLED', 'PENDING', 'REJECTED', 'FAILED'] }
                 },
                 _sum: { totalPrice: true }
             })
@@ -362,6 +366,23 @@ export default async function AdminDashboard() {
                         </div>
                     </div>
                 )}
+            </div>
+
+            {/* Operational Insights - New Widgets */}
+            <div style={{ padding: '0 32px 32px' }}>
+                <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 600 }}>
+                    🔍 Operational Insights
+                </h2>
+
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                    gap: '16px'
+                }}>
+                    <SystemHealthWidget />
+                    <BatchExpiryWidget />
+                    <CustomerRiskWidget />
+                </div>
             </div>
         </>
     );

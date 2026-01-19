@@ -62,6 +62,20 @@ export async function createJournalEntry(
 ) {
   const admin = await requireAdmin();
 
+  // 0. Enforce Financial Period Locking
+  const entryDate = new Date();
+  const closedPeriod = await prisma.financialPeriod.findFirst({
+    where: {
+      startDate: { lte: entryDate },
+      endDate: { gte: entryDate },
+      status: 'CLOSED'
+    }
+  });
+
+  if (closedPeriod) {
+    throw new Error(`Financial Period is CLOSED for date ${entryDate.toISOString().split('T')[0]}. No new entries allowed.`);
+  }
+
   // 1. Validate Balance (Zero-Sum Check) using EXACT decimal math
   // CRITICAL: Never use floating-point tolerance for financial calculations
   const { Decimal } = await import('@prisma/client/runtime/library');
@@ -322,26 +336,117 @@ export async function withdrawCapital(investorId: string, amount: number, descri
 // 4. Reporting & Dashboard
 // --------------------------------------------------------
 
+// --------------------------------------------------------
+// 4. Reporting & Dashboard (Advanced)
+// --------------------------------------------------------
+
+/**
+ * Helper: Get net flow for account type in a date range
+ */
+async function getFlowByType(type: AccountType, startDate: Date, endDate: Date) {
+  const result = await prisma.transactionLine.aggregate({
+    where: {
+      account: { type },
+      journalEntry: {
+        date: { gte: startDate, lte: endDate },
+        status: 'POSTED'
+      }
+    },
+    _sum: { debit: true, credit: true }
+  });
+
+  const debit = Number(result._sum.debit || 0);
+  const credit = Number(result._sum.credit || 0);
+
+  // For Revenue/Equity/Liabilities: Credit is positive flow
+  // For Asset/Expense: Debit is positive flow
+  if (type === 'ASSET' || type === 'EXPENSE') {
+    return debit - credit;
+  }
+  return credit - debit;
+}
+
+export async function getIncomeStatement(startDate?: Date, endDate?: Date) {
+  const start = startDate || new Date(new Date().getFullYear(), 0, 1); // Jan 1st
+  const end = endDate || new Date();
+
+  const revenue = await getFlowByType('REVENUE', start, end);
+  const expense = await getFlowByType('EXPENSE', start, end);
+
+  // Create detailed breakdown
+  const expenseCategories = await prisma.account.findMany({
+    where: { type: 'EXPENSE' },
+    select: { id: true, name: true, code: true }
+  });
+
+  const breakdown = [];
+  for (const acc of expenseCategories) {
+    const flow = await prisma.transactionLine.aggregate({
+      where: {
+        accountId: acc.id,
+        journalEntry: { date: { gte: start, lte: end }, status: 'POSTED' }
+      },
+      _sum: { debit: true, credit: true }
+    });
+    const amount = Number(flow._sum.debit || 0) - Number(flow._sum.credit || 0);
+    if (amount !== 0) {
+      breakdown.push({ name: acc.name, code: acc.code, amount });
+    }
+  }
+
+  return {
+    period: { start, end },
+    revenue,
+    cogs: 0, // TODO: Separate COGS from regular expenses using account codes (e.g. 5000-5999)
+    grossProfit: revenue, // - cogs
+    expenses: expense,
+    netIncome: revenue - expense,
+    breakdown: breakdown.sort((a, b) => b.amount - a.amount)
+  };
+}
+
+export async function getBalanceSheet() {
+  // Balance Sheet is Point-in-Time, so we use current Account Balances
+  const accounts = await prisma.account.findMany({
+    orderBy: { code: 'asc' }
+  });
+
+  const assets = accounts.filter(a => a.type === 'ASSET');
+  const liabilities = accounts.filter(a => a.type === 'LIABILITY');
+  const equity = accounts.filter(a => a.type === 'EQUITY');
+
+  const totalAssets = assets.reduce((sum, a) => sum + Number(a.balance), 0);
+  const totalLiabilities = liabilities.reduce((sum, a) => sum + Number(a.balance), 0);
+  const totalEquity = equity.reduce((sum, a) => sum + Number(a.balance), 0);
+
+  // Calculate Retained Earnings (Net Profit since beginning of time potentially, or managed via Closing entries)
+  // For simplicity here, verification: Assets = Liab + Equity
+  const check = totalAssets - (totalLiabilities + totalEquity);
+
+  return {
+    assets: { total: totalAssets, items: assets.map(a => ({ ...a, balance: Number(a.balance) })) },
+    liabilities: { total: totalLiabilities, items: liabilities.map(a => ({ ...a, balance: Number(a.balance) })) },
+    equity: { total: totalEquity, items: equity.map(a => ({ ...a, balance: Number(a.balance) })) },
+    check: check // Should be 0
+  };
+}
+
 export async function getFinancialMetrics() {
-    // Aggregate from Accounts directly for speed
-    const accounts = await prisma.account.findMany();
-    
-    const assets = accounts.filter(a => a.type === 'ASSET').reduce((sum: number, a) => sum + Number(a.balance), 0);
-    const liabilities = accounts.filter(a => a.type === 'LIABILITY').reduce((sum: number, a) => sum + Number(a.balance), 0);
-    const equity = accounts.filter(a => a.type === 'EQUITY').reduce((sum: number, a) => sum + Number(a.balance), 0);
-    const revenue = accounts.filter(a => a.type === 'REVENUE').reduce((sum: number, a) => sum + Number(a.balance), 0);
-    const expenses = accounts.filter(a => a.type === 'EXPENSE').reduce((sum: number, a) => sum + Number(a.balance), 0);
+  // Quick Dashboard Summary
+  const bs = await getBalanceSheet();
+  const income = await getIncomeStatement(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1), // This Month
+    new Date()
+  );
 
-    const netProfit = revenue - expenses;
-
-    return {
-        assets,
-        liabilities,
-        equity,
-        revenue,
-        expenses,
-        netProfit,
-        cashOnHand: assets // Simplified for now, typically specific asset accounts
+  return {
+    assets: bs.assets.total,
+    liabilities: bs.liabilities.total,
+    equity: bs.equity.total,
+    revenue: income.revenue,
+    expenses: income.expenses,
+    netProfit: income.netIncome,
+    cashOnHand: bs.assets.items.filter(a => a.code === '1001').reduce((s, a) => s + a.balance, 0)
     };
 }
 
@@ -625,3 +730,142 @@ export async function recordOrderRevenue(orderId: string, amount: number) {
 }
 
 
+
+// --------------------------------------------------------
+// 9. Accounts Receivable (AR) Aging
+// --------------------------------------------------------
+
+export async function getARAging() {
+  // Find orders that are confirmed/delivered but not fully paid
+  const unpaidOrders = await prisma.order.findMany({
+    where: {
+      status: { in: ['payment_pending', 'pending'] },
+      paymentMethod: { not: 'cod' }
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      totalPrice: true,
+      customerName: true
+    }
+  });
+
+  const aging = {
+    '0-30': 0,
+    '31-60': 0,
+    '61-90': 0,
+    '90+': 0,
+    total: 0
+  };
+
+  const now = new Date();
+
+  for (const order of unpaidOrders) {
+    const ageInDays = Math.floor((now.getTime() - order.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+    const amount = Number(order.totalPrice);
+
+    if (ageInDays <= 30) aging['0-30'] += amount;
+    else if (ageInDays <= 60) aging['31-60'] += amount;
+    else if (ageInDays <= 90) aging['61-90'] += amount;
+    else aging['90+'] += amount;
+
+    aging.total += amount;
+  }
+
+  return aging;
+}
+
+// --------------------------------------------------------
+// 10. Trial Balance & Tax
+// --------------------------------------------------------
+
+export async function getTaxReport(startDate: Date, endDate: Date) {
+  // 1. Sales Tax (Output VAT) - Credit on Tax Account
+  // 2. Purchase Tax (Input VAT) - Debit on Tax Account
+  // Net Tax = Output - Input
+
+  // We need to find the Tax Account (e.g. 2002 Sales Tax Payable)
+  const taxAccount = await prisma.account.findFirst({ where: { code: '2002' } }); // Example code
+
+  if (!taxAccount) return { error: 'Tax account not configured' };
+
+  const txs = await prisma.transactionLine.groupBy({
+    by: ['journalEntryId'],
+    where: {
+      accountId: taxAccount.id,
+      journalEntry: {
+        date: { gte: startDate, lte: endDate },
+        status: 'POSTED'
+      }
+    },
+    _sum: { debit: true, credit: true }
+  });
+
+  let totalInputTax = 0; // Dr
+  let totalOutputTax = 0; // Cr
+
+  for (const t of txs) {
+    totalInputTax += Number(t._sum.debit || 0);
+    totalOutputTax += Number(t._sum.credit || 0);
+  }
+
+  return {
+    period: { start: startDate, end: endDate },
+    totalOutputTax,
+    totalInputTax,
+    netPayable: totalOutputTax - totalInputTax
+  };
+}
+
+// --------------------------------------------------------
+// 10. Trial Balance
+// --------------------------------------------------------
+
+export async function getTrialBalance() {
+  const accounts = await prisma.account.findMany({
+    orderBy: { code: 'asc' }
+  });
+
+  let totalDebit = 0;
+  let totalCredit = 0;
+
+  const lines = accounts.map(acc => {
+    const balance = Number(acc.balance);
+    const type = acc.type;
+    let debit = 0;
+    let credit = 0;
+
+    // Normal Balance Logic:
+    // Asset/Expense: Debit Normal. Positive balance = Debit. Negative = Credit.
+    // Liability/Equity/Revenue: Credit Normal. Positive balance = Credit. Negative = Debit.
+
+    if (['ASSET', 'EXPENSE'].includes(type)) {
+      if (balance >= 0) debit = balance;
+      else credit = Math.abs(balance);
+    } else {
+      if (balance >= 0) credit = balance;
+      else debit = Math.abs(balance);
+    }
+
+    totalDebit += debit;
+    totalCredit += credit;
+
+    return {
+      code: acc.code,
+      name: acc.name,
+      type: acc.type,
+      debit,
+      credit
+    };
+  });
+
+  return {
+    asOf: new Date(),
+    lines,
+    totals: {
+      debit: totalDebit,
+      credit: totalCredit,
+      isBalanced: Math.abs(totalDebit - totalCredit) < 0.01
+    }
+  };
+}

@@ -6,6 +6,7 @@ const STATUS_COLORS: Record<OrderStatus, { bg: string; color: string }> = {
   [OrderStatus.Paid]: { bg: '#e6f4ea', color: '#137333' },      // Green
   [OrderStatus.Shipped]: { bg: '#e8f0fe', color: '#1967d2' },   // Blue
   [OrderStatus.Delivered]: { bg: '#ceead6', color: '#0d652d' }, // Darker Green
+  [OrderStatus.CashReceived]: { bg: '#c6f7e2', color: '#0d652d' }, // Green (COD completed)
   [OrderStatus.Cancelled]: { bg: '#fce8e6', color: '#c5221f' }, // Red
   [OrderStatus.PaymentPending]: { bg: '#fff8e1', color: '#f57c00' }, // Amber
   [OrderStatus.PaymentFailed]: { bg: '#ffebee', color: '#d32f2f' },  // Light Red

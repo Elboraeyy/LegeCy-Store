@@ -13,8 +13,12 @@ export enum OrderStatus {
   Paid = 'paid',
   Shipped = 'shipped',
   Delivered = 'delivered',
+  CashReceived = 'cash_received',       // COD order with cash collected (for revenue recognition)
   Cancelled = 'cancelled',
 }
+
+export type OrderEventTypes =
+  | 'CREATED' | 'CONFIRMED' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED'; // Lifecycle events
 
 export interface OrderHistoryItem {
   id: string;

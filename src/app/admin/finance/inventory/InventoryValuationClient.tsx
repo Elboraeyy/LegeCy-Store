@@ -34,10 +34,27 @@ export default function InventoryValuationClient({ data }: { data: ValuationData
 
   return (
     <>
-      {/* Page Description */}
-      <p className="page-description">
-        Asset value vs potential revenue analysis
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <p className="page-description" style={{ margin: 0 }}>
+          Asset value vs potential revenue analysis
+        </p>
+        <a href="/admin/finance/inventory/dead-stock" style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '8px 16px',
+          borderRadius: '999px',
+          backgroundColor: 'white',
+          border: '1px solid rgba(18, 64, 60, 0.15)',
+          color: '#12403C',
+          fontSize: '13px',
+          fontWeight: 500,
+          textDecoration: 'none',
+          transition: 'all 0.2s'
+        }}>
+          📉 Dead Stock Analysis
+        </a>
+      </div>
 
       {/* Summary Cards */}
       <div className="admin-grid stats-grid">

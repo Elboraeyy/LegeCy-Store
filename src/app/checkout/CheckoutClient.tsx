@@ -198,7 +198,10 @@ export default function CheckoutClient() {
     if (!form.customerPhone.trim()) {
       newErrors.customerPhone = "Phone number is required";
     } else if (!/^01[0125][0-9]{8}$/.test(form.customerPhone.replace(/\s/g, ""))) {
-      newErrors.customerPhone = "Please enter a valid Egyptian number";
+      newErrors.customerPhone = "Enter a valid 11-digit Egyptian number (01x...)";
+    }
+    if (form.customerName.trim().length < 3) {
+      newErrors.customerName = "Name must be at least 3 characters";
     }
     if (!form.shippingAddress.trim()) newErrors.shippingAddress = "Address is required";
     if (!form.shippingCity.trim()) newErrors.shippingCity = "Please select a city";

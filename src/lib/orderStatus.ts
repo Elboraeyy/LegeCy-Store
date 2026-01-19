@@ -15,7 +15,8 @@ const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.PaymentFailed]: [OrderStatus.Cancelled], // Can only be cancelled
   [OrderStatus.Paid]: [OrderStatus.Shipped, OrderStatus.Cancelled],
   [OrderStatus.Shipped]: [OrderStatus.Delivered, OrderStatus.Cancelled],
-  [OrderStatus.Delivered]: [],
+  [OrderStatus.Delivered]: [OrderStatus.CashReceived], // COD orders can transition to CashReceived
+  [OrderStatus.CashReceived]: [], // Terminal state - cash collected
   [OrderStatus.Cancelled]: [], 
 };
 
