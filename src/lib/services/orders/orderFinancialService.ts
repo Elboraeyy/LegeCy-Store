@@ -74,8 +74,14 @@ export const orderFinancialService = {
                 // Calculate Tax & Net
                 const taxSettingsProp = await getStoreConfig('tax_settings');
                 let taxRate = 0;
-                if (taxSettingsProp && (taxSettingsProp as any).enableTaxes) {
-                    taxRate = ((taxSettingsProp as any).defaultTaxRate || 0) / 100;
+
+                interface TaxSettings {
+                    enableTaxes: boolean;
+                    defaultTaxRate: number;
+                }
+
+                if (taxSettingsProp && (taxSettingsProp as unknown as TaxSettings).enableTaxes) {
+                    taxRate = ((taxSettingsProp as unknown as TaxSettings).defaultTaxRate || 0) / 100;
                 }
 
                 // 4. Calculate Financials (using Decimal for precision)
@@ -263,7 +269,7 @@ export const orderFinancialService = {
         // Update Balances
         for (const line of lines) {
             const accId = accountMap.get(line.code)!;
-            const change = (line.debit || 0) - (line.credit || 0); // Simplified check (Asset/Expense logic managed in Service)
+            // const change = (line.debit || 0) - (line.credit || 0); // Removed unused variable
             // Wait, revenueService handles Debit/Credit logic for balances based on Account Type. 
             // Here we are doing raw updates. We should ideally respect the Type.
             // BUT, `updateAccountBalance` in original helper just did `increment: amount`.

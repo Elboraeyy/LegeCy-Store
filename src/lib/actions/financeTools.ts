@@ -1,6 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+// import { Prisma } from '@prisma/client'; // Unused
 import { requireAdmin } from '@/lib/auth/guards';
 
 // ------------------------------------------------------
@@ -16,6 +17,7 @@ export async function searchJournalEntries(query: {
 }) {
     await requireAdmin();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
         lines: {}
     };

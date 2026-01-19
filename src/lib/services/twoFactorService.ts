@@ -4,7 +4,7 @@ import { sendEmail } from '@/lib/services/emailService';
 
 // 2FA Configuration
 const OTP_EXPIRY_MINUTES = 10;
-const OTP_LENGTH = 6;
+// const OTP_LENGTH = 6;
 
 /**
  * Generate, hash, and send a 2FA token to the user
@@ -97,12 +97,12 @@ export async function verifyTwoFactorToken(userId: string, token: string): Promi
 }
 
 // For future TOTP implementation
-export async function generateTwoFactorSecret(userId: string) {
+export async function generateTwoFactorSecret(/* userId: string */) {
     // Placeholder
     return "NOT_IMPLEMENTED";
 }
 
-export async function enableTwoFactor(userId: string, token: string) {
+export async function enableTwoFactor(/* userId: string, token: string */) {
     // Placeholder
     return false;
 }

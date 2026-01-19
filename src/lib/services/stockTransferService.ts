@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import { inventoryService } from './inventoryService';
-import { logger } from '@/lib/logger';
+// import { logger } from '@/lib/logger';
 
 export const stockTransferService = {
   /**

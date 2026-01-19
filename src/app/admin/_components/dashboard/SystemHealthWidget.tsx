@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, ToggleLeft, Clock, AlertCircle, CheckCircle, ChevronRight } from 'lucide-react';
+import { Activity, ToggleLeft, AlertCircle, CheckCircle, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface HealthData {

@@ -73,7 +73,7 @@ export default async function ExpiryWarningsPage() {
                         <tbody className="divide-y">
                             {expiringBatches.map((batch) => {
                                 const daysLeft = batch.expiryDate
-                                    ? Math.ceil((batch.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                                    ? Math.ceil((batch.expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
                                     : 0;
                                 const isUrgent = daysLeft <= 7;
                                 const isExpired = daysLeft <= 0;

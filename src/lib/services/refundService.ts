@@ -268,6 +268,7 @@ export async function completeRefund(
       for (const item of returnRequest.order.items) {
         if (item.variantId) {
           // Get correct warehouse for this item
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let targetWarehouseId = (item as any).warehouseId as string | null;
 
           // Fallback for legacy orders without warehouseId

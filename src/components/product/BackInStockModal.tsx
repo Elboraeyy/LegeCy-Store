@@ -54,7 +54,7 @@ export function BackInStockModal({ variantId, available }: BackInStockModalProps
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <p className="text-sm text-gray-500">
-                        Enter your email address to verify your request. We'll notify you once this item is back in stock.
+                        Enter your email address to verify your request. We&apos;ll notify you once this item is back in stock.
                     </p>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                         <Input

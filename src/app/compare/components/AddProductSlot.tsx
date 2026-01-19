@@ -1,23 +1,18 @@
 "use client";
 
-import Image from "next/image";
-import { Product } from "@/types/product";
-import { useComparison } from "@/context/ComparisonContext";
+// import Image from "next/image"; // Unused
+// import { Product } from "@/types/product"; // Unused
+// import { useComparison } from "@/context/ComparisonContext"; // Unused
 
 interface AddProductSlotProps {
     onAdd: () => void;
-    suggestion?: Product;
+    // suggestion?: Product; // Unused
 }
 
-export default function AddProductSlot({ onAdd, suggestion }: AddProductSlotProps) {
-    const { addToCompare } = useComparison();
+export default function AddProductSlot({ onAdd }: AddProductSlotProps) {
+    // const { addToCompare } = useComparison(); // Unused
 
-    const handleQuickAdd = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (suggestion) {
-            addToCompare(suggestion);
-        }
-    };
+    // const handleQuickAdd ... removed unused
 
     return (
         <div

@@ -18,8 +18,9 @@ export const recordOrderEvent = orderStateService.recordOrderEvent;
 // But mostly `recordOrderEvent` was the main entry point.
 // getOrderEvents was also public.
 
+import prisma from '@/lib/prisma';
+
 export const getOrderEvents = async (orderId: string) => {
-  const prisma = require('@/lib/prisma').default;
   return prisma.orderEvent.findMany({
     where: { orderId },
     orderBy: { createdAt: 'asc' }
@@ -27,7 +28,6 @@ export const getOrderEvents = async (orderId: string) => {
 };
 
 export const isRevenueRecognized = async (orderId: string) => {
-  const prisma = require('@/lib/prisma').default;
   const recognition = await prisma.revenueRecognition.findUnique({
     where: { orderId }
   });

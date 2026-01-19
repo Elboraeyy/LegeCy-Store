@@ -58,13 +58,14 @@ export const stockNotificationService = {
     // 2. Send Emails (Batching would be ideal, but looping for now)
     for (const sub of subs) {
       try {
-        const productName = (sub as any).product.name;
+        if (!sub.product) continue;
+        const productName = sub.product.name;
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://legecy.store';
 
         await sendBackInStockEmail({
           customerEmail: sub.email,
           productName: productName,
-          productUrl: `${appUrl}/products/${(sub as any).product.id}`
+          productUrl: `${appUrl}/products/${sub.product.id}`
         });
 
         // Mark as sent
@@ -74,7 +75,8 @@ export const stockNotificationService = {
         });
 
       } catch (e) {
-        logger.error(`Failed to notify ${sub.email}`, e as any);
+        const err = e instanceof Error ? e : new Error(String(e));
+        logger.error(`Failed to notify ${sub.email}`, { error: err.message });
       }
     }
   }

@@ -63,8 +63,9 @@ export async function GET(req: NextRequest) {
             failed: failedCount
         });
 
-    } catch (error) {
-        logger.error('[CRON] Order Cleanup Failed', error as any);
+    } catch (error: unknown) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        logger.error('[CRON] Order Cleanup Failed', { error: err.message });
         return new NextResponse('Internal Server Error', { status: 500 });
     }
 }

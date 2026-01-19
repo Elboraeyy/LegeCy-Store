@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { getGuestOrder } from './order';
+// import { getGuestOrder } from './order'; // Removed unused import
 
 // ------------------------------------------------------
 // INVOICE DOWNLOAD (HTML Generation)

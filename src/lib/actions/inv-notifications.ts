@@ -1,7 +1,7 @@
 'use server';
 
 import { stockNotificationService } from '@/lib/services/stockNotificationService';
-import { z } from 'zod';
+// import { z } from 'zod'; // Removed unused import
 
 export async function subscribeToRestockAction(formData: FormData) {
     const email = formData.get('email') as string;
@@ -17,7 +17,7 @@ export async function subscribeToRestockAction(formData: FormData) {
     try {
         await stockNotificationService.subscribe(email, variantId);
         return { success: true };
-    } catch (error) {
+    } catch {
         return { error: 'Failed to subscribe. Please try again.' };
     }
 }

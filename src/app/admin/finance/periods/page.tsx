@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getFinancialPeriods, closePeriod, reopenPeriod } from '@/lib/services/accountingPeriodService';
+import { useRouter } from 'next/navigation';
+import { getFinancialPeriods, reopenPeriod } from '@/lib/services/accountingPeriodService';
 import { FinancialPeriod } from '@prisma/client';
 
 export default function FinancialPeriodsPage() {
@@ -24,7 +25,7 @@ export default function FinancialPeriodsPage() {
     }
   }
 
-  const router = require('next/navigation').useRouter();
+  const router = useRouter();
 
   function handleClose(periodId: string) {
     router.push(`/admin/finance/periods/${periodId}/close`);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { DollarSign, AlertTriangle, Package, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Package, RefreshCw } from 'lucide-react';
 
 interface VariantData {
   id: string;

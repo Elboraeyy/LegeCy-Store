@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { confirmPaymentIntent, failPaymentIntent, PaymentIntentStatus } from '@/lib/services/paymentService';
-import { getPaymobConfig } from '@/lib/paymob';
-import { verifyPaymobWebhook, extractPaymobTransaction } from '@/lib/paymob-webhook';
+// import { getPaymobConfig } from '@/lib/paymob'; // unused
+import { verifyPaymobWebhook } from '@/lib/paymob-webhook';
 import { checkWebhookRateLimit } from '@/lib/security/rateLimit';
 
 /**
@@ -125,8 +125,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    // Fetch config (for HMAC secret)
-    const config = await getPaymobConfig();
+    // Fetch config (for HMAC secret) NOT NEEDED here as verifyPaymobWebhook handles it internally or we use env vars.
+    // Actually, verifyPaymobWebhook likely uses env vars directly or we don't need to manually get config if not using it.
+    // The lint says 'config' is unused.
+
     // SECURITY: Never log secrets, even partially
     
     const hmacHeader = request.headers.get('hmac') || '';
