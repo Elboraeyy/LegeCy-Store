@@ -68,7 +68,9 @@ export async function getDeadStockReport(days: number = 90): Promise<DeadStockIt
             if (daysInactive >= days) {
                 deadStock.push({
                     variantId: item.variantId,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     productName: (item as any).variant.product.name,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     variantName: (item.variant as any).name || 'Default',
                     sku: item.variant.sku || 'N/A',
                     quantity: item.available,

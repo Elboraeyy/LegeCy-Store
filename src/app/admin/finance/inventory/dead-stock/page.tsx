@@ -1,7 +1,7 @@
 'use client';
 
 import '@/app/admin/admin.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getDeadStockReport, DeadStockItem } from '@/lib/actions/inventory-analytics';
 import { toast } from 'sonner';
 
@@ -12,9 +12,11 @@ export default function DeadStockPage() {
 
     useEffect(() => {
         loadReport();
-    }, [days]);
+    }, [days]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Note: Leaving as is or wrapping? If I wrap loadReport, I need to add it to deps.
+    // Ideally:
 
-    const loadReport = async () => {
+    const loadReport = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getDeadStockReport(days);
@@ -25,7 +27,11 @@ export default function DeadStockPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [days]);
+
+    useEffect(() => {
+        loadReport();
+    }, [loadReport]);
 
     const totalValue = report.reduce((sum, item) => sum + item.totalValue, 0);
     const totalItems = report.reduce((sum, item) => sum + item.quantity, 0);

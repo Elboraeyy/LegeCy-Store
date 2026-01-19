@@ -4,10 +4,10 @@ import React from "react";
 import Link from "next/link";
 
 interface EmptyStateProps {
-    onStartShopping: () => void;
+    onStartShopping?: () => void; // Unused but maybe referenced. Linter says unused.
 }
 
-export default function EmptyState({ onStartShopping }: EmptyStateProps) {
+export default function EmptyState({ }: EmptyStateProps) {
     return (
         <div style={{
             padding: "80px 24px",

@@ -1,7 +1,7 @@
 'use client';
 
 import '@/app/admin/admin.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner'; // Assuming sonner is used for toasts
 import { previewPeriodClose, closePeriod } from '@/lib/services/accountingPeriodService';
@@ -24,11 +24,9 @@ export default function PeriodClosePage({ params }: { params: { id: string } }) 
     const [data, setData] = useState<PreviewData | null>(null);
     const [processing, setProcessing] = useState(false);
 
-    useEffect(() => {
-        loadPreview();
-    }, [params.id]);
 
-    const loadPreview = async () => {
+
+    const loadPreview = useCallback(async () => {
         try {
             const result = await previewPeriodClose(params.id);
             setData(result);
@@ -39,7 +37,11 @@ export default function PeriodClosePage({ params }: { params: { id: string } }) 
         } finally {
             setLoading(false);
         }
-    };
+    }, [params.id, router]);
+
+    useEffect(() => {
+        loadPreview();
+    }, [loadPreview, params.id]);
 
     const handleClosePeriod = async () => {
         if (!confirm('Are you sure you want to PERMANENTLY CLOSE this period? This action cannot be undone easily.')) return;

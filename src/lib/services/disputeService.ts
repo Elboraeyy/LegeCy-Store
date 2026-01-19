@@ -36,7 +36,7 @@ export async function createDispute(data: {
     return dispute;
 }
 
-export async function updateDisputeStatus(disputeId: string, status: string, userId: string, note?: string) {
+export async function updateDisputeStatus(disputeId: string, status: string) {
     await requireAdmin();
 
     const dispute = await prisma.orderDispute.update({

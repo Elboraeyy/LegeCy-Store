@@ -55,7 +55,10 @@ async function completeLogin(adminId: string, ip: string) {
     redirect('/admin');
 }
 
-export async function adminLogin(prevState: any, formData: FormData): Promise<ActionState> {
+// Helper type for ActionState to avoid repetitive null checks
+type LoginActionState = ActionState;
+
+export async function adminLogin(prevState: LoginActionState | unknown, formData: FormData): Promise<LoginActionState> {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
@@ -119,8 +122,9 @@ export async function adminLogin(prevState: any, formData: FormData): Promise<Ac
         }
 
         // 4. Check 2FA
-        // Cast to any because Prisma Client is stale and verifyAdminTwoFactor doesn't see twoFactorEnabled yet
-        if ((admin as any).twoFactorEnabled) {
+        // Check property safely
+        const adminWith2FA = admin as unknown as { twoFactorEnabled: boolean; id: string; email: string };
+        if (adminWith2FA.twoFactorEnabled) {
             const { generateAndSendTwoFactorToken } = await import('@/lib/services/twoFactorService');
             const sent = await generateAndSendTwoFactorToken(admin.id, admin.email);
 
@@ -150,7 +154,7 @@ export async function adminLogin(prevState: any, formData: FormData): Promise<Ac
     }
 }
 
-export async function verifyAdminTwoFactor(prevState: any, formData: FormData): Promise<ActionState> {
+export async function verifyAdminTwoFactor(prevState: ActionState | unknown, formData: FormData): Promise<ActionState> {
     const adminId = formData.get('adminId') as string;
     const token = formData.get('otp') as string;
 

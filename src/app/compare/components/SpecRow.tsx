@@ -6,10 +6,10 @@ interface SpecRowProps {
     label: string;
     values: (string | undefined | null)[];
     highlightDiff?: boolean;
-    isHeader?: boolean;
+    // isHeader?: boolean;
 }
 
-export default function SpecRow({ label, values, highlightDiff = false, isHeader = false }: SpecRowProps) {
+export default function SpecRow({ label, values, highlightDiff = false }: SpecRowProps) {
     // Check if values are different (ignore empty/placeholders)
     const validValues = values.filter(v => v !== undefined && v !== null && v !== "");
     const isDifferent = validValues.length > 1 && new Set(validValues).size > 1;

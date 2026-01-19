@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { Product } from "@/types/product";
-import { ChevronDown, ChevronUp, Plus, X, Check } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 
 interface MobileComparisonViewProps {
     products: Product[];
@@ -60,11 +60,11 @@ export default function MobileComparisonView({
     const getSpecValue = (product: Product | undefined, row: { key?: string; specKey?: string; default?: string }) => {
         if (!product) return "-";
         if (row.key) {
-            // @ts-ignore
+            // @ts-expect-error - Dynamic property access
             return product[row.key] || row.default || "-";
         }
         if (row.specKey) {
-            // @ts-ignore
+            // @ts-expect-error - Dynamic property access
             return product.specs?.[row.specKey] || row.default || "-";
         }
         return "-";

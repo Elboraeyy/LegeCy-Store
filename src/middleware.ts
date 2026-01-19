@@ -44,12 +44,13 @@ export async function middleware(request: NextRequest) {
     }
 
     // 0.5 Rate Limiting (Sensitive Routes)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ip = (request as any).ip || '127.0.0.1';
     if (path.startsWith('/api/auth') || path.startsWith('/api/checkout')) {
         try {
             // Dynamic import to avoid edge startup issues if unused
             const { rateLimiter } = await import('./lib/ratelimit');
-            const { success, remaining, reset } = await rateLimiter.limit(ip);
+            const { success, remaining } = await rateLimiter.limit(ip);
 
             response.headers.set('X-RateLimit-Limit', '10');
             response.headers.set('X-RateLimit-Remaining', remaining.toString());

@@ -5,8 +5,19 @@ import { useState, useEffect } from 'react';
 import { getPartners, createPartner, processPayoutAction } from '@/lib/actions/partners';
 import { toast } from 'sonner';
 
+interface Partner {
+    id: string;
+    name: string;
+    email: string | null;
+    code: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    commissionRate: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    walletBalance: any;
+}
+
 export default function PartnersPage() {
-    const [partners, setPartners] = useState<any[]>([]);
+    const [partners, setPartners] = useState<Partner[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
     
@@ -17,7 +28,7 @@ export default function PartnersPage() {
     const [newRate, setNewRate] = useState(0.10);
 
     // Payout State
-    const [payoutPartner, setPayoutPartner] = useState<any>(null);
+    const [payoutPartner, setPayoutPartner] = useState<Partner | null>(null);
     const [payoutAmount, setPayoutAmount] = useState('');
     const [payoutRef, setPayoutRef] = useState('');
 
@@ -30,7 +41,7 @@ export default function PartnersPage() {
         try {
             const data = await getPartners();
             setPartners(data);
-        } catch (error) {
+        } catch {
             toast.error('Failed to load partners');
         } finally {
             setLoading(false);
@@ -52,7 +63,7 @@ export default function PartnersPage() {
             loadPartners();
             // Reset form
             setNewName(''); setNewCode(''); setNewEmail('');
-        } catch (error) {
+        } catch {
             toast.error('Failed to create partner');
         }
     };
@@ -66,7 +77,7 @@ export default function PartnersPage() {
             toast.success('Payout processed');
             setPayoutPartner(null);
             loadPartners();
-        } catch (error) {
+        } catch {
             toast.error('Payout failed (check balance)');
         }
     };

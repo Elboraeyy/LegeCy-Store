@@ -189,10 +189,11 @@ export const inventoryService = {
 
     // Fire Event via Event Bus
     try {
-      const { eventBus, EVENTS } = require('@/lib/eventBus');
+      const { eventBus, EVENTS } = await import('@/lib/eventBus');
       eventBus.emit(EVENTS.INVENTORY.STOCK_INCREASED, { variantId });
     } catch (e) {
-      logger.warn('Could not emit stock event', e as any);
+      const err = e instanceof Error ? e : new Error(String(e));
+      logger.warn('Could not emit stock event', { error: err.message });
     }
   }
 };

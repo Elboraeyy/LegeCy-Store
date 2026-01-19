@@ -1,8 +1,5 @@
-import { NextRequest } from 'next/server';
-
 const ALG = { name: 'HMAC', hash: 'SHA-256' };
 const ENCODER = new TextEncoder();
-const DECODER = new TextDecoder();
 
 // Get secret from env or throw error in production. Use fallback ONLY in dev.
 const SECRET_KEY = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;

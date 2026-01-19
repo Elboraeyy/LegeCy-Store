@@ -12,8 +12,17 @@ const WAREHOUSES = [
     { id: 'wh-retail', name: 'Retail Store' }
 ];
 
+interface Transfer {
+    id: string;
+    fromWarehouseId: string;
+    toWarehouseId: string;
+    fromWarehouse?: { name: string };
+    toWarehouse?: { name: string };
+    status: string;
+}
+
 export default function StockTransfersPage() {
-    const [transfers, setTransfers] = useState<any[]>([]);
+    const [transfers, setTransfers] = useState<Transfer[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
 
@@ -35,13 +44,13 @@ export default function StockTransfersPage() {
         finally { setLoading(false); }
     };
 
-    const handleAction = async (action: Function, id: string, label: string) => {
+    const handleAction = async (action: (id: string) => Promise<void>, id: string, label: string) => {
         if (!confirm(`Are you sure you want to ${label}?`)) return;
         try {
             await action(id);
             toast.success(`${label} Successful`);
             loadTransfers();
-        } catch (error) {
+        } catch {
             toast.error(`Failed to ${label}`);
         }
     };
@@ -63,7 +72,7 @@ export default function StockTransfersPage() {
             toast.success('Transfer Created');
             setShowCreate(false);
             loadTransfers();
-        } catch (error) {
+        } catch {
             toast.error('Creation Failed');
         }
     };

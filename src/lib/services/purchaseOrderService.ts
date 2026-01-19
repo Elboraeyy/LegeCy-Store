@@ -13,7 +13,7 @@ export const purchaseOrderService = {
       invoiceNumber: string; 
       issueDate: Date; 
       items: { variantId: string; quantity: number; unitCost: number }[] 
-  }, adminId: string) {
+  }) {
       // Calculate totals
       let subtotal = 0;
       data.items.forEach(item => subtotal += item.quantity * item.unitCost);

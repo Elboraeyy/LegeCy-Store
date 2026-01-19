@@ -4,23 +4,34 @@ import '@/app/admin/admin.css';
 import { useState, useEffect } from 'react';
 import { getProfitQualityReport } from '@/lib/actions/financial-reports';
 
+interface ProfitQualityReport {
+    grossProfit: number;
+    grossMargin: number;
+    operatingProfit: number;
+    cashBalance: number;
+    revenue: number;
+    cogs: number;
+    expenses: number;
+}
+
 export default function ProfitQualityPage() {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<ProfitQualityReport | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         getProfitQualityReport().then(res => {
-            setData(res);
+            setData(res as ProfitQualityReport);
             setLoading(false);
         });
     }, []);
 
     if (loading) return <div className="admin-page p-8 text-center text-gray-500">Loading Report...</div>;
+    if (!data) return <div className="admin-page p-8 text-center text-red-500">Failed to load report data.</div>;
 
     return (
         <div className="admin-page">
             <h1 className="admin-title mb-2">Profit Quality Analysis</h1>
-            <p className="admin-subtitle mb-8">Understanding the "Real" vs "Accounting" Profit</p>
+            <p className="admin-subtitle mb-8">Understanding the &quot;Real&quot; vs &quot;Accounting&quot; Profit</p>
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

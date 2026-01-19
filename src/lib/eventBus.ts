@@ -1,9 +1,10 @@
 import { logger } from '@/lib/logger';
 
-type EventHandler<T = any> = (data: T) => Promise<void> | void;
+type EventHandler<T = unknown> = (data: T) => Promise<void> | void;
 
 class EventBus {
-    private handlers: Map<string, EventHandler[]> = new Map();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private handlers: Map<string, EventHandler<any>[]> = new Map();
 
     /**
      * Subscribe to an event
@@ -12,7 +13,8 @@ class EventBus {
         if (!this.handlers.has(event)) {
             this.handlers.set(event, []);
         }
-        this.handlers.get(event)!.push(handler);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        this.handlers.get(event)!.push(handler as EventHandler<any>);
     }
 
     /**
@@ -32,7 +34,8 @@ class EventBus {
                         logger.error(`[EventBus] Error in handler for ${event}`, err)
                     );
                 } catch (e) {
-                    logger.error(`[EventBus] Sync error in handler for ${event}`, e as any);
+                    const err = e instanceof Error ? e : new Error(String(e));
+                    logger.error(`[EventBus] Sync error in handler for ${event}`, { error: err.message });
                 }
             });
         }

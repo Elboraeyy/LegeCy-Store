@@ -154,8 +154,7 @@ export default function CompareClient({ suggestions }: CompareClientProps) {
                         onRemove={removeFromCompare}
                         onReplace={handleOpenModal}
                         addToCart={addToCart}
-                        onAddSlot={() => handleOpenModal()}
-                        suggestions={normalizedSuggestions}
+                                onAddSlot={() => handleOpenModal()}
                     />
                 )}
             </section>

@@ -46,11 +46,13 @@ export async function GET(request: Request) {
             if (!order.customerEmail || !order.customerEmail.includes('@')) continue;
 
             // Prepare Data
+            /* eslint-disable @typescript-eslint/no-explicit-any */
             const items = (order as any).items.map((i: any) => ({
                 name: i.product.name,
                 price: Number(i.price),
                 image: i.product.images[0]
             }));
+            /* eslint-enable @typescript-eslint/no-explicit-any */
 
             const cartUrl = `${process.env.NEXT_PUBLIC_APP_URL}/checkout?orderId=${order.id}`; // Or restore cart link
 
@@ -79,8 +81,9 @@ export async function GET(request: Request) {
             sent: sentCount
         });
 
-    } catch (error: any) {
-        logger.error('[AbandonedRecovery] Failed', error as any);
-        return new NextResponse(`Error: ${error.message}`, { status: 500 });
+    } catch (error: unknown) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        logger.error('[AbandonedRecovery] Failed', { error: err.message });
+        return new NextResponse(`Error: ${err.message}`, { status: 500 });
     }
 }

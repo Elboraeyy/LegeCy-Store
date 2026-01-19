@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Product } from "@/types/product";
 import ProductCard from "./ProductCard";
 import AddProductSlot from "./AddProductSlot";
@@ -20,8 +20,7 @@ export default function ComparisonTable({
     onReplace,
     addToCart,
     onAddSlot,
-    suggestions = []
-}: ComparisonTableProps & { suggestions?: Product[] }) {
+}: ComparisonTableProps) {
 
 
     // Dynamic slots: Show all selected products + 1 empty slot (if less than 5)
@@ -100,8 +99,7 @@ export default function ComparisonTable({
                                         />
                                     ) : (
                                         <AddProductSlot
-                                            onAdd={onAddSlot}
-                                            suggestion={suggestions[idx % suggestions.length]}
+                                                onAdd={onAddSlot}
                                         />
                                     )}
                                 </th>
@@ -138,11 +136,11 @@ export default function ComparisonTable({
                                     const values = slots.map(p => {
                                         if (!p) return "";
                                         if ('key' in row && row.key) {
-                                            // @ts-ignore
+                                            // @ts-expect-error - Dynamic property access
                                             return p[row.key] || row.default || "-";
                                         }
                                         if ('specKey' in row && row.specKey) {
-                                            // @ts-ignore
+                                            // @ts-expect-error - Dynamic property access
                                             return p.specs?.[row.specKey] || row.default || "-";
                                         }
                                         return "-";

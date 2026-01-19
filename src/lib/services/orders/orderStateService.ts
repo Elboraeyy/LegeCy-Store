@@ -58,8 +58,9 @@ export const orderStateService = {
                     await this._handleRefund(orderId, amount || 0, triggeredBy, reason);
                     break;
             }
-        } catch (error: any) {
-            logger.error(`[OrderState] Failed to process ${eventType} for ${orderId}`, { error: error.message || error });
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            logger.error(`[OrderState] Failed to process ${eventType} for ${orderId}`, { error: errorMessage });
             // We log but don't throw, to avoid blocking the event recording? 
             // Ideally we should throw if it's critical. `recordPaymentReceipt` failure is bad.
             // Let's rethrow.
@@ -91,7 +92,8 @@ export const orderStateService = {
 
             for (const item of order.items) {
                 if (item.variantId) {
-                    let targetWarehouseId = (item as any).warehouseId;
+                    // Audit Fix: Explicitly cast to include warehouseId which is technically on the Prisma return but might be missing in strict types
+                    let targetWarehouseId = (item as unknown as { warehouseId?: string }).warehouseId;
 
                     // Fallback for old orders (Pre-Audit)
                     if (!targetWarehouseId) {
@@ -100,7 +102,7 @@ export const orderStateService = {
                                 || await tx.warehouse.findFirst();
                             legacyWarehouseId = w?.id || null;
                         }
-                        targetWarehouseId = legacyWarehouseId;
+                        targetWarehouseId = legacyWarehouseId || undefined;
                     }
 
                     if (targetWarehouseId) {
