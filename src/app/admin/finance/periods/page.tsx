@@ -24,18 +24,10 @@ export default function FinancialPeriodsPage() {
     }
   }
 
-  async function handleClose(periodId: string) {
-    if (!confirm('Are you sure you want to CLOSE this period? No more transactions will be allowed.')) return;
-    
-    setActionLoading(periodId);
-    try {
-      await closePeriod(periodId, 'admin-id-placeholder');
-      await loadPeriods();
-    } catch (e) {
-      alert('Failed to close period: ' + e);
-    } finally {
-      setActionLoading(null);
-    }
+  const router = require('next/navigation').useRouter();
+
+  function handleClose(periodId: string) {
+    router.push(`/admin/finance/periods/${periodId}/close`);
   }
 
   async function handleReopen(periodId: string) {

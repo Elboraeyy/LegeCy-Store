@@ -115,8 +115,14 @@ export async function createAdminSession(adminId: string) {
         }
     });
 
+    // ----------------------------------------------------
+    // CRITICAL SECURITY FIX: Signed Session Token
+    // ----------------------------------------------------
+    const { createSignedToken } = await import('@/lib/auth/authToken');
+    const signedSessionToken = await createSignedToken(sessionId);
+
     // Set Cookie with different name
-    (await cookies()).set(ADMIN_SESSION_COOKIE_NAME, sessionId, {
+    (await cookies()).set(ADMIN_SESSION_COOKIE_NAME, signedSessionToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -128,7 +134,12 @@ export async function createAdminSession(adminId: string) {
 }
 
 export const validateAdminSession = cache(async (): Promise<{ session: AdminSession; user: AdminUser & { role: AdminRole | null } } | { session: null; user: null }> => {
-    const sessionId = (await cookies()).get(ADMIN_SESSION_COOKIE_NAME)?.value;
+    const signedToken = (await cookies()).get(ADMIN_SESSION_COOKIE_NAME)?.value;
+    if (!signedToken) return { session: null, user: null };
+
+    // Verify the signed token and extract the actual session ID
+    const { verifySignedToken } = await import('@/lib/auth/authToken');
+    const sessionId = await verifySignedToken(signedToken);
     if (!sessionId) return { session: null, user: null };
 
     const session = await prisma.adminSession.findUnique({
@@ -167,9 +178,13 @@ export const validateAdminSession = cache(async (): Promise<{ session: AdminSess
 });
 
 export async function destroyAdminSession() {
-    const sessionId = (await cookies()).get(ADMIN_SESSION_COOKIE_NAME)?.value;
-    if (sessionId) {
-        await prisma.adminSession.deleteMany({ where: { id: sessionId } });
+    const signedToken = (await cookies()).get(ADMIN_SESSION_COOKIE_NAME)?.value;
+    if (signedToken) {
+        const { verifySignedToken } = await import('@/lib/auth/authToken');
+        const sessionId = await verifySignedToken(signedToken);
+        if (sessionId) {
+            await prisma.adminSession.deleteMany({ where: { id: sessionId } });
+        }
     }
     (await cookies()).delete(ADMIN_SESSION_COOKIE_NAME);
 }

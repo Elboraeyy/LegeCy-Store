@@ -46,9 +46,29 @@ export async function recordCapitalTransaction(
   const investor = await prisma.investor.findUnique({ where: { id: investorId } });
   if (!investor) throw new Error('Investor not found');
 
-  // 1. Create Journal Entry (Cash <-> Equity)
   const isDeposit = type === 'DEPOSIT';
   
+  // CRITICAL FIX: Validate withdrawal doesn't exceed available balance
+  if (!isDeposit) {
+    const currentBalance = Number(investor.netContributed);
+    if (amount > currentBalance) {
+      throw new Error(`Insufficient balance. Available: ${currentBalance.toFixed(2)} EGP, Requested: ${amount.toFixed(2)} EGP`);
+    }
+
+    // Check if this withdrawal requires approval
+    const { checkApprovalRequired, isApprovalComplete } = await import('./approvalService');
+    const approvalCheck = await checkApprovalRequired('CAPITAL_WITHDRAWAL', amount);
+
+    if (approvalCheck.required && approvalCheck.rule) {
+      // Check if approval has been granted
+      const isApproved = await isApprovalComplete('CAPITAL_WITHDRAWAL', investorId);
+      if (!isApproved) {
+        throw new Error(`Withdrawals over ${approvalCheck.rule.minAmount} EGP require approval. Please submit an approval request first.`);
+      }
+    }
+  }
+
+  // 1. Create Journal Entry (Cash <-> Equity)
   // Accounts:
   // Deposit: Debit Cash (1000), Credit Owner Equity (3000)
   // Withdraw: Debit Owner Equity (3000), Credit Cash (1000)

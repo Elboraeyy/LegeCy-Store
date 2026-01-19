@@ -59,6 +59,23 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     }
 
     // ========================================
+    // RATE LIMITING CHECK
+    // ========================================
+    const { checkCheckoutRateLimit, getClientIdentifier } = await import('@/lib/security/rateLimit');
+    const { headers } = await import('next/headers');
+    const headersList = await headers();
+    const clientId = getClientIdentifier(headersList);
+
+    const rateLimit = await checkCheckoutRateLimit(clientId);
+    if (!rateLimit.success) {
+      logger.warn('Checkout rate limit exceeded', { clientId, remaining: rateLimit.remaining });
+      return {
+        success: false,
+        error: 'Too many checkout attempts. Please wait a moment and try again.'
+      };
+    }
+
+    // ========================================
     // INPUT VALIDATION
     // ========================================
     if (!input.customerName || !input.customerEmail || !input.customerPhone) {
@@ -181,20 +198,68 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     // Calculate Loyalty Points (1 point per 10 EGP)
     const pointsEarned = Math.floor(finalTotal / 10);
 
+    // ========================================
+    // FRAUD DETECTION (COD Only)
+    // ========================================
+    if (input.paymentMethod === 'cod') {
+      const { analyzeRisk } = await import('@/lib/services/fraudService');
+      const fraudAnalysis = await analyzeRisk({
+        totalAmount: finalTotal,
+        items: input.cartItems.map(i => ({ name: i.name, quantity: i.qty })),
+        customerEmail: input.customerEmail,
+        userId: user?.id,
+        shippingCity: input.shippingCity,
+        ipAddress: (await headers()).get('x-forwarded-for') || 'unknown'
+      });
+
+      if (fraudAnalysis.shouldBlock) {
+        logger.warn('COD Order blocked by fraud detection', {
+          email: input.customerEmail,
+          score: fraudAnalysis.riskScore,
+          reasons: fraudAnalysis.factors
+        });
+        return {
+          success: false,
+          error: 'Your order cannot be processed with Cash on Delivery at this time. Please try a valid online payment method.'
+        };
+      }
+    }
+
     // Create order with shipping details
     const order = await prisma.$transaction(async (tx) => {
-      // Increment coupon usage if used
+      // Increment coupon usage with atomic checks
       if (couponId) {
-          await tx.coupon.update({
-              where: { id: couponId },
-              data: { currentUsage: { increment: 1 } }
+        // 1. Re-fetch coupon inside transaction to lock/read latest state
+        const coupon = await tx.coupon.findUnique({ where: { id: couponId } });
+
+        if (!coupon) throw new Error('Invalid coupon code'); // Should have been caught earlier but safe check
+
+        // 2. Atomic Global Usage Check & Increment
+        if (coupon.usageLimit !== null) {
+          const result = await tx.coupon.updateMany({
+            where: {
+              id: couponId,
+              currentUsage: { lt: coupon.usageLimit }
+            },
+            data: { currentUsage: { increment: 1 } }
           });
+          if (result.count === 0) {
+            throw new Error('Coupon usage limit reached');
+          }
+        } else {
+        // No limit, just increment
+          await tx.coupon.update({
+            where: { id: couponId },
+            data: { currentUsage: { increment: 1 } }
+          });
+        }
       }
 
       // Get default warehouse for inventory operations
-      const warehouse = await tx.warehouse.findFirst();
+      // FIX: Use robust selection logic (Audit Requirement 1.1)
+      const warehouse = await getDefaultWarehouse(tx);
       if (!warehouse) {
-          throw new Error('No warehouse configured');
+        throw new Error('No active warehouse configured for fulfillment');
       }
 
       // STEP 1: Verify all products are active and have sufficient stock BEFORE creating order
@@ -263,9 +328,44 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         || headersList.get('x-real-ip') 
         || 'unknown';
 
+      // Calculate subtotal (before discounts)
+      const subtotalAmount = input.cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+      // Calculate total discount amount
+      const totalDiscountAmount = subtotalAmount - finalTotal;
+
+      // Calculate Shipping Cost
+      let shippingCost = new Prisma.Decimal(50); // Default fallback
+      if (input.shippingCity) {
+        const zone = await tx.shippingZone.findFirst({
+          where: { cities: { has: input.shippingCity } }
+        });
+        if (zone) {
+          shippingCost = zone.baseRate;
+        }
+      }
+
+      // Fetch cost prices for all items (for COGS tracking)
+      const variantCostMap: Record<string, number> = {};
+      for (const item of input.cartItems) {
+        if (item.variantId) {
+          const variant = await tx.variant.findUnique({
+            where: { id: item.variantId },
+            select: { costPrice: true }
+          });
+          if (variant?.costPrice) {
+            variantCostMap[item.variantId] = Number(variant.costPrice);
+          }
+        }
+      }
+
       const newOrder = await tx.order.create({
         data: {
-          totalPrice: new Prisma.Decimal(finalTotal),
+          // CRITICAL: Store all financial components for accurate reporting
+          subtotal: new Prisma.Decimal(subtotalAmount),
+          discountAmount: new Prisma.Decimal(totalDiscountAmount > 0 ? totalDiscountAmount : 0),
+          shippingCost: shippingCost,
+          totalPrice: new Prisma.Decimal(finalTotal).add(shippingCost), // Add shipping to total
           status: initialStatus,
           userId: user?.id, // Link to user if logged in
           customerName: input.customerName,
@@ -293,6 +393,9 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
                 discountedPricePerUnit = Math.max(0, discountedPricePerUnit);
               }
 
+              // Get cost price for COGS tracking (CRITICAL for refund reversals)
+              const costAtPurchase = item.variantId ? variantCostMap[item.variantId] : null;
+
               return {
                 productId: item.id,
                 variantId: item.variantId,
@@ -302,7 +405,11 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
                 discountedPrice: discountedPricePerUnit !== null
                   ? new Prisma.Decimal(discountedPricePerUnit)
                   : null,
-                quantity: item.qty
+                costAtPurchase: costAtPurchase !== null
+                  ? new Prisma.Decimal(costAtPurchase)
+                  : null, // COGS snapshot for accurate reversal
+                quantity: item.qty,
+                warehouseId: warehouse.id // Audit Fix: Track fulfillment source
               };
             })
           }
@@ -431,8 +538,10 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     // Send confirmation email ONLY for COD orders
     // For online payments, email will be sent after payment confirmation (in paymentService.ts)
     if (input.paymentMethod === 'cod') {
-      const shippingAmount = input.shippingCost || 0;
+      // CRITICAL FIX: Calculate shipping from order total minus items subtotal
+      // This ensures email amount matches what was actually charged
       const itemsSubtotal = input.cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const calculatedShipping = Number(order.totalPrice) - finalTotal;
       sendOrderConfirmationEmail({
       orderId: order.id,
       customerName: input.customerName,
@@ -443,8 +552,8 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         price: item.price
       })),
         subtotal: itemsSubtotal,
-        shipping: shippingAmount,
-      total: finalTotal,
+        shipping: calculatedShipping > 0 ? calculatedShipping : 0,
+        total: Number(order.totalPrice),
       shippingAddress: `${input.shippingAddress}, ${input.shippingCity}`,
       paymentMethod: 'cod'
     }).catch((err: Error) => {
@@ -463,9 +572,55 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
   } catch (error) {
     logger.error('Checkout error', { error });
     console.error('Checkout error:', error);
+
+    // Extract specific error message for better user feedback
+    let errorMessage = 'An error occurred while creating the order. Please try again.';
+
+    if (error instanceof Error) {
+      const msg = error.message.toLowerCase();
+
+      // Pass through specific, user-friendly error messages
+      if (msg.includes('insufficient stock') || msg.includes('available:')) {
+        errorMessage = error.message;
+      } else if (msg.includes('unavailable') || msg.includes('not found')) {
+        errorMessage = error.message;
+      } else if (msg.includes('coupon') || msg.includes('usage limit')) {
+        errorMessage = error.message;
+      } else if (msg.includes('price') && msg.includes('changed')) {
+        errorMessage = error.message;
+      } else if (msg.includes('warehouse')) {
+        errorMessage = 'Unable to process order at this time. Please contact support.';
+      } else if (msg.includes('payment')) {
+        errorMessage = 'Payment processing error. Please try again or use a different payment method.';
+      }
+    }
+
     return {
       success: false,
-      error: 'An error occurred while creating the order. Please try again.'
+      error: errorMessage
     };
   }
+}
+
+/**
+ * Helper to get the correct warehouse for fulfillment.
+ * Improved Logic:
+ * 1. Priority: Active 'MAIN' warehouse.
+ * 2. Fallback: First created Active warehouse (stable fallback).
+ */
+async function getDefaultWarehouse(tx: Prisma.TransactionClient) {
+  // Priority 1: Main Warehouse
+  let warehouse = await tx.warehouse.findFirst({
+    where: { type: 'MAIN', isActive: true }
+  });
+
+  // Priority 2: Fallback to any active warehouse (oldest first for stability)
+  if (!warehouse) {
+    warehouse = await tx.warehouse.findFirst({
+      where: { isActive: true },
+      orderBy: { createdAt: 'asc' }
+    });
+  }
+
+  return warehouse;
 }

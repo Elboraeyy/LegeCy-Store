@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { confirmPaymentIntent, failPaymentIntent, PaymentIntentStatus } from '@/lib/services/paymentService';
 import { getPaymobConfig } from '@/lib/paymob';
+import { verifyPaymobWebhook, extractPaymobTransaction } from '@/lib/paymob-webhook';
+import { checkWebhookRateLimit } from '@/lib/security/rateLimit';
 
 /**
  * Paymob Webhook Handler (Transaction Processed Callback)
  * 
  * CRITICAL SECURITY RULES:
- * 1. ALWAYS verify HMAC signature
+ * 1. ALWAYS verify HMAC signature using centralized verifyPaymobWebhook
  * 2. ALWAYS check idempotency (ProcessedWebhookEvent)
  * 3. NEVER trust request body without verification
  * 4. Handle all events atomically
@@ -73,68 +74,6 @@ interface PaymobCallback {
     obj: PaymobTransaction;
 }
 
-/**
- * Verify Paymob HMAC signature
- * 
- * CRITICAL SECURITY: This function is FAIL-CLOSED.
- * If HMAC secret is not configured, ALL webhooks are REJECTED.
- * This applies to ALL environments including development.
- */
-function verifyPaymobHmac(obj: PaymobTransaction, hmacHeader: string, hmacSecret: string): { valid: boolean; error?: string } {
-    // FAIL-CLOSED: If HMAC secret is not configured, REJECT ALL WEBHOOKS
-    if (!hmacSecret) {
-        logger.error('CRITICAL: PAYMOB_HMAC_SECRET is not configured - REJECTING WEBHOOK');
-        return { valid: false, error: 'HMAC_SECRET_NOT_CONFIGURED' };
-    }
-
-    // FAIL-CLOSED: If no HMAC header received, REJECT
-    if (!hmacHeader) {
-        logger.error('CRITICAL: No HMAC header received in webhook - REJECTING');
-        return { valid: false, error: 'HMAC_HEADER_MISSING' };
-    }
-
-    // Paymob HMAC is computed from concatenated values (in alphabetical order by key)
-    // Reference: https://docs.paymob.com/docs/hmac-calculation
-    const concatenatedString = [
-        obj.amount_cents,
-        obj.created_at,
-        obj.currency,
-        obj.data?.message || '',
-        obj.has_parent_transaction,
-        obj.id,
-        obj.integration_id,
-        obj.is_3d_secure,
-        obj.is_auth,
-        obj.is_capture,
-        obj.is_refunded,
-        obj.is_standalone_payment,
-        obj.is_voided,
-        obj.order.id,
-        obj.order.merchant.id,
-        obj.pending,
-        obj.profile_id,
-        obj.source_data.pan,
-        obj.source_data.sub_type,
-        obj.source_data.type,
-        obj.success
-    ].join('');
-
-    const calculatedHmac = crypto
-        .createHmac('sha512', hmacSecret)
-        .update(concatenatedString)
-        .digest('hex');
-
-    try {
-        const isValid = crypto.timingSafeEqual(
-            Buffer.from(calculatedHmac),
-            Buffer.from(hmacHeader)
-        );
-        return { valid: isValid, error: isValid ? undefined : 'HMAC_MISMATCH' };
-    } catch {
-        return { valid: false, error: 'HMAC_COMPARISON_FAILED' }; // Buffer length mismatch
-    }
-}
-
 
 async function isEventProcessed(transactionId: number): Promise<boolean> {
     const existing = await prisma.processedWebhookEvent.findUnique({
@@ -166,11 +105,20 @@ async function markEventProcessed(transactionId: number, success: boolean, entit
 export async function POST(request: Request) {
     console.log('=== PAYMOB WEBHOOK RECEIVED ===');
     
+    // Rate limiting check to prevent DoS via webhook replay
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 'webhook-source';
+    const rateCheck = await checkWebhookRateLimit(clientIp);
+    if (!rateCheck.success) {
+        logger.warn('Webhook rate limit exceeded', { ip: clientIp });
+        return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+    }
+
     let body: PaymobCallback;
     
     try {
         body = await request.json();
-        console.log('Webhook body received:', JSON.stringify(body, null, 2));
+        // SECURITY: Do not log full body as it contains PII (email, phone, address)
+        // console.log('Webhook body received:', JSON.stringify(body, null, 2));
     } catch {
         console.error('Failed to parse webhook body');
         logger.warn('Invalid Paymob webhook payload');
@@ -191,12 +139,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Missing transaction' }, { status: 400 });
     }
 
-    // 1. Verify HMAC Signature (FAIL-CLOSED)
-    const hmacResult = verifyPaymobHmac(transaction, hmacHeader, config.hmacSecret);
-    if (!hmacResult.valid) {
+    // 1. Verify HMAC Signature (FAIL-CLOSED) using centralized verification
+    const isValid = await verifyPaymobWebhook(body as unknown as Record<string, unknown>, hmacHeader);
+    if (!isValid) {
         logger.error('Paymob HMAC verification failed', { 
-            transactionId: transaction.id,
-            error: hmacResult.error
+            transactionId: transaction.id
         });
         
         // Send critical alert for webhook security failures
@@ -205,8 +152,8 @@ export async function POST(request: Request) {
             await sendAlert({
                 type: 'SECURITY_ALERT',
                 severity: 'critical',
-                message: `Webhook HMAC verification failed: ${hmacResult.error}`,
-                details: { transactionId: transaction.id, error: hmacResult.error }
+                message: `Webhook HMAC verification failed`,
+                details: { transactionId: transaction.id }
             });
         } catch (e) {
             logger.error('Failed to send security alert', { error: e });

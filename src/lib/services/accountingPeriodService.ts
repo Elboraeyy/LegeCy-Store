@@ -68,6 +68,110 @@ export async function getCurrentPeriod(): Promise<FinancialPeriod> {
 }
 
 /**
+ * Preview what will be locked when closing a period
+ * Returns summary of journal entries and orders that will be affected
+ */
+export async function previewPeriodClose(id: string): Promise<{
+  period: FinancialPeriod;
+  journalEntriesCount: number;
+  totalDebits: number;
+  totalCredits: number;
+  ordersCount: number;
+  revenueRecognized: number;
+  warnings: string[];
+}> {
+  const period = await prisma.financialPeriod.findUnique({
+    where: { id }
+  });
+
+  if (!period) {
+    throw new Error('Period not found');
+  }
+
+  if (period.status !== 'open') {
+    throw new Error('Period is not open');
+  }
+
+  // Get journal entries in this period
+  const journalEntries = await prisma.journalEntry.findMany({
+    where: {
+      date: {
+        gte: period.startDate,
+        lte: period.endDate
+      }
+    },
+    include: {
+      lines: true
+    }
+  });
+
+  let totalDebits = 0;
+  let totalCredits = 0;
+  for (const entry of journalEntries) {
+    for (const line of entry.lines) {
+      totalDebits += Number(line.debit);
+      totalCredits += Number(line.credit);
+    }
+  }
+
+  // Get orders delivered in this period
+  const orders = await prisma.order.count({
+    where: {
+      deliveredAt: {
+        gte: period.startDate,
+        lte: period.endDate
+      }
+    }
+  });
+
+  // Get revenue recognized
+  const revenueRecog = await prisma.revenueRecognition.aggregate({
+    where: {
+      recognizedAt: {
+        gte: period.startDate,
+        lte: period.endDate
+      }
+    },
+    _sum: {
+      netRevenue: true
+    }
+  });
+
+  // Warnings
+  const warnings: string[] = [];
+
+  // Check for unbalanced entries
+  if (Math.abs(totalDebits - totalCredits) > 0.01) {
+    warnings.push(`WARNING: Journal entries are not balanced. Debits: ${totalDebits.toFixed(2)}, Credits: ${totalCredits.toFixed(2)}`);
+  }
+
+  // Check for pending orders in period
+  const pendingOrders = await prisma.order.count({
+    where: {
+      createdAt: {
+        gte: period.startDate,
+        lte: period.endDate
+      },
+      status: { in: ['pending', 'confirmed', 'paid'] }
+    }
+  });
+
+  if (pendingOrders > 0) {
+    warnings.push(`${pendingOrders} orders are still in processing state and may require attention`);
+  }
+
+  return {
+    period,
+    journalEntriesCount: journalEntries.length,
+    totalDebits,
+    totalCredits,
+    ordersCount: orders,
+    revenueRecognized: Number(revenueRecog._sum.netRevenue || 0),
+    warnings
+  };
+}
+
+/**
  * Closes a financial period.
  * This should trigger a snapshot of the P&L and Balance Sheet.
  */

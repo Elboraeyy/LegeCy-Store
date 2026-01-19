@@ -36,6 +36,7 @@ async function getAccountByCode(code: string) {
       '1000': { name: 'Cash on Hand', type: AccountType.ASSET },
       '1100': { name: 'Accounts Receivable', type: AccountType.ASSET },
       '1200': { name: 'Inventory', type: AccountType.ASSET },
+      '2000': { name: 'Accounts Payable', type: AccountType.LIABILITY },
       '2100': { name: 'Deferred Revenue', type: AccountType.LIABILITY },
       '3000': { name: 'Owner\'s Equity', type: AccountType.EQUITY },
       '4000': { name: 'Sales Revenue', type: AccountType.REVENUE },
@@ -157,32 +158,55 @@ export async function createJournalEntry(input: JournalEntryInput) {
 
 export const revenueService = {
   /**
+   * Create a generic journal entry (Exposed for external use)
+   */
+  createJournalEntry: createJournalEntry,
+
+  /**
    * Recognize revenue for a delivered order
    */
-  async recognizeRevenue(orderId: string, netRevenue: number, cogsAmount: number) {
+  async recognizeRevenue(orderId: string, netRevenue: number | Decimal, cogsAmount: number | Decimal, taxAmount: number | Decimal = 0) {
     const order = await prisma.order.findUnique({ where: { id: orderId } });
     if (!order) throw new Error(`Order ${orderId} not found`);
     
     const orderRef = `ORD-${orderId.substring(0, 8)}`;
     
+    // Ensure Decimals
+    const netRevenueDec = new Decimal(netRevenue);
+    const cogsAmountDec = new Decimal(cogsAmount);
+    const taxAmountDec = new Decimal(taxAmount);
+
     // 1. Revenue Entry
     const isCOD = order.paymentMethod === 'cod';
     const cashAccount = isCOD ? ACCOUNTS.CASH : ACCOUNTS.ACCOUNTS_RECEIVABLE;
     
+    // Debit amount is Net + Tax (Total Billed)
+    const totalBilled = netRevenueDec.plus(taxAmountDec);
+
+    const lines = [
+      {
+        accountCode: cashAccount, 
+        debit: totalBilled,
+        description: isCOD ? 'Cash received' : 'Receivable from online payment'
+      },
+      {
+        accountCode: ACCOUNTS.SALES_REVENUE,
+        credit: netRevenueDec,
+        description: 'Sales revenue'
+      }
+    ];
+
+    if (taxAmountDec.greaterThan(0)) {
+      lines.push({
+        accountCode: ACCOUNTS.SALES_TAX_PAYABLE,
+        credit: taxAmountDec,
+        description: 'VAT Liability'
+      });
+    }
+
     const revenueEntry = await createJournalEntry({
       description: `Revenue recognized - Order ${orderRef}`,
-      lines: [
-        { 
-          accountCode: cashAccount, 
-          debit: netRevenue, 
-          description: isCOD ? 'Cash received' : 'Receivable from online payment' 
-        },
-        { 
-          accountCode: ACCOUNTS.SALES_REVENUE, 
-          credit: netRevenue, 
-          description: 'Sales revenue' 
-        }
-      ],
+      lines: lines,
       reference: orderRef,
       orderId: orderId,
       createdBy: 'system'
@@ -190,18 +214,18 @@ export const revenueService = {
     
     // 2. COGS Entry (only if there's cost)
     let cogsEntry = null;
-    if (cogsAmount > 0) {
+    if (cogsAmountDec.greaterThan(0)) {
       cogsEntry = await createJournalEntry({
         description: `COGS recognized - Order ${orderRef}`,
         lines: [
           { 
             accountCode: ACCOUNTS.COGS, 
-            debit: cogsAmount, 
+            debit: cogsAmountDec, 
             description: 'Cost of goods sold' 
           },
           { 
             accountCode: ACCOUNTS.INVENTORY, 
-            credit: cogsAmount, 
+            credit: cogsAmountDec, 
             description: 'Inventory reduction' 
           }
         ],
@@ -220,7 +244,7 @@ export const revenueService = {
       }
     });
     
-    console.log(`[RevenueService] Revenue recognized for ${orderRef}: Revenue=${netRevenue}, COGS=${cogsAmount}`);
+    console.log(`[RevenueService] Revenue recognized for ${orderRef}: Revenue=${netRevenueDec}, Tax=${taxAmountDec}, COGS=${cogsAmountDec}`);
     
     return { revenueEntry, cogsEntry };
   },
@@ -242,34 +266,47 @@ export const revenueService = {
     if (!order) return;
     
     const orderRef = `ORD-${orderId.substring(0, 8)}-REV`;
-    const netRevenue = Number(recognition.netRevenue);
-    const cogsAmount = Number(recognition.cogsAmount);
+    const netRevenue = new Decimal(recognition.netRevenue);
+    const taxAmount = recognition.taxAmount ? new Decimal(recognition.taxAmount) : new Decimal(0);
+    const cogsAmount = new Decimal(recognition.cogsAmount);
     
     // 1. Reverse Revenue Entry
     const isCOD = order.paymentMethod === 'cod';
     const cashAccount = isCOD ? ACCOUNTS.CASH : ACCOUNTS.ACCOUNTS_RECEIVABLE;
     
+    const totalReversal = netRevenue.plus(taxAmount);
+
+    const lines = [
+      {
+        accountCode: ACCOUNTS.SALES_REVENUE,
+        debit: netRevenue,
+        description: 'Reversal of sales revenue'
+      },
+      {
+        accountCode: cashAccount, 
+        credit: totalReversal,
+        description: 'Cash/Receivable reversal'
+      }
+    ];
+
+    if (taxAmount.greaterThan(0)) {
+      lines.push({
+        accountCode: ACCOUNTS.SALES_TAX_PAYABLE,
+        debit: taxAmount,
+        description: 'Reversal of VAT Liability'
+      });
+    }
+
     await createJournalEntry({
       description: `Revenue reversal - ${reason}`,
-      lines: [
-        { 
-          accountCode: ACCOUNTS.SALES_REVENUE, 
-          debit: netRevenue, 
-          description: 'Reversal of sales revenue' 
-        },
-        { 
-          accountCode: cashAccount, 
-          credit: netRevenue, 
-          description: 'Cash/Receivable reversal' 
-        }
-      ],
+      lines: lines,
       reference: orderRef,
       orderId: orderId,
       createdBy: 'system'
     });
     
     // 2. Reverse COGS Entry
-    if (cogsAmount > 0) {
+    if (cogsAmount.greaterThan(0)) {
       await createJournalEntry({
         description: `COGS reversal - ${reason}`,
         lines: [
@@ -290,54 +327,74 @@ export const revenueService = {
       });
     }
     
-    console.log(`[RevenueService] Revenue reversed for ${orderRef}: Revenue=${netRevenue}, COGS=${cogsAmount}`);
+    console.log(`[RevenueService] Revenue reversed for ${orderRef}: Revenue=${netRevenue}, Tax=${taxAmount}, COGS=${cogsAmount}`);
   },
   
   /**
    * Create refund journal entry for partial refund
    */
-  async createRefundEntry(orderId: string, revenueToReverse: number, cogsToReverse: number, reason?: string) {
+  /**
+   * Create refund journal entry for partial refund
+   */
+  async createRefundEntry(orderId: string, revenueToReverse: number | Decimal, cogsToReverse: number | Decimal, reason?: string, taxToReverse: number | Decimal = 0) {
     const order = await prisma.order.findUnique({ where: { id: orderId } });
     if (!order) return;
     
     const orderRef = `ORD-${orderId.substring(0, 8)}-REF`;
     
+    // Ensure Decimals
+    const revenueToReverseDec = new Decimal(revenueToReverse);
+    const taxToReverseDec = new Decimal(taxToReverse);
+    const cogsToReverseDec = new Decimal(cogsToReverse);
+
     // Reverse revenue proportionally
     const isCOD = order.paymentMethod === 'cod';
     const cashAccount = isCOD ? ACCOUNTS.CASH : ACCOUNTS.ACCOUNTS_RECEIVABLE;
     
+    const totalRefund = revenueToReverseDec.plus(taxToReverseDec);
+
+    const lines = [
+      {
+        accountCode: ACCOUNTS.SALES_REVENUE,
+        debit: revenueToReverseDec,
+        description: 'Revenue reduction from refund'
+      },
+      {
+        accountCode: cashAccount, 
+        credit: totalRefund,
+        description: 'Refund paid'
+      }
+    ];
+
+    if (taxToReverseDec.greaterThan(0)) {
+      lines.push({
+        accountCode: ACCOUNTS.SALES_TAX_PAYABLE,
+        debit: taxToReverseDec,
+        description: 'Tax reduction from refund'
+      });
+    }
+
     await createJournalEntry({
       description: `Refund - ${reason || 'Customer refund'}`,
-      lines: [
-        { 
-          accountCode: ACCOUNTS.SALES_REVENUE, 
-          debit: revenueToReverse, 
-          description: 'Revenue reduction from refund' 
-        },
-        { 
-          accountCode: cashAccount, 
-          credit: revenueToReverse, 
-          description: 'Refund paid' 
-        }
-      ],
+      lines: lines,
       reference: orderRef,
       orderId: orderId,
       createdBy: 'system'
     });
     
     // If goods returned, reverse COGS
-    if (cogsToReverse > 0) {
+    if (cogsToReverseDec.greaterThan(0)) {
       await createJournalEntry({
         description: `Refund inventory return - ${reason || 'Goods returned'}`,
         lines: [
           { 
             accountCode: ACCOUNTS.INVENTORY, 
-            debit: cogsToReverse, 
+            debit: cogsToReverseDec, 
             description: 'Inventory returned' 
           },
           { 
             accountCode: ACCOUNTS.COGS, 
-            credit: cogsToReverse, 
+            credit: cogsToReverseDec, 
             description: 'COGS reduction' 
           }
         ],
@@ -347,6 +404,6 @@ export const revenueService = {
       });
     }
     
-    console.log(`[RevenueService] Refund entry created for ${orderRef}: Revenue=${revenueToReverse}, COGS=${cogsToReverse}`);
+    console.log(`[RevenueService] Refund entry created for ${orderRef}: Rev=${revenueToReverseDec}, Tax=${taxToReverseDec}, COGS=${cogsToReverseDec}`);
   }
 };

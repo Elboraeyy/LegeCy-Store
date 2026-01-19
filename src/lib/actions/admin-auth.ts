@@ -1,125 +1,193 @@
 'use server';
 
 import prismaClient from '@/lib/prisma';
-
 const prisma = prismaClient!;
 import { verifyPassword } from '@/lib/auth/password';
 import { createAdminSession, destroyAdminSession } from '@/lib/auth/session';
 import { checkRateLimit, RateLimits } from '@/lib/auth/rate-limit';
+import { auditService } from '@/lib/services/auditService'; // Use the service we know exists
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-export type ActionState = { error?: string } | null;
+// Types
+export type ActionState = {
+    error?: string;
+    requiresTwoFactor?: boolean;
+    adminId?: string;
+    message?: string;
+} | null;
 
+// Validation Schema
 const adminLoginSchema = z.object({
     email: z.string().email(),
-    password: z.string()
+    password: z.string().min(1)
 });
 
-async function logAudit(adminId: string, action: string, metadata: Record<string, unknown> = {}, ip: string) {
-    await prisma.auditLog.create({
-        data: {
-            adminId,
-            action,
-            entityType: 'SYSTEM',
-            metadata: JSON.stringify(metadata),
-            ipAddress: ip
+// Helper for completing login
+async function completeLogin(adminId: string, ip: string) {
+    // Reset counters
+    await prisma.adminUser.update({
+        where: { id: adminId },
+        data: { 
+            failedLoginAttempts: 0,
+            lockedUntil: null,
+            lastLoginAt: new Date() 
         }
     });
-}
 
-const LOCKOUT_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+    // Create Session (Strict Middleware Compatible)
+    await createAdminSession(adminId);
 
-export async function adminLogin(prevState: ActionState, formData: FormData): Promise<ActionState> {
-    const ip = (await headers()).get('x-forwarded-for') || 'unknown';
-
-    // Stricter Rate Limit for Admin
-    if (!checkRateLimit(`admin_login_${ip}`, RateLimits.ADMIN_LOGIN)) {
-        return { error: 'Too many admin login attempts. Access temporarily blocked.' };
+    // Audit Log
+    try {
+        await auditService.logAction(
+            adminId,
+            'LOGIN_SUCCESS',
+            'ADMIN',
+            adminId,
+            { ip }
+        );
+    } catch (e) {
+        console.error('Audit Log Failed:', e);
     }
 
+    redirect('/admin');
+}
+
+export async function adminLogin(prevState: any, formData: FormData): Promise<ActionState> {
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
     try {
-        const data = adminLoginSchema.parse(Object.fromEntries(formData));
+        // 1. Validation
+        const validatedFields = adminLoginSchema.safeParse({ email, password });
+        if (!validatedFields.success) {
+            return { error: 'Invalid email or password format' };
+        }
 
-        const admin = await prisma.adminUser.findUnique({ where: { email: data.email } });
+        const ip = (await headers()).get('x-forwarded-for') || 'unknown';
 
+        // Stricter Rate Limit for Admin
+        if (!await checkRateLimit(`admin_login_${ip}`, RateLimits.ADMIN_LOGIN)) {
+            return { error: 'Too many login attempts. Please try again later.' };
+        }
+
+        // 2. Find Admin
+        const admin = await prisma.adminUser.findUnique({
+            where: { email },
+            include: { role: true }
+        });
+
+        // 3. Check Credentials
         if (!admin || !admin.isActive) {
-            // Fake verification to prevent timing attacks
-            await verifyPassword('dummy', '$argon2id$v=19$m=65536,t=3,p=4$dummyhash$dummyhash');
+            // Fake delay for security
+            await new Promise(resolve => setTimeout(resolve, 500));
             return { error: 'Invalid credentials' };
         }
 
-        // Check if account is locked
+        // Check Lockout
         if (admin.lockedUntil && admin.lockedUntil > new Date()) {
-            const remainingMinutes = Math.ceil((admin.lockedUntil.getTime() - Date.now()) / 60000);
-            await logAudit(admin.id, 'LOGIN_BLOCKED', { reason: 'Account locked', remainingMinutes }, ip);
-            return { error: `Account is locked. Try again in ${remainingMinutes} minutes.` };
+            return { error: 'Account is temporarily locked. Try again later.' };
         }
 
-        const isValid = await verifyPassword(data.password, admin.passwordHash);
+        const passwordsMatch = await verifyPassword(password, admin.passwordHash);
 
-        if (!isValid) {
+        if (!passwordsMatch) {
             // Increment failed attempts
             const newAttempts = admin.failedLoginAttempts + 1;
-            const shouldLock = newAttempts >= LOCKOUT_ATTEMPTS;
-            
+            const shouldLock = newAttempts >= 5;
+
+            // Log failed attempt
             await prisma.adminUser.update({
                 where: { id: admin.id },
-                data: {
+                data: { 
                     failedLoginAttempts: newAttempts,
-                    lockedUntil: shouldLock ? new Date(Date.now() + LOCKOUT_DURATION_MS) : null
+                    lockedUntil: shouldLock ? new Date(Date.now() + 15 * 60 * 1000) : null 
                 }
             });
 
-            await logAudit(admin.id, 'LOGIN_FAILED', { 
-                reason: 'Invalid Password', 
-                attempts: newAttempts,
-                locked: shouldLock 
-            }, ip);
+            await auditService.logAction(
+                admin.id,
+                'LOGIN_FAILED',
+                'ADMIN',
+                admin.id,
+                { ip, reason: 'Bad Password', attempts: newAttempts }
+            );
 
-            if (shouldLock) {
-                return { error: 'Account locked due to too many failed attempts. Try again in 15 minutes.' };
-            }
-            
-            return { error: `Invalid credentials. ${LOCKOUT_ATTEMPTS - newAttempts} attempts remaining.` };
+            return { error: 'Invalid credentials' };
         }
 
-        // Success - reset failed attempts
-        await prisma.adminUser.update({
-            where: { id: admin.id },
-            data: { 
-                lastLoginAt: new Date(),
-                failedLoginAttempts: 0,
-                lockedUntil: null
+        // 4. Check 2FA
+        // Cast to any because Prisma Client is stale and verifyAdminTwoFactor doesn't see twoFactorEnabled yet
+        if ((admin as any).twoFactorEnabled) {
+            const { generateAndSendTwoFactorToken } = await import('@/lib/services/twoFactorService');
+            const sent = await generateAndSendTwoFactorToken(admin.id, admin.email);
+
+            if (!sent) {
+                return { error: 'Failed to send verification code. Please contact support.' };
             }
-        });
 
-        await logAudit(admin.id, 'LOGIN_SUCCESS', {}, ip);
-        await createAdminSession(admin.id);
-
-    } catch (e) {
-        if (e instanceof z.ZodError) {
-            return { error: 'Invalid input' };
+            // Return state to trigger OTP form
+            return {
+                requiresTwoFactor: true,
+                adminId: admin.id,
+                message: 'Verification code sent to your email'
+            };
         }
-        console.error(e);
-        return { error: 'Admin login failed' };
+
+        // 5. Success (No 2FA) -> Create Session
+        await completeLogin(admin.id, ip);
+        return null; // Satisfy TS (redirect checks)
+
+    } catch (error) {
+        // If it's a redirect error, rethrow it
+        if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+            throw error;
+        }
+        console.error('Admin Login Error:', error);
+        return { error: 'An unexpected error occurred' };
+    }
+}
+
+export async function verifyAdminTwoFactor(prevState: any, formData: FormData): Promise<ActionState> {
+    const adminId = formData.get('adminId') as string;
+    const token = formData.get('otp') as string;
+
+    if (!adminId || !token) {
+        return { error: 'Missing verification data', requiresTwoFactor: true, adminId };
     }
 
-    redirect('/admin/orders');
+    try {
+        const { verifyTwoFactorToken } = await import('@/lib/services/twoFactorService');
+        const isValid = await verifyTwoFactorToken(adminId, token);
+
+        if (!isValid) {
+            return { error: 'Invalid verification code', requiresTwoFactor: true, adminId };
+        }
+
+        const ip = (await headers()).get('x-forwarded-for') || 'unknown';
+        await completeLogin(adminId, ip);
+        return null;
+
+    } catch (error) {
+        if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+            throw error;
+        }
+        console.error('2FA Verification Error:', error);
+        return { error: 'Verification failed', requiresTwoFactor: true, adminId };
+    }
 }
 
 export async function adminLogout() {
     const ip = (await headers()).get('x-forwarded-for') || 'unknown';
-    
-    // Get admin ID before destroying session for audit
+
     try {
         const { validateAdminSession } = await import('@/lib/auth/session');
         const { user } = await validateAdminSession();
         
         if (user) {
-            await logAudit(user.id, 'LOGOUT', {}, ip);
+            await auditService.logAction(user.id, 'LOGOUT', 'ADMIN', user.id, { ip });
         }
     } catch {
         // Session might be invalid, proceed with destruction anyway

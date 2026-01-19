@@ -28,8 +28,55 @@ export async function middleware(request: NextRequest) {
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
-    // 1. Admin Route Protection (Pages & APIs)
-    if (path.startsWith('/admin') || path.startsWith('/api/admin')) {
+    // 0. Cron Job Protection (Secret Header Check)
+    if (path.startsWith('/api/cron')) {
+        const cronSecret = request.headers.get('Authorization') || request.headers.get('x-cron-secret');
+        const validSecret = process.env.CRON_SECRET;
+
+        // Strict check: Must match secret
+        if (!validSecret || (cronSecret !== `Bearer ${validSecret}` && cronSecret !== validSecret)) {
+            return NextResponse.json(
+                { error: 'Unauthorized: Invalid Cron Secret' },
+                { status: 401 }
+            );
+        }
+        return response;
+    }
+
+    // 0.5 Rate Limiting (Sensitive Routes)
+    const ip = (request as any).ip || '127.0.0.1';
+    if (path.startsWith('/api/auth') || path.startsWith('/api/checkout')) {
+        try {
+            // Dynamic import to avoid edge startup issues if unused
+            const { rateLimiter } = await import('./lib/ratelimit');
+            const { success, remaining, reset } = await rateLimiter.limit(ip);
+
+            response.headers.set('X-RateLimit-Limit', '10');
+            response.headers.set('X-RateLimit-Remaining', remaining.toString());
+
+            if (!success) {
+                return NextResponse.json(
+                    { error: 'Too Many Requests' },
+                    { status: 429, headers: response.headers }
+                );
+            }
+        } catch (e) {
+            console.error('Rate Limit Error', e);
+        }
+    }
+
+    // 1. Admin & Secured Routes Protection
+    // Explicitly listing all administrative/internal API paths
+    const securedRoutes = [
+        '/admin',
+        '/api/admin',
+        '/api/pos',        // Point of Sale requires authentication
+        '/api/upload',     // File uploads
+        '/api/test-email', // Testing tools
+        '/api/notify'      // Internal notifications
+    ];
+
+    if (securedRoutes.some(route => path.startsWith(route))) {
         
         // Allow public admin routes (login)
         if (path === '/admin/login' || path === '/api/admin/login') {
@@ -37,10 +84,10 @@ export async function middleware(request: NextRequest) {
             return response;
         }
 
-        const adminSession = request.cookies.get('admin_auth_session')?.value;
+        const adminSessionCookie = request.cookies.get('admin_auth_session')?.value;
 
         // Strict Check: No cookie = No entry
-        if (!adminSession) {
+        if (!adminSessionCookie) {
             // API Request -> JSON 401
             if (path.startsWith('/api/')) {
                 return NextResponse.json(
@@ -60,9 +107,45 @@ export async function middleware(request: NextRequest) {
 
             // Page Request -> Redirect to Login
             const loginUrl = new URL('/admin/login', request.url);
+            loginUrl.searchParams.set('from', path);
             const redirectResponse = NextResponse.redirect(loginUrl);
             redirectResponse.headers.set('x-request-id', requestId);
             return redirectResponse;
+        }
+
+        // -----------------------------------------------------------------
+        // CRITICAL SECURITY FIX: Validate Session Signature (Stateless)
+        // -----------------------------------------------------------------
+        // Use our Edge-compatible auth token verification
+        // Logic: verification requires async crypto call, valid for generic Edge/Node
+        // We import it dynamically or assume standard import works (it's using Web Crypto)
+        // Note: We cannot easily await inside the sync flow if middleware was sync, but it's async so fine.
+
+        let isValidSession = false;
+        try {
+            // Import dynamically to avoid issues if moved
+            const { verifySignedToken } = await import('./lib/auth/authToken');
+            const sessionId = await verifySignedToken(adminSessionCookie);
+            if (sessionId) {
+                isValidSession = true;
+                // Optional: Pass the verified sessionId to downstream via header
+                response.headers.set('x-admin-session-id', sessionId);
+            }
+        } catch (error) {
+            console.error('Middleware Auth Error:', error);
+        }
+
+        if (!isValidSession) {
+            // Invalid Signature -> Clear cookie and redirect
+            if (path.startsWith('/api/')) {
+                return NextResponse.json({ error: 'Invalid Session' }, { status: 401 });
+            }
+            const loginUrl = new URL('/admin/login', request.url);
+            loginUrl.searchParams.set('from', path);
+            loginUrl.searchParams.set('error', 'session_invalid');
+            const resp = NextResponse.redirect(loginUrl);
+            resp.cookies.delete('admin_auth_session');
+            return resp;
         }
         
         // CSRF Protection for mutations
@@ -74,7 +157,6 @@ export async function middleware(request: NextRequest) {
             }
             
             // Skip CSRF for Next.js Server Actions (they have their own security)
-            // Server Actions send 'next-action' header
             const isServerAction = request.headers.get('next-action');
             if (isServerAction) {
                 return response;

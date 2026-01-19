@@ -116,3 +116,105 @@ export async function getPendingApprovals() {
     orderBy: { requestedAt: 'desc' }
   });
 }
+
+/**
+ * Check if approval is required for a given action
+ * Returns the matching rule if approval is needed, null otherwise
+ */
+export async function checkApprovalRequired(
+  actionType: ApprovalActionType,
+  amount: number
+): Promise<{ required: boolean; rule?: { id: string; name: string; minAmount: number; requiresTwo: boolean } }> {
+  // Find all active rules for this entity type
+  const rules = await prisma.approvalRule.findMany({
+    where: {
+      entityType: actionType.toLowerCase(),
+      isActive: true
+    },
+    orderBy: { priority: 'desc' } // Check highest priority first
+  });
+
+  // Find the first rule that matches (parse condition JSON)
+  for (const rule of rules) {
+    try {
+      // condition format: {"field": "amount", "operator": "gt", "value": 500}
+      const condition = JSON.parse(rule.condition) as {
+        field?: string;
+        operator?: string;
+        value?: number
+      };
+
+      const threshold = condition.value || 0;
+
+      // Check if amount exceeds threshold
+      if (condition.operator === 'gt' && amount > threshold) {
+        return {
+          required: true,
+          rule: {
+            id: rule.id,
+            name: rule.name,
+            minAmount: threshold,
+            requiresTwo: rule.requiresTwo
+          }
+        };
+      } else if (condition.operator === 'gte' && amount >= threshold) {
+        return {
+          required: true,
+          rule: {
+            id: rule.id,
+            name: rule.name,
+            minAmount: threshold,
+            requiresTwo: rule.requiresTwo
+          }
+        };
+      }
+    } catch {
+      // Skip rules with invalid condition JSON
+      continue;
+    }
+  }
+
+  return { required: false };
+}
+
+/**
+ * Check if an approval request is fully approved
+ */
+export async function isApprovalComplete(entityType: string, entityId: string): Promise<boolean> {
+  const request = await prisma.approvalRequest.findFirst({
+    where: {
+      entityType,
+      entityId,
+      status: 'approved'
+    }
+  });
+
+  return !!request;
+}
+
+/**
+ * Get approval status for an entity
+ */
+export async function getApprovalStatus(entityType: string, entityId: string) {
+  const request = await prisma.approvalRequest.findFirst({
+    where: {
+      entityType,
+      entityId
+    },
+    include: { rule: true },
+    orderBy: { requestedAt: 'desc' }
+  });
+
+  if (!request) {
+    return { status: 'not_required' as const };
+  }
+
+  return {
+    status: request.status as 'pending' | 'approved' | 'rejected',
+    requestId: request.id,
+    ruleName: request.rule.name,
+    requiresTwo: request.rule.requiresTwo,
+    hasFirstApproval: !!request.approvedBy,
+    hasSecondApproval: !!request.secondApprovedBy
+  };
+}

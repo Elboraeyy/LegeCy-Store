@@ -1,0 +1,68 @@
+﻿Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+npx : 
+At line:1 char:1
++ npx prisma 
+validate 2>&1 | 
+Out-File -FilePath 
+prisma_error.txt 
+-Encod ...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (:String   
+ ) [], RemoteExce    
+ption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+Error: Prisma schema 
+validation - 
+(validate wasm)
+Error code: P1012
+[1;91merror[0m: 
+[1mThe model 
+"OrderRiskScore" 
+cannot be defined 
+because a model with 
+that name already 
+exists.[0m
+  [1;94m-->[0m  [4
+mprisma\schema.prisma
+:2234[0m
+[1;94m   | [0m
+[1;94m2233 | [0m// 
+Risk score for 
+individual orders
+[1;94m2234 | 
+[0mmodel [1;91mOrde
+rRiskScore[0m {
+[1;94m   | [0m
+[1;91merror[0m: 
+[1mThe model "Custom
+erRiskProfile" 
+cannot be defined 
+because a model with 
+that name already 
+exists.[0m
+  [1;94m-->[0m  [4
+mprisma\schema.prisma
+:2255[0m
+[1;94m   | [0m
+[1;94m2254 | [0m// 
+Customer risk 
+profile for repeat 
+fraud detection
+[1;94m2255 | 
+[0mmodel [1;91mCust
+omerRiskProfile[0m {
+[1;94m   | [0m
+
+Validation Error 
+Count: 2
+[Context: validate]
+
+Prisma CLI Version : 
+6.0.0

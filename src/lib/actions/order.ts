@@ -8,6 +8,7 @@ import { OrderStatus } from '@/lib/orderStatus';
 import { Order } from '@/types/order';
 import { recordOrderEvent, OrderEventType } from '@/lib/services/orderLifecycleService';
 import prisma from '@/lib/prisma';
+import { analyzeOrderRisk } from '@/lib/services/fraudService';
 
 interface StatusUpdateResult {
     success: boolean;
@@ -274,6 +275,17 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             return newOrder;
         });
 
+        // CRITICAL FIX: Analyze fraud risk for manual orders (social sources can be fraudulent)
+        try {
+            const riskResult = await analyzeOrderRisk(order.id);
+            if (riskResult.shouldReview) {
+                console.log(`[ManualOrder] Order ${order.id} flagged for fraud review. Risk score: ${riskResult.riskScore}`);
+            }
+        } catch (e) {
+            // Don't block order creation on fraud check failure
+            console.error('[ManualOrder] Fraud analysis failed:', e);
+        }
+
         revalidatePath('/admin/orders');
         
         return { success: true, orderId: order.id };
@@ -286,3 +298,29 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
     }
 }
 
+
+// --------------------------------------------------------
+// GUEST ORDER LOOKUP
+// --------------------------------------------------------
+
+export async function getGuestOrder(orderId: string, emailOrPhone: string) {
+    // 1. Find order
+    const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: true }
+    });
+
+    if (!order) return null;
+
+    // 2. Verify Access (Simple Match)
+    // Normalize phone numbers (stripping +, spaces) can be done here if needed
+    const normalizedInput = emailOrPhone.trim().toLowerCase();
+    const orderEmail = order.customerEmail?.toLowerCase() || '';
+    const orderPhone = order.customerPhone || '';
+
+    const isMatch = (orderEmail === normalizedInput) || (orderPhone === normalizedInput);
+
+    if (!isMatch) return null;
+
+    return order;
+}
