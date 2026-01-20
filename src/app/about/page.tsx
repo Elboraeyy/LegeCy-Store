@@ -35,12 +35,12 @@ export default function About() {
             </Reveal>
             <Reveal delay={0.2}>
                 <p className="detail-desc">
-                At Legacy, we believe that accessories are more than just items—they are companions through life's
-                defining moments. Founded on the principles of quality and understated elegance, we've become
-                Egypt's trusted destination for premium accessories.
+                At Legacy, we believe that accessories are more than just items—they are companions through life&apos;s
+                defining moments. Founded on the principles of quality and understated elegance, we&apos;ve become
+                Egypt&apos;s trusted destination for premium accessories.
                 </p>
                 <p className="detail-desc" style={{ marginBottom: 0 }}>
-                Whether you're looking for the perfect watch, wallet, or accessory, we invite you to explore our
+                Whether you&apos;re looking for the perfect watch, wallet, or accessory, we invite you to explore our
                 curated collection. Here, quality meets style in perfect harmony.
                 </p>
             </Reveal>

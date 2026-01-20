@@ -18,7 +18,7 @@ interface CompareClientProps {
     suggestions: ShopProduct[];
 }
 
-export default function CompareClient({ suggestions }: CompareClientProps) {
+export default function CompareClient({ suggestions: _suggestions }: CompareClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const fromLabel = searchParams.get("fromLabel");
@@ -56,9 +56,9 @@ export default function CompareClient({ suggestions }: CompareClientProps) {
     const hasProducts = selectedProducts.length > 0;
 
     // Convert ShopProduct to Product for compatibility
-    const normalizedSuggestions = suggestions.map(s => ({
-        ...s,
-    })) as unknown as Product[];
+    // const normalizedSuggestions = suggestions.map(s => ({
+    //     ...s,
+    // })) as unknown as Product[];
 
     return (
         <main style={{ background: "var(--bg)", minHeight: "100vh" }}>
