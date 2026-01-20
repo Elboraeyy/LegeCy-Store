@@ -137,11 +137,11 @@ export default function ShippingPolicyPage() {
                 <h2>Premium Packaging</h2>
               </div>
               <p>
-                Every order is carefully packaged at our Samanoud facility to ensure your watches, 
-                wallets, and accessories arrive in perfect condition:
+                Every order is carefully packaged at our Samanoud facility to ensure your products
+                arrive in perfect condition:
               </p>
               <ul className="policy-list">
-                <li>Protective boxes for watches with cushioning</li>
+                <li>Protective boxes with cushioning for fragile items</li>
                 <li>Dust bags for leather goods</li>
                 <li>Sealed packaging for perfumes</li>
                 <li>Discreet outer packaging for privacy</li>

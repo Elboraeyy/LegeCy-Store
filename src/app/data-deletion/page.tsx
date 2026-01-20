@@ -45,7 +45,7 @@ export default function DataDeletionPage() {
               </div>
               <p>
                 At LegaCy, we respect your right to control your personal information. 
-                Whether you signed up to shop for watches, wallets, or accessories, you can 
+                Whether you signed up to shop for accessories or other products, you can 
                 request deletion of your data at any time.
               </p>
             </div>

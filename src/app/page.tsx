@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { HomeContent } from "@/components/home/HomeContent";
 
 export const metadata: Metadata = {
-  title: "Legacy Store | Luxury Watches in Egypt",
-  description: "Discover our exclusive collection of premium men's watches. Classic and modern designs available in Egypt.",
-  keywords: "watches, luxury watches, men's watches, legacy store, egypt watches",
+  title: "Legacy Store | Luxury Accessories in Egypt",
+  description: "Discover our exclusive collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more.",
+  keywords: "accessories, watches, wallets, sunglasses, perfumes, handbags, belts, bracelets, legacy store, egypt",
 };
 
 export default function Home() {

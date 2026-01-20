@@ -110,7 +110,7 @@ export default function RefundPolicyPage() {
               </p>
             </div>
 
-            {/* Watch-Specific Policy */}
+            {/* Product-Specific Policy */}
             <div className="policy-section">
               <div className="policy-section-header">
                 <div className="policy-section-icon">
@@ -119,12 +119,12 @@ export default function RefundPolicyPage() {
                     <path d="M12 6v6l4 2" />
                   </svg>
                 </div>
-                <h2>Watch Returns</h2>
+                <h2>Product Returns</h2>
               </div>
               <p>
-                All watches must be returned with their original box, warranty card, manual, and any accessories. 
-                The protective stickers and seals must not be removed. Watches with adjusted straps or removed 
-                links may be subject to a restocking fee.
+                All products must be returned with their original box, warranty card, manual, and any accessories.
+                Protective stickers and seals must not be removed. Items with signs of use
+                may be subject to a restocking fee.
               </p>
             </div>
 

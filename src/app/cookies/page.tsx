@@ -70,7 +70,7 @@ export default function CookiePolicyPage() {
               
               <h3>Preference Cookies</h3>
               <p>
-                Remember your settings like preferred currency, recently viewed watches, 
+                Remember your settings like preferred currency, recently viewed products, 
                 and your wishlist selections.
               </p>
               
@@ -82,7 +82,7 @@ export default function CookiePolicyPage() {
               
               <h3>Marketing Cookies</h3>
               <p>
-                Allow us to show you relevant ads for new watch arrivals, accessories, and exclusive 
+                Allow us to show you relevant ads for new arrivals, accessories, and exclusive 
                 offers on platforms like Facebook and Instagram.
               </p>
             </div>

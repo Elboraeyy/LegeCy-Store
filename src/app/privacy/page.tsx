@@ -83,7 +83,7 @@ export default function PrivacyPage() {
               </div>
               <p>We use your information to provide you with the best shopping experience:</p>
               <ul className="policy-list">
-                <li>Process and deliver your orders for watches, wallets, and accessories</li>
+                <li>Process and deliver your orders for accessories and products</li>
                 <li>Send order confirmations and delivery updates</li>
                 <li>Notify you about new arrivals and exclusive offers</li>
                 <li>Recommend products based on your preferences</li>

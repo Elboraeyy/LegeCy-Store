@@ -68,7 +68,7 @@ export default function ProductSelectionModal({ isOpen, onClose, onSelect, exclu
            <div className="search-container" style={{ flex: 1, margin: 0 }}>
              <input 
                type="text" 
-               placeholder="Search watches..." 
+              placeholder="Search products..." 
                className="search-input"
                autoFocus
                value={searchTerm}
@@ -90,7 +90,7 @@ export default function ProductSelectionModal({ isOpen, onClose, onSelect, exclu
             {loading ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>Loading products...</div>
             ) : filteredProducts.length === 0 ? (
-                <div className="empty-state">No watches found</div>
+              <div className="empty-state">No products found</div>
             ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "16px" }}>
                    {filteredProducts.map(product => (
@@ -121,7 +121,7 @@ export default function ProductSelectionModal({ isOpen, onClose, onSelect, exclu
                              )}
                           </div>
                           <div style={{ padding: "10px" }}>
-                             <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>{product.category || 'Watch'}</div>
+                         <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>{product.category || 'Product'}</div>
                              <div style={{ fontSize: "13px", fontWeight: "600", marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{product.name}</div>
                              <div style={{ fontSize: "13px", color: "var(--primary)" }}>EGP {product.price.toLocaleString()}</div>
                           </div>
