@@ -8,10 +8,12 @@ export const metadata: Metadata = {
 };
 
 
+import AboutStyles from "./AboutStyles";
+
 export default function About() {
   return (
-
     <main>
+      <AboutStyles />
       <section className="shop-hero">
         <div className="container">
           <Reveal>
@@ -23,7 +25,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="container" style={{ marginBottom: "80px" }}>
+      <section className="container about-container" style={{ marginBottom: "80px" }}>
         <div className="grid detail-split" style={{ alignItems: "stretch" }}>
           <div>
             <Reveal>
@@ -50,7 +52,7 @@ export default function About() {
            <Reveal width="100%" fullHeight>
               <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                   <Image
-                    src="/image/rowan whitethorn _ throne of glass.jpeg"
+                    src="/image/3.jpeg"
                     alt="About Legacy"
                     className="about-img-full"
                     fill
@@ -63,7 +65,7 @@ export default function About() {
         </div>
 
         <div
-          className="grid"
+          className="grid about-features-grid"
           style={{
             gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
             gap: "40px",
@@ -94,7 +96,7 @@ export default function About() {
       {/* Team Section */}
       <section className="container" style={{ marginBottom: "80px" }}>
         <Reveal>
-          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+          <div className="team-section-header" style={{ textAlign: "center", marginBottom: "48px" }}>
             <h2 style={{
               fontFamily: "var(--font-heading)",
               fontSize: "36px",
@@ -118,6 +120,7 @@ export default function About() {
         </Reveal>
 
         <div
+          className="about-team-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
@@ -134,7 +137,7 @@ export default function About() {
               rel="noopener noreferrer"
               style={{ textDecoration: "none" }}
             >
-              <div style={{
+              <div className="about-team-card" style={{
                 background: "var(--surface)",
                 borderRadius: "12px",
                 padding: "24px 16px",
@@ -143,7 +146,7 @@ export default function About() {
                 transition: "transform 0.3s ease, box-shadow 0.3s ease",
                 cursor: "pointer",
               }}>
-                <div style={{
+                <div className="about-team-avatar" style={{
                   width: "80px",
                   height: "80px",
                   borderRadius: "50%",
@@ -154,13 +157,13 @@ export default function About() {
                 }}>
                   <Image src="/image/team/mohamed-elboraey.jpg" alt="Mohamed Elboraey" fill style={{ objectFit: "cover" }} />
                 </div>
-                <h3 style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>
+                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>
                   Mohamed Elboraey
                 </h3>
-                <p style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
+                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
                   CEO & CTO
                 </p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
+                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                   @e.l.b.o.r.a.e.y
                 </div>
@@ -171,13 +174,13 @@ export default function About() {
           {/* Ezzat Hussein - Supervisor */}
           <Reveal delay={0.1}>
             <a href="https://instagram.com/ezzat_hussen22" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-              <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
-                <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+              <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
                   <Image src="/image/team/ezzat-hussein.jpeg" alt="Ezzat Hussein" fill style={{ objectFit: "cover" }} />
                 </div>
-                <h3 style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Ezzat Hussein</h3>
-                <p style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Supervisor</p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
+                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Ezzat Hussein</h3>
+                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Supervisor</p>
+                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                   @ezzat_hussen22
                 </div>
@@ -188,13 +191,13 @@ export default function About() {
           {/* Karim Elboraey - HR Manager */}
           <Reveal delay={0.15}>
             <a href="https://instagram.com/3m_elkemoo" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-              <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
-                <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+              <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
                   <Image src="/image/team/karim-elboraey.jpeg" alt="Karim Elboraey" fill style={{ objectFit: "cover" }} />
                 </div>
-                <h3 style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Karim Elboraey</h3>
-                <p style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>HR Manager</p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
+                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Karim Elboraey</h3>
+                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>HR Manager</p>
+                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                   @3m_elkemoo
                 </div>
@@ -205,13 +208,13 @@ export default function About() {
           {/* Ehab Tarek - CMO */}
           <Reveal delay={0.2}>
             <a href="https://instagram.com/ehab_tarek_2" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-              <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
-                <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+              <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
                   <Image src="/image/team/ehab-tarek.jpeg" alt="Ehab Tarek" fill style={{ objectFit: "cover" }} />
                 </div>
-                <h3 style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Ehab Tarek</h3>
-                <p style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Marketing Director</p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
+                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Ehab Tarek</h3>
+                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Marketing Director</p>
+                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                   @ehab_tarek_2
                 </div>
@@ -221,14 +224,14 @@ export default function About() {
 
           {/* Hossam Masoud - CMO */}
           <Reveal delay={0.25}>
-            <a href="https://instagram.com/hossam_masoudd" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-              <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
-                <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+            <a href="https://instagram.com/hossam__masoudd" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+              <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
                   <Image src="/image/team/hossam-masoud.jpeg" alt="Hossam Masoud" fill style={{ objectFit: "cover" }} />
                 </div>
-                <h3 style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Hossam Masoud</h3>
-                <p style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Content Creator</p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
+                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Hossam Masoud</h3>
+                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Content Creator</p>
+                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                   @hossam_masoudd
                 </div>
@@ -239,13 +242,13 @@ export default function About() {
           {/* Yousef Elboraey - Customer Support Lead */}
           <Reveal delay={0.3}>
             <a href="https://instagram.com/youssefelbora3y" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-              <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
-                <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+              <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
                   <Image src="/image/team/yousef-elboraey.jpeg" alt="Yousef Elboraey" fill style={{ objectFit: "cover" }} />
                 </div>
-                <h3 style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Yousef Elboraey</h3>
-                <p style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Customer Support Lead</p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
+                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Yousef Elboraey</h3>
+                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Customer Support Lead</p>
+                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                   @youssefelbora3y
                 </div>
@@ -256,13 +259,13 @@ export default function About() {
           {/* Moataz Mohamed - Inventory Manager */}
           <Reveal delay={0.35}>
             <a href="https://instagram.com/mo3taz_mo7mad" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-              <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
-                <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+              <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
                   <Image src="/image/team/moataz-mohamed.jpeg" alt="Moataz Mohamed" fill style={{ objectFit: "cover" }} />
                 </div>
-                <h3 style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Moataz Mohamed</h3>
-                <p style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Inventory Manager</p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
+                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Moataz Mohamed</h3>
+                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Inventory Manager</p>
+                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                   @mo3taz_mo7mad
                 </div>
@@ -273,13 +276,13 @@ export default function About() {
           {/* Ahmed ElSaidy - Purchasing */}
           <Reveal delay={0.4}>
             <a href="https://instagram.com/a7med___ma7moud7" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-              <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
-                <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+              <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
                   <Image src="/image/team/ahmed-elsaidy.jpg" alt="Ahmed ElSaidy" fill style={{ objectFit: "cover" }} />
                 </div>
-                <h3 style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Ahmed ElSaidy</h3>
-                <p style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Purchasing</p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
+                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Ahmed ElSaidy</h3>
+                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Purchasing</p>
+                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                   @a7med___ma7moud7
                 </div>
@@ -290,13 +293,13 @@ export default function About() {
           {/* Malek Khalifa - Purchasing */}
           <Reveal delay={0.45}>
             <a href="https://instagram.com/malekkhalifa72" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-              <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
-                <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+              <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
                   <Image src="/image/team/malek-khalifaa.jpeg" alt="Malek Khalifa" fill style={{ objectFit: "cover" }} />
                 </div>
-                <h3 style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Malek Khalifa</h3>
-                <p style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Purchasing</p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
+                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Malek Khalifa</h3>
+                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Purchasing</p>
+                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                   @malekkhalifa72
                 </div>
