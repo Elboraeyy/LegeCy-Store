@@ -204,7 +204,7 @@ export default function ShopClient({
                         Discover Our Collection
                     </h1>
                     <p className="text-xs sm:text-sm text-[#F5F0E3]/70 max-w-xl mx-auto">
-                        Explore our curated selection of luxury timepieces
+                        Explore our curated selection of luxury accessories
                     </p>
                 </div>
             </div>
@@ -224,7 +224,7 @@ export default function ShopClient({
                         type="text"
                         value={searchQuery}
                         onChange={(e) => updateFilters({ q: e.target.value || null })}
-                        placeholder="Search watches..."
+                        placeholder="Search products..."
                         className="w-full pl-12 pr-10 py-3.5 text-base bg-white border border-gray-200 rounded-2xl focus:outline-none focus:border-[#12403C] focus:ring-2 focus:ring-[#12403C]/10 shadow-sm transition-all placeholder:text-gray-400"
                     />
                     {searchQuery && (

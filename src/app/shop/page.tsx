@@ -8,8 +8,8 @@ import prisma from "@/lib/prisma";
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
 
 export const metadata: Metadata = {
-  title: "Shop Luxury Watches | Legacy Store",
-  description: "Browse our full collection of luxury, classic, and sport watches.",
+  title: "Shop Premium Accessories | Legacy Store",
+  description: "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more.",
 };
 
 export default async function Shop() {

@@ -62,17 +62,17 @@ const faqData: FAQItem[] = [
   {
     category: "Products",
     question: "Are the products authentic?",
-    answer: "Yes! All our watches are 100% authentic and imported from authorized dealers. We provide a certificate of authenticity with every watch."
+    answer: "Yes! All our products are 100% authentic and sourced from authorized dealers. We provide a certificate of authenticity where applicable."
   },
   {
     category: "Products",
     question: "What is the warranty period?",
-    answer: "We offer a one-year warranty on all watches against manufacturing defects. The warranty does not cover misuse or breakage."
+    answer: "We offer a one-year warranty on all products against manufacturing defects. The warranty does not cover misuse or breakage."
   },
   {
     category: "Products",
-    question: "Can I try the watch before purchasing?",
-    answer: "You can inspect the watch upon delivery before payment (in case of Cash on Delivery). If it doesn't suit you, you can refuse the delivery."
+    question: "Can I try the product before purchasing?",
+    answer: "You can inspect the product upon delivery before payment (in case of Cash on Delivery). If it doesn't suit you, you can refuse the delivery."
   },
   // Account & Orders
   {

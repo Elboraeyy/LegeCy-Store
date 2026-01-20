@@ -11,23 +11,23 @@ interface HelpTopic {
 const topics: HelpTopic[] = [
   {
     id: "care",
-    title: "Watch Care Guide",
-    content: "Clean your timepiece regularly with a soft cloth. Avoid exposure to strong magnetic fields and temperature shocks. For water resistance, ensure the crown is fully screwed down before contact with water.",
+    title: "Product Care Guide",
+    content: "Keep your accessories in excellent condition. Clean regularly with appropriate materials. Store properly when not in use. Avoid exposure to extreme temperatures and moisture.",
   },
   {
     id: "strap",
-    title: "Strap Adjustment",
-    content: "Leather straps will naturally conform to your wrist over time. For metal bracelets, we recommend visiting a certified boutique for link adjustment, or using the provided tool for micro-adjustments on the clasp.",
+    title: "Size & Fit Guide",
+    content: "Leather goods will naturally conform to your use over time. For watches and bracelets, we recommend visiting our store for size adjustments, or using the provided adjustment tools where applicable.",
   },
   {
     id: "warranty",
-    title: "5-Year Warranty",
-    content: "Your Legacy timepiece is protected against manufacturing defects for 5 years. This covers the movement, hands, and dial. External wear and tear or accidental damage is not covered.",
+    title: "Product Warranty",
+    content: "Your LegaCy purchase is protected against manufacturing defects. This covers materials and craftsmanship. External wear and tear or accidental damage is not covered.",
   },
   {
     id: "service",
-    title: "Service Intervals",
-    content: "We recommend a full service every 3-5 years to ensure optimal performance. Our master watchmakers will disassemble, clean, lubricate, and calibrate your movement.",
+    title: "Service & Repairs",
+    content: "We offer professional maintenance and repair services for all our products. Contact us for assessment and service options.",
   },
 ];
 
@@ -38,7 +38,7 @@ export const HelpCenter = () => {
     <section className="help-section">
       <div className="help-header">
         <h3 className="help-title">Client Support & Education</h3>
-        <p className="help-subtitle">Expert guidance for your timepiece journey</p>
+        <p className="help-subtitle">Expert guidance for your accessory care</p>
       </div>
 
       <div className="help-grid">
@@ -50,7 +50,7 @@ export const HelpCenter = () => {
                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             </div>
-            <span className="video-label">Watch: How to care for your Legacy</span>
+            <span className="video-label">Watch: How to care for your Legacy products</span>
           </div>
         </div>
 

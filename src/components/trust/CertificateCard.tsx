@@ -23,8 +23,8 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({
           
           <div className="cert-body">
             <p className="cert-text">
-              This document certifies that the <strong>{productName}</strong> is an authentic Legacy Timepiece, 
-              crafted with precision and verified for excellence.
+              This document certifies that the <strong>{productName}</strong> is an authentic product,
+              carefully selected and verified for excellence.
             </p>
             
             <div className="cert-details">
@@ -46,7 +46,7 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({
           <div className="cert-footer">
             <div className="signature-line">
               <span className="signature">Alexander Legacy</span>
-              <span className="signature-label">Master Watchmaker</span>
+              <span className="signature-label">Quality Assurance</span>
             </div>
             <button className="download-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

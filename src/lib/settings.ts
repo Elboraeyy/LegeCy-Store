@@ -133,9 +133,9 @@ const defaultAppearance: AppearanceSettings = {
 };
 
 const defaultSEO: SEOSettings = {
-  metaTitle: "Legacy Store | Luxury Watches in Egypt",
-  metaDescription: "Discover our exclusive collection of premium watches.",
-  metaKeywords: "watches, luxury watches, legacy store",
+  metaTitle: "Legacy Store | Luxury Accessories in Egypt",
+  metaDescription: "Discover our exclusive collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more.",
+  metaKeywords: "accessories, watches, wallets, sunglasses, perfumes, handbags, belts, bracelets, legacy store",
   googleAnalyticsId: "",
   googleTagManagerId: "",
   facebookPixelId: "",
@@ -152,7 +152,7 @@ const defaultSEO: SEOSettings = {
 const defaultHomepage: HomepageSettings = {
   heroEnabled: true,
   heroTitle: "Built on Time. Made for Legacy.",
-  heroSubtitle: "Since our inception, we've remained devoted to one pursuit — crafting timepieces that honour tradition while embracing innovation.",
+  heroSubtitle: "Since our inception, we've remained devoted to one pursuit — curating premium accessories that honour tradition while embracing modern elegance.",
   heroButtonText: "Discover Our Legacy",
   heroButtonLink: "/shop",
   heroBackgroundImage: "",
