@@ -60,72 +60,74 @@ export default function BatchExpiryWidget() {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-amber-50 rounded-lg">
-            <Clock className="h-5 w-5 text-amber-600" />
+    <div className="bg-white rounded-xl border border-gray-200 p-6 h-full flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-amber-50 rounded-xl">
+              <Clock className="h-5 w-5 text-amber-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900 text-base">Batch Expiry</h3>
           </div>
-          <h3 className="font-semibold text-gray-900">Batch Expiry</h3>
+          {data && data.totalValueAtRisk > 0 && (
+            <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-red-50 text-red-700">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              <span>Risk: {formatCurrency(data.totalValueAtRisk)}</span>
+            </div>
+          )}
         </div>
-        <Link 
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {expiryStats.map((stat) => (
+            <div key={stat.label} className={`${stat.bg} rounded-xl p-3 text-center border border-gray-100`}>
+              <div className={`text-lg font-bold ${stat.color}`}>{stat.value}</div>
+              <div className="text-[11px] font-medium text-gray-500 mt-1">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Expiring Items */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 uppercase tracking-wider">
+              <Package className="h-3.5 w-3.5" /> Expiring Soon
+            </p>
+          </div>
+
+          {data?.items && data.items.length > 0 ? (
+            <div className="space-y-2">
+              {data.items.slice(0, 3).map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between text-xs group">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-primary-500 transition-colors" />
+                    <span className="text-gray-700 font-medium truncate max-w-[140px]">{item.productName}</span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-md font-medium ${item.daysLeft <= 30 ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'
+                    }`}>
+                    {item.daysLeft}d
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4 text-xs text-gray-400 border border-dashed border-gray-200 rounded-lg">
+              No expiring batches
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer Link */}
+      <div className="border-t border-gray-100 mt-5 pt-4">
+        <Link
           href="/admin/inventory/expiry"
-          className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+          className="text-sm text-gray-500 hover:text-primary-600 flex items-center justify-between group transition-colors"
         >
-          View All <ChevronRight className="h-4 w-4" />
+          <span className="font-medium">View All Expiring</span>
+          <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-primary-600 transition-colors" />
         </Link>
       </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        {expiryStats.map((stat) => (
-          <div key={stat.label} className={`${stat.bg} rounded-lg p-3 text-center`}>
-            <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-            <div className="text-xs text-gray-600">{stat.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Value at Risk */}
-      {data && data.totalValueAtRisk > 0 && (
-        <div className="bg-red-50 border border-red-100 rounded-lg p-3 mb-4">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-            <span className="text-sm font-medium text-red-700">
-              Value at Risk: {formatCurrency(data.totalValueAtRisk)}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Expiring Items */}
-      {data?.items && data.items.length > 0 && (
-        <div className="border-t pt-4">
-          <p className="text-xs font-medium text-gray-500 mb-2">Expiring Soon</p>
-          <div className="space-y-2">
-            {data.items.slice(0, 3).map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-700 truncate max-w-[120px]">{item.productName}</span>
-                </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  item.daysLeft <= 30 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                }`}>
-                  {item.daysLeft} days
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(!data?.items || data.items.length === 0) && (
-        <div className="text-center py-4 text-sm text-gray-500">
-          <Package className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-          No expiring batches
-        </div>
-      )}
     </div>
   );
 }

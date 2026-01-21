@@ -217,124 +217,157 @@ export default async function AdminDashboard() {
             <AdminHomeClient stats={stats} />
             
             {/* Executive Widgets */}
-            <div style={{ padding: '0 32px 32px', marginTop: '-16px' }}>
+            <div style={{ padding: '24px 32px 32px' }}>
                 <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 600 }}>
                     📊 Executive Overview
                 </h2>
                 
                 <div style={{ 
                     display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-                    gap: '16px' 
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gap: '24px' 
                 }}>
                     {/* Cash Position */}
                     <Link href="/admin/finance/equity" className="exec-widget" style={{ textDecoration: 'none' }}>
-                        <div className="admin-card" style={{ padding: '20px' }}>
+                        <div className="admin-card" style={{ padding: '24px', height: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Cash on Hand</div>
-                                    <div style={{ fontSize: '24px', fontWeight: 700, color: '#22c55e', marginTop: '4px' }}>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cash on Hand</div>
+                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#22c55e', marginTop: '8px' }}>
                                         {formatCurrency(execStats.cashOnHand)}
                                     </div>
                                 </div>
-                                <span style={{ fontSize: '28px' }}>💰</span>
+                                <div style={{
+                                    width: '48px', height: '48px',
+                                    borderRadius: '12px',
+                                    background: 'rgba(34, 197, 94, 0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '24px'
+                                }}>💰</div>
                             </div>
                         </div>
                     </Link>
 
                     {/* Monthly Revenue */}
                     <Link href="/admin/finance/reports/pnl" className="exec-widget" style={{ textDecoration: 'none' }}>
-                        <div className="admin-card" style={{ padding: '20px' }}>
+                        <div className="admin-card" style={{ padding: '24px', height: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Monthly Revenue</div>
-                                    <div style={{ fontSize: '24px', fontWeight: 700, marginTop: '4px' }}>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Monthly Revenue</div>
+                                    <div style={{ fontSize: '28px', fontWeight: 700, marginTop: '8px', color: 'var(--text-primary)' }}>
                                         {formatCurrency(execStats.monthlyRevenue)}
                                     </div>
                                 </div>
-                                <span style={{ fontSize: '28px' }}>📈</span>
+                                <div style={{
+                                    width: '48px', height: '48px',
+                                    borderRadius: '12px',
+                                    background: 'rgba(59, 130, 246, 0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '24px'
+                                }}>📈</div>
                             </div>
                         </div>
                     </Link>
 
                     {/* Monthly Expenses */}
                     <Link href="/admin/finance/expenses" className="exec-widget" style={{ textDecoration: 'none' }}>
-                        <div className="admin-card" style={{ padding: '20px' }}>
+                        <div className="admin-card" style={{ padding: '24px', height: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Monthly Expenses</div>
-                                    <div style={{ fontSize: '24px', fontWeight: 700, color: '#ef4444', marginTop: '4px' }}>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Monthly Expenses</div>
+                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#ef4444', marginTop: '8px' }}>
                                         {formatCurrency(execStats.monthlyExpenses)}
                                     </div>
                                 </div>
-                                <span style={{ fontSize: '28px' }}>💸</span>
-                            </div>
-                        </div>
-                    </Link>
-
-                    {/* Kill Switches Status */}
-                    <Link href="/admin/config/security" className="exec-widget" style={{ textDecoration: 'none' }}>
-                        <div className="admin-card" style={{ 
-                            padding: '20px',
-                            border: !execStats.killSwitchesOK ? '2px solid #ef4444' : undefined
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>System Health</div>
-                                    <div style={{ 
-                                        fontSize: '18px', 
-                                        fontWeight: 700, 
-                                        color: execStats.killSwitchesOK ? '#22c55e' : '#ef4444',
-                                        marginTop: '4px' 
-                                    }}>
-                                        {execStats.killSwitchesOK ? '✓ All Systems GO' : `⚠ ${execStats.disabledSwitches} Disabled`}
-                                    </div>
-                                </div>
-                                <span style={{ fontSize: '28px' }}>{execStats.killSwitchesOK ? '💚' : '🔴'}</span>
+                                <div style={{ 
+                                    width: '48px', height: '48px',
+                                    borderRadius: '12px',
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '24px'
+                                }}>💸</div>
                             </div>
                         </div>
                     </Link>
 
                     {/* Net Profit */}
                     <Link href="/admin/finance/reports/pnl" className="exec-widget" style={{ textDecoration: 'none' }}>
-                        <div className="admin-card" style={{ 
-                            padding: '20px',
-                            border: execStats.netProfit < 0 ? '2px solid #ef4444' : '2px solid #22c55e'
-                        }}>
+                        <div className="admin-card" style={{ padding: '24px', height: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Net Profit (Month)</div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Net Profit (Month)</div>
                                     <div style={{ 
-                                        fontSize: '24px', 
+                                        fontSize: '28px', 
                                         fontWeight: 700, 
                                         color: execStats.netProfit >= 0 ? '#22c55e' : '#ef4444',
-                                        marginTop: '4px' 
+                                        marginTop: '8px' 
                                     }}>
                                         {formatCurrency(execStats.netProfit)}
                                     </div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                        {execStats.profitMargin.toFixed(1)}% margin
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span style={{ color: execStats.netProfit >= 0 ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+                                            {execStats.profitMargin.toFixed(1)}%
+                                        </span> margin
                                     </div>
                                 </div>
-                                <span style={{ fontSize: '28px' }}>{execStats.netProfit >= 0 ? '📊' : '📉'}</span>
+                                <div style={{
+                                    width: '48px', height: '48px',
+                                    borderRadius: '12px',
+                                    background: execStats.netProfit >= 0 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '24px'
+                                }}>{execStats.netProfit >= 0 ? '📊' : '📉'}</div>
                             </div>
                         </div>
                     </Link>
 
                     {/* Inventory Value */}
                     <Link href="/admin/inventory" className="exec-widget" style={{ textDecoration: 'none' }}>
-                        <div className="admin-card" style={{ padding: '20px' }}>
+                        <div className="admin-card" style={{ padding: '24px', height: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Inventory Value</div>
-                                    <div style={{ fontSize: '24px', fontWeight: 700, color: '#3b82f6', marginTop: '4px' }}>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Inventory Value</div>
+                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#3b82f6', marginTop: '8px' }}>
                                         {formatCurrency(execStats.inventoryValue)}
                                     </div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                        at cost
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                        at cost price
                                     </div>
                                 </div>
-                                <span style={{ fontSize: '28px' }}>📦</span>
+                                <div style={{
+                                    width: '48px', height: '48px',
+                                    borderRadius: '12px',
+                                    background: 'rgba(59, 130, 246, 0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '24px'
+                                }}>📦</div>
+                            </div>
+                        </div>
+                    </Link>
+
+                    {/* Kill Switches Status */}
+                    <Link href="/admin/config/security" className="exec-widget" style={{ textDecoration: 'none' }}>
+                        <div className="admin-card" style={{ padding: '24px', height: '100%' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>System Health</div>
+                                    <div style={{
+                                        fontSize: '18px',
+                                        fontWeight: 700,
+                                        color: execStats.killSwitchesOK ? '#22c55e' : '#ef4444',
+                                        marginTop: '8px',
+                                        lineHeight: '1.4'
+                                    }}>
+                                        {execStats.killSwitchesOK ? 'All Systems Operational' : `${execStats.disabledSwitches} Critical Systems Offline`}
+                                    </div>
+                                </div>
+                                <div style={{
+                                    width: '48px', height: '48px',
+                                    borderRadius: '12px',
+                                    background: execStats.killSwitchesOK ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '24px'
+                                }}>{execStats.killSwitchesOK ? '💚' : '🔴'}</div>
                             </div>
                         </div>
                     </Link>
@@ -376,8 +409,8 @@ export default async function AdminDashboard() {
 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                    gap: '16px'
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gap: '24px'
                 }}>
                     <SystemHealthWidget />
                     <BatchExpiryWidget />

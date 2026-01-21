@@ -278,7 +278,7 @@ export default function About() {
             <a href="https://instagram.com/a7med___ma7moud7" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
               <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
                 <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
-                  <Image src="/image/team/ahmed-elsaidy.jpg" alt="Ahmed ElSaidy" fill style={{ objectFit: "cover" }} />
+                  <Image src="/image/team/ahmed-elsaidyyy.jpeg" alt="Ahmed ElSaidy" fill style={{ objectFit: "cover" }} />
                 </div>
                 <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Ahmed ElSaidy</h3>
                 <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>Purchasing</p>
