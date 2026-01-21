@@ -195,15 +195,15 @@ export default function ShopClient({
     };
 
     return (
-        <div className="min-h-screen bg-[#F5F0E3]">
+        <div className="min-h-screen bg-[#FCF8F3]">
             {/* Hero Section - Mobile Optimized */}
             <div className="bg-gradient-to-br from-[#12403C] to-[#0E3330] text-center py-8 md:py-12 mb-4 md:mb-8 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
                 <div className="container mx-auto px-4 lg:px-8 relative z-10">
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-normal mb-1 md:mb-2 text-[#F5F0E3] tracking-wide">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-normal mb-1 md:mb-2 text-[#FCF8F3] tracking-wide">
                         Discover Our Collection
                     </h1>
-                    <p className="text-xs sm:text-sm text-[#F5F0E3]/70 max-w-xl mx-auto">
+                    <p className="text-xs sm:text-sm text-[#FCF8F3]/70 max-w-xl mx-auto">
                         Explore our curated selection of luxury accessories
                     </p>
                 </div>

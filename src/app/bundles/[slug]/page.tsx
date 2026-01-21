@@ -29,7 +29,7 @@ export default async function BundleDetailsPage({ params }: Props) {
     }
 
     return (
-        <main className="min-h-screen bg-[#F5F0E3]">
+        <main className="min-h-screen bg-[#FCF8F3]">
             <FixedBundleClient bundle={bundle} />
         </main>
     );

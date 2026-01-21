@@ -341,7 +341,7 @@ html, body {
 .sticky-col {
   position: sticky !important;
   left: 0;
-  background: #F5F0E3 !important;
+  background: #FCF8F3 !important;
     /* Solid beige, no transparency */
   z-index: 30;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);

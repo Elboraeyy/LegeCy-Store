@@ -40,28 +40,28 @@ export function FlashSaleSingleClient({ endDate }: { endDate: Date }) {
         <div className="flex flex-wrap gap-3 md:gap-4 items-center justify-center">
             {timeLeft.days > 0 && (
                 <>
-                    <div className="flex flex-col items-center bg-[#F5F0E3]/10 backdrop-blur-md border border-[#F5F0E3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
-                        <span className="text-2xl md:text-3xl font-bold text-[#F5F0E3] tabular-nums">{String(timeLeft.days).padStart(2, '0')}</span>
+                    <div className="flex flex-col items-center bg-[#FCF8F3]/10 backdrop-blur-md border border-[#FCF8F3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
+                        <span className="text-2xl md:text-3xl font-bold text-[#FCF8F3] tabular-nums">{String(timeLeft.days).padStart(2, '0')}</span>
                         <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">Days</span>
                     </div>
                     <span className="text-xl md:text-3xl font-bold text-[#d4af37] hidden md:block">:</span>
                 </>
             )}
             
-            <div className="flex flex-col items-center bg-[#F5F0E3]/10 backdrop-blur-md border border-[#F5F0E3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
-                <span className="text-2xl md:text-3xl font-bold text-[#F5F0E3] tabular-nums">{String(timeLeft.hours).padStart(2, '0')}</span>
+            <div className="flex flex-col items-center bg-[#FCF8F3]/10 backdrop-blur-md border border-[#FCF8F3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
+                <span className="text-2xl md:text-3xl font-bold text-[#FCF8F3] tabular-nums">{String(timeLeft.hours).padStart(2, '0')}</span>
                 <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">Hours</span>
             </div>
             <span className="text-xl md:text-3xl font-bold text-[#d4af37] hidden md:block">:</span>
             
-            <div className="flex flex-col items-center bg-[#F5F0E3]/10 backdrop-blur-md border border-[#F5F0E3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
-                <span className="text-2xl md:text-3xl font-bold text-[#F5F0E3] tabular-nums">{String(timeLeft.minutes).padStart(2, '0')}</span>
+            <div className="flex flex-col items-center bg-[#FCF8F3]/10 backdrop-blur-md border border-[#FCF8F3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
+                <span className="text-2xl md:text-3xl font-bold text-[#FCF8F3] tabular-nums">{String(timeLeft.minutes).padStart(2, '0')}</span>
                 <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">Mins</span>
             </div>
             <span className="text-xl md:text-3xl font-bold text-[#d4af37] hidden md:block">:</span>
             
-            <div className="flex flex-col items-center bg-[#F5F0E3]/10 backdrop-blur-md border border-[#F5F0E3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
-                <span className="text-2xl md:text-3xl font-bold text-[#F5F0E3] tabular-nums">{String(timeLeft.seconds).padStart(2, '0')}</span>
+            <div className="flex flex-col items-center bg-[#FCF8F3]/10 backdrop-blur-md border border-[#FCF8F3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
+                <span className="text-2xl md:text-3xl font-bold text-[#FCF8F3] tabular-nums">{String(timeLeft.seconds).padStart(2, '0')}</span>
                 <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">Secs</span>
             </div>
         </div>

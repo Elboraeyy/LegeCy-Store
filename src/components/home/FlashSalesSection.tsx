@@ -45,17 +45,17 @@ function Countdown({ endDate }: { endDate: Date }) {
 
     return (
         <div className="flex gap-2 items-center justify-center">
-            <div className="flex flex-col items-center bg-[#F5F0E3] rounded md:rounded-lg px-2.5 py-1 min-w-[44px] md:min-w-[50px]">
+            <div className="flex flex-col items-center bg-[#FCF8F3] rounded md:rounded-lg px-2.5 py-1 min-w-[44px] md:min-w-[50px]">
                 <span className="text-lg md:text-xl font-bold text-[#12403C] leading-none">{String(timeLeft.hours).padStart(2, '0')}</span>
                 <span className="text-[10px] uppercase tracking-wider text-[#4A6B68] leading-none mt-0.5">hrs</span>
             </div>
-            <span className="text-lg font-bold text-[#F5F0E3]">:</span>
-            <div className="flex flex-col items-center bg-[#F5F0E3] rounded md:rounded-lg px-2.5 py-1 min-w-[44px] md:min-w-[50px]">
+            <span className="text-lg font-bold text-[#FCF8F3]">:</span>
+            <div className="flex flex-col items-center bg-[#FCF8F3] rounded md:rounded-lg px-2.5 py-1 min-w-[44px] md:min-w-[50px]">
                 <span className="text-lg md:text-xl font-bold text-[#12403C] leading-none">{String(timeLeft.minutes).padStart(2, '0')}</span>
                 <span className="text-[10px] uppercase tracking-wider text-[#4A6B68] leading-none mt-0.5">min</span>
             </div>
-            <span className="text-lg font-bold text-[#F5F0E3]">:</span>
-            <div className="flex flex-col items-center bg-[#F5F0E3] rounded md:rounded-lg px-2.5 py-1 min-w-[44px] md:min-w-[50px]">
+            <span className="text-lg font-bold text-[#FCF8F3]">:</span>
+            <div className="flex flex-col items-center bg-[#FCF8F3] rounded md:rounded-lg px-2.5 py-1 min-w-[44px] md:min-w-[50px]">
                 <span className="text-lg md:text-xl font-bold text-[#12403C] leading-none">{String(timeLeft.seconds).padStart(2, '0')}</span>
                 <span className="text-[10px] uppercase tracking-wider text-[#4A6B68] leading-none mt-0.5">sec</span>
             </div>
@@ -93,15 +93,15 @@ export function FlashSalesSection({ sales }: { sales: FlashSale[] }) {
                                         <span className="w-1.5 h-1.5 rounded-full bg-[#12403C] animate-pulse"></span>
                                         Flash Sale
                                     </div>
-                                    {/* <h2 className="text-xl md:text-2xl font-heading font-bold text-[#F5F0E3]">{sale.name}</h2> */}
+                                    {/* <h2 className="text-xl md:text-2xl font-heading font-bold text-[#FCF8F3]">{sale.name}</h2> */}
                                 </div>
                                 <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur-sm">
-                                    <span className="text-xs text-[#F5F0E3]/80 font-medium uppercase tracking-wide hidden md:inline">Ends in</span>
+                                    <span className="text-xs text-[#FCF8F3]/80 font-medium uppercase tracking-wide hidden md:inline">Ends in</span>
                                     <Countdown endDate={sale.endDate} />
                                 </div>
                             </motion.div>
                             
-                            <div className="text-[#F5F0E3]">
+                            <div className="text-[#FCF8F3]">
                                 <ProductCarousel 
                                     products={carouselProducts} 
                                     title={sale.name}

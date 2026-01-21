@@ -5,7 +5,7 @@
 ======================================== */
 .checkoutPage {
     min-height: 100vh;
-    background: #F5F0E3;
+    background: #FCF8F3;
 }
 
 .checkoutHero {
@@ -36,7 +36,7 @@
     font-family: var(--font-heading, 'Playfair Display', serif);
     font-size: 32px;
     font-weight: 400;
-    color: #F5F0E3;
+    color: #FCF8F3;
     margin: 0 0 8px 0;
     letter-spacing: 1px;
 }
@@ -87,7 +87,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #F5F0E3;
+    color: #FCF8F3;
 }
 
 .sectionTitle {

@@ -12,14 +12,14 @@
   --pos-radius-sm: 12px;
   --pos-bg-dark: #12403C;
     /* Deep Green */
-    --pos-bg-light: #F5F0E3;
+    --pos-bg-light: #FCF8F3;
     /* Beige */
     --pos-surface-light: #ffffff;
     /* Reverted to white */
     --pos-surface-white: #ffffff;
     /* Reverted to white */
   
-  --pos-text-on-dark: #F5F0E3;
+  --pos-text-on-dark: #FCF8F3;
     --pos-text-on-light: #12403C;
     --pos-text-muted: #4A6B68;
   

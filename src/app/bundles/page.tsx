@@ -13,13 +13,13 @@ export default async function BundlesPage() {
     ]);
 
     return (
-        <main className="min-h-screen bg-[#F5F0E3] pb-20">
+        <main className="min-h-screen bg-[#FCF8F3] pb-20">
              {/* Header */}
              <div className="bg-[#12403C] pt-32 pb-16 text-center px-4">
-                <h1 className="text-4xl md:text-6xl font-heading font-bold text-[#F5F0E3] mb-4">
+                <h1 className="text-4xl md:text-6xl font-heading font-bold text-[#FCF8F3] mb-4">
                     Exclusive Bundles
                 </h1>
-                <p className="text-[#F5F0E3]/80 text-lg max-w-2xl mx-auto">
+                <p className="text-[#FCF8F3]/80 text-lg max-w-2xl mx-auto">
                     Curated sets designed to elevate your style. Save more when you buy together.
                 </p>
             </div>

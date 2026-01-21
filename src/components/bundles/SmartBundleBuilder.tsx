@@ -252,7 +252,7 @@ export function SmartBundleBuilder({ bundle }: Props) {
                         <button
                             onClick={handleAddToCart}
                             disabled={!isComplete || isPending}
-                            className="w-full py-4 bg-[#12403C] text-[#F5F0E3] font-bold uppercase tracking-widest text-sm md:text-base rounded-xl hover:bg-[#d4af37] hover:text-[#12403C] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-4 bg-[#12403C] text-[#FCF8F3] font-bold uppercase tracking-widest text-sm md:text-base rounded-xl hover:bg-[#d4af37] hover:text-[#12403C] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                              {isPending ? (
                                 <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />

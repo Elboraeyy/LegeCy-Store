@@ -50,7 +50,7 @@ export default function SignupPage() {
             minHeight: '100vh', 
             display: 'grid', 
             gridTemplateColumns: '1fr 2fr',
-            background: '#F5F0E3'
+            background: '#FCF8F3'
         }}>
             {/* Global Animations & Responsive Styles */}
              <style jsx global>{`
@@ -135,7 +135,7 @@ export default function SignupPage() {
                         scroll-snap-align: start; /* Snap point 2 */
                         scroll-snap-stop: always; /* Force stop here */
                         
-                        background: #F5F0E3 !important;
+                        background: #FCF8F3 !important;
                         border-radius: 30px 30px 0 0 !important;
                         margin-top: -20px !important; /* Overlap */
                         padding: 40px 24px !important;
@@ -180,7 +180,7 @@ export default function SignupPage() {
                 display: 'flex', 
                 flexDirection: 'column', 
                 justifyContent: 'center',
-                color: '#F5F0E3',
+                color: '#FCF8F3',
                 position: 'relative',
                 overflow: 'hidden'
             }} className="auth-brand-side">
@@ -258,7 +258,7 @@ export default function SignupPage() {
 
             {/* Right: Signup Form (Beige/Light) */}
             <div className="auth-form-side" style={{ 
-                background: '#F5F0E3', 
+                background: '#FCF8F3', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
