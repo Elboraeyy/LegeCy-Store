@@ -78,7 +78,7 @@ export default function AdminLoginPage() {
                 @media (max-width: 900px) {
                     .admin-auth-container { 
                         display: block !important;
-                        background: #12403C !important;
+                        background: #F6E5C6 portant;
                         height: 100vh;
                         overflow-y: scroll;
                         scroll-snap-type: y mandatory;
