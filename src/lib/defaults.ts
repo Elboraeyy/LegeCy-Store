@@ -23,9 +23,9 @@ export const defaultGeneral: GeneralSettings = {
 
 export const defaultAppearance: AppearanceSettings = {
   primaryColor: "#12403C",
-  secondaryColor: "#F5F0E3",
+  secondaryColor: "#FCF8F3",
   accentColor: "#d4af37",
-  backgroundColor: "#F5F0E3",
+  backgroundColor: "#FCF8F3",
   textColor: "#12403C",
   fontFamily: "Inter",
   headingFont: "Playfair Display",

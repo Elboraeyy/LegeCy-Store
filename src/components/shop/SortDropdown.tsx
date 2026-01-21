@@ -67,7 +67,7 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
                 onClick={() => handleSelect(option)}
                 className={`w-full text-left px-4 py-3 text-sm transition-colors ${
                   option.value === value
-                    ? "bg-[#F5F0E3] text-[#12403C] font-semibold"
+                    ? "bg-[#FCF8F3] text-[#12403C] font-semibold"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
               >

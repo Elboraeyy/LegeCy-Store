@@ -21,7 +21,7 @@ export default async function SmartBundlePage({ params }: Props) {
     }
 
     return (
-        <main className="min-h-screen bg-[#F5F0E3]">
+        <main className="min-h-screen bg-[#FCF8F3]">
             <SmartBundleBuilder bundle={bundle} />
         </main>
     );

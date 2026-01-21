@@ -177,7 +177,7 @@ export function FixedBundleClient({ bundle }: Props) {
                     </div>
 
                     {/* Price & Action */}
-                    <div className="mt-auto bg-[#F5F0E3]/30 p-8 rounded-2xl border border-[#d4af37]/20">
+                    <div className="mt-auto bg-[#FCF8F3]/30 p-8 rounded-2xl border border-[#d4af37]/20">
                         <div className="flex flex-col md:flex-row items-end justify-between gap-6 mb-6">
                             <div>
                                 <span className="block text-gray-500 text-sm font-bold uppercase tracking-wider mb-1">Total Value</span>
@@ -192,7 +192,7 @@ export function FixedBundleClient({ bundle }: Props) {
                         <button
                             onClick={handleAddToCart}
                             disabled={isPending}
-                            className="w-full py-5 bg-[#12403C] text-[#F5F0E3] font-bold uppercase tracking-widest text-lg rounded-xl hover:bg-[#d4af37] hover:text-[#12403C] transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                            className="w-full py-5 bg-[#12403C] text-[#FCF8F3] font-bold uppercase tracking-widest text-lg rounded-xl hover:bg-[#d4af37] hover:text-[#12403C] transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                         >
                             {isPending ? (
                                 <span className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin" />

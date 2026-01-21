@@ -54,7 +54,7 @@ export function PromotionsHub({ flashSales, bogos, bundles }: Props) {
     if (!flashSales?.length && !bogos?.length && !bundles?.length) return null;
 
     return (
-        <div className="promotions-hub-container flex flex-col gap-12 md:gap-20 py-12 md:py-20 relative bg-[#F5F0E3]/5">
+        <div className="promotions-hub-container flex flex-col gap-12 md:gap-20 py-12 md:py-20 relative bg-[#FCF8F3]/5">
              <div className="absolute inset-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.05)_0%,transparent_70%)]"></div>
 
             {/* 1. Flash Sales Section */}
@@ -124,7 +124,7 @@ function BogoCard({ deal }: { deal: BOGODeal }) {
     return (
         <div className="relative group overflow-hidden rounded-xl bg-white shadow-sm border border-[#12403C]/5 hover:shadow-xl transition-all duration-500">
              <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-                 <span className="inline-flex items-center px-3 py-1 bg-[#12403C] text-[#F5F0E3] text-xs font-bold uppercase tracking-wider rounded-full shadow-lg">
+                 <span className="inline-flex items-center px-3 py-1 bg-[#12403C] text-[#FCF8F3] text-xs font-bold uppercase tracking-wider rounded-full shadow-lg">
                     {deal.type === 'BUY_X_GET_Y_FREE' ? 'Free Gift' : `${deal.discount}% Off 2nd Item`}
                  </span>
              </div>
@@ -176,7 +176,7 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
                         </div>
                     ))}
                     {bundle.images.length < 4 && Array.from({ length: 4 - bundle.images.length }).map((_, i) => (
-                         <div key={`empty-${i}`} className="bg-[#F5F0E3]/20" />
+                         <div key={`empty-${i}`} className="bg-[#FCF8F3]/20" />
                     ))}
                 </div>
                 
@@ -210,7 +210,7 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
 
                  <Link 
                     href={bundle.type === 'MIX_AND_MATCH' ? `/bundles/build/${bundle.slug}` : `/bundles/${bundle.slug}`}
-                    className="w-full py-4 bg-[#12403C] text-[#F5F0E3] text-center font-bold uppercase tracking-widest text-sm rounded-lg hover:bg-[#d4af37] hover:text-[#12403C] transition-all duration-300 shadow-md transform group-hover:translate-y-[-2px]"
+                    className="w-full py-4 bg-[#12403C] text-[#FCF8F3] text-center font-bold uppercase tracking-widest text-sm rounded-lg hover:bg-[#d4af37] hover:text-[#12403C] transition-all duration-300 shadow-md transform group-hover:translate-y-[-2px]"
                  >
                     {bundle.type === 'MIX_AND_MATCH' ? 'Build This Bundle' : 'View Bundle'}
                  </Link>

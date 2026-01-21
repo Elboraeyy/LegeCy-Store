@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
             minHeight: '100vh', 
             display: 'grid', 
             gridTemplateColumns: '1fr 2fr',
-            background: '#F5F0E3'
+            background: '#FCF8F3'
         }}>
             {/* Mobile Responsive Styles */}
             <style jsx global>{`
@@ -173,7 +173,7 @@ export default function AdminLoginPage() {
                 display: 'flex', 
                 flexDirection: 'column', 
                 justifyContent: 'center',
-                color: '#F5F0E3',
+                color: '#FCF8F3',
                 position: 'relative',
                 overflow: 'hidden'
             }}>
@@ -229,7 +229,7 @@ export default function AdminLoginPage() {
 
             {/* Right Box (Form) */}
             <div className="admin-auth-form" style={{ 
-                background: '#F5F0E3', 
+                background: '#FCF8F3', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',

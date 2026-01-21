@@ -94,7 +94,7 @@ export default function ImageUpload({
                             window: "#12403C", // var(--bg-dark)
                             sourceBg: "#142f29", // var(--surface-dark)
                             windowBorder: "#2a4f45", // var(--border-dark)
-                            tabIcon: "#F5F0E3", // var(--text-on-dark)
+                            tabIcon: "#FCF8F3", // var(--text-on-dark)
                             inactiveTabIcon: "#a3b8b0", // var(--text-muted-dark)
                             menuIcons: "#d4af37", // var(--accent)
                             link: "#d4af37", // var(--accent)
@@ -103,7 +103,7 @@ export default function ImageUpload({
                             complete: "#d4af37", // var(--accent)
                             error: "#ef4444", 
                             textDark: "#12403C", // var(--text-on-light)
-                            textLight: "#F5F0E3" // var(--text-on-dark)
+                            textLight: "#FCF8F3" // var(--text-on-dark)
                         }
                     }
                 }}

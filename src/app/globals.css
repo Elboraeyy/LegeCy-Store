@@ -4,10 +4,10 @@
 :root {
   /* These are defaults - they will be overridden by settings CSS vars injected in layout.tsx */
   --bg-dark: #12403C;
-    --bg-light: #F5F0E3;
+    --bg-light: #FCF8F3;
     --surface-dark: #092B27;
     --surface-light: #ffffff;
-    --text-on-dark: #F5F0E3;
+    --text-on-dark: #FCF8F3;
     --text-on-light: #12403C;
     --text-muted-dark: #8BA8A4;
     --text-muted-light: #4A6B68;
@@ -856,7 +856,7 @@ select:disabled {
 }
 
 .flash-sales-container .section-title {
-  color: #F5F0E3 !important;
+  color: #FCF8F3 !important;
   margin-bottom: 0 !important;
   line-height: 1.1;
 }
@@ -879,8 +879,8 @@ select:disabled {
 }
 
 .flash-sales-container .view-all-link:hover {
-  color: #F5F0E3 !important;
-  border-color: #F5F0E3;
+  color: #FCF8F3 !important;
+  border-color: #FCF8F3;
   transform: translateX(4px);
 }
 .collection-media {

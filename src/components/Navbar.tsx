@@ -113,7 +113,7 @@ export default function Navbar({
 
   // Colors from globals.css
   // Dark Green: #12403C
-  // Beige: #F5F0E3
+  // Beige: #FCF8F3
   // Gold: #d4af37
 
   return (
@@ -143,8 +143,8 @@ export default function Navbar({
           visible ? 'translate-y-0' : '-translate-y-full'
         } ${
           scrolled
-            ? "bg-[#F5F0E3]/95 backdrop-blur-md border-b border-[rgba(18,64,60,0.08)] shadow-sm py-2"
-            : "bg-[#F5F0E3] border-b border-transparent py-3"
+            ? "bg-[#FCF8F3]/95 backdrop-blur-md border-b border-[rgba(18,64,60,0.08)] shadow-sm py-2"
+            : "bg-[#FCF8F3] border-b border-transparent py-3"
         }`}
         style={{
            marginTop: (visible && scrolled) ? 0 : (visible && headerSettings?.announcementEnabled ? 0 : 0) // Reset margin logic handling
@@ -223,7 +223,7 @@ export default function Navbar({
                     >
                       <Link
                         href="/shop"
-                        className="block px-6 py-3 text-sm text-[#12403C] hover:bg-[#F5F0E3] hover:text-[#d4af37] transition-colors font-medium"
+                        className="block px-6 py-3 text-sm text-[#12403C] hover:bg-[#FCF8F3] hover:text-[#d4af37] transition-colors font-medium"
                       >
                         All Products
                       </Link>
@@ -413,7 +413,7 @@ export default function Navbar({
                             <div className="space-y-px">
                               <Link
                                 href="/account"
-                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#F5F0E3] hover:text-[#12403C] rounded-lg transition-colors"
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#FCF8F3] hover:text-[#12403C] rounded-lg transition-colors"
                                 onClick={() => setShowUserMenu(false)}
                               >
                                 <svg
@@ -431,7 +431,7 @@ export default function Navbar({
                               </Link>
                               <Link
                                 href="/account/orders"
-                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#F5F0E3] hover:text-[#12403C] rounded-lg transition-colors"
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#FCF8F3] hover:text-[#12403C] rounded-lg transition-colors"
                                 onClick={() => setShowUserMenu(false)}
                               >
                                 <svg
@@ -536,7 +536,7 @@ export default function Navbar({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="fixed top-[60px] left-0 right-0 z-[55] bg-[#F5F0E3] shadow-lg border-b border-[rgba(18,64,60,0.1)] p-4 lg:hidden"
+              className="fixed top-[60px] left-0 right-0 z-[55] bg-[#FCF8F3] shadow-lg border-b border-[rgba(18,64,60,0.1)] p-4 lg:hidden"
             >
               <SearchBar onProductSelect={() => setShowMobileSearch(false)} />
             </motion.div>
@@ -573,7 +573,7 @@ export default function Navbar({
                   setIsOpen(false);
                 }
               }}
-              className="fixed top-0 right-0 bottom-0 w-[85%] max-w-[320px] bg-[#F5F0E3] z-[70] shadow-2xl flex flex-col touch-pan-y rounded-l-[20px]"
+              className="fixed top-0 right-0 bottom-0 w-[85%] max-w-[320px] bg-[#FCF8F3] z-[70] shadow-2xl flex flex-col touch-pan-y rounded-l-[20px]"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-5 border-b border-[rgba(18,64,60,0.1)]">

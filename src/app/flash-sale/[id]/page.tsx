@@ -40,7 +40,7 @@ export default async function FlashSalePage({ params }: Props) {
     }));
 
     return (
-        <main className="min-h-screen bg-[#F5F0E3]">
+        <main className="min-h-screen bg-[#FCF8F3]">
             {/* Hero Header */}
             {/* Hero Header */}
             <div className="bg-[#12403C] min-h-[30vh] md:min-h-[40vh] flex flex-col justify-center items-center pt-16 pb-8 md:pt-24 md:pb-12 text-center px-4 relative overflow-hidden">
@@ -54,12 +54,12 @@ export default async function FlashSalePage({ params }: Props) {
                         Flash Sale Event
                     </div>
                     
-                    <h1 className="text-2xl md:text-4xl font-heading font-bold text-[#F5F0E3] mb-3 animate-fade-in-up delay-100">
+                    <h1 className="text-2xl md:text-4xl font-heading font-bold text-[#FCF8F3] mb-3 animate-fade-in-up delay-100">
                         {sale.name}
                     </h1>
                     
                     {sale.description && (
-                        <p className="text-[#F5F0E3]/80 max-w-2xl mx-auto text-sm md:text-base mb-4 animate-fade-in-up delay-200">
+                        <p className="text-[#FCF8F3]/80 max-w-2xl mx-auto text-sm md:text-base mb-4 animate-fade-in-up delay-200">
                             {sale.description}
                         </p>
                     )}

@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                background: '#F5F0E3',
+                background: '#FCF8F3',
                 padding: '20px'
             }}>
                 <div style={{
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
-            background: '#F5F0E3',
+            background: '#FCF8F3',
             padding: '20px'
         }}>
             <div style={{

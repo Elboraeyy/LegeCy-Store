@@ -6,14 +6,14 @@
     --admin-radius-sm: 12px;
   --admin-bg-dark: #12403C;
     /* Deep Green */
-    --admin-bg-light: #F5F0E3;
+    --admin-bg-light: #FCF8F3;
     /* Beige */
     --admin-surface-light: #ffffff;
     /* Reverted to white */
     --admin-surface-white: #ffffff;
     /* Reverted to white */
   
-  --admin-text-on-dark: #F5F0E3;
+  --admin-text-on-dark: #FCF8F3;
     --admin-text-on-light: #12403C;
     --admin-text-muted: #4A6B68;
   
@@ -26,16 +26,16 @@
     /* Matches --bg-dark */
       --sidebar-bg-gradient: #12403C;
       /* Flat Deep Green */
-      --sidebar-text: #F5F0E3;
+      --sidebar-text: #FCF8F3;
     /* Matches --text-on-dark */
   --sidebar-hover: rgba(255, 255, 255, 0.04);
-  --sidebar-active: #F5F0E3;
+  --sidebar-active: #FCF8F3;
     /* Matches Main BG exactly for seamless blend */
     --sidebar-active-text: #12403C;
     /* Matches --text-on-light */
   --sidebar-border: rgba(255, 255, 255, 0.06);
 
-  --main-bg: #F5F0E3;
+  --main-bg: #FCF8F3;
     /* Darker Beige to match store global background */
   --card-bg: #ffffff;
     --card-border: rgba(18, 64, 60, 0.08);
@@ -3852,7 +3852,7 @@ input[type="number"].form-input {
   padding: 20px 24px;
   border-bottom: 1px solid var(--admin-border, rgba(18, 64, 60, 0.08));
   background: linear-gradient(135deg, var(--admin-bg-dark, #12403C), #1a524d);
-  color: var(--admin-text-on-dark, #F5F0E3);
+  color: var(--admin-text-on-dark, #FCF8F3);
 }
 
 .modal-header h2 {
@@ -3868,7 +3868,7 @@ input[type="number"].form-input {
 .modal-close {
   background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: var(--admin-text-on-dark, #F5F0E3);
+  color: var(--admin-text-on-dark, #FCF8F3);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -3982,7 +3982,7 @@ input[type="number"].form-input {
 
 .toggle-btn.active {
   background: var(--admin-bg-dark, #12403C);
-  color: var(--admin-text-on-dark, #F5F0E3);
+  color: var(--admin-text-on-dark, #FCF8F3);
   font-weight: 600;
 }
 
@@ -4016,7 +4016,7 @@ input[type="number"].form-input {
 .modal-body button[type="submit"] {
   background: var(--admin-bg-dark, #12403C);
   border: none;
-  color: var(--admin-text-on-dark, #F5F0E3);
+  color: var(--admin-text-on-dark, #FCF8F3);
 }
 
 .modal-footer .admin-btn-primary:hover,

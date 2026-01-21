@@ -30,7 +30,7 @@
   bottom: 0;
   width: 100%;
   max-width: 420px;
-    background: #F5F0E3;
+    background: #FCF8F3;
   z-index: 1010;
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -54,7 +54,7 @@
   align-items: center;
   justify-content: space-between;
     border-bottom: 1px solid var(--border, rgba(18, 64, 60, 0.08));
-    background: #F5F0E3;
+    background: #FCF8F3;
     border-radius: 20px 0 0 0;
   }
   
@@ -367,7 +367,7 @@
 ======================================== */
 .footer {
   padding: 20px 24px 24px;
-    background: #F5F0E3;
+    background: #FCF8F3;
     border-top: 1px solid var(--border, rgba(18, 64, 60, 0.08));
     border-radius: 0 0 0 20px;
   }
