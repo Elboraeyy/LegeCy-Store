@@ -1,4 +1,4 @@
-import { verifyEmail, resendVerification } from '@/lib/actions/auth';
+import { verifyEmail } from '@/lib/actions/auth';
 import Link from 'next/link';
 
 export default async function VerifyEmailPage({
@@ -6,7 +6,7 @@ export default async function VerifyEmailPage({
 }: {
     searchParams: { token?: string; sent?: string; email?: string, error?: string }
 }) {
-    const { token, sent, email, error: errorParam } = await searchParams;
+    const { token, sent, error: errorParam } = await searchParams;
 
     // Case 1: Processing Verification Token
     if (token) {
@@ -65,11 +65,11 @@ export default async function VerifyEmailPage({
                     </div>
                     <h1 className="text-3xl font-bold text-[#12403C] mb-4">Check Your Email</h1>
                     <p className="text-gray-600 mb-6">
-                        We've sent a verification link to your email address. Please click the link to verify your account.
+                        We&apos;ve sent a verification link to your email address. Please click the link to verify your account.
                     </p>
                     <div className="bg-blue-50 p-4 rounded-lg mb-6">
                         <p className="text-sm text-blue-800">
-                            Can't find it? Check your spam folder or wait a few minutes.
+                            Can&apos;t find it? Check your spam folder or wait a few minutes.
                         </p>
                     </div>
                     <Link 
