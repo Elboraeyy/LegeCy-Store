@@ -1,6 +1,6 @@
 import { verifyEmail } from '@/lib/actions/auth';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import VerifyEmailClient from './VerifyEmailClient';
 
 export default async function VerifyEmailPage({
     searchParams
@@ -9,34 +9,9 @@ export default async function VerifyEmailPage({
 }) {
     const { token, sent, error: errorParam } = await searchParams;
 
-    // Case 1: Processing Verification Token
+    // Case 1: Processing Verification Token (Delegated to Client Component)
     if (token) {
-        const result = await verifyEmail(token);
-        
-        if (result.success) {
-            // Session is already created in verifyEmail, just redirect to home
-            redirect('/');
-        } else {
-            return (
-                <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
-                    <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
-                        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <span className="text-4xl">⚠️</span>
-                        </div>
-                        <h1 className="text-3xl font-bold text-[#12403C] mb-4">Verification Failed</h1>
-                        <p className="text-red-500 mb-8">
-                            {result.error || 'The verification link is invalid or has expired.'}
-                        </p>
-                        <Link 
-                            href="/login"
-                            className="text-[#12403C] underline font-medium hover:text-[#D4AF37]"
-                        >
-                            Return to Login
-                        </Link>
-                    </div>
-                </div>
-            );
-        }
+        return <VerifyEmailClient token={token} />;
     }
 
     // Case 2: Just Sent Email
@@ -81,9 +56,7 @@ export default async function VerifyEmailPage({
                             ? 'Please verify your email address to access your account.' 
                             : 'An error occurred with your verification.'}
                     </p>
-                    
-                    {/* Simple Refetch Form to Resend */}
-                    {/* For now, just a helpful message, usually we'd have a form here */}
+
                     <div className="border-t pt-6">
                         <p className="text-sm text-gray-500">
                              Need to resend the link? Log in again to trigger a new email.
