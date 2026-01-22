@@ -876,8 +876,8 @@ export async function sendVerificationEmail(data: VerificationEmailData): Promis
     </div>
 
     <div style="padding: 40px; text-align: center;">
-      <div style="width: 60px; height: 60px; background: #dbfefe; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-        <span style="font-size: 28px;">✉️</span>
+      <div style="width: 60px; height: 60px; line-height: 60px; background: #dbfefe; border-radius: 50%; display: inline-block; text-align: center; margin-bottom: 20px;">
+        <span style="font-size: 30px; vertical-align: middle; line-height: 1;">✉️</span>
       </div>
 
       <h2 style="color: ${BRAND.primaryColor}; margin: 0 0 15px;">Verify Your Email</h2>
