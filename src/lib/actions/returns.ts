@@ -350,11 +350,68 @@ export async function createReturnRequest(
 export async function approveRefundAction(requestId: string, amount?: number) {
     try {
         const admin = await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
-        const result = await approveReturnRequest(requestId, admin.id, amount);
+
+        // 1. Fetch return request to determine amount
+        const returnRequest = await prisma.returnRequest.findUnique({
+            where: { id: requestId },
+            include: { order: true }
+        });
+
+        if (!returnRequest) {
+            return { success: false, message: 'Return request not found' };
+        }
+
+        const refundAmount = amount || Number(returnRequest.order.totalPrice);
+
+        // 2. Check if specific approval is required
+        const { checkApprovalRequired, getApprovalStatus, requestApproval } = await import('@/lib/services/approvalService');
+
+        const approvalCheck = await checkApprovalRequired('REFUND', refundAmount);
+
+        if (approvalCheck.required && approvalCheck.rule) {
+            // Check current status
+            const status = await getApprovalStatus('RETURN_REQUEST', requestId);
+
+            if (status.status === 'not_required' || (status.status === 'rejected' && status.requestId)) {
+                // Create new request
+                await requestApproval(
+                    'RETURN_REQUEST',
+                    requestId,
+                    'REFUND',
+                    {
+                        refundAmount,
+                        orderId: returnRequest.orderId,
+                        reason: returnRequest.reason
+                    },
+                    admin.id,
+                    approvalCheck.rule.id
+                );
+
+                revalidatePath('/admin/orders/returns');
+                return {
+                    success: false,
+                    message: `Refund of ${refundAmount} EGP varies from standard flow. Approval requested (Rule: ${approvalCheck.rule.name}).`
+                };
+            }
+
+            if (status.status === 'pending') {
+                return { success: false, message: 'Waiting for higher-level approval.' };
+            }
+
+            if (status.status === 'rejected') {
+                return { success: false, message: 'Refund approval was rejected.' };
+            }
+
+            // If approved, proceed
+        }
+
+        // 3. Proceed with approval
+        const result = await approveReturnRequest(requestId, admin.id, refundAmount);
         revalidatePath('/admin/orders');
         revalidatePath('/admin/orders/returns');
         return result;
     } catch (error: unknown) {
+        console.error('Approve Refund Error:', error);
         const msg = error instanceof Error ? error.message : "Unauthorized";
         return { success: false, message: msg };
     }

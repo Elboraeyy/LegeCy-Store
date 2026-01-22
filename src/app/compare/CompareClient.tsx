@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useComparison } from "@/context/ComparisonContext";
 import { useStore } from "@/context/StoreContext";
 import ProductSelectionModal from "@/components/ProductSelectionModal";
-import ComparisonTable from "./components/ComparisonTable";
 import MobileComparisonView from "./components/MobileComparisonView";
 import EmptyState from "./components/EmptyState";
 import { Product } from "@/types/product";
@@ -19,7 +18,7 @@ interface CompareClientProps {
     suggestions: ShopProduct[];
 }
 
-export default function CompareClient({ suggestions: _suggestions }: CompareClientProps) {
+export default function CompareClient({ }: CompareClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const fromLabel = searchParams.get("fromLabel");

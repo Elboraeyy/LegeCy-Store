@@ -9,6 +9,8 @@ import { checkRateLimit, RateLimits } from '@/lib/auth/rate-limit';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
+import { sendVerificationEmail } from '@/lib/services/emailService';
 
 export type ActionState = { error?: string } | null;
 
@@ -51,11 +53,38 @@ export async function signup(prevState: ActionState, formData: FormData): Promis
             data: {
                 email: data.email,
                 passwordHash: hashedPassword,
-                name: data.name
+                name: data.name,
+                emailVerified: null // Explicitly null
             }
         });
 
-        await createCustomerSession(user.id);
+        // Create verification token
+        const token = uuidv4();
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+        await prisma.verificationToken.create({
+            data: {
+                email: data.email,
+                token,
+                expiresAt,
+                purpose: 'email_verification'
+            }
+        });
+
+        // Send email
+        const emailResult = await sendVerificationEmail({
+            email: data.email,
+            token,
+            userName: data.name || undefined
+        });
+
+        if (!emailResult.success) {
+            console.error('Failed to send verification email:', emailResult.error);
+            // We still continue, user can request resend
+        }
+
+        // Do NOT create session. Redirect to check email page.
+        // But we are in server action. We can redirect to a "check your email" page.
     } catch (e) {
         if (e instanceof z.ZodError) {
              // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,7 +93,7 @@ export async function signup(prevState: ActionState, formData: FormData): Promis
         return { error: 'Something went wrong.' };
     }
 
-    redirect('/');
+    redirect('/verify-email?sent=true');
 }
 
 export async function login(prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -88,6 +117,13 @@ export async function login(prevState: ActionState, formData: FormData): Promise
 
         if (user.lockedUntil && user.lockedUntil > new Date()) {
             return { error: 'Account locked due to too many failed attempts. Try again later.' };
+        }
+
+        // Check if verified
+        if (!user.emailVerified) {
+            // Check if they have a valid token or generate new one?
+            // Ideally we just tell them to check email.
+            return { error: 'Please verify your email address before logging in.' };
         }
 
         const isValid = await verifyPassword(data.password, user.passwordHash);
@@ -205,6 +241,102 @@ export async function changePassword(
     } catch (error) {
         console.error('Change password error:', error);
         return { success: false, error: 'An error occurred' };
+    }
+}
+
+// Verify Email Action
+export async function verifyEmail(token: string): Promise<{ success: boolean; error?: string }> {
+    try {
+        const verificationToken = await prisma.verificationToken.findUnique({
+            where: { token }
+        });
+
+        if (!verificationToken) {
+            return { success: false, error: 'Invalid or expired verification token.' };
+        }
+
+        if (verificationToken.expiresAt < new Date()) {
+            await prisma.verificationToken.delete({ where: { id: verificationToken.id } });
+            return { success: false, error: 'Token expired. Please request a new one.' };
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { email: verificationToken.email }
+        });
+
+        if (!user) {
+            return { success: false, error: 'User not found.' };
+        }
+
+        // Verify User
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                emailVerified: new Date(),
+                status: 'active'
+            }
+        });
+
+        // Cleanup token
+        await prisma.verificationToken.delete({ where: { id: verificationToken.id } });
+
+        // Log user in
+        const { createCustomerSession } = await import('@/lib/auth/session');
+        await createCustomerSession(user.id);
+
+        return { success: true };
+    } catch (error) {
+        console.error('Verification error:', error);
+        return { success: false, error: 'An error occurred during verification.' };
+    }
+}
+
+// Resend Verification Email
+export async function resendVerification(email: string): Promise<{ success: boolean; error?: string }> {
+    try {
+        const user = await prisma.user.findUnique({ where: { email } });
+
+        if (!user) {
+            return { success: false, error: 'User not found.' };
+        }
+
+        if (user.emailVerified) {
+            return { success: false, error: 'Email is already verified.' };
+        }
+
+        const ip = (await headers()).get('x-forwarded-for') || 'unknown';
+        if (!checkRateLimit(`resend_${ip}`, RateLimits.SIGNUP)) { // Reuse signup limit
+            return { success: false, error: 'Too many requests. Please try again later.' };
+        }
+
+        // Create new token
+        const token = uuidv4();
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        // Delete old tokens?
+        await prisma.verificationToken.deleteMany({
+            where: { email, purpose: 'email_verification' }
+        });
+
+        await prisma.verificationToken.create({
+            data: {
+                email,
+                token,
+                expiresAt,
+                purpose: 'email_verification'
+            }
+        });
+
+        await sendVerificationEmail({
+            email,
+            token,
+            userName: user.name || undefined
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Resend verification error:', error);
+        return { success: false, error: 'Failed to resend verification email.' };
     }
 }
 

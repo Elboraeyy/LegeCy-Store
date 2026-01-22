@@ -843,3 +843,86 @@ export async function sendBackInStockEmail(data: BackInStockData): Promise<{ suc
     return { success: false, error: 'Failed to send email' };
   }
 }
+
+// ============================================
+// EMAIL VERIFICATION EMAIL
+// ============================================
+
+interface VerificationEmailData {
+  email: string;
+  token: string;
+  userName?: string;
+}
+
+export async function sendVerificationEmail(data: VerificationEmailData): Promise<{ success: boolean; error?: string }> {
+  console.log('📧 [EMAIL] Sending verification email to:', data.email);
+
+  try {
+    const resend = getResendClient();
+    if (!resend) return { success: false, error: 'Email service not configured' };
+
+    const verifyUrl = `${BRAND.appUrl}/verify-email?token=${data.token}`;
+
+    // Using the same consistent design as other emails
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"></head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: #f5f5f5;">
+  <div style="max-width: 500px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+    
+    <div style="background: linear-gradient(135deg, ${BRAND.primaryColor}, ${BRAND.darkBg}); padding: 30px; text-align: center;">
+      <h1 style="color: ${BRAND.accentColor}; margin: 0; font-size: 24px;">${BRAND.name}</h1>
+    </div>
+
+    <div style="padding: 40px; text-align: center;">
+      <div style="width: 60px; height: 60px; background: #dbfefe; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+        <span style="font-size: 28px;">✉️</span>
+      </div>
+
+      <h2 style="color: ${BRAND.primaryColor}; margin: 0 0 15px;">Verify Your Email</h2>
+      
+      <p style="color: #666; line-height: 1.6; margin-bottom: 30px;">
+        ${data.userName ? `Hello ${data.userName},` : 'Hello,'}<br>
+        Please verify your email address to complete your registration and secure your account.
+      </p>
+
+      <a href="${verifyUrl}" style="display: inline-block; background: ${BRAND.primaryColor}; color: white; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 600;">
+        Verify Email Address
+      </a>
+
+      <div style="margin-top: 30px; padding: 15px; background: #e0f2fe; border-radius: 10px;">
+        <p style="margin: 0; color: #075985; font-size: 13px;">
+          ⏰ This link expires in <strong>24 hours</strong><br>
+          🔒 Keep your account secure
+        </p>
+      </div>
+    </div>
+
+    <div style="background: #f9f9f9; padding: 20px; text-align: center;">
+      <p style="color: #888; margin: 0; font-size: 12px;">© ${new Date().getFullYear()} LegaCy Store</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    const { error } = await resend.emails.send({
+      from: getFromEmail(),
+      to: data.email,
+      subject: '✨ Verify your email - LegaCy Store',
+      html: html,
+    });
+
+    if (error) {
+      console.error('❌ [EMAIL] Verification email error:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('✅ [EMAIL] Verification email sent!');
+    return { success: true };
+  } catch (error) {
+    console.error('❌ [EMAIL] Exception:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
