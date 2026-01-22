@@ -117,7 +117,7 @@ export function HomeContentClient({
               </Reveal>
             </div>
           </motion.div>
-          <motion.div className="collection-card" variants={fadeUpSlow}>
+          <motion.div className="collection-card modern-card" variants={fadeUpSlow}>
             <div className="collection-media"
               style={{ backgroundImage: "url('/image/BUREI Green Sun_Emerald dial, golden stainless….jpeg')" }}>
             </div>

@@ -215,22 +215,27 @@ html, body {
         font-size: 14px;
     */
     
-    /* ========== FIX 5: Collection Cards Full Width ========== */
+    /* ========== FIX 5: Collection Cards Full Width & Reorder ========== */
     .collection-grid {
-        grid-template-columns: 1fr !important;
+        display: flex !important;
+          flex-direction: column-reverse !important;
         gap: 16px;
     }
     
     .collection-card {
         width: 100%;
         max-width: 100%;
-        min-height: 200px;
+        min-height: 240px;
         border-radius: 12px;
         overflow: hidden;
     }
     
+                .collection-card.modern-card {
+                  min-height: 500px !important;
+                }
     .collection-card.large {
         min-height: 240px;
+          /* Reset luxury card to normal size on mobile if needed, or keep it smaller */
     }
     
     .collection-overlay h3 {
@@ -376,9 +381,69 @@ html, body {
     padding-right: 8px !important;
   }
 
-  .product-col {
-    width: 180px !important;
-    min-width: 180px !important;
+                .product-col {
     max-width: 180px !important;
+  }
+}
+
+/* Legacy Section Mobile Fixes */
+@media (max-width: 900px) {
+  .legacy-section {
+    padding: 40px 20px !important;
+  }
+
+  .legacy-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .legacy-image-wrapper {
+    height: 300px;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .legacy-text-content {
+    padding: 0 10px;
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .legacy-title {
+    font-size: 32px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .legacy-description {
+    font-size: 14px !important;
+    margin-bottom: 32px !important;
+    line-height: 1.6 !important;
+    max-width: 100% !important;
+  }
+
+  /* Fix Button Alignment */
+  .legacy-text-content .btn-link-gold {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 280px;
+    height: 48px;
+    /* Fixed height for vertical centering */
+    background: #12403C;
+    color: #d4af37 !important;
+    border-radius: 24px;
+    text-decoration: none !important;
+    border: 1px solid #12403C;
+    margin: 0 auto;
+    padding: 0 !important;
+    /* Reset padding to let flex center it */
+    line-height: normal !important;
+    /* Reset line-height to let flex center it */
   }
 }

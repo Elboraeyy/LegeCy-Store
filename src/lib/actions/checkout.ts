@@ -336,7 +336,11 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
 
       // Calculate Shipping Cost
       let shippingCost = new Prisma.Decimal(50); // Default fallback
-      if (input.shippingCity) {
+
+      // Free Shipping Logic (2000 EGP Threshold)
+      if (subtotalAmount >= 2000) {
+        shippingCost = new Prisma.Decimal(0);
+      } else if (input.shippingCity) {
         const zone = await tx.shippingZone.findFirst({
           where: { cities: { has: input.shippingCity } }
         });

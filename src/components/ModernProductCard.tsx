@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Product } from "@/types/product";
 import { useStore } from "@/context/StoreContext";
 import { useIsClient } from "@/hooks/useIsClient";
+import { CartIcon } from "@/components/icons/CartIcon";
 
 interface ModernProductCardProps {
     product: Product;
@@ -101,9 +102,7 @@ export default function ModernProductCard({ product, priority = false }: ModernP
                         className="w-8 h-8 flex items-center justify-center rounded-full bg-[#12403C] text-white shadow-md active:scale-90 transition-transform disabled:bg-gray-300 disabled:cursor-not-allowed"
                         aria-label="Add to Cart"
                     >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 20a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm7 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                        </svg>
+                        <CartIcon className="w-3.5 h-3.5" />
                     </button>
                 </div>
             </div>

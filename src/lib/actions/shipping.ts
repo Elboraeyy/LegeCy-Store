@@ -5,7 +5,7 @@ import { getStoreConfig, ShippingSettings } from "@/lib/actions/config";
 // Default shipping settings (fallback if not configured)
 const defaultShippingSettings: ShippingSettings = {
   enableShipping: true,
-  freeShippingThreshold: 0,
+  freeShippingThreshold: 2000,
   defaultShippingRate: 50,
   expressShippingRate: 100,
   shippingZones: [
@@ -21,10 +21,23 @@ const defaultShippingSettings: ShippingSettings = {
 export async function getShippingSettings(): Promise<ShippingSettings> {
   try {
     const settings = await getStoreConfig('shipping_settings');
-    if (settings) {
-      return settings as ShippingSettings;
+
+    // Fetch dynamic threshold override
+    const { getStoreSettings } = await import('@/lib/actions/settings');
+    const dynamicSettings = await getStoreSettings(['FREE_SHIPPING_THRESHOLD', 'FREE_SHIPPING_ENABLED']);
+
+    let config = settings ? (settings as ShippingSettings) : { ...defaultShippingSettings };
+
+    // Override with dynamic settings if available
+    if (dynamicSettings['FREE_SHIPPING_THRESHOLD']) {
+      config.freeShippingThreshold = Number(dynamicSettings['FREE_SHIPPING_THRESHOLD']);
     }
-    return defaultShippingSettings;
+
+    if (dynamicSettings['FREE_SHIPPING_ENABLED'] === 'false') {
+      config.freeShippingThreshold = 999999999; // Effectively disable if toggle is off
+    }
+
+    return config;
   } catch (error) {
     console.error('[Shipping] Failed to get settings:', error);
     return defaultShippingSettings;

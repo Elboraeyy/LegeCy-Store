@@ -11,7 +11,7 @@ import { CartItemDTO } from './cart';
 export interface CouponData {
     id: string;
     code: string;
-    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING';
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING' | 'SHIPPING_PERCENTAGE' | 'SHIPPING_FIXED';
     discountValue: number;
     minOrderValue: number | null;
     maxDiscount: number | null;
@@ -25,19 +25,20 @@ export interface CouponValidationResult {
     discountAmount?: number;
     finalTotal?: number;
     shippingFree?: boolean; // New flag for Free Shipping
+    shippingDiscount?: number; // Specific shipping discount amount
 }
 
 export interface CouponFilters {
     search?: string;
     status?: 'all' | 'active' | 'inactive' | 'expired' | 'scheduled';
-    type?: 'all' | 'PERCENTAGE' | 'FIXED_AMOUNT';
+    type?: 'all' | 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING' | 'SHIPPING_PERCENTAGE' | 'SHIPPING_FIXED';
     page?: number;
     limit?: number;
 }
 
 export interface CouponInput {
     code: string;
-    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING';
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING' | 'SHIPPING_PERCENTAGE' | 'SHIPPING_FIXED';
     discountValue: number;
     minOrderValue?: number | null;
     maxDiscount?: number | null;
@@ -217,6 +218,10 @@ export async function validateCoupon(
         } else if (coupon.discountType === 'FREE_SHIPPING') {
             isFreeShipping = true;
             discountAmount = 0; // Discount is applied on Shipping Line, not Subtotal
+        } else if (coupon.discountType === 'SHIPPING_PERCENTAGE' || coupon.discountType === 'SHIPPING_FIXED') {
+            // These don't affect subtotal directly, passed as metadata
+            discountAmount = 0;
+            // NOTE: Actual calculation happens in Checkout based on shipping rate
         }
 
         // Ensure discount doesn't exceed total (Double check)
@@ -227,17 +232,17 @@ export async function validateCoupon(
         if (excludedItemsCount > 0) {
             if (eligibleItemsCount > 0) {
                  message = `Coupon applied to ${eligibleItemsCount} item(s). ${excludedItemsCount} item(s) excluded (Flash Sale/Bundle/Offer).`; // Partial
-            } else if (!isFreeShipping) {
+            } else if (!isFreeShipping && coupon.discountType !== 'SHIPPING_PERCENTAGE' && coupon.discountType !== 'SHIPPING_FIXED') {
                  // Should have been caught by minOrderValue check technically if min > 0
                  // But if min is 0, we might have 0 discount on 0 eligible total
                  return { isValid: false, error: `Coupon cannot be applied. All items in cart are part of exclusive offers.` }; 
             }
         }
         
-        if (isFreeShipping) {
+        if (isFreeShipping || coupon.discountType === 'SHIPPING_PERCENTAGE' || coupon.discountType === 'SHIPPING_FIXED') {
              message = excludedItemsCount > 0 
-                ? `Free Shipping applied! Note: ${excludedItemsCount} items are excluded from other discounts.`
-                : "Free Shipping applied successfully!";
+                 ? `Shipping discount applied! Note: ${excludedItemsCount} items are excluded from other discounts.`
+                 : "Shipping discount applied successfully!";
         }
 
         return {
@@ -246,7 +251,7 @@ export async function validateCoupon(
             coupon: {
                 id: coupon.id,
                 code: coupon.code,
-                discountType: coupon.discountType as 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING',
+                discountType: coupon.discountType as any,
                 discountValue: Number(coupon.discountValue),
                 minOrderValue: coupon.minOrderValue ? Number(coupon.minOrderValue) : null,
                 maxDiscount: coupon.maxDiscount ? Number(coupon.maxDiscount) : null,
@@ -271,7 +276,7 @@ export interface CouponFilters {
 
 export interface CouponInput {
     code: string;
-    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING';
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING' | 'SHIPPING_PERCENTAGE' | 'SHIPPING_FIXED';
     discountValue: number;
     minOrderValue?: number | null;
     maxDiscount?: number | null;
