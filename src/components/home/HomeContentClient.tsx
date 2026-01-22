@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { fadeUpSlow, staggerContainerSlow } from "@/lib/motion";
 import { Reveal } from "@/components/ui/Reveal";
 import ProductCarousel from "@/components/ProductCarousel";
+import ModernProductCarousel from "@/components/ModernProductCarousel";
 import { PromotionsHub, FlashSale, BOGODeal, Bundle } from "@/components/home/PromotionsHub";
 import type { HomepageSettings } from "@/lib/settings";
 import type { Product } from "@/types/product";
@@ -75,12 +76,24 @@ export function HomeContentClient({
 
       {/* Featured Products Carousel */}
       {featuredProducts && featuredProducts.length > 0 && (
-        <ProductCarousel
-          products={featuredProducts}
-          title="Featured Collection"
-          subtitle="Handpicked for You"
-          viewAllLink="/shop"
-        />
+        <>
+          <div className="md:hidden">
+            <ModernProductCarousel
+              products={featuredProducts}
+              title="Featured Collection"
+              subtitle="Handpicked for You"
+              viewAllLink="/shop"
+            />
+          </div>
+          <div className="hidden md:block">
+            <ProductCarousel
+              products={featuredProducts}
+              title="Featured Collection"
+              subtitle="Handpicked for You"
+              viewAllLink="/shop"
+            />
+          </div>
+        </>
       )}
 
       {/* Collection Section */}
@@ -124,12 +137,24 @@ export function HomeContentClient({
 
       {/* New Arrivals Carousel */}
       {newArrivals && newArrivals.length > 0 && (
-        <ProductCarousel
-          products={newArrivals}
-          title="New Arrivals"
-          subtitle="Just Dropped"
-          viewAllLink="/shop"
-        />
+        <>
+          <div className="md:hidden">
+            <ModernProductCarousel
+              products={newArrivals}
+              title="New Arrivals"
+              subtitle="Just Dropped"
+              viewAllLink="/shop"
+            />
+          </div>
+          <div className="hidden md:block">
+            <ProductCarousel
+              products={newArrivals}
+              title="New Arrivals"
+              subtitle="Just Dropped"
+              viewAllLink="/shop"
+            />
+          </div>
+        </>
       )}
 
       {/* Trust Section */}

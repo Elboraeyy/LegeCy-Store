@@ -11,6 +11,7 @@ import MobileComparisonView from "./components/MobileComparisonView";
 import EmptyState from "./components/EmptyState";
 import { Product } from "@/types/product";
 import { ShopProduct } from "@/lib/actions/shop";
+import DesktopComparisonView from "./components/DesktopComparisonView";
 
 type ProductId = string | number;
 
@@ -23,10 +24,7 @@ export default function CompareClient({ suggestions: _suggestions }: CompareClie
     const searchParams = useSearchParams();
     const fromLabel = searchParams.get("fromLabel");
     const { selectedProducts, removeFromCompare, addToCompare } = useComparison();
-    const { addToCart } = useStore();
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [replacingId, setReplacingId] = useState<ProductId | null>(null);
+    const { addToCart, products, fav, isLoading: isStoreLoading } = useStore();
 
     // Responsive check for mobile
     const [isMobile, setIsMobile] = useState(false);
@@ -36,6 +34,22 @@ export default function CompareClient({ suggestions: _suggestions }: CompareClie
         window.addEventListener("resize", checkMobile);
         return () => window.removeEventListener("resize", checkMobile);
     }, []);
+
+    const autoPopulatedRef = React.useRef(false);
+
+    // Auto-populate from wishlist on mobile if empty
+    useEffect(() => {
+        if (!isStoreLoading && isMobile && !autoPopulatedRef.current && selectedProducts.length === 0 && fav.length > 0) {
+            const wishlistProducts = products.filter(p => fav.includes(p.id));
+            if (wishlistProducts.length > 0) {
+                wishlistProducts.forEach(p => addToCompare(p));
+                autoPopulatedRef.current = true;
+            }
+        }
+    }, [isMobile, isStoreLoading, fav, products, selectedProducts.length, addToCompare]);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [replacingId, setReplacingId] = useState<ProductId | null>(null);
 
     const handleOpenModal = (replaceId?: ProductId) => {
         setReplacingId(replaceId || null);
@@ -149,7 +163,7 @@ export default function CompareClient({ suggestions: _suggestions }: CompareClie
                         addToCart={addToCart}
                     />
                 ) : (
-                    <ComparisonTable
+                            <DesktopComparisonView
                         products={selectedProducts}
                         onRemove={removeFromCompare}
                         onReplace={handleOpenModal}
