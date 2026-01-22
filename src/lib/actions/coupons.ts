@@ -251,6 +251,7 @@ export async function validateCoupon(
             coupon: {
                 id: coupon.id,
                 code: coupon.code,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 discountType: coupon.discountType as any,
                 discountValue: Number(coupon.discountValue),
                 minOrderValue: coupon.minOrderValue ? Number(coupon.minOrderValue) : null,
@@ -266,55 +267,7 @@ export async function validateCoupon(
     }
 }
 
-export interface CouponFilters {
-    search?: string;
-    status?: 'all' | 'active' | 'inactive' | 'expired' | 'scheduled';
-    type?: 'all' | 'PERCENTAGE' | 'FIXED_AMOUNT';
-    page?: number;
-    limit?: number;
-}
 
-export interface CouponInput {
-    code: string;
-    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING' | 'SHIPPING_PERCENTAGE' | 'SHIPPING_FIXED';
-    discountValue: number;
-    minOrderValue?: number | null;
-    maxDiscount?: number | null;
-    startDate?: Date | string;
-    endDate?: Date | string | null;
-    usageLimit?: number | null;
-    isActive?: boolean;
-}
-
-export interface CouponWithStats {
-    id: string;
-    code: string;
-    discountType: string;
-    discountValue: number;
-    minOrderValue: number | null;
-    maxDiscount: number | null;
-    startDate: Date;
-    endDate: Date | null;
-    usageLimit: number | null;
-    currentUsage: number;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    // Calculated stats
-    status: 'active' | 'inactive' | 'expired' | 'scheduled';
-    totalRevenue?: number;
-    totalDiscount?: number;
-}
-
-export interface CouponAnalytics {
-    totalCoupons: number;
-    activeCoupons: number;
-    totalUsage: number;
-    totalDiscountGiven: number;
-    ordersWithCoupons: number;
-    conversionRate: number;
-    topCoupons: { code: string; usage: number; discount: number }[];
-}
 
 
 

@@ -26,7 +26,7 @@ export async function getShippingSettings(): Promise<ShippingSettings> {
     const { getStoreSettings } = await import('@/lib/actions/settings');
     const dynamicSettings = await getStoreSettings(['FREE_SHIPPING_THRESHOLD', 'FREE_SHIPPING_ENABLED']);
 
-    let config = settings ? (settings as ShippingSettings) : { ...defaultShippingSettings };
+    const config = settings ? (settings as ShippingSettings) : { ...defaultShippingSettings };
 
     // Override with dynamic settings if available
     if (dynamicSettings['FREE_SHIPPING_THRESHOLD']) {

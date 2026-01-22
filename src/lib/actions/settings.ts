@@ -13,6 +13,7 @@ export type StoreSettingsMap = {
  */
 export async function getStoreSettings(keys: string[]): Promise<StoreSettingsMap> {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const settings = await (prisma as any).storeSetting.findMany({
             where: {
                 key: { in: keys },
@@ -38,6 +39,7 @@ export async function getStoreSettings(keys: string[]): Promise<StoreSettingsMap
  */
 export async function getAllStoreSettings(): Promise<StoreSettingsMap> {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const settings = await (prisma as any).storeSetting.findMany();
         const settingsMap: StoreSettingsMap = {};
         settings.forEach((s: { key: string; value: string }) => {
@@ -55,6 +57,7 @@ export async function getAllStoreSettings(): Promise<StoreSettingsMap> {
  */
 export async function updateStoreSetting(key: string, value: string, description?: string) {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (prisma as any).storeSetting.upsert({
             where: { key },
             update: {
