@@ -1,4 +1,5 @@
 import { verifyEmail } from '@/lib/actions/auth';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 export default async function VerifyEmailPage({
@@ -13,25 +14,8 @@ export default async function VerifyEmailPage({
         const result = await verifyEmail(token);
         
         if (result.success) {
-            return (
-                <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
-                    <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <span className="text-4xl">🎉</span>
-                        </div>
-                        <h1 className="text-3xl font-bold text-[#12403C] mb-4">Email Verified!</h1>
-                        <p className="text-gray-600 mb-8">
-                            Your email has been successfully verified. You can now access all features of LegaCy Store.
-                        </p>
-                        <Link 
-                            href="/"
-                            className="inline-block bg-[#12403C] text-[#D4AF37] px-8 py-3 rounded-full font-semibold hover:bg-[#0A2622] transition-colors"
-                        >
-                            Go to Homepage
-                        </Link>
-                    </div>
-                </div>
-            );
+            // Session is already created in verifyEmail, just redirect to home
+            redirect('/');
         } else {
             return (
                 <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
