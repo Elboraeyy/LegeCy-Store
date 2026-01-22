@@ -287,7 +287,11 @@ export async function verifyEmail(token: string): Promise<{ success: boolean; er
         return { success: true };
     } catch (error) {
         console.error('Verification error:', error);
-        return { success: false, error: 'An error occurred during verification.' };
+        // Return actual error for debugging
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'An unexpected error occurred during verification.'
+        };
     }
 }
 
