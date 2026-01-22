@@ -93,7 +93,8 @@ export async function signup(prevState: ActionState, formData: FormData): Promis
         return { error: 'Something went wrong.' };
     }
 
-    redirect('/verify-email?sent=true');
+    const email = formData.get('email') as string;
+    redirect(`/verify-email?sent=true&email=${encodeURIComponent(email)}`);
 }
 
 export async function login(prevState: ActionState, formData: FormData): Promise<ActionState> {
