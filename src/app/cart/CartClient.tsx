@@ -1,26 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useStore } from "@/context/StoreContext";
 import { Reveal } from "@/components/ui/Reveal";
 import { motion, AnimatePresence } from "framer-motion";
-import { fadeUpSlow, staggerContainerSlow, fadeIn } from "@/lib/motion";
 import { useIsClient } from "@/hooks/useIsClient";
 import CartRecommendations from "@/components/cart/CartRecommendations";
 import {
   Trash2,
   Minus,
   Plus,
-  Gift,
-  MessageSquare,
   ShieldCheck,
   Truck,
   CreditCard,
   ArrowRight
 } from "lucide-react";
-import { toast } from "sonner";
 
 interface CartClientProps {
   freeShippingThreshold: number;
@@ -65,7 +61,7 @@ export default function CartClient({
                 </div>
                 <h2 className="text-3xl font-heading text-[#FCF8F3] mb-4">Your bag is empty</h2>
                 <p className="text-[#FCF8F3]/70 mb-8 max-w-md mx-auto px-4">
-                  Looks like you haven't added any luxury timepieces to your collection yet.
+                  Looks like you haven&apos;t added any luxury timepieces to your collection yet.
                 </p>
                 <Link
                   href="/shop"
@@ -113,7 +109,7 @@ export default function CartClient({
                     <span className="font-medium text-[#12403C]">
                       {remainingForFreeShipping > 0
                         ? <span>Add <span className="text-[#d4af37] font-bold">{formatPrice(remainingForFreeShipping)}</span> for Free Express Shipping</span>
-                        : <span className="text-green-600 font-bold">You've unlocked Free Express Shipping!</span>
+                        : <span className="text-green-600 font-bold">You&apos;ve unlocked Free Express Shipping!</span>
                       }
                     </span>
                   </div>

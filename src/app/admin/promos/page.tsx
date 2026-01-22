@@ -149,7 +149,7 @@ export default function PromosPage() {
                 updateStoreSetting('FREE_SHIPPING_ENABLED', String(isFreeShippingEnabled))
             ]);
             toast.success('Settings saved successfully');
-        } catch (error) {
+        } catch (error) { // eslint-disable-line @typescript-eslint/no-unused-vars
             toast.error('Failed to save settings');
         } finally {
             setSavingSettings(false);
@@ -1841,6 +1841,7 @@ function CouponModal({
     const [saving, setSaving] = useState(false);
     const [form, setForm] = useState<CouponInput>({
         code: coupon?.code || '',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         discountType: (coupon?.discountType as any) || 'PERCENTAGE',
         discountValue: coupon?.discountValue || 10,
         minOrderValue: coupon?.minOrderValue || null,
@@ -1943,6 +1944,7 @@ function CouponModal({
                                 <select
                                     className="form-input"
                                     value={form.discountType}
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     onChange={e => setForm(f => ({ ...f, discountType: e.target.value as any }))}
                                 >
                                     <option value="PERCENTAGE">Percentage (%)</option>

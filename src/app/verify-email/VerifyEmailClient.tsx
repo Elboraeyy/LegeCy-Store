@@ -24,7 +24,7 @@ export default function VerifyEmailClient({ token }: { token: string }) {
                     setStatus('error');
                     setErrorMessage(result.error || 'Verification failed');
                 }
-            } catch (err) {
+            } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
                 setStatus('error');
                 setErrorMessage('An unexpected error occurred');
             }

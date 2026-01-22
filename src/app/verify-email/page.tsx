@@ -1,4 +1,4 @@
-import { verifyEmail } from '@/lib/actions/auth';
+
 import Link from 'next/link';
 import VerifyEmailClient from './VerifyEmailClient';
 import ResendVerificationButton from './ResendVerificationButton';

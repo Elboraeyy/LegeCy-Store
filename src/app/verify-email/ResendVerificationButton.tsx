@@ -20,7 +20,7 @@ export default function ResendVerificationButton({ email }: { email: string }) {
                 setStatus('error');
                 setMessage(result.error || 'Failed to send email.');
             }
-        } catch (error) {
+        } catch (error) { // eslint-disable-line @typescript-eslint/no-unused-vars
             setStatus('error');
             setMessage('An unexpected error occurred.');
         }
