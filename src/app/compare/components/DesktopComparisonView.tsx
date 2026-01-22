@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { motion, PanInfo, useDragControls } from "framer-motion";
+import { motion, PanInfo } from "framer-motion";
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 import { Product } from "@/types/product";
 
@@ -398,7 +398,18 @@ export default function DesktopComparisonView({
 }
 
 // Reusing the drag thumbnail logic
-function ThumbnailCard({ product, idx, borderColor, badgeLabel, badgeColor, onClick, onRemove, onDrop }: any) {
+interface ThumbnailCardProps {
+    product: Product;
+    idx: number;
+    borderColor: string;
+    badgeLabel: string | null;
+    badgeColor: string;
+    onClick: () => void;
+    onRemove: () => void;
+    onDrop: (idx: number, slotNum: 1 | 2 | 3) => void;
+}
+
+function ThumbnailCard({ product, idx, borderColor, badgeLabel, badgeColor, onClick, onRemove, onDrop }: ThumbnailCardProps) {
     return (
         <motion.div
             drag
@@ -413,7 +424,7 @@ function ThumbnailCard({ product, idx, borderColor, badgeLabel, badgeColor, onCl
                 if (dropSlot) {
                     const slotNum = parseInt(dropSlot.getAttribute("data-slot-num") || "0");
                     if (slotNum >= 1 && slotNum <= 3) {
-                        onDrop(idx, slotNum);
+                        onDrop(idx, slotNum as 1 | 2 | 3);
                     }
                 }
             }}
