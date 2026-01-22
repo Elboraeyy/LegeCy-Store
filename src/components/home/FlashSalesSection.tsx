@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ProductCarousel from '@/components/ProductCarousel';
+import ModernProductCarousel from '@/components/ModernProductCarousel';
 import { Product } from '@/types/product';
 
 type FlashSale = {
@@ -102,12 +103,22 @@ export function FlashSalesSection({ sales }: { sales: FlashSale[] }) {
                             </motion.div>
                             
                             <div className="text-[#FCF8F3]">
-                                <ProductCarousel 
-                                    products={carouselProducts} 
-                                    title={sale.name}
-                                    subtitle="LIMITED TIME DEALS"
-                                    viewAllLink={`/flash-sale/${sale.id}`}
-                                />
+                                <div className="md:hidden">
+                                    <ModernProductCarousel
+                                        products={carouselProducts}
+                                        title={sale.name}
+                                        subtitle="LIMITED TIME DEALS"
+                                        viewAllLink={`/flash-sale/${sale.id}`}
+                                    />
+                                </div>
+                                <div className="hidden md:block">
+                                    <ProductCarousel
+                                        products={carouselProducts}
+                                        title={sale.name}
+                                        subtitle="LIMITED TIME DEALS"
+                                        viewAllLink={`/flash-sale/${sale.id}`}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </section>

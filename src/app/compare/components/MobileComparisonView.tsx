@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { Product } from "@/types/product";
+import { motion, PanInfo } from "framer-motion";
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 
 interface MobileComparisonViewProps {
@@ -84,8 +85,25 @@ export default function MobileComparisonView({
                 WebkitOverflowScrolling: "touch"
             }} className="hide-scrollbar">
                 {products.map((product, idx) => (
-                    <div
+                    <motion.div
                         key={product.id}
+                        drag
+                        dragSnapToOrigin
+                        dragElastic={0.2}
+                        whileDrag={{ scale: 1.1, zIndex: 100 }}
+                        onDragEnd={(_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+                            const { x, y } = info.point;
+                            // Check if dropped below the thumbnail row (approx > 250px from top)
+                            // and determine side based on screen width
+                            if (y > 250) {
+                                const isLeft = x < window.innerWidth / 2;
+                                if (isLeft) {
+                                    setPrimaryIdx(idx);
+                                } else {
+                                    setSecondaryIdx(idx);
+                                }
+                            }
+                        }}
                         onClick={() => {
                             // Toggle between primary and secondary
                             if (primaryIdx !== idx && secondaryIdx !== idx) {
@@ -111,7 +129,7 @@ export default function MobileComparisonView({
                             background: "var(--surface)",
                             overflow: "hidden",
                             cursor: "pointer",
-                            transition: "all 0.2s"
+                            touchAction: "none" // Prevents scroll interference while dragging
                         }}
                     >
                         {/* Selection Badge */}
@@ -142,6 +160,7 @@ export default function MobileComparisonView({
                                 e.stopPropagation();
                                 onRemove(product.id);
                             }}
+                            onPointerDownCapture={(e) => e.stopPropagation()} // Prevent drag start when clicking remove
                             style={{
                                 position: "absolute",
                                 top: "4px",
@@ -163,7 +182,7 @@ export default function MobileComparisonView({
                         </button>
 
                         {/* Image */}
-                        <div style={{ aspectRatio: "1/1", position: "relative" }}>
+                        <div style={{ aspectRatio: "1/1", position: "relative", pointerEvents: "none" }}>
                             <Image
                                 src={product.imageUrl || product.img || "/placeholder.jpg"}
                                 alt={product.name}
@@ -172,7 +191,7 @@ export default function MobileComparisonView({
                                 sizes="80px"
                             />
                         </div>
-                    </div>
+                    </motion.div>
                 ))}
 
                 {/* Add Product Button */}

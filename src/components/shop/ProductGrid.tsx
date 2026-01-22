@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import ProductCard from "@/components/ProductCard";
+import ModernProductCard from "@/components/ModernProductCard";
 import { Product } from "@/types/product";
 
 interface ProductGridProps {
@@ -108,7 +109,14 @@ export default function ProductGrid({
             `}</style>
             <div className="product-grid">
                 {products.map((product, index) => (
-                    <ProductCard key={product.id} product={product} priority={index < 4} />
+                    <React.Fragment key={product.id}>
+                        <div className="md:hidden">
+                            <ModernProductCard product={product} priority={index < 4} />
+                        </div>
+                        <div className="hidden md:block">
+                            <ProductCard product={product} priority={index < 4} />
+                        </div>
+                    </React.Fragment>
                 ))}
             </div>
         </>

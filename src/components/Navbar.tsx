@@ -215,11 +215,11 @@ export default function Navbar({
                 <AnimatePresence>
                   {showCategoryMenu && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 10, x: "-50%" }}
+                      animate={{ opacity: 1, y: 0, x: "-50%" }}
+                      exit={{ opacity: 0, y: 10, x: "-50%" }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden py-2"
+                      className="absolute top-full left-1/2 mt-2 w-64 bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden py-2"
                     >
                       <Link
                         href="/shop"
@@ -635,7 +635,7 @@ export default function Navbar({
               )}
 
               {/* Navigation */}
-              <div className="flex-1 overflow-y-auto p-5">
+              <div className="flex-1 overflow-y-auto overscroll-contain p-5">
                 <nav className="flex flex-col space-y-1">
                   <MobileNavLink href="/" onClick={() => setIsOpen(false)}>
                     Home
@@ -661,16 +661,7 @@ export default function Navbar({
                   <MobileNavLink href="/help" onClick={() => setIsOpen(false)}>
                     Help
                   </MobileNavLink>
-                  <MobileNavLink href="/compare" onClick={() => setIsOpen(false)}>
-                    <div className="flex items-center gap-2">
-                      Compare
-                      {selectedProducts.length > 0 && (
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#d4af37] text-xs font-bold text-white">
-                          {selectedProducts.length}
-                        </span>
-                      )}
-                    </div>
-                  </MobileNavLink>
+
                 </nav>
 
                 {/* Account Links */}
