@@ -433,17 +433,32 @@ export default function CheckoutClient() {
                   {errors.shippingAddress && <span className={styles.errorMessage}>{errors.shippingAddress}</span>}
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Delivery Notes (Optional)</label>
-                  <textarea
-                    name="shippingNotes"
-                    value={form.shippingNotes}
-                    onChange={handleChange}
-                    placeholder="Any special instructions for delivery..."
-                    className={styles.formTextarea}
-                    style={{ minHeight: "60px" }}
-                  />
+
+              </div>
+            </section>
+
+            {/* Order Notes */}
+            <section className={styles.formSection} style={{ marginTop: "24px" }}>
+              <div className={styles.sectionHeader}>
+                <div className={styles.sectionIcon}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
                 </div>
+                <div>
+                  <h2 className={styles.sectionTitle}>Order Notes</h2>
+                  <p className={styles.sectionSubtitle}>Any special instructions for us?</p>
+                </div>
+              </div>
+              <div className={styles.formGroup}>
+                <textarea
+                  name="shippingNotes"
+                  value={form.shippingNotes}
+                  onChange={handleChange}
+                  placeholder="Notes about your order, e.g. special notes for delivery."
+                  className={styles.formTextarea}
+                  style={{ minHeight: "80px" }}
+                />
               </div>
             </section>
 

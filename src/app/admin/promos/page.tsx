@@ -52,7 +52,7 @@ import {
 // Types
 // ==========================================
 
-type MainPromoType = 'coupons' | 'flash-sales' | 'bogo' | 'bundles' | 'product-offers';
+type MainPromoType = 'coupons' | 'flash-sales' | 'bogo' | 'bundles' | 'product-offers' | 'shipping';
 type TabType = 'all' | 'active' | 'scheduled' | 'expired' | 'inactive';
 type ModalType = 'create' | 'edit' | 'bulk' | 'flash-sale' | 'bogo' | 'bundle' | 'product-offer' | null;
 
@@ -88,10 +88,21 @@ export default function PromosPage() {
     const [editingCoupon, setEditingCoupon] = useState<CouponWithStats | null>(null);
     const [selectedCoupons, setSelectedCoupons] = useState<Set<string>>(new Set());
 
+    // Settings State
+    const [freeShippingThreshold, setFreeShippingThreshold] = useState('2000');
+    const [isFreeShippingEnabled, setIsFreeShippingEnabled] = useState(true);
+    const [savingSettings, setSavingSettings] = useState(false);
+
     // Load Data
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
+            // Load Settings
+            const { getStoreSettings, updateStoreSetting } = await import('@/lib/actions/settings');
+            const settings = await getStoreSettings(['FREE_SHIPPING_THRESHOLD', 'FREE_SHIPPING_ENABLED']);
+            if (settings['FREE_SHIPPING_THRESHOLD']) setFreeShippingThreshold(settings['FREE_SHIPPING_THRESHOLD']);
+            if (settings['FREE_SHIPPING_ENABLED']) setIsFreeShippingEnabled(settings['FREE_SHIPPING_ENABLED'] === 'true');
+
             if (mainPromoType === 'coupons') {
                 const filters: CouponFilters = {
                     search: search || undefined,
@@ -128,6 +139,22 @@ export default function PromosPage() {
             setLoading(false);
         }
     }, [search, activeTab, page, mainPromoType]);
+
+    const handleSaveSettings = async () => {
+        setSavingSettings(true);
+        try {
+            const { updateStoreSetting } = await import('@/lib/actions/settings');
+            await Promise.all([
+                updateStoreSetting('FREE_SHIPPING_THRESHOLD', freeShippingThreshold),
+                updateStoreSetting('FREE_SHIPPING_ENABLED', String(isFreeShippingEnabled))
+            ]);
+            toast.success('Settings saved successfully');
+        } catch (error) {
+            toast.error('Failed to save settings');
+        } finally {
+            setSavingSettings(false);
+        }
+    };
 
     useEffect(() => {
         loadData();
@@ -339,6 +366,8 @@ export default function PromosPage() {
                 </div>
             </div>
 
+
+
             {/* Main Promo Type Tabs */}
             <div className="main-promo-tabs">
                 <button 
@@ -376,7 +405,69 @@ export default function PromosPage() {
                     <span className="tab-icon">🏷️</span>
                     <span className="tab-label">Product Offers</span>
                 </button>
+                <button
+                    className={`main-promo-tab ${mainPromoType === 'shipping' ? 'active' : ''}`}
+                    onClick={() => setMainPromoType('shipping')}
+                >
+                    <span className="tab-icon">🚚</span>
+                    <span className="tab-label">Shipping</span>
+                </button>
             </div>
+
+            {/* Shipping Configuration Section */}
+            {mainPromoType === 'shipping' && (
+                <div className="admin-card mb-8 p-6 bg-white rounded-xl shadow-sm border border-[rgba(18,64,60,0.08)]">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#12403C]/5 flex items-center justify-center text-xl">🚚</div>
+                            <div>
+                                <h3 className="text-lg font-bold text-[#12403C]">Free Shipping Configuration</h3>
+                                <p className="text-sm text-gray-500">Manage free shipping threshold and progress bar visibility</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleSaveSettings}
+                            disabled={savingSettings}
+                            className="px-6 py-2 bg-[#12403C] text-white rounded-lg hover:bg-[#0E3330] transition-colors disabled:opacity-50 font-medium"
+                        >
+                            {savingSettings ? 'Saving...' : 'Save Changes'}
+                        </button>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
+                            <div className="flex-1">
+                                <label className="block text-sm font-semibold text-[#12403C] mb-1">Progress Bar Visibility</label>
+                                <p className="text-xs text-gray-500">Show/hide the progress bar in Cart & Checkout</p>
+                            </div>
+                            <div
+                                className="relative w-12 h-7 bg-gray-200 rounded-full cursor-pointer transition-colors"
+                                style={{ backgroundColor: isFreeShippingEnabled ? '#12403C' : '#e5e7eb' }}
+                                onClick={() => setIsFreeShippingEnabled(!isFreeShippingEnabled)}
+                            >
+                                <div
+                                    className="absolute top-1 left-1 bg-white w-5 h-5 rounded-full shadow-sm transition-transform"
+                                    style={{ transform: isFreeShippingEnabled ? 'translateX(20px)' : 'translateX(0)' }}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
+                            <div className="flex-1">
+                                <label className="block text-sm font-semibold text-[#12403C] mb-1">Free Shipping Threshold (EGP)</label>
+                                <p className="text-xs text-gray-500">Minimum amount to trigger free shipping</p>
+                            </div>
+                            <input
+                                type="number"
+                                value={freeShippingThreshold}
+                                onChange={(e) => setFreeShippingThreshold(e.target.value)}
+                                className="w-32 px-3 py-2 border border-gray-200 rounded-lg text-right font-medium focus:border-[#12403C] focus:ring-1 focus:ring-[#12403C] outline-none"
+                                placeholder="2000"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Coupons Section */}
             {mainPromoType === 'coupons' && (
@@ -1750,7 +1841,7 @@ function CouponModal({
     const [saving, setSaving] = useState(false);
     const [form, setForm] = useState<CouponInput>({
         code: coupon?.code || '',
-        discountType: (coupon?.discountType as 'PERCENTAGE' | 'FIXED_AMOUNT') || 'PERCENTAGE',
+        discountType: (coupon?.discountType as any) || 'PERCENTAGE',
         discountValue: coupon?.discountValue || 10,
         minOrderValue: coupon?.minOrderValue || null,
         maxDiscount: coupon?.maxDiscount || null,
@@ -1852,14 +1943,16 @@ function CouponModal({
                                 <select
                                     className="form-input"
                                     value={form.discountType}
-                                    onChange={e => setForm(f => ({ ...f, discountType: e.target.value as 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING' }))}
+                                    onChange={e => setForm(f => ({ ...f, discountType: e.target.value as any }))}
                                 >
                                     <option value="PERCENTAGE">Percentage (%)</option>
                                     <option value="FIXED_AMOUNT">Fixed Amount (EGP)</option>
                                     <option value="FREE_SHIPPING">Free Shipping</option>
+                                    <option value="SHIPPING_PERCENTAGE">Shipping Discount (%)</option>
+                                    <option value="SHIPPING_FIXED">Shipping Discount (EGP)</option>
                                 </select>
                             </div>
-                            {form.discountType !== 'FREE_SHIPPING' && (
+                            {(form.discountType !== 'FREE_SHIPPING') && (
                                 <div className="form-group">
                                     <label>Discount Value</label>
                                     <input
@@ -1868,7 +1961,7 @@ function CouponModal({
                                         value={form.discountValue}
                                         onChange={e => setForm(f => ({ ...f, discountValue: Number(e.target.value) }))}
                                         min={0}
-                                        max={form.discountType === 'PERCENTAGE' ? 100 : 999999}
+                                        max={(form.discountType === 'PERCENTAGE' || form.discountType === 'SHIPPING_PERCENTAGE') ? 100 : 999999}
                                         required
                                     />
                                 </div>

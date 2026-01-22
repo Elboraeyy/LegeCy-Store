@@ -39,7 +39,7 @@ type ProductId = string;
 interface StoreContextType {
   cart: CartItem[];
   fav: ProductId[];
-  addToCart: (id: ProductId, variantId?: string) => void;
+    addToCart: (id: ProductId, variantId?: string, openDrawer?: boolean) => void;
   removeFromCart: (id: ProductId, variantId?: string) => void;
   decFromCart: (id: ProductId, variantId?: string) => void;
   toggleFav: (id: ProductId) => void;
@@ -260,7 +260,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const closeCart = () => setIsCartOpen(false);
 
   // Add Item
-  const addToCart = (id: string, variantId?: string) => {
+    const addToCart = (id: string, variantId?: string, openDrawer: boolean = true) => {
       const product = products.find(p => p.id === id);
       // Use provided variantId, or fallback to product's defaultVariantId
       const vId = variantId || product?.defaultVariantId || "";
@@ -282,7 +282,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
       
       showToast("Added to Cart");
-      openCart();
+      if (openDrawer) openCart();
 
       // Server Sync (only if valid variantId exists)
       if (isLoggedIn && vId) {

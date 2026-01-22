@@ -2302,3 +2302,14 @@ model PartnerTransaction {
   @@index([partnerId])
   @@index([orderId])
 }
+
+// ==========================================
+// Store Settings (Dynamic Configuration)
+// ==========================================
+
+model StoreSetting {
+  key         String  @id
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}

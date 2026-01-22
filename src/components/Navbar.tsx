@@ -13,6 +13,7 @@ import SearchBar from "@/components/SearchBar";
 import { AnimatePresence, motion } from "framer-motion";
 import { GeneralSettings, HeaderSettings } from "@/lib/settings";
 import { useComparison } from "@/context/ComparisonContext";
+import { CartIcon } from "@/components/icons/CartIcon";
 
 interface NavbarProps {
   generalSettings?: GeneralSettings;
@@ -345,20 +346,7 @@ export default function Navbar({
                   onClick={openCart}
                   className="relative p-1 lg:p-2 text-[#12403C] hover:text-[#d4af37] transition-colors group"
                 >
-                  <svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="9" cy="21" r="1"></circle>
-                    <circle cx="20" cy="21" r="1"></circle>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                  </svg>
+                  <CartIcon className="w-[22px] h-[22px] group-hover:scale-105 transition-transform" />
                   {isClient && cartCount > 0 && (
                     <span className="absolute top-0 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#12403C] text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
                       {cartCount}
