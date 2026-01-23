@@ -46,7 +46,7 @@ export default function CartClient({
 
   if (cart.length === 0) {
     return (
-      <main className="min-h-screen bg-[#FCF8F3] pb-20">
+      <main className="min-h-screen bg-[#FCF8F3] pb-20 flex flex-col justify-center">
         <div className="container px-4">
           <Reveal width="100%">
             <div className="bg-gradient-to-br from-[#12403C] to-[#0E3330] text-center py-16 md:py-20 bg-white rounded-2xl md:rounded-3xl border border-[rgba(18,64,60,0.05)] shadow-sm max-w-2xl mx-auto relative overflow-hidden">
@@ -209,8 +209,10 @@ export default function CartClient({
 
             </div>
 
-            {/* Cross-Sell Recommendations */}
-            <CartRecommendations />
+            {/* Cross-Sell Recommendations - Desktop Only */}
+            <div className="hidden lg:block">
+              <CartRecommendations />
+            </div>
           </div>
 
           {/* Right Column: Summary (Sticky) */}
@@ -281,6 +283,11 @@ export default function CartClient({
               </Reveal>
             </div>
           </div>
+        </div>
+
+        {/* Cross-Sell Recommendations - Mobile Only (Moved below summary) */}
+        <div className="block lg:hidden mt-8">
+          <CartRecommendations />
         </div>
       </div>
     </main>
