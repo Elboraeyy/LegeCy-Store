@@ -43,14 +43,15 @@ export default function CartRecommendations() {
                 </Reveal>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="flex overflow-x-auto pb-6 -mx-4 px-4 scrollbar-hide md:grid md:grid-cols-4 md:gap-6 md:pb-0 md:mx-0 md:px-0 snap-x snap-mandatory">
                 {products.map((product, idx) => (
                     <motion.div
                         key={product.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: idx * 0.1, duration: 0.5 }}
+                        className="min-w-[180px] w-[180px] md:min-w-0 md:w-auto flex-shrink-0 mr-4 md:mr-0 snap-center first:pl-4 last:pr-4 md:first:pl-0 md:last:pr-0"
                     >
                         <ModernProductCard product={product} />
                     </motion.div>

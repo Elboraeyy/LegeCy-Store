@@ -416,6 +416,7 @@ export default function PromosPage() {
 
             {/* Shipping Configuration Section */}
             {mainPromoType === 'shipping' && (
+                <>
                 <div className="admin-card mb-8 p-6 bg-white rounded-xl shadow-sm border border-[rgba(18,64,60,0.08)]">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
@@ -467,6 +468,109 @@ export default function PromosPage() {
                         </div>
                     </div>
                 </div>
+
+                    {/* Shipping Coupons Table */}
+                    <div className="promo-section">
+                        <div className="section-header">
+                            <h2>🎫 Shipping Promo Codes</h2>
+                            <div className="section-actions">
+                                <button
+                                    type="button"
+                                    className="admin-btn admin-btn-primary"
+                                    onClick={() => { setEditingCoupon(null); setModalType('create'); }}
+                                >
+                                    <span>+</span> Create Coupon
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="admin-card">
+                            <div className="admin-table-container">
+                                <table className="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Code</th>
+                                            <th>Type</th>
+                                            <th>Value</th>
+                                            <th>Usage</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {coupons
+                                            .filter(c => ['FREE_SHIPPING', 'SHIPPING_PERCENTAGE', 'SHIPPING_FIXED'].includes(c.discountType))
+                                            .map(coupon => (
+                                                <tr key={coupon.id}>
+                                                    <td>
+                                                        <div className="coupon-code">{coupon.code}</div>
+                                                        <div className="coupon-meta">Created {new Date(coupon.createdAt).toLocaleDateString()}</div>
+                                                    </td>
+                                                    <td>
+                                                        <span className="badge badge-blue">
+                                                            {coupon.discountType.replace('SHIPPING_', '').replace('_', ' ')}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div className="fw-600">
+                                                            {coupon.discountType === 'FREE_SHIPPING' ? 'Free' :
+                                                                coupon.discountType === 'SHIPPING_PERCENTAGE' ? `${coupon.discountValue}%` :
+                                                                    `EGP ${coupon.discountValue}`}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div className="text-center">
+                                                            <div className="coupon-usage">{coupon.currentUsage}</div>
+                                                            <div className="usage-limit">
+                                                                {coupon.usageLimit ? `/ ${coupon.usageLimit}` : '∞'}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span className={`status-badge status-${coupon.status}`}>
+                                                            {coupon.status.toUpperCase()}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div className="coupon-actions">
+                                                            <button
+                                                                className="action-btn"
+                                                                onClick={() => handleToggleStatus(coupon.id)}
+                                                                title={coupon.isActive ? 'Deactivate' : 'Activate'}
+                                                            >
+                                                                {coupon.isActive ? '🚫' : '✅'}
+                                                            </button>
+                                                            <button
+                                                                className="action-btn"
+                                                                onClick={() => setEditingCoupon(coupon)}
+                                                                title="Edit"
+                                                            >
+                                                                ✏️
+                                                            </button>
+                                                            <button
+                                                                className="action-btn"
+                                                                onClick={() => handleDelete(coupon.id)}
+                                                                title="Delete"
+                                                            >
+                                                                🗑️
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        {coupons.filter(c => ['FREE_SHIPPING', 'SHIPPING_PERCENTAGE', 'SHIPPING_FIXED'].includes(c.discountType)).length === 0 && (
+                                            <tr>
+                                                <td colSpan={6} className="text-center py-8 text-gray-500">
+                                                    No shipping coupons created yet
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </>
             )}
 
             {/* Coupons Section */}
@@ -750,12 +854,17 @@ export default function PromosPage() {
                 </div>
             )}
 
+                </>
+            )}
+
             {/* Create/Edit Modal */}
             {(modalType === 'create' || modalType === 'edit') && (
                 <CouponModal
                     coupon={editingCoupon}
                     onSave={handleSaveCoupon}
                     onClose={() => { setModalType(null); setEditingCoupon(null); }}
+                    defaultType={mainPromoType === 'shipping' ? 'FREE_SHIPPING' : undefined}
+                    lockType={mainPromoType === 'shipping' && !editingCoupon}
                 />
             )}
 
@@ -765,9 +874,6 @@ export default function PromosPage() {
                     onSave={handleBulkCreate}
                     onClose={() => setModalType(null)}
                 />
-            )}
-
-            </>
             )}
 
             {/* Flash Sale Modal */}
@@ -1483,6 +1589,8 @@ function BOGOSection({
                 </div>
             )}
 
+
+
             <style jsx>{`
                 .promo-section { margin-top: 24px; }
                 .promo-feature-card { padding: 32px; margin-bottom: 24px; }
@@ -1832,17 +1940,22 @@ function ProductOffersSection({
 function CouponModal({ 
     coupon, 
     onSave, 
-    onClose 
+    onClose,
+    defaultType,
+    lockType = false
 }: { 
     coupon: CouponWithStats | null;
     onSave: (data: CouponInput) => Promise<void>;
     onClose: () => void;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        defaultType?: any;
+        lockType?: boolean;
 }) {
     const [saving, setSaving] = useState(false);
     const [form, setForm] = useState<CouponInput>({
         code: coupon?.code || '',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        discountType: (coupon?.discountType as any) || 'PERCENTAGE',
+        discountType: (coupon?.discountType as any) || defaultType || 'PERCENTAGE',
         discountValue: coupon?.discountValue || 10,
         minOrderValue: coupon?.minOrderValue || null,
         maxDiscount: coupon?.maxDiscount || null,
@@ -1946,6 +2059,7 @@ function CouponModal({
                                     value={form.discountType}
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     onChange={e => setForm(f => ({ ...f, discountType: e.target.value as any }))}
+                                    disabled={lockType}
                                 >
                                     <option value="PERCENTAGE">Percentage (%)</option>
                                     <option value="FIXED_AMOUNT">Fixed Amount (EGP)</option>
