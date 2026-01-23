@@ -47,7 +47,8 @@ export default async function EditProductPage({ params }: PageProps) {
         stock: currentStock, // Pass stock
         variants: product.variants.map((v) => ({
             ...v,
-            price: Number(v.price)
+            price: Number(v.price),
+            costPrice: v.costPrice ? Number(v.costPrice) : null
         }))
     };
 
