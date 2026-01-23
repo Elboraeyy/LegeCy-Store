@@ -76,24 +76,12 @@ export function HomeContentClient({
 
       {/* Featured Products Carousel */}
       {featuredProducts && featuredProducts.length > 0 && (
-        <>
-          <div className="md:hidden">
-            <ModernProductCarousel
-              products={featuredProducts}
-              title="Featured Collection"
-              subtitle="Handpicked for You"
-              viewAllLink="/shop"
-            />
-          </div>
-          <div className="hidden md:block">
-            <ProductCarousel
-              products={featuredProducts}
-              title="Featured Collection"
-              subtitle="Handpicked for You"
-              viewAllLink="/shop"
-            />
-          </div>
-        </>
+        <ModernProductCarousel
+          products={featuredProducts}
+          title="Featured Collection"
+          subtitle="Handpicked for You"
+          viewAllLink="/shop"
+        />
       )}
 
       {/* Collection Section */}
@@ -137,24 +125,12 @@ export function HomeContentClient({
 
       {/* New Arrivals Carousel */}
       {newArrivals && newArrivals.length > 0 && (
-        <>
-          <div className="md:hidden">
-            <ModernProductCarousel
-              products={newArrivals}
-              title="New Arrivals"
-              subtitle="Just Dropped"
-              viewAllLink="/shop"
-            />
-          </div>
-          <div className="hidden md:block">
-            <ProductCarousel
-              products={newArrivals}
-              title="New Arrivals"
-              subtitle="Just Dropped"
-              viewAllLink="/shop"
-            />
-          </div>
-        </>
+        <ModernProductCarousel
+          products={newArrivals}
+          title="New Arrivals"
+          subtitle="Just Dropped"
+          viewAllLink="/shop"
+        />
       )}
 
       {/* Trust Section */}

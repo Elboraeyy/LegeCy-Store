@@ -231,7 +231,7 @@ html, body {
     }
     
                 .collection-card.modern-card {
-                  min-height: 500px !important;
+                  min-height: 400px !important;
                 }
     .collection-card.large {
         min-height: 240px;
