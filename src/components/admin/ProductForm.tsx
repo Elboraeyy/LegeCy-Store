@@ -22,6 +22,7 @@ interface ProductFormProps {
         id: string;
         name: string;
         description: string | null;
+        detailedDescription: string | null;
         imageUrl: string | null;
         images: { url: string }[];
         variants: { sku: string; price: number }[]; 
@@ -71,6 +72,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     // Controlled State
     const [name, setName] = useState(initialData?.name || "");
     const [description, setDescription] = useState(initialData?.description || "");
+    const [detailedDescription, setDetailedDescription] = useState(initialData?.detailedDescription || "");
     const [sku, setSku] = useState(defaultVariant?.sku || "");
     const [price, setPrice] = useState(defaultVariant?.price?.toString() || "");
     const [compareAtPrice, setCompareAtPrice] = useState(initialData?.compareAtPrice?.toString() || "");
@@ -126,6 +128,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             const payload: ProductInput = {
                 name,
                 description: description || undefined,
+                detailedDescription: detailedDescription || undefined,
                 sku,
                 price: parseFloat(price),
                 compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
@@ -216,14 +219,27 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                         </div>
 
                         <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Description</label>
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Short Description (Show under price)</label>
                             <textarea 
                                 className="form-input" 
-                                placeholder="Product description..."
+                                placeholder="Brief summary of the product..."
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 disabled={loading}
-                                rows={4}
+                                rows={3}
+                                style={{ resize: 'vertical' }}
+                            />
+                        </div>
+
+                        <div className="admin-form-group" style={{ marginTop: '16px' }}>
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Detailed Description (Show in accordion)</label>
+                            <textarea
+                                className="form-input"
+                                placeholder="Full technical details and storytelling..."
+                                value={detailedDescription}
+                                onChange={(e) => setDetailedDescription(e.target.value)}
+                                disabled={loading}
+                                rows={6}
                                 style={{ resize: 'vertical' }}
                             />
                         </div>

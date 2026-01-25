@@ -11,6 +11,7 @@ import { getDefaultWarehouseId } from '@/lib/services/orderService'; // Reusing 
 export interface ProductInput {
     name: string;
     description?: string;
+    detailedDescription?: string;
     price: number;
     compareAtPrice?: number;
     sku: string;
@@ -45,6 +46,7 @@ export async function createProductAction(data: ProductInput) {
             data: {
                 name: data.name,
                 description: data.description,
+                detailedDescription: data.detailedDescription,
                 imageUrl: data.imageUrl,
                 compareAtPrice: data.compareAtPrice ? new Decimal(data.compareAtPrice) : null,
                 status: data.status || 'active',
@@ -104,6 +106,7 @@ export async function updateProductAction(id: string, data: ProductInput) {
         data: {
             name: data.name,
             description: data.description,
+            detailedDescription: data.detailedDescription,
             imageUrl: data.imageUrl,
             images: {
                 deleteMany: {},
@@ -369,6 +372,7 @@ export async function duplicateProduct(id: string): Promise<{ success: boolean; 
                 data: {
                     name: `${original.name} (Copy)`,
                     description: original.description,
+                    detailedDescription: original.detailedDescription,
                     imageUrl: original.imageUrl,
                     compareAtPrice: original.compareAtPrice,
                     status: 'draft',

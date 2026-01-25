@@ -47,6 +47,7 @@ import {
     ProductOfferInput,
     ProductOfferWithStats
 } from '@/lib/actions/promotions';
+import { getStoreSettings, updateStoreSetting } from '@/lib/actions/settings';
 
 // ==========================================
 // Types
@@ -98,7 +99,6 @@ export default function PromosPage() {
         setLoading(true);
         try {
             // Load Settings
-            const { getStoreSettings, updateStoreSetting } = await import('@/lib/actions/settings');
             const settings = await getStoreSettings(['FREE_SHIPPING_THRESHOLD', 'FREE_SHIPPING_ENABLED']);
             if (settings['FREE_SHIPPING_THRESHOLD']) setFreeShippingThreshold(settings['FREE_SHIPPING_THRESHOLD']);
             if (settings['FREE_SHIPPING_ENABLED']) setIsFreeShippingEnabled(settings['FREE_SHIPPING_ENABLED'] === 'true');
@@ -143,7 +143,6 @@ export default function PromosPage() {
     const handleSaveSettings = async () => {
         setSavingSettings(true);
         try {
-            const { updateStoreSetting } = await import('@/lib/actions/settings');
             await Promise.all([
                 updateStoreSetting('FREE_SHIPPING_THRESHOLD', freeShippingThreshold),
                 updateStoreSetting('FREE_SHIPPING_ENABLED', String(isFreeShippingEnabled))

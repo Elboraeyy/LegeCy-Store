@@ -309,6 +309,7 @@ model Product {
   id             String         @id @default(uuid())
   name           String
   description    String?
+  detailedDescription String? // Detailed content for accordion
   imageUrl       String? // Main Image
   images         ProductImage[]
   variants       Variant[]
@@ -2303,13 +2304,12 @@ model PartnerTransaction {
   @@index([orderId])
 }
 
-// ==========================================
-// Store Settings (Dynamic Configuration)
-// ==========================================
-
+// System Settings
 model StoreSetting {
-  key         String  @id
+  key         String   @id
   value       String
   description String?
   updatedAt   DateTime @updatedAt
 }
+
+
