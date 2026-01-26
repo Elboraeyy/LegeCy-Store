@@ -370,18 +370,24 @@ body {
     padding-left: 12px !important;
     padding-right: 8px !important;
   }
-
-                .product-col {
-    max-width: 180px !important;
+}
+@media (max-width: 900px) {
+  .legacy-section-container {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    margin-top: 32px !important;
+  
+  }
+  .legacy-section {
+    padding: 40px 20px !important;
+    border-radius: 24px !important;
+      width: 100% !important;
+      margin: 0 !important;
   }
 }
 
 /* Legacy Section Mobile Fixes */
 @media (max-width: 900px) {
-  .legacy-section {
-    padding: 40px 20px !important;
-  }
-
   .legacy-wrapper {
     display: flex;
     flex-direction: column;

@@ -195,10 +195,11 @@ export function HomeContentClient({
       </section>
 
       {/* Legacy Section */}
-      <section className="container legacy-section">
-        <div className="legacy-wrapper">
-          <div className="legacy-image-wrapper">
-             <Reveal width="100%" fullHeight>
+      <section className="container legacy-section-container">
+        <div className="legacy-section">
+          <div className="legacy-wrapper">
+            <div className="legacy-image-wrapper">
+              <Reveal width="100%" fullHeight>
                 <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                   <Image
                     src="/image/legacy-watch.jpeg"
@@ -209,24 +210,25 @@ export function HomeContentClient({
                   />
                   <div className="legacy-image-overlay"></div>
                 </div>
-             </Reveal>
-          </div>
-          <div className="legacy-text-content">
-            <Reveal delay={0.2}>
-              <span className="legacy-subtitle">Since 2025</span>
-            </Reveal>
-            <Reveal delay={0.3}>
-              <h2 className="legacy-title">A Legacy of <br />Precision</h2>
-            </Reveal>
-            <Reveal delay={0.4}>
-              <p className="legacy-description">
-                For those who value eternity over the momentary. {storeName} curates timepieces that are not just
-                instruments of time, but guardians of history.
-              </p>
-            </Reveal>
-            <Reveal delay={0.5}>
-              <Link href="/about" className="btn-link-gold">DISCOVER OUR HERITAGE</Link>
-            </Reveal>
+              </Reveal>
+            </div>
+            <div className="legacy-text-content">
+              <Reveal delay={0.2}>
+                <span className="legacy-subtitle">Since 2025</span>
+              </Reveal>
+              <Reveal delay={0.3}>
+                <h2 className="legacy-title">A Legacy of <br />Precision</h2>
+              </Reveal>
+              <Reveal delay={0.4}>
+                <p className="legacy-description">
+                  For those who value eternity over the momentary. {storeName} curates timepieces that are not just
+                  instruments of time, but guardians of history.
+                </p>
+              </Reveal>
+              <Reveal delay={0.5}>
+                <Link href="/about" className="btn-link-gold">DISCOVER OUR HERITAGE</Link>
+              </Reveal>
+            </div>
           </div>
         </div>
       </section>

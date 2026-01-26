@@ -13,6 +13,7 @@ import { useIsClient } from "@/hooks/useIsClient";
 import { fetchProductReviews, submitReview, ReviewDTO } from "@/lib/actions/reviews";
 import { getStoreSettings } from "@/lib/actions/settings";
 import ProductCard from "@/components/ProductCard";
+import ModernProductCard from "@/components/ModernProductCard";
 import { CartIcon } from "@/components/icons/CartIcon";
 import { Product } from "@/types/product";
 
@@ -73,7 +74,7 @@ async function getRelatedProducts(categoryId: string | null, productId: string):
 export default function ProductDetailsClient({ id }: ProductDetailsClientProps) {
   const router = useRouter();
   const { addToCart, toggleFav, isFav } = useStore();
-  const { addToCompare } = useComparison();
+  const { addToCompare, isInComparison } = useComparison();
   const isClient = useIsClient();
 
   // State
@@ -96,6 +97,23 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   const [showFreeShipping, setShowFreeShipping] = useState(false);
   const [shippingThreshold, setShippingThreshold] = useState("1000");
   const mobileGalleryRef = React.useRef<HTMLDivElement>(null);
+  const shareMenuRef = React.useRef<HTMLDivElement>(null);
+
+  // Close share menu on click outside
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false);
+      }
+    }
+
+    if (showShareMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showShareMenu]);
 
   // Format price
   const formatPrice = (p: number) => `EGP ${p.toLocaleString('en-EG')}`;
@@ -573,7 +591,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                     category: product.category,
                     brand: product.brand?.name
                   };
-                  addToCompare(productForCompare as unknown as Product);
+                  if (!isInComparison(product.id)) {
+                    addToCompare(productForCompare as unknown as Product);
+                  }
                   router.push(`/compare?fromLabel=${product.name}`);
                 }}
                 title="Compare"
@@ -586,7 +606,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               </button>
 
               {/* Share */}
-              <div className="share-dropdown-wrapper">
+              <div className="share-dropdown-wrapper" ref={shareMenuRef}>
                 <button 
                   className="btn-action-icon"
                   onClick={() => setShowShareMenu(!showShareMenu)}
@@ -894,7 +914,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
             <h2 className="related-title">You May Also Like</h2>
             <div className="related-grid">
               {relatedProducts.slice(0, 4).map((prod) => (
-                <ProductCard key={prod.id} product={prod} />
+                <div key={prod.id} className="w-full">
+                  <ModernProductCard product={prod} />
+                </div>
               ))}
             </div>
           </section>
