@@ -6,7 +6,6 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { fadeUpSlow, staggerContainerSlow } from "@/lib/motion";
 import { Reveal } from "@/components/ui/Reveal";
-import ProductCarousel from "@/components/ProductCarousel";
 import ModernProductCarousel from "@/components/ModernProductCarousel";
 import { PromotionsHub, FlashSale, BOGODeal, Bundle } from "@/components/home/PromotionsHub";
 import type { HomepageSettings } from "@/lib/settings";
