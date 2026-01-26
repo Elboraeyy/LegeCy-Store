@@ -95,7 +95,6 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [showFreeShipping, setShowFreeShipping] = useState(false);
   const [shippingThreshold, setShippingThreshold] = useState("1000");
-  const [bottomOffset, setBottomOffset] = useState(0);
   const mobileGalleryRef = React.useRef<HTMLDivElement>(null);
 
   // Format price
@@ -574,7 +573,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                     category: product.category,
                     brand: product.brand?.name
                   };
-                  addToCompare(productForCompare as any);
+                  addToCompare(productForCompare as unknown as Product);
                   router.push(`/compare?fromLabel=${product.name}`);
                 }}
                 title="Compare"
