@@ -839,7 +839,7 @@ select:disabled {
 .collection-card {
   position: relative;
   overflow: hidden;
-  border-radius: var(--radius);
+  border-radius: 12px;
   background: var(--surface-dark);
   box-shadow: var(--shadow);
 }
@@ -1071,7 +1071,11 @@ select:disabled {
           }
     
           .legacy-section {
-            padding: 80px 0;
+            padding: 60px 20px;
+              width: calc(100% - 32px);
+              margin-left: auto;
+              margin-right: auto;
+              border-radius: 24px;
   }
 }
 .product-card.minimal .product-price {
@@ -5940,4 +5944,58 @@ select:disabled {
     overflow: hidden !important;
     padding-inline: 8px !important;
   }
+}
+
+/* Product Accordions */
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--accent) !important;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.accordion-header:hover {
+  opacity: 0.8;
+}
+
+.accordion-content {
+  overflow: hidden;
+}
+
+.specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.spec-label {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.spec-value {
+  color: var(--text);
+  font-weight: 500;
+  text-align: right;
+}
+
+.shipping-info-list {
+  padding: 16px 0 16px 20px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.shipping-info-list li {
+  margin-bottom: 8px;
 }
