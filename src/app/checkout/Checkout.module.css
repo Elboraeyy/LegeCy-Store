@@ -134,7 +134,7 @@
 }
 
 .required {
-    color: #ef4444;
+    color: var(--primary);
 }
 
 .formInput,
@@ -171,8 +171,8 @@
 }
 
 .formInputError {
-    border-color: #ef4444 !important;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08) !important;
+    border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(18, 64, 60, 0.08) !important;
 }
 
 .formTextarea {
@@ -191,7 +191,7 @@
 
 .errorMessage {
     font-size: 12px;
-    color: #ef4444;
+    color: var(--primary);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -508,7 +508,7 @@
 
 .couponError {
     font-size: 12px;
-    color: #ef4444;
+    color: var(--primary);
     margin-top: 6px;
 }
 

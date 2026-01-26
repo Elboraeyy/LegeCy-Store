@@ -34,7 +34,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
   return (
     <div 
-      className="group relative w-full min-w-0 bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+      className="group relative w-full min-w-0 bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
       style={{ touchAction: 'manipulation' }}
     >
       {/* 1. Image Area - Aspect 3:4 */}
@@ -64,7 +64,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             </span>
           )}
           {isOutOfStock && (
-            <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-red-500 rounded-sm tracking-wider uppercase">
+            <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-slate-500 rounded-sm tracking-wider uppercase">
               Sold Out
             </span>
           )}
@@ -93,7 +93,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                e.preventDefault();
                toggleFav(String(product.id));
              }}
-             className={`w-10 h-10 rounded-full bg-white flex items-center justify-center transition-colors shadow-lg hover:bg-[#12403C] hover:text-white ${isClient && isFav(String(product.id)) ? 'text-red-500' : 'text-gray-700'}`}
+            className={`w-10 h-10 rounded-full bg-white flex items-center justify-center transition-colors shadow-lg hover:bg-[#12403C] hover:text-white ${isClient && isFav(String(product.id)) ? 'text-[#12403C]' : 'text-gray-700'}`}
              title="Favorite"
            >
               <svg width="18" height="18" viewBox="0 0 24 24" fill={isClient && isFav(String(product.id)) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
@@ -119,7 +119,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             aria-label="Add to cart"
             >
             {isOutOfStock ? (
-                <span className="block w-1.5 h-1.5 rounded-full bg-red-500" />
+              <span className="block w-1.5 h-1.5 rounded-full bg-slate-400" />
             ) : (
                 <CartIcon className="w-5 h-5" />
             )}
@@ -131,7 +131,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                 e.preventDefault();
                 toggleFav(String(product.id));
             }}
-            className={`w-9 h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center active:scale-90 transition-transform ${isClient && isFav(String(product.id)) ? 'text-red-500' : 'text-gray-600'}`}
+            className={`w-9 h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center active:scale-90 transition-transform ${isClient && isFav(String(product.id)) ? 'text-[#12403C]' : 'text-gray-600'}`}
             aria-label="Favorite"
             >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill={isClient && isFav(String(product.id)) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">

@@ -36,7 +36,7 @@ export default function ResendVerificationButton({ email }: { email: string }) {
                 {status === 'loading' ? 'Sending...' : 'Resend Verification Email'}
             </button>
             {message && (
-                <p className={`text-sm mt-2 ${status === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                <p className={`text-sm mt-2 ${status === 'success' ? 'text-green-600' : 'text-[#12403C]'}`}>
                     {message}
                 </p>
             )}

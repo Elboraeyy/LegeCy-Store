@@ -292,7 +292,7 @@ body {
     min-height: 280px !important;
       width: 100% !important;
       margin: 0 !important;
-      border-radius: 12px;
+      border-radius: 32px !important;
       overflow: hidden;
   }
 
@@ -448,7 +448,7 @@ body {
     align-items: center !important;
     gap: 12px !important;
     width: 100% !important;
-    margin-bottom: 24px !important;
+    margin-bottom: 2px !important;
     flex-wrap: nowrap !important;
   }
 
@@ -574,7 +574,9 @@ body {
     display: flex !important;
     gap: 8px !important;
     width: 100% !important;
+    justify-content: center !important;
     flex-wrap: nowrap !important;
+    padding-inline: 40px !important;
   }
 
   .btn-action-icon {
@@ -589,7 +591,6 @@ body {
     min-width: 0 !important;
     border-radius: 50px !important;
     text-overflow: ellipsis !important;
-    overflow: hidden !important;
   }
 
   .btn-action-icon svg {
@@ -609,17 +610,26 @@ body {
 
   .share-dropdown-wrapper .share-dropdown {
     position: absolute !important;
-    bottom: 100% !important;
+    bottom: 110% !important;
     right: 0 !important;
     left: auto !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 0 !important;
     min-width: 150px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
   }
     .accordion-header {
       padding-left: 12px !important;
       color: #d4af37 !important;
       font-weight: 700 !important;
     }
+.site-footer {
+  position: relative !important;
+  z-index: 50 !important;
+}
+
+.sticky-add-to-cart {
+  z-index: 40 !important;
+}
 }
 
 /* Override: Perfect Desktop Match Pill Qty (Semi-Circular) */
@@ -715,7 +725,7 @@ body {
   .trust-badge svg {
     width: 18px !important;
     height: 18px !important;
-    color: #12403C !important;
+    color: var(--accent) !important;
   }
 
   .trust-badge span {

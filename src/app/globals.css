@@ -1273,7 +1273,7 @@ select:disabled {
   }
   
   .toast-message.danger {
-    background: #d32f2f;
+    background: #4A6B68;
   }
   
   .toast-icon {
@@ -1320,7 +1320,7 @@ select:disabled {
   aspect-ratio: 1;
   /* Square for main image */
   background: var(--surface-light);
-  border-radius: var(--radius);
+  border-radius: 32px;
   overflow: hidden;
   border: 1px solid var(--border);
   cursor: zoom-in;
@@ -1331,17 +1331,25 @@ select:disabled {
 }
 
 .gallery-thumbnails {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
   gap: 12px;
 }
 
+.product-trust-badges {
+  color: var(--accent) !important;
+}
+
+.trust-badge svg {
+  color: var(--accent) !important;
+}
 .thumbnail-btn {
   position: relative;
   aspect-ratio: 1;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1567,7 +1575,7 @@ select:disabled {
   display: flex;
   align-items: center;
     gap: 16px;
-  margin-bottom: 70px;
+  margin-bottom: 0px;
 }
 .actions-large .btn {
   height: 48px;
@@ -1582,6 +1590,12 @@ select:disabled {
     align-items: center;
     justify-content: center;
   }
+.actions-secondary {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
   
   .btn-fav-icon {
     width: 46px;
@@ -1604,6 +1618,9 @@ select:disabled {
   .btn-fav-icon.active {
     background: transparent;
     color: var(--primary);
+}
+.btn-action-icon.active {
+  color: var(--primary) !important;
 }
 .btn-compare-icon {
   width: 46px;
@@ -1769,8 +1786,8 @@ select:disabled {
   border-radius: 4px;
 }
 .btn-remove:hover {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.05);
+  color: var(--primary);
+    background: rgba(18, 64, 60, 0.05);
 }
 .cart-summary {
   background: var(--surface-light);
@@ -4418,7 +4435,7 @@ select:disabled {
   width: 100%;
   aspect-ratio: 4/5;
   background: #f8f8f6;
-  border-radius: var(--radius);
+  border-radius: 32px;
   overflow: hidden;
   cursor: zoom-in;
 }
@@ -4489,13 +4506,14 @@ select:disabled {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  justify-content: center;
 }
 
 .thumbnail-btn {
   position: relative;
   aspect-ratio: 1;
   border: 2px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   background: #f8f8f6;
@@ -4707,9 +4725,9 @@ select:disabled {
 }
 
 .btn-action-icon.active {
-  background: rgba(220, 38, 38, 0.1);
-  border-color: #dc2626;
-  color: #dc2626;
+  background: rgba(18, 64, 60, 0.1);
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 .btn-action-icon svg {

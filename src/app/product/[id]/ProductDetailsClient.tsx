@@ -6,7 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
+import { useComparison } from "@/context/ComparisonContext";
 import { useIsClient } from "@/hooks/useIsClient";
 import { fetchProductReviews, submitReview, ReviewDTO } from "@/lib/actions/reviews";
 import { getStoreSettings } from "@/lib/actions/settings";
@@ -69,7 +71,9 @@ async function getRelatedProducts(categoryId: string | null, productId: string):
 }
 
 export default function ProductDetailsClient({ id }: ProductDetailsClientProps) {
+  const router = useRouter();
   const { addToCart, toggleFav, isFav } = useStore();
+  const { addToCompare } = useComparison();
   const isClient = useIsClient();
 
   // State
@@ -92,9 +96,35 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   const [showFreeShipping, setShowFreeShipping] = useState(false);
   const [shippingThreshold, setShippingThreshold] = useState("1000");
   const [bottomOffset, setBottomOffset] = useState(0);
+  const mobileGalleryRef = React.useRef<HTMLDivElement>(null);
 
   // Format price
   const formatPrice = (p: number) => `EGP ${p.toLocaleString('en-EG')}`;
+
+  // Ensure page starts at top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Sync mobile gallery scroll with selection
+  useEffect(() => {
+    if (mobileGalleryRef.current) {
+      const scrollLeft = selectedImageIndex * mobileGalleryRef.current.clientWidth;
+      if (Math.abs(mobileGalleryRef.current.scrollLeft - scrollLeft) > 10) {
+        mobileGalleryRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      }
+    }
+  }, [selectedImageIndex]);
+
+  const handleMobileScroll = () => {
+    if (mobileGalleryRef.current) {
+      const { scrollLeft, clientWidth } = mobileGalleryRef.current;
+      const newIndex = Math.round(scrollLeft / clientWidth);
+      if (newIndex !== selectedImageIndex && newIndex >= 0 && newIndex < (allImages?.length || 0)) {
+        setSelectedImageIndex(newIndex);
+      }
+    }
+  };
 
   // Load data
   useEffect(() => {
@@ -125,24 +155,13 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     loadData();
   }, [id]);
 
-  // Sticky bar scroll handler & Footer collision
+  // Sticky bar scroll handler
   useEffect(() => {
     const handleScroll = () => {
-      // 1. Sticky Bar Visibility
       const addToCartBtn = document.getElementById('main-add-to-cart');
       if (addToCartBtn) {
         const rect = addToCartBtn.getBoundingClientRect();
         setShowStickyBar(rect.bottom < 0);
-      }
-
-      // 2. Footer Collision
-      const footer = document.querySelector('.site-footer');
-      if (footer) {
-        const footerRect = footer.getBoundingClientRect();
-        const overlap = window.innerHeight - footerRect.top;
-        setBottomOffset(Math.max(0, overlap));
-      } else {
-        setBottomOffset(0);
       }
     };
 
@@ -196,9 +215,25 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     setZoomPosition({ x, y });
   };
 
-  const handleShare = (platform: string) => {
+  const handleShare = async (platform: string) => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
+    const title = product?.name || 'Product';
     const text = `Check out ${product?.name} at LegaCy Store!`;
+
+    if (platform === 'native' && typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title,
+          text,
+          url
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+      return;
+    }
 
     switch (platform) {
       case 'whatsapp':
@@ -209,6 +244,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
         break;
       case 'copy':
         navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard!");
         break;
     }
     setShowShareMenu(false);
@@ -305,48 +341,81 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
           {/* Gallery Section */}
           <div className="detail-gallery">
             {/* Main Image */}
-            <div
-              className={`main-image-wrapper ${isZoomed ? 'zoomed' : ''}`}
-              onMouseEnter={() => setIsZoomed(true)}
-              onMouseLeave={() => setIsZoomed(false)}
-              onMouseMove={handleMouseMove}
-              onClick={() => setShowLightbox(true)}
-            >
-              <Image
-                src={allImages[selectedImageIndex]}
-                alt={product.name}
-                fill
-                className="main-product-image"
-                style={{
-                  objectFit: 'cover',
-                  transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                  transform: isZoomed ? 'scale(1.5)' : 'scale(1)',
-                  transition: isZoomed ? 'none' : 'transform 0.3s ease'
-                }}
-                priority
-              />
+            {/* Main Image - Desktop (Zoomable) */}
+            <div className="hidden md:block relative">
+              <div
+                className={`main-image-wrapper ${isZoomed ? 'zoomed' : ''}`}
+                onMouseEnter={() => setIsZoomed(true)}
+                onMouseLeave={() => setIsZoomed(false)}
+                onMouseMove={handleMouseMove}
+                onClick={() => setShowLightbox(true)}
+              >
+                <Image
+                  src={allImages[selectedImageIndex]}
+                  alt={product.name}
+                  fill
+                  className="main-product-image"
+                  style={{
+                    objectFit: 'cover',
+                    transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                    transform: isZoomed ? 'scale(1.5)' : 'scale(1)',
+                    transition: isZoomed ? 'none' : 'transform 0.3s ease'
+                  }}
+                  priority
+                />
 
-              {/* Sale Badge */}
+                {/* Badges Desktop */}
+                {isOnSale && (
+                  <span className="product-badge sale-badge">-{salePercent}%</span>
+                )}
+                {isOutOfStock && (
+                  <span className="product-badge stock-badge out">Sold Out</span>
+                )}
+                {isLowStock && !isOutOfStock && (
+                  <span className="product-badge stock-badge low">Only {product.totalStock} left</span>
+                )}
+                <div className="zoom-hint">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                    <path d="M11 8v6M8 11h6" />
+                  </svg>
+                  <span>Hover to zoom</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Image - Mobile (Swipeable) */}
+            <div className="block md:hidden relative w-full aspect-[4/5] rounded-[32px] overflow-hidden">
+              <div
+                ref={mobileGalleryRef}
+                className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full h-full"
+                onScroll={handleMobileScroll}
+                style={{ scrollBehavior: 'smooth' }}
+              >
+                {allImages.map((img, idx) => (
+                  <div key={idx} className="flex-none w-full h-full snap-center relative">
+                    <Image
+                      src={img}
+                      alt={`${product.name} ${idx + 1}`}
+                      fill
+                      className="object-cover"
+                      priority={idx === 0}
+                      onClick={() => setShowLightbox(true)}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Badges Mobile */}
               {isOnSale && (
-                <span className="product-badge sale-badge">-{salePercent}%</span>
+                <span className="product-badge sale-badge absolute top-2 left-2">-{salePercent}%</span>
               )}
-
-              {/* Stock Badge */}
               {isOutOfStock && (
-                <span className="product-badge stock-badge out">Sold Out</span>
+                <span className="product-badge stock-badge out absolute bottom-2 left-2">Sold Out</span>
               )}
               {isLowStock && !isOutOfStock && (
-                <span className="product-badge stock-badge low">Only {product.totalStock} left</span>
+                <span className="product-badge stock-badge low absolute bottom-2 left-2">Only {product.totalStock} left</span>
               )}
-
-              {/* Zoom hint */}
-              <div className="zoom-hint">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-                  <path d="M11 8v6M8 11h6" />
-                </svg>
-                <span>Hover to zoom</span>
-              </div>
             </div>
 
             {/* Thumbnails */}
@@ -505,7 +574,8 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                     category: product.category,
                     brand: product.brand?.name
                   };
-                  window.location.href = `/compare?add=${product.id}`;
+                  addToCompare(productForCompare as any);
+                  router.push(`/compare?fromLabel=${product.name}`);
                 }}
                 title="Compare"
               >
@@ -520,7 +590,13 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               <div className="share-dropdown-wrapper">
                 <button 
                   className="btn-action-icon"
-                  onClick={() => setShowShareMenu(!showShareMenu)}
+                  onClick={() => {
+                    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+                      handleShare('native');
+                    } else {
+                      setShowShareMenu(!showShareMenu);
+                    }
+                  }}
                   title="Share"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -564,7 +640,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
             </div>
 
             {/* Trust Badges */}
-            <div className="product-trust-badges">
+            <div className="product-trust-badges" style={{ color: 'var(--accent)' }}>
               <div className="trust-badge">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -976,7 +1052,6 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
         {showStickyBar && (
           <motion.div
             className="sticky-add-to-cart"
-            style={{ bottom: bottomOffset }}
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             exit={{ y: 100 }}

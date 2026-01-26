@@ -65,7 +65,7 @@ export default function VerifyEmailClient({ token }: { token: string }) {
                     <span className="text-4xl">⚠️</span>
                 </div>
                 <h1 className="text-3xl font-bold text-[#12403C] mb-4">Verification Failed</h1>
-                <p className="text-red-500 mb-8">
+                <p className="text-[#12403C] font-semibold mb-8">
                     {errorMessage}
                 </p>
                 <Link 
