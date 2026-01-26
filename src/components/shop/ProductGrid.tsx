@@ -165,7 +165,7 @@ function ProductListCard({ product }: { product: Product }) {
                     )}
                     {isOutOfStock && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <span className="px-3 py-1 text-sm font-bold text-white bg-red-500 rounded">
+                            <span className="px-3 py-1 text-sm font-bold text-white bg-[#d4af37] rounded">
                                 Sold Out
                             </span>
                         </div>

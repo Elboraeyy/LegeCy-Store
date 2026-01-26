@@ -63,7 +63,7 @@ export default function ModernProductCard({ product, priority = false }: ModernP
                         </span>
                     )}
                     {isOutOfStock && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold text-white bg-red-500 rounded-full uppercase shadow-sm">
+                        <span className="px-2 py-0.5 text-[10px] font-bold text-white bg-slate-500 rounded-full uppercase shadow-sm">
                             Sold Out
                         </span>
                     )}
@@ -94,7 +94,7 @@ export default function ModernProductCard({ product, priority = false }: ModernP
                             e.stopPropagation();
                             toggleFav(String(product.id));
                         }}
-                        className={`w-8 h-8 md:w-10 md:h-10 rounded-full bg-white flex items-center justify-center transition-colors shadow-lg hover:bg-[#12403C] hover:text-white ${isClient && isFav(String(product.id)) ? 'text-red-500' : 'text-gray-700'}`}
+                        className={`w-8 h-8 md:w-10 md:h-10 rounded-full bg-white flex items-center justify-center transition-colors shadow-lg hover:bg-[#12403C] hover:text-white ${isClient && isFav(String(product.id)) ? 'text-[#12403C]' : 'text-gray-700'}`}
                         title="Favorite"
                     >
                         <svg className="w-[14px] h-[14px] md:w-[18px] md:h-[18px]" viewBox="0 0 24 24" fill={isClient && isFav(String(product.id)) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">

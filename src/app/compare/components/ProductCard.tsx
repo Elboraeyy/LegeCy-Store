@@ -131,14 +131,14 @@ export default function ProductCard({ product, onRemove, onReplace, addToCart }:
                             background: "transparent",
                             border: "1px solid var(--border)",
                             borderRadius: "25px",
-                            color: "#ef4444",
+                            color: "var(--primary)",
                             fontSize: "12px",
                             cursor: "pointer",
                             transition: "all 0.2s"
                         }}
                         onMouseOver={(e) => {
-                            e.currentTarget.style.borderColor = "#ef4444";
-                            e.currentTarget.style.background = "rgba(239, 68, 68, 0.05)";
+                            e.currentTarget.style.borderColor = "var(--primary)";
+                            e.currentTarget.style.background = "rgba(18, 64, 60, 0.05)";
                         }}
                         onMouseOut={(e) => {
                             e.currentTarget.style.borderColor = "var(--border)";
