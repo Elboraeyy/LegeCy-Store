@@ -166,18 +166,23 @@ body {
 
   /* Carousel */
   .carousel-wrapper {
-    margin: 0 -12px;
-    padding: 0 12px;
+    margin: 0 -16px;
+      padding: 0;
   }
 
   .carousel-item {
-    flex: 0 0 220px;
+    flex: 0 0 calc(50vw - 9px);
+      width: calc(50vw - 9px);
+      max-width: calc(50vw - 9px);
+      scroll-snap-align: start;
   }
   
     /* Carousel touch behavior - allow horizontal scroll, prevent vertical bounce */
     .carousel-track {
+    gap: 12px !important;
     touch-action: manipulation;
     -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
                 }
                 
   .product-card {
@@ -456,7 +461,7 @@ body {
     background: #ffffff !important;
     border: 1px solid #e0e0e0 !important;
     border-radius: 9999px !important;
-    height: 40px !important;
+    height: 48px !important;
     min-height: 0 !important;
     overflow: hidden !important;
     gap: 0 !important;
@@ -464,7 +469,7 @@ body {
   }
 
   .qty-selector button {
-    width: 32px !important;
+    width: 48px !important;
     height: 100% !important;
     border-radius: 0 !important;
     background: transparent !important;
@@ -477,6 +482,15 @@ body {
   }
 
   .qty-selector button:last-child {
+    background: transparent !important;
+      color: #333 !important;
+      border-top-right-radius: 9999px !important;
+      border-bottom-right-radius: 9999px !important;
+      transition: background 0.1s, color 0.1s;
+    }
+    
+    .qty-selector button:last-child:active,
+    .qty-selector button:first-child:active {
     background: #12403C !important;
     color: white !important;
   }
@@ -495,7 +509,7 @@ body {
     width: auto !important;
     flex: 1 !important;
     margin: 0 !important;
-    height: 40px !important;
+    height: 48px !important;
     min-height: 0 !important;
     font-size: 13px !important;
     white-space: nowrap !important;
@@ -518,7 +532,25 @@ body {
     width: 100% !important;
     box-sizing: border-box !important;
   }
-
+  
+        .detail-brand {
+          color: #d4af37 !important;
+          text-align: center !important;
+          display: block !important;
+          width: 100% !important;
+        }
+    
+        .detail-title-large {
+          text-align: center !important;
+        }
+    
+        .detail-price-block {
+          justify-content: center !important;
+        }
+    
+        .detail-rating {
+          justify-content: center !important;
+        }
   /* Fix for "eaten from the right" */
   .detail-split {
     margin-left: 0 !important;
@@ -583,6 +615,11 @@ body {
     margin-bottom: 8px !important;
     min-width: 150px !important;
   }
+    .accordion-header {
+      padding-left: 12px !important;
+      color: #d4af37 !important;
+      font-weight: 700 !important;
+    }
 }
 
 /* Override: Perfect Desktop Match Pill Qty (Semi-Circular) */
@@ -616,10 +653,17 @@ body {
   }
 
   .qty-selector button:last-child {
-    background: #12403C !important;
-    color: white !important;
+    background: transparent !important;
+      color: #333 !important;
     border-top-right-radius: 9999px !important;
     border-bottom-right-radius: 9999px !important;
+    transition: background 0.1s, color 0.1s;
+    }
+    
+    .qty-selector button:last-child:active,
+    .qty-selector button:first-child:active {
+      background: #12403C !important;
+      color: white !important;
   }
 }
 
@@ -635,19 +679,17 @@ body {
   }
 
   .qty-selector button:last-child {
-    background: #12403C !important;
-    color: white !important;
-    z-index: 10 !important;
-    position: relative !important;
-    margin: 0 !important;
-    /* Flush */
-    height: 100% !important;
+    background: transparent !important;
+      color: #333 !important;
     border-top-right-radius: 9999px !important;
     border-bottom-right-radius: 9999px !important;
-    width: 44px !important;
-    /* Slightly wider to cover curvature */
-    /* Negative margin to pull it over any gap if exists */
-    margin-left: -1px !important;
+    transition: background 0.1s, color 0.1s;
+    }
+    
+    .qty-selector button:last-child:active,
+    .qty-selector button:first-child:active {
+      background: #12403C !important;
+      color: white !important;
   }
 }
 

@@ -91,6 +91,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [showFreeShipping, setShowFreeShipping] = useState(false);
   const [shippingThreshold, setShippingThreshold] = useState("1000");
+  const [bottomOffset, setBottomOffset] = useState(0);
 
   // Format price
   const formatPrice = (p: number) => `EGP ${p.toLocaleString('en-EG')}`;
@@ -124,17 +125,29 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     loadData();
   }, [id]);
 
-  // Sticky bar scroll handler
+  // Sticky bar scroll handler & Footer collision
   useEffect(() => {
     const handleScroll = () => {
+      // 1. Sticky Bar Visibility
       const addToCartBtn = document.getElementById('main-add-to-cart');
       if (addToCartBtn) {
         const rect = addToCartBtn.getBoundingClientRect();
         setShowStickyBar(rect.bottom < 0);
       }
+
+      // 2. Footer Collision
+      const footer = document.querySelector('.site-footer');
+      if (footer) {
+        const footerRect = footer.getBoundingClientRect();
+        const overlap = window.innerHeight - footerRect.top;
+        setBottomOffset(Math.max(0, overlap));
+      } else {
+        setBottomOffset(0);
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -963,6 +976,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
         {showStickyBar && (
           <motion.div
             className="sticky-add-to-cart"
+            style={{ bottom: bottomOffset }}
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             exit={{ y: 100 }}
@@ -982,10 +996,26 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               </div>
             </div>
             <div className="sticky-actions">
-              <div className="sticky-qty">
-                <button onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>−</button>
-                <span>{quantity}</span>
-                <button onClick={() => handleQuantityChange(1)}>+</button>
+              <div className="qty-selector">
+                <button
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={quantity <= 1}
+                  className="qty-btn"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12h14" />
+                  </svg>
+                </button>
+                <span className="qty-value">{quantity}</span>
+                <button
+                  onClick={() => handleQuantityChange(1)}
+                  disabled={quantity >= (product.totalStock || 10)}
+                  className="qty-btn"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                </button>
               </div>
               <button
                 className="sticky-cart-btn"

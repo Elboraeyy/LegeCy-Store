@@ -5405,18 +5405,51 @@ select:disabled {
   }
 
   .reviews-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+    flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0;
+      margin-bottom: 16px;
   }
 
   .reviews-header h2 {
-    font-size: 22px;
+    font-size: 20px;
+      margin: 0;
+    }
+    
+    .reviews-header .btn {
+      padding: 6px 16px;
+      font-size: 11px;
+      height: 32px;
+      min-height: 0;
+      width: auto;
   }
 
   .related-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    display: flex;
+      overflow-x: auto;
+      gap: 12px;
+      padding-bottom: 8px;
+      width: calc(100% + 32px);
+      margin-left: -16px;
+      margin-right: -16px;
+      padding-left: 0;
+      padding-right: 0;
+      scrollbar-width: none;
+      /* Firefox */
+      scroll-snap-type: x mandatory;
+    }
+    
+    .related-grid::-webkit-scrollbar {
+      display: none;
+      /* Chrome/Safari */
+    }
+    
+    .related-grid>div {
+      min-width: calc(50vw - 9px);
+      width: calc(50vw - 9px);
+      flex-shrink: 0;
+      scroll-snap-align: start;
   }
 
   .sticky-add-to-cart {
@@ -5860,73 +5893,5 @@ select:disabled {
     min-width: 0 !important;
     overflow: hidden !important;
     padding-inline: 8px !important;
-  }
-}
-
-/* Override: Force Action Buttons Single Row & Compact Fit */
-@media (max-width: 768px) {
-  .actions-large {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    gap: 8px !important;
-    width: 100% !important;
-  }
-
-  /* Compact Quantity Selector */
-  .actions-large .qty-selector {
-    width: auto !important;
-    flex-shrink: 0 !important;
-    margin: 0 !important;
-    height: 40px !important;
-    /* Smaller height */
-    padding: 2px !important;
-    gap: 4px !important;
-  }
-
-  .actions-large .qty-selector button {
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 50% !important;
-  }
-
-  /* Compact Add to Cart Button */
-  .actions-large .add-to-cart-btn,
-  .actions-large .btn-primary {
-    width: auto !important;
-    flex: 1 !important;
-    margin: 0 !important;
-    height: 40px !important;
-    min-width: 0 !important;
-    padding-inline: 4px !important;
-    font-size: 12px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    border-radius: 9999px !important;
-  }
-}
-
-/* Override: Aggressive Compaction (User Request) */
-@media (max-width: 768px) {
-
-  /* Compacting Qty */
-  .actions-large .qty-selector {
-    height: 36px !important;
-  }
-
-  .actions-large .qty-selector button {
-    width: 28px !important;
-    height: 28px !important;
-  }
-
-  /* Compacting Add Cart */
-  .actions-large .add-to-cart-btn,
-  .actions-large .btn-primary {
-    height: 36px !important;
-    font-size: 11px !important;
-    padding-inline: 4px !important;
-    margin-top: 0 !important;
   }
 }
