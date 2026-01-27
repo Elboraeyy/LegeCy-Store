@@ -31,7 +31,7 @@ export default function CartRecommendations() {
             <ModernProductCarousel
                 title="Complete Your Look"
                 subtitle="You Might Also Like"
-                products={products as any}
+                products={products}
                 viewAllLink="/shop"
             />
         </section>

@@ -45,7 +45,7 @@ import { useLanguage } from "@/context/LanguageContext";
 
 function ClientLayoutContent({ children, navbar, footer }: { children: React.ReactNode; navbar: React.ReactNode; footer: React.ReactNode }) {
     const pathname = usePathname();
-  const { direction } = useLanguage();
+  // const { direction } = useLanguage();
     const isAdmin = pathname?.startsWith('/admin');
     const isPOS = pathname?.startsWith('/pos');
     const isHomepage = pathname === '/';

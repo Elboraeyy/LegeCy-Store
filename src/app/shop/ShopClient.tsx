@@ -163,7 +163,8 @@ export default function ShopClient({
         if (isNew === true) filters.push({ type: "new", value: "true", label: t.shop.new_arrivals });
 
         return filters;
-    }, [selectedCategories, selectedBrands, selectedMaterials, minPrice, maxPrice, inStock, onSale, isNew, categories, brands, materials, absoluteMinPrice, absoluteMaxPrice]);
+        return filters;
+    }, [selectedCategories, selectedBrands, selectedMaterials, minPrice, maxPrice, inStock, onSale, isNew, categories, brands, materials, absoluteMinPrice, absoluteMaxPrice, t.shop.in_stock, t.shop.new_arrivals, t.shop.on_sale]);
 
     const handleRemoveFilter = (filter: { type: string; value: string }) => {
         switch (filter.type) {

@@ -188,7 +188,7 @@ export const EGYPT_LOCATIONS: Governorate[] = [
       { en: "El Sinblaween", ar: "السنبلاوين" },
       { en: "Menit El Nasr", ar: "منية النصر" },
       { en: "Dekernes", ar: "دكرنس" },
-      { en: "Aga", ar: "آغا" },
+      { en: "Aga", ar: "آجا" },
       { en: "Talkha", ar: "طلخا" },
       { en: "Al Mansoura", ar: "المنصورة" }
     ]

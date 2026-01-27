@@ -52,6 +52,7 @@ export default function CustomSelect({
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setSearchQuery(""); // Reset search when closing via click outside
       }
     };
 
@@ -66,13 +67,22 @@ export default function CustomSelect({
         searchInputRef.current?.focus();
       }, 50);
     } else {
-      setSearchQuery("");
+      // Search query reset is now handled in close events
     }
   }, [isOpen]);
 
   const handleSelect = (optionValue: string) => {
     onChange(optionValue);
     setIsOpen(false);
+    setSearchQuery(""); // Reset search on select
+  };
+
+  const toggleOpen = () => {
+    if (!disabled) {
+      const newState = !isOpen;
+      setIsOpen(newState);
+      if (!newState) setSearchQuery(""); // Reset search when closing via toggle
+    }
   };
 
   return (
@@ -102,7 +112,7 @@ export default function CustomSelect({
       <button
         type="button"
         className={`custom-select-trigger ${isOpen ? 'open' : ''}`}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={() => toggleOpen()}
         disabled={disabled}
       >
         <span className={selectedOption ? '' : 'placeholder'}>

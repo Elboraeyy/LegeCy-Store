@@ -47,7 +47,8 @@ function SubmitButton() {
 export default function LoginPage() {
     const [state, formAction] = useActionState(login, null);
     const { containerRef } = useUncontrolledFormPersistence('login_form');
-    const { t, language } = useLanguage();
+
+    const { t } = useLanguage();
 
     return (
         <div className="auth-container" style={{ 

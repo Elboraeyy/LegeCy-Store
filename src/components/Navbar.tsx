@@ -53,8 +53,8 @@ export default function Navbar({
   const isClient = useIsClient();
 
   const isRTL = direction === 'rtl';
-  const slideInitial = { x: isRTL ? "-100%" : "100%" };
-  const slideExit = { x: isRTL ? "-100%" : "100%" };
+  // const slideInitial = { x: isRTL ? "-100%" : "100%" };
+  // const slideExit = { x: isRTL ? "-100%" : "100%" };
 
   const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
   const favCount = fav.length;
