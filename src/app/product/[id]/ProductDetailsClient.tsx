@@ -9,12 +9,15 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { useComparison } from "@/context/ComparisonContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useIsClient } from "@/hooks/useIsClient";
 import { fetchProductReviews, submitReview, ReviewDTO } from "@/lib/actions/reviews";
 import { getStoreSettings } from "@/lib/actions/settings";
 import ProductCard from "@/components/ProductCard";
 import ModernProductCard from "@/components/ModernProductCard";
+import ModernProductCarousel from "@/components/ModernProductCarousel";
 import { CartIcon } from "@/components/icons/CartIcon";
+import { CompareIcon } from "@/components/icons/CompareIcon";
 import { Product } from "@/types/product";
 
 // Types
@@ -76,6 +79,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   const { addToCart, toggleFav, isFav } = useStore();
   const { addToCompare, isInComparison } = useComparison();
   const isClient = useIsClient();
+  const { t, language } = useLanguage();
 
   // State
   const [product, setProduct] = useState<ProductData | null>(null);
@@ -116,7 +120,12 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   }, [showShareMenu]);
 
   // Format price
-  const formatPrice = (p: number) => `EGP ${p.toLocaleString('en-EG')}`;
+  const formatPrice = (p: number) => {
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
+      style: 'currency',
+      currency: 'EGP'
+    }).format(p);
+  };
 
   // Ensure page starts at top on mount
   useEffect(() => {
@@ -261,7 +270,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
         break;
       case 'copy':
         navigator.clipboard.writeText(url);
-        toast.success("Link copied to clipboard!");
+        toast.success(t.product.share_options.copied);
         break;
     }
     setShowShareMenu(false);
@@ -281,17 +290,17 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
       });
 
       if (result.success) {
-        toast.success("Thank you for your review!", { description: "Your review has been submitted." });
+        toast.success(t.product.review_submitted);
         setShowReviewForm(false);
         setReviewForm({ name: "", rating: 5, text: "" });
         // Refresh reviews
         const newReviews = await fetchProductReviews(product.id);
         setReviews(newReviews);
       } else {
-        toast.error(result.error || "Failed to submit review");
+        toast.error(result.error || t.messages.error_occurred);
       }
     } catch {
-      toast.error("An error occurred. Please try again.");
+      toast.error(t.messages.error_occurred);
     }
     setSubmittingReview(false);
   };
@@ -320,13 +329,13 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     return (
       <main className="container" style={{ padding: '80px 24px', textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '36px', marginBottom: '16px' }}>
-          Product Not Found
+          {t.product.product_not_found}
         </h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-          The product you&apos;re looking for doesn&apos;t exist or has been removed.
+          {t.product.product_not_found_desc}
         </p>
         <Link href="/shop" className="btn btn-primary">
-          Continue Shopping
+          {t.cart.continue_shopping}
         </Link>
       </main>
     );
@@ -346,7 +355,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
           <svg className="breadcrumb-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="9 18 15 12 9 6" />
           </svg>
-          <Link href="/shop">Shop</Link>
+          <Link href="/shop">{t.nav.shop}</Link>
           <svg className="breadcrumb-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="9 18 15 12 9 6" />
           </svg>
@@ -386,17 +395,17 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   <span className="product-badge sale-badge">-{salePercent}%</span>
                 )}
                 {isOutOfStock && (
-                  <span className="product-badge stock-badge out">Sold Out</span>
+                  <span className="product-badge stock-badge out">{t.product.sold_out}</span>
                 )}
                 {isLowStock && !isOutOfStock && (
-                  <span className="product-badge stock-badge low">Only {product.totalStock} left</span>
+                  <span className="product-badge stock-badge low">{t.product.only_left.replace('{count}', product.totalStock.toString())}</span>
                 )}
                 <div className="zoom-hint">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
                     <path d="M11 8v6M8 11h6" />
                   </svg>
-                  <span>Hover to zoom</span>
+                  <span>{t.product.hover_zoom}</span>
                 </div>
               </div>
             </div>
@@ -428,10 +437,10 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 <span className="product-badge sale-badge absolute top-2 left-2">-{salePercent}%</span>
               )}
               {isOutOfStock && (
-                <span className="product-badge stock-badge out absolute bottom-2 left-2">Sold Out</span>
+                <span className="product-badge stock-badge out absolute bottom-2 left-2">{t.product.sold_out}</span>
               )}
               {isLowStock && !isOutOfStock && (
-                <span className="product-badge stock-badge low absolute bottom-2 left-2">Only {product.totalStock} left</span>
+                <span className="product-badge stock-badge low absolute bottom-2 left-2">{t.product.only_left.replace('{count}', product.totalStock.toString())}</span>
               )}
             </div>
 
@@ -487,7 +496,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   ))}
                 </div>
                 <span className="rating-text">
-                  {avgRating.toFixed(1)} ({reviews.length} review{reviews.length !== 1 ? 's' : ''})
+                  {avgRating.toFixed(1)} ({reviews.length} {t.product.reviews})
                 </span>
               </div>
             )}
@@ -498,7 +507,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               {isOnSale && (
                 <>
                   <span className="detail-price-original">{formatPrice(product.compareAtPrice!)}</span>
-                  <span className="detail-price-save">Save {formatPrice(savedAmount)}</span>
+                  <span className="detail-price-save">{t.product.sale} {formatPrice(savedAmount)}</span>
                 </>
               )}
             </div>
@@ -542,13 +551,13 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 disabled={isOutOfStock || addingToCart}
               >
                 {addingToCart ? (
-                  <span className="btn-loading">Adding...</span>
+                  <span className="btn-loading">{t.common.loading}</span>
                 ) : isOutOfStock ? (
-                  'Out of Stock'
+                    t.product.sold_out
                 ) : (
                   <>
                     <CartIcon className="w-5 h-5" />
-                    Add to Cart
+                        {t.product.add_to_cart}
                   </>
                 )}
               </button>
@@ -560,7 +569,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               <button
                 className={`btn-action-icon ${isClient && isFav(product.id) ? 'active' : ''}`}
                 onClick={() => toggleFav(product.id)}
-                title="Add to Wishlist"
+                title={t.product.favorite}
               >
                 <svg
                   width="20"
@@ -572,7 +581,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 >
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
-                <span>Wishlist</span>
+                <span>{t.common.favorite}</span>
               </button>
 
               {/* Compare */}
@@ -596,13 +605,10 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   }
                   router.push(`/compare?fromLabel=${product.name}`);
                 }}
-                title="Compare"
+                title={t.product.compare}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M8 3v18L2 15" />
-                  <path d="M16 21V3l6 6" />
-                </svg>
-                <span>Compare</span>
+                <CompareIcon width={20} height={20} className="w-5 h-5" />
+                <span>{isInComparison(product.id) ? t.common.addedToCompare : t.product.compare}</span>
               </button>
 
               {/* Share */}
@@ -610,13 +616,16 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 <button 
                   className="btn-action-icon"
                   onClick={() => setShowShareMenu(!showShareMenu)}
-                  title="Share"
+                  title={t.product.share}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-                    <path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98" />
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                   </svg>
-                  <span>Share</span>
+                  <span>{t.product.share}</span>
                 </button>
 
                 <AnimatePresence>
@@ -627,25 +636,27 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                     >
-                      <button onClick={() => handleShare('whatsapp')} className="share-option-btn whatsapp">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                        </svg>
-                        <span className="share-label">WhatsApp</span>
-                      </button>
-                      <button onClick={() => handleShare('facebook')} className="share-option-btn facebook">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                        </svg>
-                        <span className="share-label">Facebook</span>
-                      </button>
-                      <button onClick={() => handleShare('copy')} className="share-option-btn copy">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                        </svg>
-                        <span className="share-label">Copy Link</span>
-                      </button>
+                      <div className="share-menu-inner">
+                        <button className="share-item" onClick={() => handleShare('whatsapp')}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" stroke="none">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                          </svg>
+                          {t.product.share_options.whatsapp}
+                        </button>
+                        <button className="share-item" onClick={() => handleShare('facebook')}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" stroke="none">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                          </svg>
+                          {t.product.share_options.facebook}
+                        </button>
+                        <button className="share-item" onClick={() => handleShare('copy')}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                          </svg>
+                          {t.product.share_options.copy_link}
+                        </button>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -659,20 +670,20 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
-                <span>14-Day Returns</span>
+                <span>{t.product.trust.returns}</span>
               </div>
               <div className="trust-badge">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
-                <span>Secure Payment</span>
+                <span>{t.product.trust.secure}</span>
               </div>
               <div className="trust-badge">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
-                <span>100% Authentic</span>
+                <span>{t.product.trust.authentic}</span>
               </div>
             </div>
 
@@ -685,7 +696,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                     className="accordion-header"
                     onClick={() => setActiveAccordion(activeAccordion === 'description' ? null : 'description')}
                   >
-                    <span>Description</span>
+                    <span>{t.product.description}</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d={activeAccordion === 'description' ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"} />
                     </svg>
@@ -714,7 +725,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   className="accordion-header"
                   onClick={() => setActiveAccordion(activeAccordion === 'specs' ? null : 'specs')}
                 >
-                  <span>Specifications</span>
+                  <span>{t.product.specs}</span>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d={activeAccordion === 'specs' ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"} />
                   </svg>
@@ -731,43 +742,43 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                       <div className="specs-grid">
                         {product.brand && (
                           <>
-                            <span className="spec-label">Brand</span>
+                            <span className="spec-label">{t.product.brand}</span>
                             <span className="spec-value">{product.brand.name}</span>
                           </>
                         )}
                         {product.material && (
                           <>
-                            <span className="spec-label">Material</span>
+                            <span className="spec-label">{t.product.material}</span>
                             <span className="spec-value">{product.material.name}</span>
                           </>
                         )}
                         {product.category && (
                           <>
-                            <span className="spec-label">Category</span>
+                            <span className="spec-label">{t.product.category}</span>
                             <span className="spec-value">{product.category}</span>
                           </>
                         )}
                         {product.specs?.movement && (
                           <>
-                            <span className="spec-label">Movement</span>
+                            <span className="spec-label">{t.product.movement}</span>
                             <span className="spec-value">{product.specs.movement}</span>
                           </>
                         )}
                         {product.specs?.case && (
                           <>
-                            <span className="spec-label">Case</span>
+                            <span className="spec-label">{t.product.case}</span>
                             <span className="spec-value">{product.specs.case}</span>
                           </>
                         )}
                         {product.specs?.waterResistance && (
                           <>
-                            <span className="spec-label">Water Resistance</span>
+                            <span className="spec-label">{t.product.water_resistance}</span>
                             <span className="spec-value">{product.specs.waterResistance}</span>
                           </>
                         )}
                         {product.specs?.glass && (
                           <>
-                            <span className="spec-label">Glass</span>
+                            <span className="spec-label">{t.product.glass}</span>
                             <span className="spec-value">{product.specs.glass}</span>
                           </>
                         )}
@@ -783,7 +794,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   className="accordion-header"
                   onClick={() => setActiveAccordion(activeAccordion === 'shipping' ? null : 'shipping')}
                 >
-                  <span>Shipping & Returns</span>
+                  <span>{t.product.shipping_returns}</span>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d={activeAccordion === 'shipping' ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"} />
                   </svg>
@@ -798,11 +809,11 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                       transition={{ duration: 0.2 }}
                     >
                       <ul className="shipping-info-list">
-                        {showFreeShipping && <li>Free shipping on orders over EGP {Number(shippingThreshold).toLocaleString()}</li>}
-                        <li>Delivery within 2-5 business days</li>
-                        <li>Secure packaging for all orders</li>
-                        <li>14-day return policy for unused items</li>
-                        <li>Easy exchange process</li>
+                        {showFreeShipping && <li>{t.product.shipping_list.free_shipping.replace('{amount}', Number(shippingThreshold).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US'))}</li>}
+                        <li>{t.product.shipping_list.delivery}</li>
+                        <li>{t.product.shipping_list.packaging}</li>
+                        <li>{t.product.shipping_list.returns}</li>
+                        <li>{t.product.shipping_list.exchange}</li>
                       </ul>
                     </motion.div>
                   )}
@@ -815,12 +826,12 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
         {/* Reviews Section */}
         <section className="product-reviews-section">
           <div className="reviews-header">
-            <h2>Customer Reviews</h2>
+            <h2>{t.product.reviews_title}</h2>
             <button
               className="btn btn-outline"
               onClick={() => setShowReviewForm(true)}
             >
-              Write a Review
+              {t.product.write_review}
             </button>
           </div>
 
@@ -845,7 +856,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                       </svg>
                     ))}
                   </div>
-                  <span className="rating-count">Based on {reviews.length} review{reviews.length !== 1 ? 's' : ''}</span>
+                  <span className="rating-count">{t.product.based_on.replace('{count}', reviews.length.toString())}</span>
                 </div>
 
                 {/* Rating Bars Removed as per request */}
@@ -897,12 +908,12 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
-              <p>No reviews yet. Be the first to review this product!</p>
+                <p>{t.product.no_reviews}</p>
               <button
                 className="btn btn-primary"
                 onClick={() => setShowReviewForm(true)}
               >
-                Write a Review
+                  {t.product.write_review}
               </button>
             </div>
           )}
@@ -911,14 +922,11 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <section className="related-section">
-            <h2 className="related-title">You May Also Like</h2>
-            <div className="related-grid">
-              {relatedProducts.slice(0, 4).map((prod) => (
-                <div key={prod.id} className="w-full">
-                  <ModernProductCard product={prod} />
-                </div>
-              ))}
-            </div>
+            <ModernProductCarousel
+              title={t.product.related_products}
+              products={relatedProducts}
+              viewAllLink={`/shop?category=${product.category}`}
+            />
           </section>
         )}
       </main>
@@ -998,7 +1006,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               onClick={(e) => e.stopPropagation()}
             >
               <div className="modal-header">
-                <h3>Write a Review</h3>
+                <h3>{t.product.write_review}</h3>
                 <button className="modal-close" onClick={() => setShowReviewForm(false)}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M18 6L6 18M6 6l12 12" />
@@ -1008,18 +1016,18 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
 
               <form onSubmit={handleSubmitReview}>
                 <div className="form-group">
-                  <label>Your Name</label>
+                  <label>{t.product.your_name}</label>
                   <input
                     type="text"
                     value={reviewForm.name}
                     onChange={(e) => setReviewForm({ ...reviewForm, name: e.target.value })}
                     required
-                    placeholder="Enter your name"
+                    placeholder={t.product.name_placeholder}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Rating</label>
+                  <label>{t.product.your_rating}</label>
                   <div className="star-selector">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -1037,12 +1045,12 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 </div>
 
                 <div className="form-group">
-                  <label>Your Review</label>
+                  <label>{t.product.your_review}</label>
                   <textarea
                     value={reviewForm.text}
                     onChange={(e) => setReviewForm({ ...reviewForm, text: e.target.value })}
                     required
-                    placeholder="Tell us about your experience with this product..."
+                    placeholder={t.product.review_placeholder}
                     rows={4}
                     minLength={10}
                   />
@@ -1054,7 +1062,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   disabled={submittingReview}
                   style={{ width: '100%' }}
                 >
-                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                  {submittingReview ? t.auth.sending : t.product.submit_review}
                 </button>
               </form>
             </motion.div>
@@ -1112,7 +1120,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 onClick={handleAddToCart}
                 disabled={isOutOfStock || addingToCart}
               >
-                {addingToCart ? '...' : 'Add to Cart'}
+                {addingToCart ? t.common.loading : t.product.add_to_cart}
               </button>
             </div>
           </motion.div>

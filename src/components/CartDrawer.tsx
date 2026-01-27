@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "@/context/StoreContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useIsClient } from "@/hooks/useIsClient";
 import styles from "./CartDrawer.module.css";
 
@@ -11,6 +12,7 @@ export default function CartDrawer() {
   const { cart, isCartOpen, closeCart, removeFromCart, addToCart, decFromCart } = useStore();
   const drawerRef = useRef<HTMLDivElement>(null);
   const isClient = useIsClient();
+  const { t, language } = useLanguage();
 
   // Close on ESC key
   useEffect(() => {
@@ -41,7 +43,11 @@ export default function CartDrawer() {
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
   const total = subtotal;
 
-  const formatPrice = (price: number) => `EGP ${price.toLocaleString()}`;
+  const formatPrice = (p: number) => {
+    return language === 'ar'
+      ? `${p.toLocaleString('en-US')} ${t.common.currency}`
+      : `${t.common.currency} ${p.toLocaleString('en-US')}`;
+  };
 
   return (
     <>
@@ -64,9 +70,9 @@ export default function CartDrawer() {
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <h2 className={styles.title}>
-              Shopping Bag
+              {t.cart.your_cart}
               {itemCount > 0 && (
-                <span className={styles.itemCount}>{itemCount}</span>
+                <span className={styles.itemCount}>{t.cart.items_count.replace('{count}', itemCount.toString())}</span>
               )}
             </h2>
           </div>
@@ -87,10 +93,10 @@ export default function CartDrawer() {
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <path d="M16 10a4 4 0 0 1-8 0" />
               </svg>
-              <h3>Your bag is empty</h3>
-              <p>Explore our collection and find something you love.</p>
+              <h3>{t.cart.empty_cart}</h3>
+              <p>{t.cart.empty_desc}</p>
               <Link href="/shop" onClick={closeCart} className={styles.emptyBtn}>
-                Continue Shopping
+                {t.cart.continue_shopping}
               </Link>
             </div>
           ) : (
@@ -162,16 +168,16 @@ export default function CartDrawer() {
             {/* Summary */}
             <div className={styles.summarySection}>
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>Subtotal</span>
+                <span className={styles.summaryLabel}>{t.cart.subtotal}</span>
                 <span className={styles.summaryValue}>{formatPrice(subtotal)}</span>
               </div>
               <div className={styles.divider} />
               <div className={styles.totalRow}>
-                <span className={styles.totalLabel}>Subtotal</span>
+                <span className={styles.totalLabel}>{t.cart.subtotal}</span>
                 <span className={styles.totalAmount}>{formatPrice(total)}</span>
               </div>
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'center' }}>
-                Shipping calculated at checkout
+                {t.cart.shipping_calculated_checkout}
               </p>
             </div>
 
@@ -182,14 +188,14 @@ export default function CartDrawer() {
                 className={styles.checkoutBtn}
                 onClick={closeCart}
               >
-                Checkout
+                {t.cart.checkout}
               </Link>
               <Link 
                 href="/cart" 
                 className={styles.viewCartBtn}
                 onClick={closeCart}
               >
-                View Cart
+                {t.cart.view_cart}
               </Link>
             </div>
 
@@ -200,20 +206,20 @@ export default function CartDrawer() {
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
-                Secure
+                {t.product.trust.secure}
               </div>
               <div className={styles.trustBadge}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
-                Authentic
+                {t.product.trust.authentic}
               </div>
               <div className={styles.trustBadge}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
-                Fast Delivery
+                {t.product.shipping_list.delivery}
               </div>
             </div>
           </div>

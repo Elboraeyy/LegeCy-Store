@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import ProductCarousel from '@/components/ProductCarousel';
 import ModernProductCarousel from '@/components/ModernProductCarousel';
 import { Product } from '@/types/product';
+import { useLanguage } from '@/context/LanguageContext';
 
 type FlashSale = {
     id: string;
@@ -20,6 +21,7 @@ type FlashSale = {
 };
 
 function Countdown({ endDate }: { endDate: Date }) {
+    const { t } = useLanguage();
     const calculateTimeLeft = useCallback(() => {
         const difference = new Date(endDate).getTime() - new Date().getTime();
         
@@ -48,23 +50,24 @@ function Countdown({ endDate }: { endDate: Date }) {
         <div className="flex gap-2 items-center justify-center">
             <div className="flex flex-col items-center bg-[#FCF8F3] rounded md:rounded-lg px-2.5 py-1 min-w-[44px] md:min-w-[50px]">
                 <span className="text-lg md:text-xl font-bold text-[#12403C] leading-none">{String(timeLeft.hours).padStart(2, '0')}</span>
-                <span className="text-[10px] uppercase tracking-wider text-[#4A6B68] leading-none mt-0.5">hrs</span>
+                <span className="text-[10px] uppercase tracking-wider text-[#4A6B68] leading-none mt-0.5">{t.home.promotions.hrs}</span>
             </div>
             <span className="text-lg font-bold text-[#FCF8F3]">:</span>
             <div className="flex flex-col items-center bg-[#FCF8F3] rounded md:rounded-lg px-2.5 py-1 min-w-[44px] md:min-w-[50px]">
                 <span className="text-lg md:text-xl font-bold text-[#12403C] leading-none">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                <span className="text-[10px] uppercase tracking-wider text-[#4A6B68] leading-none mt-0.5">min</span>
+                <span className="text-[10px] uppercase tracking-wider text-[#4A6B68] leading-none mt-0.5">{t.home.promotions.min}</span>
             </div>
             <span className="text-lg font-bold text-[#FCF8F3]">:</span>
             <div className="flex flex-col items-center bg-[#FCF8F3] rounded md:rounded-lg px-2.5 py-1 min-w-[44px] md:min-w-[50px]">
                 <span className="text-lg md:text-xl font-bold text-[#12403C] leading-none">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                <span className="text-[10px] uppercase tracking-wider text-[#4A6B68] leading-none mt-0.5">sec</span>
+                <span className="text-[10px] uppercase tracking-wider text-[#4A6B68] leading-none mt-0.5">{t.home.promotions.sec}</span>
             </div>
         </div>
     );
 }
 
 export function FlashSalesSection({ sales }: { sales: FlashSale[] }) {
+    const { t } = useLanguage();
     if (!sales || sales.length === 0) return null;
 
     return (
@@ -92,12 +95,12 @@ export function FlashSalesSection({ sales }: { sales: FlashSale[] }) {
                                 <div className="flex items-center gap-3">
                                     <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#d4af37] text-[#12403C] rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-black/10">
                                         <span className="w-1.5 h-1.5 rounded-full bg-[#12403C] animate-pulse"></span>
-                                        Flash Sale
+                                        {t.home.promotions.flash_sale}
                                     </div>
                                     {/* <h2 className="text-xl md:text-2xl font-heading font-bold text-[#FCF8F3]">{sale.name}</h2> */}
                                 </div>
                                 <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur-sm">
-                                    <span className="text-xs text-[#FCF8F3]/80 font-medium uppercase tracking-wide hidden md:inline">Ends in</span>
+                                    <span className="text-xs text-[#FCF8F3]/80 font-medium uppercase tracking-wide hidden md:inline">{t.home.promotions.ends_in}</span>
                                     <Countdown endDate={sale.endDate} />
                                 </div>
                             </motion.div>
@@ -107,7 +110,7 @@ export function FlashSalesSection({ sales }: { sales: FlashSale[] }) {
                                     <ModernProductCarousel
                                         products={carouselProducts}
                                         title={sale.name}
-                                        subtitle="LIMITED TIME DEALS"
+                                        subtitle={t.home.promotions.limited_time_deals}
                                         viewAllLink={`/flash-sale/${sale.id}`}
                                     />
                                 </div>
@@ -115,7 +118,7 @@ export function FlashSalesSection({ sales }: { sales: FlashSale[] }) {
                                     <ProductCarousel
                                         products={carouselProducts}
                                         title={sale.name}
-                                        subtitle="LIMITED TIME DEALS"
+                                        subtitle={t.home.promotions.limited_time_deals}
                                         viewAllLink={`/flash-sale/${sale.id}`}
                                     />
                                 </div>

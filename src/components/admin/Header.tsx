@@ -8,7 +8,10 @@ interface AdminUser {
     role: string;
 }
 
+import { useLanguage } from '@/context/LanguageContext';
+
 export function AdminHeader() {
+    const { t } = useLanguage();
     const [user, setUser] = useState<AdminUser | null>(null);
     const [showMenu, setShowMenu] = useState(false);
 
@@ -54,7 +57,7 @@ export function AdminHeader() {
                     </svg>
                     <input
                         type="text"
-                        placeholder="Search orders, products..."
+                        placeholder={t.admin.header.search_placeholder}
                         style={{
                             background: 'transparent',
                             border: 'none',
@@ -149,7 +152,7 @@ export function AdminHeader() {
                                 color: 'var(--admin-text-secondary)',
                                 textDecoration: 'none',
                                 borderRadius: '6px',
-                            }}>Settings</a>
+                            }}>{t.admin.header.settings}</a>
                         </div>
                     )}
                 </div>

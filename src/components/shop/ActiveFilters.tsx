@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ActiveFilter {
   type: string;
@@ -19,11 +20,13 @@ export default function ActiveFilters({
   onRemove,
   onClearAll,
 }: ActiveFiltersProps) {
+  const { t } = useLanguage();
+
   if (filters.length === 0) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm text-gray-600 font-medium">Active Filters:</span>
+      <span className="text-sm text-gray-600 font-medium">{t.shop.active_filters}</span>
       
       {filters.map((filter, index) => (
         <button
@@ -48,7 +51,7 @@ export default function ActiveFilters({
           onClick={onClearAll}
           className="text-sm text-[#d4af37] hover:text-[#12403C] font-medium underline transition-colors"
         >
-          Clear All ({filters.length})
+          {t.shop.clear_all} ({filters.length})
         </button>
       )}
     </div>

@@ -6,6 +6,9 @@
 .checkoutPage {
     min-height: 100vh;
     background: #FCF8F3;
+    overflow-x: hidden;
+        /* Prevent horizontal scroll */
+        width: 100%;
 }
 
 .checkoutHero {
@@ -167,12 +170,23 @@
 
 .formInput::placeholder,
 .formTextarea::placeholder {
-    color: rgba(18, 64, 60, 0.4);
+    color: #7487a3;
+        /* Muted blue-gray from reference images */
 }
 
 .formInputError {
-    border-color: var(--primary) !important;
-        box-shadow: 0 0 0 3px rgba(18, 64, 60, 0.08) !important;
+    border-color: #cc0000 !important;
+        box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1) !important;
+    }
+    
+    /* Fix for CustomSelect error state */
+    .formGroup .formInputError :global(.custom-select-trigger) {
+        border-color: #cc0000 !important;
+    }
+    
+    .formGroup .formInputError.custom-select-container :global(.custom-select-trigger) {
+        border-color: #cc0000 !important;
+        box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.1) !important;
 }
 
 .formTextarea {
@@ -448,14 +462,14 @@
 .couponBtn {
     height: 48px;
     padding: 0 24px;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 14px;
+        font-weight: 700;
     background: #12403C;
     color: #fff;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     white-space: nowrap;
     box-sizing: border-box;
 }
@@ -466,8 +480,11 @@
 }
 
 .couponBtn:disabled {
-    opacity: 0.5;
+    background: #8da39f;
+        /* Reference image teal-gray */
+        color: #fff;
     cursor: not-allowed;
+    transform: none !important;
 }
 
 .couponApplied {
@@ -734,13 +751,16 @@
 ======================================== */
 @media (max-width: 1024px) {
     .checkoutGrid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+            /* Prevent expanding beyond container */
         gap: 24px;
     }
 
     .orderSummary {
         position: static;
         order: -1;
+        max-width: 100%;
+            box-sizing: border-box;
     }
 }
 
@@ -754,12 +774,20 @@
     }
 
     .checkoutContainer {
-        padding: 24px 16px 60px;
+        padding: 24px 20px 60px;
+            /* Safe distance from edges */
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
     }
 
     .formSection {
         padding: 24px 20px;
         border-radius: 16px;
+        width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
     }
 
     .formRow {
@@ -767,8 +795,11 @@
     }
 
     .orderSummary {
-        padding: 20px;
+        padding: 24px 20px;
         border-radius: 16px;
+        width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
     }
 
     .paymentOption {
@@ -776,17 +807,23 @@
     }
 
     .trustBadges {
-        gap: 16px;
-        padding: 16px;
+        gap: 8px;
+            padding: 12px 0;
+            flex-wrap: nowrap;
+            /* Force single row */
+            justify-content: space-around;
+            width: 100%;
+            box-sizing: border-box;
     }
 
     .trustIcon {
-        width: 28px;
-        height: 28px;
+        width: 20px;
+            height: 20px;
     }
 
     .trustText {
-        font-size: 10px;
+        font-size: 9px;
+            white-space: nowrap;
     }
 
     .summaryItems {
@@ -837,8 +874,8 @@
     }
 
     .trustBadges {
-        flex-wrap: wrap;
-        gap: 12px;
+        flex-wrap: nowrap;
+            gap: 8px;
     }
 
     .totalValue {

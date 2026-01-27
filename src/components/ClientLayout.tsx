@@ -17,10 +17,12 @@ export default function ClientLayout({
   navbar: React.ReactNode;
   footer: React.ReactNode;
 }) {
+  const { direction } = useLanguage();
   return (
     <StoreProvider>
         <Toaster 
-          position="top-right" 
+        position="top-right"
+        dir={direction} 
           richColors 
           toastOptions={{
             style: {
@@ -39,9 +41,11 @@ export default function ClientLayout({
 
 // Inner component to use hooks safely
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
 
 function ClientLayoutContent({ children, navbar, footer }: { children: React.ReactNode; navbar: React.ReactNode; footer: React.ReactNode }) {
     const pathname = usePathname();
+  const { direction } = useLanguage();
     const isAdmin = pathname?.startsWith('/admin');
     const isPOS = pathname?.startsWith('/pos');
     const isHomepage = pathname === '/';

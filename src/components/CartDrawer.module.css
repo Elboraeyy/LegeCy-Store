@@ -39,6 +39,7 @@
   flex-direction: column;
   border-left: 1px solid var(--border, rgba(18, 64, 60, 0.08));
     border-radius: 20px 0 0 20px;
+    overscroll-behavior: contain;
 }
 
 .drawer.open {
@@ -310,51 +311,72 @@
 /* ========================================
    QUANTITY CONTROLS - Minimal Style
 ======================================== */
+/* Two-tone split pill design with Active Green */
 .qtyControls {
   display: flex;
   align-items: center;
   gap: 0;
-    border: 1px solid var(--border, rgba(18, 64, 60, 0.12));
-    border-radius: 6px;
+  border: none;
+    border-radius: 999px;
     overflow: hidden;
+  padding: 0;
+    background: transparent;
 }
 
 .qtyBtn {
-  width: 30px;
-    height: 30px;
+  width: 36px;
+    height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  background: transparent;
   cursor: pointer;
-  color: var(--text-muted, #5c6b66);
-    font-size: 14px;
-    transition: all 0.15s ease;
-}
-
-.qtyBtn:hover {
-  background: rgba(18, 64, 60, 0.04);
-    color: var(--primary, #12403C);
+  font-size: 16px;
+    transition: all 0.1s ease;
+    /* Faster transition for button press feel */
+    font-weight: 500;
+    background: #f4f4f5;
+    /* Default background for both */
+    color: #12403C;
+    /* Default color for both */
   }
   
-  .qtyBtn:active {
-    background: rgba(18, 64, 60, 0.08);
+  /* Minus Button */
+  .qtyBtn:first-child {
+    border-radius: 20px 0 0 20px;
+    padding-left: 6px;
+  }
+  
+  /* Plus Button */
+  .qtyBtn:last-child {
+    border-radius: 0 20px 20px 0;
+    padding-right: 6px;
+}
+
+/* Hover Effects */
+.qtyBtn:hover {
+  background: #e4e4e7;
+  }
+/* Active State (The Green Flash) */
+.qtyBtn:active {
+  background: #12403C !important;
+    color: white !important;
 }
 
 .qtyValue {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-    min-width: 32px;
+  min-width: 24px;
   text-align: center;
-  color: var(--primary, #12403C);
+  color: #12403C;
     font-family: var(--font-body, 'Inter', sans-serif);
-    border-left: 1px solid var(--border, rgba(18, 64, 60, 0.08));
-    border-right: 1px solid var(--border, rgba(18, 64, 60, 0.08));
-    height: 30px;
+  border: none;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
+  background: #f4f4f5;
+    /* Matches buttons */
 }
 
 .itemTotal {

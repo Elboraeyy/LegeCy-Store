@@ -2,19 +2,12 @@
 
 import React, { useState } from "react";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 interface SortOption {
   value: string;
   label: string;
 }
-
-const SORT_OPTIONS: SortOption[] = [
-  { value: "featured", label: "Featured" },
-  { value: "newest", label: "Newest First" },
-  { value: "price-asc", label: "Price: Low to High" },
-  { value: "price-desc", label: "Price: High to Low" },
-  { value: "name-asc", label: "Name: A-Z" },
-  { value: "name-desc", label: "Name: Z-A" },
-];
 
 interface SortDropdownProps {
   value: string;
@@ -23,6 +16,16 @@ interface SortDropdownProps {
 
 export default function SortDropdown({ value, onChange }: SortDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useLanguage();
+
+  const SORT_OPTIONS: SortOption[] = [
+    { value: "featured", label: t.shop.sort.featured },
+    { value: "newest", label: t.shop.sort.newest },
+    { value: "price-asc", label: t.shop.sort.price_low },
+    { value: "price-desc", label: t.shop.sort.price_high },
+    { value: "name-asc", label: t.shop.sort.name_az },
+    { value: "name-desc", label: t.shop.sort.name_za },
+  ];
 
   const selectedOption = SORT_OPTIONS.find(opt => opt.value === value) || SORT_OPTIONS[0];
 

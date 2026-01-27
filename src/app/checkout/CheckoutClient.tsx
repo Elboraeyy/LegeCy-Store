@@ -5,12 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStore } from "@/context/StoreContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { toast } from "sonner";
 import { placeOrderWithShipping } from "@/lib/actions/checkout";
 import { validateCoupon } from "@/lib/actions/coupons";
 import { getPaymentMethodsStatus } from "@/lib/actions/killswitches";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
 import { calculateShipping } from "@/lib/actions/shipping";
+import { EGYPT_LOCATIONS } from "@/data/egypt-locations";
+import CustomSelect from "@/components/ui/CustomSelect";
 import styles from "./Checkout.module.css";
 
 interface ShippingForm {
@@ -18,23 +21,18 @@ interface ShippingForm {
   customerEmail: string;
   customerPhone: string;
   shippingAddress: string;
+  shippingGovernorate: string;
   shippingCity: string;
   shippingNotes: string;
   paymentMethod: "cod" | "paymob" | "wallet";
   walletNumber?: string;
 }
 
-// Egyptian cities list
-const CITIES = [
-  "Cairo", "Giza", "Alexandria", "Mansoura", "Tanta", "Zagazig", "Assiut",
-  "Sohag", "Luxor", "Aswan", "Port Said", "Suez", "Ismailia", "Damietta",
-  "Minya", "Beni Suef", "Fayoum", "Qena", "Sharm El Sheikh", "Hurghada",
-  "Marsa Matrouh", "Kafr El Sheikh", "Beheira", "Gharbia", "Monufia",
-  "Sharqia", "Dakahlia", "Red Sea", "New Valley", "North Sinai", "South Sinai"
-];
+// Locations are imported from @/data/egypt-locations
 
 export default function CheckoutClient() {
   const { cart, clearCart } = useStore();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   
@@ -50,6 +48,7 @@ export default function CheckoutClient() {
     customerEmail: "",
     customerPhone: "",
     shippingAddress: "",
+    shippingGovernorate: "",
     shippingCity: "",
     shippingNotes: "",
     paymentMethod: "cod",
@@ -104,14 +103,14 @@ export default function CheckoutClient() {
   // Calculate shipping when city changes
   useEffect(() => {
     async function loadShipping() {
-      if (!form.shippingCity) {
+      if (!form.shippingGovernorate) {
         setShippingCost(null);
         setShippingZone("");
         return;
       }
       setLoadingShipping(true);
       try {
-        const result = await calculateShipping(form.shippingCity, subtotal);
+        const result = await calculateShipping(form.shippingGovernorate, subtotal);
         if (appliedCoupon?.freeShipping) {
           setShippingCost(0);
           setShippingZone("Free Shipping (Coupon)");
@@ -128,7 +127,7 @@ export default function CheckoutClient() {
       }
     }
     loadShipping();
-  }, [form.shippingCity, subtotal, appliedCoupon?.freeShipping]);
+  }, [form.shippingGovernorate, subtotal, appliedCoupon?.freeShipping]);
 
   // Calculate totals - Discount applies to products only
   const actualShipping = shippingCost ?? 0;
@@ -136,7 +135,13 @@ export default function CheckoutClient() {
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
   const finalTotal = discountedSubtotal + actualShipping;
 
-  const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
+
+
+  const formatPrice = (p: number) => {
+    return language === 'ar'
+      ? `${p.toLocaleString('en-US')} ${t.common.currency}`
+      : `${t.common.currency} ${p.toLocaleString('en-US')}`;
+  };
 
   const clearFormStorage = () => {
     setForm({
@@ -144,6 +149,7 @@ export default function CheckoutClient() {
       customerEmail: "",
       customerPhone: "",
       shippingAddress: "",
+      shippingGovernorate: "",
       shippingCity: "",
       shippingNotes: "",
       paymentMethod: "cod",
@@ -204,7 +210,8 @@ export default function CheckoutClient() {
       newErrors.customerName = "Name must be at least 3 characters";
     }
     if (!form.shippingAddress.trim()) newErrors.shippingAddress = "Address is required";
-    if (!form.shippingCity.trim()) newErrors.shippingCity = "Please select a city";
+    if (!form.shippingGovernorate) newErrors.shippingGovernorate = "Please select a governorate";
+    if (!form.shippingCity) newErrors.shippingCity = "Please select a city";
     if (form.paymentMethod === "wallet" && !form.walletNumber) {
       newErrors.walletNumber = "Wallet number is required";
     }
@@ -218,12 +225,12 @@ export default function CheckoutClient() {
     e.preventDefault();
 
     if (!validateForm()) {
-      toast.error("Please fill in all required fields correctly");
+      toast.error(t.messages?.error_occurred || "Please fill in all required fields correctly");
       return;
     }
 
     if (cart.length === 0) {
-      toast.error("Your cart is empty");
+      toast.error(t.cart.empty_cart);
       return;
     }
 
@@ -253,14 +260,14 @@ export default function CheckoutClient() {
         }
         clearCart();
         clearFormStorage();
-        toast.success("Order confirmed! 🎉");
+        toast.success(t.messages.order_success);
         router.push(`/orders/${result.orderId}`);
       } else {
-        toast.error(result.error || "Failed to create order");
+        toast.error(result.error || t.messages.error_occurred);
       }
     } catch (error) {
       console.error(error);
-      toast.error("An unexpected error occurred");
+      toast.error(t.messages.error_occurred);
     } finally {
       setIsLoading(false);
     }
@@ -294,10 +301,10 @@ export default function CheckoutClient() {
               <path d="M9 22a1 1 0 100-2 1 1 0 000 2zM20 22a1 1 0 100-2 1 1 0 000 2z" />
               <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
             </svg>
-            <h2 className={styles.emptyTitle}>Your Cart is Empty</h2>
-            <p className={styles.emptyText}>Add some products to your cart to continue</p>
+            <h2 className={styles.emptyTitle}>{t.cart.empty_cart}</h2>
+            <p className={styles.emptyText}>{t.cart.empty_desc}</p>
             <Link href="/shop" className={styles.emptyBtn}>
-              Browse Products
+              {t.cart.continue_shopping}
             </Link>
           </div>
         </div>
@@ -310,8 +317,8 @@ export default function CheckoutClient() {
       {/* Hero */}
       <div className={styles.checkoutHero}>
         <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>Secure Checkout</h1>
-          <p className={styles.heroSubtitle}>Complete your order in a few simple steps</p>
+          <h1 className={styles.heroTitle}>{t.checkout.secure_checkout}</h1>
+          <p className={styles.heroSubtitle}>{t.checkout.contact_subtitle}</p>
         </div>
       </div>
 
@@ -329,8 +336,8 @@ export default function CheckoutClient() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className={styles.sectionTitle}>Contact Information</h2>
-                  <p className={styles.sectionSubtitle}>We&apos;ll use this to send you order updates</p>
+                  <h2 className={styles.sectionTitle}>{t.checkout.contact_info}</h2>
+                  <p className={styles.sectionSubtitle}>{t.checkout.contact_subtitle}</p>
                 </div>
               </div>
 
@@ -344,7 +351,7 @@ export default function CheckoutClient() {
                     name="customerName"
                     value={form.customerName}
                     onChange={handleChange}
-                    placeholder="Enter your full name"
+                    placeholder={t.checkout.full_name}
                     className={`${styles.formInput} ${errors.customerName ? styles.formInputError : ""}`}
                   />
                   {errors.customerName && <span className={styles.errorMessage}>{errors.customerName}</span>}
@@ -368,7 +375,7 @@ export default function CheckoutClient() {
 
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>
-                      Phone <span className={styles.required}>*</span>
+                      {t.checkout.phone} <span className={styles.required}>*</span>
                     </label>
                     <input
                       type="tel"
@@ -394,41 +401,72 @@ export default function CheckoutClient() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className={styles.sectionTitle}>Shipping Address</h2>
-                  <p className={styles.sectionSubtitle}>Where should we deliver your order?</p>
+                  <h2 className={styles.sectionTitle}>{t.checkout.shipping_address}</h2>
+                  <p className={styles.sectionSubtitle}>{t.checkout.shipping_subtitle}</p>
                 </div>
               </div>
 
               <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    City <span className={styles.required}>*</span>
-                  </label>
-                  <select
-                    name="shippingCity"
-                    value={form.shippingCity}
-                    onChange={handleChange}
-                    className={`${styles.formSelect} ${errors.shippingCity ? styles.formInputError : ""}`}
-                  >
-                    <option value="">Select your city</option>
-                    {CITIES.map((city) => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
-                    <option value="Other">Other</option>
-                  </select>
-                  {errors.shippingCity && <span className={styles.errorMessage}>{errors.shippingCity}</span>}
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      {t.checkout.governorate} <span className={styles.required}>*</span>
+                    </label>
+                    <CustomSelect
+                      name="shippingGovernorate"
+                      value={form.shippingGovernorate}
+                      onChange={(val) => {
+                        setForm(prev => ({ ...prev, shippingGovernorate: val, shippingCity: "" }));
+                        if (errors.shippingGovernorate) setErrors(prev => ({ ...prev, shippingGovernorate: "" }));
+                      }}
+                      options={EGYPT_LOCATIONS.map(gov => ({
+                        value: gov.en,
+                        label: language === 'ar' ? gov.ar : gov.en
+                      }))}
+                      placeholder={t.checkout.select_governorate}
+                      className={errors.shippingGovernorate ? styles.formInputError : ""}
+                      searchPlaceholder={language === 'ar' ? "ابحث عن محافظة..." : "Search governorate..."}
+                    />
+                    {errors.shippingGovernorate && <span className={styles.errorMessage}>{errors.shippingGovernorate}</span>}
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      {t.checkout.city} <span className={styles.required}>*</span>
+                    </label>
+                    <CustomSelect
+                      name="shippingCity"
+                      value={form.shippingCity}
+                      onChange={(val) => {
+                        setForm(prev => ({ ...prev, shippingCity: val }));
+                        if (errors.shippingCity) setErrors(prev => ({ ...prev, shippingCity: "" }));
+                      }}
+                      disabled={!form.shippingGovernorate}
+                      options={form.shippingGovernorate ? (
+                        EGYPT_LOCATIONS.find(g => g.en === form.shippingGovernorate)?.cities.map(city => ({
+                          value: city.en,
+                          label: language === 'ar' ? city.ar : city.en
+                        })) || []
+                      ) : []}
+                      placeholder={t.checkout.select_city}
+                      className={errors.shippingCity ? styles.formInputError : ""}
+                      searchPlaceholder={language === 'ar' ? "ابحث عن مدينة..." : "Search city..."}
+                    />
+                    {errors.shippingCity && <span className={styles.errorMessage}>{errors.shippingCity}</span>}
+                  </div>
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>
-                    Full Address <span className={styles.required}>*</span>
+                    {t.checkout.full_address} <span className={styles.required}>*</span>
                   </label>
                   <textarea
                     name="shippingAddress"
                     value={form.shippingAddress}
                     onChange={handleChange}
-                    placeholder="Street name, building number, apartment, landmarks"
+                    placeholder={t.checkout.address_placeholder}
                     className={`${styles.formTextarea} ${errors.shippingAddress ? styles.formInputError : ""}`}
+                    style={{ minHeight: "100px" }}
                   />
                   {errors.shippingAddress && <span className={styles.errorMessage}>{errors.shippingAddress}</span>}
                 </div>
@@ -446,8 +484,8 @@ export default function CheckoutClient() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className={styles.sectionTitle}>Order Notes</h2>
-                  <p className={styles.sectionSubtitle}>Any special instructions for us?</p>
+                  <h2 className={styles.sectionTitle}>{t.checkout.order_notes}</h2>
+                  <p className={styles.sectionSubtitle}>{t.checkout.notes_subtitle}</p>
                 </div>
               </div>
               <div className={styles.formGroup}>
@@ -455,7 +493,7 @@ export default function CheckoutClient() {
                   name="shippingNotes"
                   value={form.shippingNotes}
                   onChange={handleChange}
-                  placeholder="Notes about your order, e.g. special notes for delivery."
+                  placeholder={t.checkout.notes_placeholder}
                   className={styles.formTextarea}
                   style={{ minHeight: "80px" }}
                 />
@@ -472,8 +510,8 @@ export default function CheckoutClient() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className={styles.sectionTitle}>Payment Method</h2>
-                  <p className={styles.sectionSubtitle}>Choose how you&apos;d like to pay</p>
+                  <h2 className={styles.sectionTitle}>{t.checkout.payment_method_title}</h2>
+                  <p className={styles.sectionSubtitle}>{t.checkout.payment_subtitle}</p>
                 </div>
               </div>
 
@@ -498,8 +536,8 @@ export default function CheckoutClient() {
                           </svg>
                         </div>
                         <div className={styles.paymentInfo}>
-                          <p className={styles.paymentName}>Cash on Delivery</p>
-                          <p className={styles.paymentDesc}>Pay when you receive your order</p>
+                          <p className={styles.paymentName}>{t.checkout.cod}</p>
+                          <p className={styles.paymentDesc}>{t.checkout.cod_desc}</p>
                         </div>
                       </div>
                     )}
@@ -517,8 +555,8 @@ export default function CheckoutClient() {
                           </svg>
                         </div>
                         <div className={styles.paymentInfo}>
-                          <p className={styles.paymentName}>Credit / Debit Card</p>
-                          <p className={styles.paymentDesc}>Visa, Mastercard, Meeza</p>
+                          <p className={styles.paymentName}>{t.checkout.card}</p>
+                          <p className={styles.paymentDesc}>{t.checkout.card_desc}</p>
                         </div>
                       </div>
                     )}
@@ -536,8 +574,8 @@ export default function CheckoutClient() {
                           </svg>
                         </div>
                         <div className={styles.paymentInfo}>
-                          <p className={styles.paymentName}>Mobile Wallet</p>
-                          <p className={styles.paymentDesc}>Vodafone Cash, Orange, Etisalat</p>
+                          <p className={styles.paymentName}>{t.checkout.wallet}</p>
+                          <p className={styles.paymentDesc}>{t.checkout.wallet_desc}</p>
                         </div>
                       </div>
                   )}
@@ -547,7 +585,7 @@ export default function CheckoutClient() {
               {form.paymentMethod === "wallet" && (
                 <div className={styles.formGroup} style={{ marginTop: "16px" }}>
                   <label className={styles.formLabel}>
-                    Wallet Number <span className={styles.required}>*</span>
+                    {t.checkout.wallet_number} <span className={styles.required}>*</span>
                   </label>
                   <input
                     type="tel"
@@ -561,7 +599,7 @@ export default function CheckoutClient() {
                     className={`${styles.formInput} ${errors.walletNumber ? styles.formInputError : ""}`}
                   />
                   {errors.walletNumber && <span className={styles.errorMessage}>{errors.walletNumber}</span>}
-                  <p className={styles.inputHint}>Enter your registered mobile wallet number</p>
+                  <p className={styles.inputHint}>{t.checkout.wallet_hint}</p>
                 </div>
               )}
             </section>
@@ -570,8 +608,8 @@ export default function CheckoutClient() {
           {/* Right Column - Order Summary */}
           <aside className={styles.orderSummary}>
             <div className={styles.summaryHeader}>
-              <h3 className={styles.summaryTitle}>Order Summary</h3>
-              <span className={styles.summaryItemCount}>{cart.reduce((sum, i) => sum + i.qty, 0)} items</span>
+              <h3 className={styles.summaryTitle}>{t.checkout.order_summary}</h3>
+              <span className={styles.summaryItemCount}>{t.cart.items_count.replace('{count}', cart.reduce((sum, i) => sum + i.qty, 0).toString())}</span>
             </div>
 
             {/* Cart Items */}
@@ -585,7 +623,7 @@ export default function CheckoutClient() {
                   </div>
                   <div className={styles.itemDetails}>
                     <p className={styles.itemName}>{item.name}</p>
-                    <p className={styles.itemMeta}>Qty: {item.qty}</p>
+                    <p className={styles.itemMeta}>{t.product.quantity}: {item.qty}</p>
                   </div>
                   <span className={styles.itemPrice}>{formatPrice(item.price * item.qty)}</span>
                 </div>
@@ -601,15 +639,15 @@ export default function CheckoutClient() {
                       type="text"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      placeholder="Promo code"
+                      placeholder={t.checkout.coupon_code}
                     />
                     <button
                       type="button"
                       onClick={handleApplyCoupon}
-                      disabled={isValidatingCoupon || !couponCode}
+                      disabled={isValidatingCoupon || !couponCode.trim()}
                       className={styles.couponBtn}
                     >
-                      {isValidatingCoupon ? "..." : "Apply"}
+                      {isValidatingCoupon ? "..." : t.checkout.apply_coupon}
                     </button>
                   </div>
                   {couponError && <p className={styles.couponError}>{couponError}</p>}
@@ -628,25 +666,25 @@ export default function CheckoutClient() {
             {/* Pricing */}
             <div className={styles.pricingSection}>
               <div className={styles.pricingRow}>
-                <span className={styles.pricingLabel}>Subtotal</span>
+                <span className={styles.pricingLabel}>{t.checkout.subtotal}</span>
                 <span className={styles.pricingValue}>{formatPrice(subtotal)}</span>
               </div>
 
               {appliedCoupon && appliedCoupon.discount > 0 && (
                 <div className={styles.pricingRow}>
-                  <span className={styles.pricingLabel}>Discount</span>
+                  <span className={styles.pricingLabel}>{t.checkout.discount}</span>
                   <span className={`${styles.pricingValue} ${styles.pricingDiscount}`}>-{formatPrice(appliedCoupon.discount)}</span>
                 </div>
               )}
 
               <div className={styles.pricingRow}>
-                <span className={styles.pricingLabel}>Shipping</span>
+                <span className={styles.pricingLabel}>{t.checkout.shipping}</span>
                 {loadingShipping ? (
-                  <span className={styles.pricingValue} style={{ color: "var(--text-muted)" }}>Calculating...</span>
+                  <span className={styles.pricingValue} style={{ color: "var(--text-muted)" }}>{t.checkout.calculating}</span>
                 ) : shippingCost === null ? (
-                  <span className={styles.pricingValue} style={{ color: "var(--text-muted)" }}>Select city</span>
+                    <span className={styles.pricingValue} style={{ color: "var(--text-muted)" }}>{t.checkout.select_city}</span>
                 ) : shippingCost === 0 ? (
-                  <span className={`${styles.pricingValue} ${styles.pricingDiscount}`}>Free</span>
+                      <span className={`${styles.pricingValue} ${styles.pricingDiscount}`}>{t.checkout.free}</span>
                 ) : (
                         <div className={styles.pricingShipping}>
                           <span className={styles.pricingValue}>{formatPrice(shippingCost)}</span>
@@ -656,7 +694,7 @@ export default function CheckoutClient() {
               </div>
 
               <div className={styles.pricingTotal}>
-                <span className={styles.totalLabel}>Total</span>
+                <span className={styles.totalLabel}>{t.checkout.total}</span>
                 <span className={styles.totalValue}>{formatPrice(finalTotal)}</span>
               </div>
             </div>
@@ -671,10 +709,10 @@ export default function CheckoutClient() {
                       <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
                     </path>
                   </svg>
-                  Processing...
+                  {t.checkout.processing}
                 </span>
               ) : (
-                "Place Order"
+                  t.checkout.place_order
               )}
             </button>
 
@@ -685,20 +723,20 @@ export default function CheckoutClient() {
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
-                <span className={styles.trustText}>Secure</span>
+                <span className={styles.trustText}>{t.product.trust.secure}</span>
               </div>
               <div className={styles.trustBadge}>
                 <svg className={styles.trustIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
-                <span className={styles.trustText}>Authentic</span>
+                <span className={styles.trustText}>{t.product.trust.authentic}</span>
               </div>
               <div className={styles.trustBadge}>
                 <svg className={styles.trustIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
-                <span className={styles.trustText}>Fast Delivery</span>
+                <span className={styles.trustText}>{t.product.shipping_list.delivery.split(' ').slice(0, 2).join(' ')}</span>
               </div>
             </div>
           </aside>

@@ -199,6 +199,36 @@ function OrderDetailsView({ id }: { id: string }) {
                          </div>
                     </div>
 
+                    {/* Shipping Card */}
+                    <div className="admin-card">
+                        <h3 className="admin-label" style={{ marginBottom: '16px' }}>Shipping & Delivery</h3>
+                        <div style={{ display: 'grid', gap: '12px', fontSize: '14px' }}>
+                            <div>
+                                <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#999', display: 'block', marginBottom: '4px' }}>Name</label>
+                                <div>{order.customerName}</div>
+                            </div>
+                            <div>
+                                <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#999', display: 'block', marginBottom: '4px' }}>Contact</label>
+                                <div>{order.customerPhone}</div>
+                                <div style={{ color: 'var(--admin-text-muted)' }}>{order.customerEmail}</div>
+                            </div>
+                            <div>
+                                <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#999', display: 'block', marginBottom: '4px' }}>Address</label>
+                                <div style={{ lineHeight: '1.4' }}>
+                                    {order.shippingAddress}
+                                    <br />
+                                    {order.shippingCity}, {order.shippingGovernorate}
+                                </div>
+                            </div>
+                            {order.shippingNotes && (
+                                <div style={{ padding: '12px', background: '#fff9c4', borderRadius: '8px', borderLeft: '4px solid #fbc02d' }}>
+                                    <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#8a6d3b', display: 'block', marginBottom: '4px' }}>Notes</label>
+                                    <div style={{ fontSize: '13px', color: '#8a6d3b' }}>{order.shippingNotes}</div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

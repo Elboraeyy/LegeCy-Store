@@ -8,6 +8,7 @@ import ProductGrid from "@/components/shop/ProductGrid";
 import SortDropdown from "@/components/shop/SortDropdown";
 import ActiveFilters from "@/components/shop/ActiveFilters";
 import { Product } from "@/types/product";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ShopClientProps {
     initialProducts?: Product[];
@@ -24,6 +25,7 @@ export default function ShopClient({
 }: ShopClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { t, language } = useLanguage();
 
     // State
     const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -156,9 +158,9 @@ export default function ShopClient({
             });
         }
 
-        if (inStock === true) filters.push({ type: "inStock", value: "true", label: "In Stock" });
-        if (onSale === true) filters.push({ type: "onSale", value: "true", label: "On Sale" });
-        if (isNew === true) filters.push({ type: "new", value: "true", label: "New Arrivals" });
+        if (inStock === true) filters.push({ type: "inStock", value: "true", label: t.shop.in_stock });
+        if (onSale === true) filters.push({ type: "onSale", value: "true", label: t.shop.on_sale });
+        if (isNew === true) filters.push({ type: "new", value: "true", label: t.shop.new_arrivals });
 
         return filters;
     }, [selectedCategories, selectedBrands, selectedMaterials, minPrice, maxPrice, inStock, onSale, isNew, categories, brands, materials, absoluteMinPrice, absoluteMaxPrice]);
@@ -201,10 +203,10 @@ export default function ShopClient({
                 <div className="absolute inset-0 opacity-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
                 <div className="container mx-auto px-4 lg:px-8 relative z-10">
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-normal mb-1 md:mb-2 text-[#FCF8F3] tracking-wide">
-                        Discover Our Collection
+                        {t.shop.title}
                     </h1>
                     <p className="text-xs sm:text-sm text-[#FCF8F3]/70 max-w-xl mx-auto">
-                        Explore our curated selection of luxury accessories
+                        {t.shop.subtitle}
                     </p>
                 </div>
             </div>
@@ -224,7 +226,7 @@ export default function ShopClient({
                         type="text"
                         value={searchQuery}
                         onChange={(e) => updateFilters({ q: e.target.value || null })}
-                        placeholder="Search products..."
+                        placeholder={t.shop.search_placeholder}
                         className="w-full pl-12 pr-10 py-3.5 text-base bg-white border border-gray-200 rounded-2xl focus:outline-none focus:border-[#12403C] focus:ring-2 focus:ring-[#12403C]/10 shadow-sm transition-all placeholder:text-gray-400"
                     />
                     {searchQuery && (
@@ -285,7 +287,7 @@ export default function ShopClient({
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                             <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
                                         </svg>
-                                        <span>Filter</span>
+                                        <span>{t.shop.filter_btn}</span>
                                         {activeFilters.length > 0 && (
                                             <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold bg-[#d4af37] text-[#12403C] rounded-full px-1">
                                                 {activeFilters.length}
@@ -295,8 +297,8 @@ export default function ShopClient({
 
                                     <p className="text-xs md:text-sm text-gray-600">
                                         <span className="font-bold text-[#12403C]">{filteredAndSortedProducts.length}</span>
-                                        <span className="hidden sm:inline"> Products</span>
-                                        <span className="sm:hidden"> items</span>
+                                        <span className="hidden sm:inline"> {language === 'ar' ? t.shop.products_count : 'Products'}</span>
+                                        <span className="sm:hidden"> {language === 'ar' ? t.shop.products_items : 'items'}</span>
                                     </p>
                                 </div>
 
@@ -307,7 +309,7 @@ export default function ShopClient({
                                         <button
                                             onClick={() => setViewMode("grid")}
                                             className={`p-2 rounded ${viewMode === "grid" ? "bg-white shadow-sm" : "text-gray-500"}`}
-                                            title="Grid View"
+                                            title={t.shop.view_grid}
                                         >
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                                 <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -319,7 +321,7 @@ export default function ShopClient({
                                         <button
                                             onClick={() => setViewMode("list")}
                                             className={`p-2 rounded ${viewMode === "list" ? "bg-white shadow-sm" : "text-gray-500"}`}
-                                            title="List View"
+                                            title={t.shop.view_list}
                                         >
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                                 <line x1="8" y1="6" x2="21" y2="6" />
@@ -333,7 +335,7 @@ export default function ShopClient({
                                         <button
                                             onClick={() => setViewMode("compact")}
                                             className={`p-2 rounded ${viewMode === "compact" ? "bg-white shadow-sm" : "text-gray-500"}`}
-                                            title="Compact Grid"
+                                            title={t.shop.view_compact}
                                         >
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                                 <rect x="2" y="2" width="4" height="4" rx="0.5" />
@@ -383,7 +385,7 @@ export default function ShopClient({
                                     disabled={currentPage === 1}
                                     className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    Previous
+                                    {t.shop.previous}
                                 </button>
 
                                 {[...Array(Math.min(5, totalPages))].map((_, i) => {
@@ -418,7 +420,7 @@ export default function ShopClient({
                                     disabled={currentPage === totalPages}
                                     className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    Next
+                                    {t.shop.next}
                                 </button>
                             </div>
                         )}

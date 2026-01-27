@@ -63,6 +63,7 @@ export interface FraudInput {
   items: Array<{ name: string; quantity: number }>;
   customerEmail: string;
   userId?: string | null;
+  shippingGovernorate?: string;
   shippingCity?: string;
   ipAddress?: string;
 }
@@ -182,12 +183,13 @@ export async function analyzeRisk(input: FraudInput): Promise<FraudCheckResult> 
   }
 
   // 7. Check shipping area
-  if (input.shippingCity && BLACKLISTED_AREAS.includes(input.shippingCity.toLowerCase())) {
+  const shippingLoc = (input.shippingGovernorate || input.shippingCity)?.toLowerCase();
+  if (shippingLoc && BLACKLISTED_AREAS.includes(shippingLoc)) {
     const score = RISK_FACTORS.BLACKLISTED_AREA.weight;
     factors.push({
       factor: 'BLACKLISTED_AREA',
       score,
-      details: `Shipping to flagged area: ${input.shippingCity}`
+      details: `Shipping to flagged area: ${shippingLoc}`
     });
     totalScore += score;
   }

@@ -109,14 +109,7 @@ export default function ProductGrid({
             `}</style>
             <div className="product-grid">
                 {products.map((product, index) => (
-                    <React.Fragment key={product.id}>
-                        <div className="md:hidden">
-                            <ModernProductCard product={product} priority={index < 4} />
-                        </div>
-                        <div className="hidden md:block">
-                            <ProductCard product={product} priority={index < 4} />
-                        </div>
-                    </React.Fragment>
+                    <ProductCard key={product.id} product={product} priority={index < 4} />
                 ))}
             </div>
         </>
@@ -125,7 +118,7 @@ export default function ProductGrid({
 
 function ProductSkeleton() {
     return (
-        <div className="bg-white rounded-xl overflow-hidden shadow-sm animate-pulse">
+        <div className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
             <div className="aspect-[3/4] bg-gray-200" />
             <div className="p-4 space-y-3">
                 <div className="h-4 bg-gray-200 rounded w-3/4" />
@@ -147,7 +140,7 @@ function ProductListCard({ product }: { product: Product }) {
         : 0;
 
     return (
-        <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <div className="flex flex-col sm:flex-row gap-4 p-4">
                 {/* Image */}
                 <div className="relative w-full sm:w-48 aspect-[3/4] sm:aspect-square flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
 import { FlashSalesSection } from './FlashSalesSection'; // We reuse the robust internal logic or adapt it
+import { useLanguage } from '@/context/LanguageContext';
 
 export interface FlashSale {
     id: string;
@@ -50,6 +51,8 @@ type Props = {
 };
 
 export function PromotionsHub({ flashSales, bogos, bundles }: Props) {
+    const { t } = useLanguage();
+
     // If no promotions at all, don't render
     if (!flashSales?.length && !bogos?.length && !bundles?.length) return null;
 
@@ -70,14 +73,14 @@ export function PromotionsHub({ flashSales, bogos, bundles }: Props) {
                     <div className="flex flex-col md:flex-row items-end justify-between mb-8 gap-4">
                         <div className="text-center md:text-left">
                             <h2 className="text-3xl md:text-5xl font-heading font-bold text-[#12403C] mb-2">
-                                Buy One, Get One
+                                {t.home.promotions.buy_one_get_one}
                             </h2>
                             <p className="text-[#4A6B68] text-lg max-w-xl">
-                                Double the luxury. Exclusive offers on our premium collection.
+                                {t.home.promotions.bogo_description}
                             </p>
                         </div>
                         <Link href="/bogo" className="group inline-flex items-center gap-2 text-[#d4af37] font-bold uppercase tracking-widest hover:text-[#b5952f] transition-colors pb-1 border-b-2 border-[#d4af37]/20 hover:border-[#d4af37]">
-                            View All Offers <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            {t.home.promotions.view_all_offers} <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
 
@@ -95,14 +98,14 @@ export function PromotionsHub({ flashSales, bogos, bundles }: Props) {
                      <div className="flex flex-col md:flex-row items-end justify-between mb-8 gap-4">
                         <div className="text-center md:text-left">
                             <h2 className="text-3xl md:text-5xl font-heading font-bold text-[#12403C] mb-2">
-                                Curated Bundles
+                                {t.home.promotions.curated_bundles}
                             </h2>
                             <p className="text-[#4A6B68] text-lg max-w-xl">
-                                Hand-picked sets. Mix, match, and save on complete looks.
+                                {t.home.promotions.bundles_description}
                             </p>
                         </div>
                         <Link href="/bundles" className="group inline-flex items-center gap-2 text-[#d4af37] font-bold uppercase tracking-widest hover:text-[#b5952f] transition-colors pb-1 border-b-2 border-[#d4af37]/20 hover:border-[#d4af37]">
-                            View All Bundles <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            {t.home.promotions.view_all_bundles} <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
                     
@@ -119,13 +122,14 @@ export function PromotionsHub({ flashSales, bogos, bundles }: Props) {
 
 function BogoCard({ deal }: { deal: BOGODeal }) {
     const mainProduct = deal.products[0];
+    const { t } = useLanguage();
     if (!mainProduct) return null;
 
     return (
         <div className="relative group overflow-hidden rounded-xl bg-white shadow-sm border border-[#12403C]/5 hover:shadow-xl transition-all duration-500">
              <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
                  <span className="inline-flex items-center px-3 py-1 bg-[#12403C] text-[#FCF8F3] text-xs font-bold uppercase tracking-wider rounded-full shadow-lg">
-                    {deal.type === 'BUY_X_GET_Y_FREE' ? 'Free Gift' : `${deal.discount}% Off 2nd Item`}
+                    {deal.type === 'BUY_X_GET_Y_FREE' ? t.home.promotions.free_gift : `${deal.discount}% ${t.home.promotions.off_2nd_item}`}
                  </span>
              </div>
 
@@ -138,7 +142,7 @@ function BogoCard({ deal }: { deal: BOGODeal }) {
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">No Image</div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">{t.home.promotions.no_image}</div>
                  )}
                  {/* Overlay */}
                  <div className="absolute inset-0 bg-gradient-to-t from-[#12403C]/90 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
@@ -146,11 +150,11 @@ function BogoCard({ deal }: { deal: BOGODeal }) {
                  <div className="absolute bottom-0 left-0 w-full p-6 text-white translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
                      <h3 className="text-2xl font-heading font-bold mb-1 leading-tight">{deal.name}</h3>
                      <p className="text-white/80 text-sm mb-4">
-                        Buy {deal.buy}, Get {deal.get} {deal.type === 'BUY_X_GET_Y_FREE' ? 'Free' : 'Discounted'}
+                        {t.home.promotions.buy} {deal.buy}, {t.home.promotions.get} {deal.get} {deal.type === 'BUY_X_GET_Y_FREE' ? t.home.promotions.free : t.home.promotions.discounted}
                      </p>
                      
                      <Link href={`/bogo/${deal.id}`} className="w-full block py-3 bg-white text-[#12403C] text-center font-bold uppercase tracking-widest text-xs rounded hover:bg-[#d4af37] hover:text-white transition-colors">
-                        Shop Deal
+                        {t.home.promotions.shop_deal}
                      </Link>
                  </div>
             </div>
@@ -159,6 +163,7 @@ function BogoCard({ deal }: { deal: BOGODeal }) {
 }
 
 function BundleCard({ bundle }: { bundle: Bundle }) {
+    const { t } = useLanguage();
     return (
         <div className="relative group bg-white rounded-2xl overflow-hidden border border-[#12403C]/10 hover:border-[#d4af37]/50 transition-all duration-500 shadow-sm hover:shadow-2xl flex flex-col md:flex-row h-full">
             {/* Visual Side */}
@@ -187,22 +192,22 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
             <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center bg-white relative">
                  <div className="absolute top-6 right-6 text-right">
                     <span className="block text-2xl font-bold text-[#d4af37] font-heading">
-                        {bundle.savings > 0 ? `Save EGP ${bundle.savings}` : 'Best Value'}
+                        {bundle.savings > 0 ? `${t.home.promotions.save} ${bundle.savings}` : t.home.promotions.best_value}
                     </span>
                  </div>
 
                  <div className="mb-6 mt-8">
                      <span className="text-[#9CA3AF] text-xs font-bold uppercase tracking-[0.2em] mb-2 block">
-                        {bundle.type === 'MIX_AND_MATCH' ? 'Build Your Own' : 'Curated Set'}
+                        {bundle.type === 'MIX_AND_MATCH' ? t.home.promotions.build_your_own : t.home.promotions.curated_set}
                      </span>
                      <h3 className="text-3xl font-heading font-bold text-[#12403C] mb-3 leading-tight">
                          {bundle.name}
                      </h3>
                      <p className="text-gray-500 text-sm leading-relaxed mb-6">
-                         {bundle.description || "The perfect combination for a refined lifestyle."}
+                        {bundle.description || t.home.promotions.bundle_description_default}
                      </p>
 
-                     <div className="flex items-baseline gap-3 mb-8">
+                    <div className="flex items-baseline gap-3 mb-8" dir="ltr">
                          <span className="text-3xl font-bold text-[#12403C]">EGP {bundle.bundlePrice}</span>
                          <span className="text-lg text-gray-400 line-through">EGP {bundle.originalPrice}</span>
                      </div>
@@ -212,7 +217,7 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
                     href={bundle.type === 'MIX_AND_MATCH' ? `/bundles/build/${bundle.slug}` : `/bundles/${bundle.slug}`}
                     className="w-full py-4 bg-[#12403C] text-[#FCF8F3] text-center font-bold uppercase tracking-widest text-sm rounded-lg hover:bg-[#d4af37] hover:text-[#12403C] transition-all duration-300 shadow-md transform group-hover:translate-y-[-2px]"
                  >
-                    {bundle.type === 'MIX_AND_MATCH' ? 'Build This Bundle' : 'View Bundle'}
+                    {bundle.type === 'MIX_AND_MATCH' ? t.home.promotions.build_this_bundle : t.home.promotions.view_bundle}
                  </Link>
             </div>
         </div>

@@ -29,6 +29,8 @@ interface MobileFiltersProps {
     activeFilterCount: number;
 }
 
+import { useLanguage } from "@/context/LanguageContext";
+
 // Collapsible Section Component
 const FilterSection = ({
     title,
@@ -101,6 +103,7 @@ export default function MobileFilters({
     onClearAll,
     activeFilterCount,
 }: MobileFiltersProps) {
+    const { t } = useLanguage();
 
     // State for sections (all open by default or selective)
     const [openSections, setOpenSections] = useState({
@@ -188,7 +191,7 @@ export default function MobileFilters({
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 py-4 border-b border-[#12403C]/10 bg-[#FCF8F3] z-10">
                             <div className="flex items-center gap-3">
-                                <h2 className="text-xl font-serif text-[#12403C] tracking-wide">Filters</h2>
+                                <h2 className="text-xl font-serif text-[#12403C] tracking-wide">{t.shop.filters}</h2>
                                 {activeFilterCount > 0 && (
                                     <span className="flex items-center justify-center min-w-[24px] h-6 px-2 bg-[#12403C] text-white text-xs font-semibold rounded-full">
                                         {activeFilterCount}
@@ -210,7 +213,7 @@ export default function MobileFilters({
 
                             {/* Categories Section */}
                             <FilterSection
-                                title="CATEGORIES"
+                                title={t.shop.categories.toUpperCase()}
                                 isOpen={openSections.categories}
                                 onToggle={() => toggleSection('categories')}
                             >
@@ -247,7 +250,7 @@ export default function MobileFilters({
 
                             {/* Price Section */}
                             <FilterSection
-                                title="PRICE RANGE"
+                                title={t.shop.price_range.toUpperCase()}
                                 isOpen={openSections.price}
                                 onToggle={() => toggleSection('price')}
                             >
@@ -324,15 +327,15 @@ export default function MobileFilters({
 
                             {/* Status Section */}
                             <FilterSection
-                                title="STATUS & DEALS"
+                                title={t.shop.status.toUpperCase()}
                                 isOpen={openSections.status}
                                 onToggle={() => toggleSection('status')}
                             >
                                 <div className="space-y-3 pt-2">
                                     {[
-                                        { label: "New Arrivals", checked: isNew === true, onChange: onNewChange },
-                                        { label: "On Sale", checked: onSale === true, onChange: onSaleChange },
-                                        { label: "In Stock Only", checked: inStock === true, onChange: onInStockChange },
+                                        { label: t.shop.new_arrivals, checked: isNew === true, onChange: onNewChange },
+                                        { label: t.shop.on_sale, checked: onSale === true, onChange: onSaleChange },
+                                        { label: t.shop.in_stock, checked: inStock === true, onChange: onInStockChange },
                                     ].map((item, i) => (
                                         <label key={i} className="flex items-center justify-between group cursor-pointer py-1">
                                             <span className={`text-sm transition-colors ${item.checked ? 'text-[#12403C] font-medium' : 'text-[#5c6b66] group-hover:text-[#12403C]'}`}>
@@ -357,7 +360,7 @@ export default function MobileFilters({
                             {/* Brands Section */}
                             {brands.length > 0 && (
                                 <FilterSection
-                                    title="BRANDS"
+                                    title={t.shop.brands.toUpperCase()}
                                     isOpen={openSections.brands}
                                     onToggle={() => toggleSection('brands')}
                                 >
@@ -386,7 +389,7 @@ export default function MobileFilters({
                             {/* Materials Section */}
                             {materials.length > 0 && (
                                 <FilterSection
-                                    title="MATERIALS"
+                                    title={t.shop.materials.toUpperCase()}
                                     isOpen={openSections.materials}
                                     onToggle={() => toggleSection('materials')}
                                 >
@@ -421,14 +424,14 @@ export default function MobileFilters({
                                         onClick={onClearAll}
                                         className="px-6 py-3.5 border border-[#12403C]/20 text-[#12403C] rounded-full font-semibold text-xs uppercase tracking-wider hover:bg-[#12403C] hover:text-white transition-colors"
                                     >
-                                        Reset
+                                        {t.shop.clear_all}
                                     </button>
                                 )}
                                 <button
                                     onClick={onClose}
                                     className="flex-1 py-3.5 bg-[#12403C] text-white rounded-full font-semibold text-xs uppercase tracking-wider shadow-lg shadow-[#12403C]/20 active:scale-95 transition-transform flex items-center justify-center gap-2 hover:bg-[#0E3330]"
                                 >
-                                    Show Results
+                                    {t.shop.show_results}
                                 </button>
                             </div>
                         </div>

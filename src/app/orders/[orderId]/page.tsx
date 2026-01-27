@@ -30,6 +30,7 @@ export default async function OrderTrackingPage({ params }: Props) {
         customerPhone: order.customerPhone,
         customerEmail: order.customerEmail,
         shippingAddress: order.shippingAddress,
+        shippingGovernorate: order.shippingGovernorate,
         shippingCity: order.shippingCity,
         paymentMethod: order.paymentMethod,
         items: order.items.map(item => ({

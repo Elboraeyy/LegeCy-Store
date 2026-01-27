@@ -78,6 +78,7 @@ async function getOrder(orderId: string) {
     customerEmail: order.customerEmail,
     customerPhone: order.customerPhone,
     shippingAddress: order.shippingAddress,
+    shippingGovernorate: order.shippingGovernorate,
     shippingCity: order.shippingCity,
     shippingNotes: order.shippingNotes,
     paymentMethod: order.paymentMethod,

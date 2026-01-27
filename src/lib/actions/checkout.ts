@@ -20,6 +20,7 @@ interface CheckoutInput {
   customerEmail: string;
   customerPhone: string;
   shippingAddress: string;
+  shippingGovernorate: string;
   shippingCity: string;
   shippingNotes: string;
   paymentMethod: 'cod' | 'paymob' | 'wallet';
@@ -82,7 +83,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       return { success: false, error: 'Customer information is incomplete' };
     }
 
-    if (!input.shippingAddress || !input.shippingCity) {
+    if (!input.shippingAddress || !input.shippingGovernorate || !input.shippingCity) {
       return { success: false, error: 'Shipping information is incomplete' };
     }
 
@@ -209,6 +210,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         customerEmail: input.customerEmail,
         userId: user?.id,
         shippingCity: input.shippingCity,
+        shippingGovernorate: input.shippingGovernorate,
         ipAddress: (await headers()).get('x-forwarded-for') || 'unknown'
       });
 
@@ -340,9 +342,9 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       // Free Shipping Logic (2000 EGP Threshold)
       if (subtotalAmount >= 2000) {
         shippingCost = new Prisma.Decimal(0);
-      } else if (input.shippingCity) {
+      } else if (input.shippingGovernorate) {
         const zone = await tx.shippingZone.findFirst({
-          where: { cities: { has: input.shippingCity } }
+          where: { cities: { has: input.shippingGovernorate } }
         });
         if (zone) {
           shippingCost = zone.baseRate;
@@ -376,6 +378,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
           customerEmail: input.customerEmail,
           customerPhone: input.customerPhone,
           shippingAddress: input.shippingAddress,
+          shippingGovernorate: input.shippingGovernorate,
           shippingCity: input.shippingCity,
           shippingNotes: input.shippingNotes || null,
           paymentMethod: input.paymentMethod,
@@ -498,6 +501,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     logger.info(`Order created with shipping: ${order.id}`, {
       orderId: order.id,
       customerEmail: input.customerEmail,
+      governorate: input.shippingGovernorate,
       city: input.shippingCity,
       total: finalTotal,
       couponId,
@@ -558,7 +562,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         subtotal: itemsSubtotal,
         shipping: calculatedShipping > 0 ? calculatedShipping : 0,
         total: Number(order.totalPrice),
-      shippingAddress: `${input.shippingAddress}, ${input.shippingCity}`,
+        shippingAddress: `${input.shippingAddress}, ${input.shippingCity}, ${input.shippingGovernorate}`,
       paymentMethod: 'cod'
     }).catch((err: Error) => {
         logger.error('Failed to send confirmation email', { orderId: order.id, error: err });

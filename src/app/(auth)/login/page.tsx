@@ -4,8 +4,10 @@ import { useActionState } from 'react';
 import { login } from '@/lib/actions/auth';
 import Link from 'next/link';
 import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
+import { useLanguage } from '@/context/LanguageContext';
 
 function SubmitButton() {
+    const { t } = useLanguage();
     return (
         <button 
             type="submit" 
@@ -36,7 +38,8 @@ function SubmitButton() {
                 e.currentTarget.style.background = '#12403C';
             }}
         >
-            SIGN IN
+
+            {t.auth.sign_in}
         </button>
     );
 }
@@ -44,6 +47,7 @@ function SubmitButton() {
 export default function LoginPage() {
     const [state, formAction] = useActionState(login, null);
     const { containerRef } = useUncontrolledFormPersistence('login_form');
+    const { t, language } = useLanguage();
 
     return (
         <div className="auth-container" style={{ 
@@ -199,7 +203,7 @@ export default function LoginPage() {
 
                 {/* Mobile Scroll Indicator */}
                 <div className="scroll-indicator">
-                    <span style={{marginBottom: '8px'}}>Scroll to Login</span>
+                    <span style={{ marginBottom: '8px' }}>{t.auth.sign_in}</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M12 5v14M5 12l7 7 7-7"/>
                     </svg>
@@ -215,7 +219,7 @@ export default function LoginPage() {
                         marginBottom: '20px',
                         opacity: 0.9
                     }} className="fade-in brand-subtitle">
-                        Welcome Back
+                        {t.auth.welcome_back}
                     </div>
 
                     <div style={{ 
@@ -224,8 +228,7 @@ export default function LoginPage() {
                         lineHeight: '1.1',
                         marginBottom: '32px',
                         color: '#f4f3f0'
-                    }} className="fade-in delay-1 brand-title">
-                        Curated<br/>Excellence.
+                    }} className="fade-in delay-1 brand-title" dangerouslySetInnerHTML={{ __html: t.auth.curated_excellence.replace('.', '<br/>.') }}>
                     </div>
                     
                     <p style={{ 
@@ -235,7 +238,7 @@ export default function LoginPage() {
                         marginBottom: '56px',
                         fontWeight: 300
                     }} className="fade-in delay-2 brand-quote">
-                       &quot;Style is a way to say who you are, without having to speak.&quot;
+                        {t.auth.style_quote}
                     </p>
                     
                     <div style={{ 
@@ -248,10 +251,11 @@ export default function LoginPage() {
                         color: '#5c6b66',
                         borderTop: '1px solid rgba(255,255,255,0.1)',
                         paddingTop: '32px'
+
                     }} className="fade-in delay-3 brand-footer">
-                        <span>New Collections</span>
+                        <span>{t.auth.new_collections}</span>
                         <div style={{width: 4, height: 4, background: '#d4af37', borderRadius: '50%'}} />
-                        <span>Member Exclusive</span>
+                        <span>{t.auth.member_exclusive}</span>
                     </div>
                 </div>
             </div>
@@ -272,16 +276,16 @@ export default function LoginPage() {
                             marginBottom: '12px', 
                             fontFamily: "'Playfair Display', serif" 
                         }}>
-                            Sign In
+                            {t.auth.sign_in}
                         </h2>
                         <p style={{ color: '#5c6b66', fontSize: '15px' }}>
-                            New to Legacy? <Link href="/signup" style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }} className="hover:text-primary">Create an account</Link>
+                            {t.auth.dont_have_account.split('?')[0]}? <Link href="/signup" style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }} className="hover:text-primary">{t.auth.sign_up}</Link>
                         </p>
                     </div>
 
                     <form ref={containerRef} action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#1a3c34', textTransform: 'uppercase', letterSpacing: '1px' }}>Email</label>
+                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#1a3c34', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.auth.email}</label>
                             <input 
                                 name="email" 
                                 type="email" 
@@ -305,8 +309,8 @@ export default function LoginPage() {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <label style={{ fontSize: '12px', fontWeight: 700, color: '#1a3c34', textTransform: 'uppercase', letterSpacing: '1px' }}>Password</label>
-                                <Link href="/forgot-password" style={{ fontSize: '12px', color: '#d4af37', textDecoration: 'none', fontWeight: 500 }}>Forgot Password?</Link>
+                                <label style={{ fontSize: '12px', fontWeight: 700, color: '#1a3c34', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.auth.password}</label>
+                                <Link href="/forgot-password" style={{ fontSize: '12px', color: '#d4af37', textDecoration: 'none', fontWeight: 500 }}>{t.auth.forgot_password}</Link>
                             </div>
                             <input 
                                 name="password" 
@@ -349,7 +353,7 @@ export default function LoginPage() {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '32px 0 24px 0' }}>
                         <div style={{ flex: 1, height: '1px', background: '#d1cfca' }}></div>
-                        <span style={{ fontSize: '12px', color: '#5c6b66', textTransform: 'uppercase', letterSpacing: '1px' }}>Or login with</span>
+                        <span style={{ fontSize: '12px', color: '#5c6b66', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.auth.or_login_with}</span>
                         <div style={{ flex: 1, height: '1px', background: '#d1cfca' }}></div>
                     </div>
 
@@ -404,7 +408,7 @@ export default function LoginPage() {
                     </div>
 
                     <p style={{ textAlign: 'center', marginTop: '40px', fontSize: '12px', color: '#a3b8b0' }}>
-                        &copy; {new Date().getFullYear()} Legacy Store. Secure Login.
+                        &copy; {new Date().getFullYear()} {t.footer.rights_reserved} {t.auth.secure_login}
                     </p>
                 </div>
             </div>

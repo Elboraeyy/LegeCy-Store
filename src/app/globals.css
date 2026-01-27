@@ -552,6 +552,10 @@ select {
   transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
 }
 
+[dir="rtl"] select {
+  background-position: left 16px center;
+  padding: 14px 18px 14px 48px;
+}
 select:hover {
   border-color: rgba(18, 64, 60, 0.3);
   background-color: rgba(248, 248, 246, 0.8);
@@ -645,10 +649,51 @@ select:disabled {
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   z-index: 1000;
-  overflow: hidden;
+  display: flex;
+    flex-direction: column;
+    max-height: 400px;
   animation: dropdownSlideIn 0.2s ease;
 }
 
+.custom-select-search-container {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-select-search-container .search-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.custom-select-search {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 8px 0 !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 14px !important;
+  background: transparent !important;
+  color: var(--text);
+}
+
+.custom-select-options {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.custom-select-no-results {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
 @keyframes dropdownSlideIn {
   from {
     opacity: 0;
@@ -675,11 +720,12 @@ select:disabled {
   font-family: inherit;
   cursor: pointer;
   transition: background 0.15s ease;
-  text-align: left;
+  text-align: start;
 }
 
 .custom-select-option:hover {
-  background: var(--surface);
+  background: rgba(18, 64, 60, 0.05);
+    /* Subtle teal tint */
 }
 
 .custom-select-option.selected {
@@ -953,7 +999,7 @@ select:disabled {
   aspect-ratio: 3/4;
   width: 100%;
     max-width: 380px;
-    margin-left: auto;
+    margin-inline-start: auto;
   border-radius: 2px;
   overflow: hidden;
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
@@ -969,8 +1015,8 @@ select:disabled {
   display: none;
 }
 .legacy-text-content {
-  padding-right: 20px;
-  padding-left: 60px;
+  padding-inline-end: 20px;
+    padding-inline-start: 60px;
   /* Move text right */
   display: flex;
   flex-direction: column;
@@ -1057,7 +1103,7 @@ select:disabled {
 
         .legacy-text-content {
           align-items: center;
-          padding-right: 0;
+          padding-inline-end: 0;
   }
 
         .legacy-title {
@@ -1073,8 +1119,8 @@ select:disabled {
           .legacy-section {
             padding: 60px 20px;
               width: calc(100% - 32px);
-              margin-left: auto;
-              margin-right: auto;
+              margin-inline-start: auto;
+                margin-inline-end: auto;
               border-radius: 24px;
   }
 }
@@ -1112,7 +1158,11 @@ select:disabled {
   .collection-card {
     aspect-ratio: 4/3;
   }
-  
+
+                .modern-card {
+                  aspect-ratio: 16/9;
+                  /* Shorter on mobile */
+                }
   .product-grid {
     grid-template-columns: 1fr;
   }
@@ -1128,7 +1178,7 @@ select:disabled {
   margin-top: 40px;
   display: flex;
   justify-content: space-between;
-  text-align: left;
+  text-align: start;
   max-width: 800px;
   margin-inline: auto;
 }
@@ -1572,8 +1622,8 @@ select:disabled {
   line-height: 1.9;
   margin-bottom: 50px;
   font-size: 17px;
-  border-left: 2px solid var(--border-light);
-  padding-left: 24px;
+  border-inline-start: 2px solid var(--border-light);
+    padding-inline-start: 24px;
 }
 .actions-large {
   display: flex;
@@ -1969,7 +2019,7 @@ select:disabled {
   background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%235c6b66%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%226 9 12 15 18 9%22%3E%3C/polyline%3E%3C/svg%3E');
   background-repeat: no-repeat;
   background-position: right 12px center;
-  padding-right: 36px;
+  padding-inline-end: 36px;
   min-width: 180px;
 }
 
@@ -2027,7 +2077,7 @@ select:disabled {
   gap: 10px;
   max-height: 240px;
   overflow-y: auto;
-  padding-right: 8px;
+  padding-inline-end: 8px;
 }
 
 /* Custom Checkbox */
@@ -2217,7 +2267,7 @@ select:disabled {
   }
 
   .badge {
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 
   /* Mobile Search in Nav Menu */
@@ -2305,8 +2355,8 @@ select:disabled {
   }
 
   .legacy-text-content {
-    padding-left: 0;
-    padding-right: 0;
+    padding-inline-start: 0;
+      padding-inline-end: 0;
   }
 }
 
@@ -2541,7 +2591,7 @@ select:disabled {
 
   .detail-desc {
     font-size: 15px;
-    padding-left: 16px;
+    padding-inline-start: 16px;
     margin-bottom: 32px;
   }
 
@@ -2792,8 +2842,8 @@ select:disabled {
   }
 
   .container {
-    padding-left: max(16px, env(safe-area-inset-left));
-    padding-right: max(16px, env(safe-area-inset-right));
+    padding-inline-start: max(16px, env(safe-area-inset-left));
+      padding-inline-end: max(16px, env(safe-area-inset-right));
   }
 }
 
@@ -3256,7 +3306,7 @@ select:disabled {
 
 .faq-page {
   direction: rtl;
-  text-align: right;
+  text-align: end;
 }
 
 .faq-hero {
@@ -3346,7 +3396,7 @@ select:disabled {
   font-size: 16px;
   font-weight: 500;
   color: var(--text);
-  text-align: right;
+  text-align: end;
   transition: background 0.3s ease;
 }
 
@@ -4001,7 +4051,7 @@ select:disabled {
 
 .policy-list li {
   position: relative;
-  padding-left: 28px;
+  padding-inline-start: 28px;
   margin-bottom: 12px;
   font-size: 15px;
   line-height: 1.7;
@@ -4025,7 +4075,7 @@ select:disabled {
 
 .policy-list.numbered li {
   counter-increment: policy-counter;
-  padding-left: 36px;
+  padding-inline-start: 36px;
 }
 
 .policy-list.numbered li::before {
@@ -4059,7 +4109,7 @@ select:disabled {
 
 .policy-table th {
   padding: 16px 20px;
-  text-align: left;
+  text-align: start;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-on-dark);
@@ -4766,7 +4816,7 @@ select:disabled {
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-align: left;
+  text-align: start;
   border-radius: 20px;
   }
   
@@ -4913,7 +4963,7 @@ select:disabled {
 
 .shipping-info-list li {
   position: relative;
-  padding-left: 20px;
+  padding-inline-start: 20px;
   font-size: 14px;
   color: var(--text-muted);
 }
@@ -5024,7 +5074,7 @@ select:disabled {
   font-size: 13px;
   color: var(--text-muted);
   min-width: 36px;
-  text-align: right;
+  text-align: end;
 }
 
 .reviews-list {
@@ -5481,10 +5531,10 @@ select:disabled {
       gap: 12px;
       padding-bottom: 8px;
       width: calc(100% + 32px);
-      margin-left: -16px;
-      margin-right: -16px;
-      padding-left: 0;
-      padding-right: 0;
+      margin-inline-start: -16px;
+        margin-inline-end: -16px;
+        padding-inline-start: 0;
+        padding-inline-end: 0;
       scrollbar-width: none;
       /* Firefox */
       scroll-snap-type: x mandatory;
@@ -5571,7 +5621,7 @@ select:disabled {
     position: relative !important;
     top: 0 !important;
     width: calc(100% + 32px) !important;
-    margin-left: -16px !important;
+    margin-inline-start: -16px !important;
     margin-bottom: 8px !important;
   }
 
@@ -5906,8 +5956,8 @@ select:disabled {
 @media (max-width: 768px) {
   .detail-gallery {
     width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin-inline-start: 0 !important;
+      margin-inline-end: 0 !important;
     margin-bottom: 16px !important;
   }
 
@@ -5960,7 +6010,7 @@ select:disabled {
   font-family: var(--font-heading);
   font-size: 18px;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
 }
 
 .accordion-header:hover {
@@ -5986,7 +6036,7 @@ select:disabled {
 .spec-value {
   color: var(--text);
   font-weight: 500;
-  text-align: right;
+  text-align: end;
 }
 
 .shipping-info-list {

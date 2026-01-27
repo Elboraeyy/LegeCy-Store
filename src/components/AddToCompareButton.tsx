@@ -3,9 +3,11 @@
 import React from "react";
 import { useComparison } from "@/context/ComparisonContext";
 import { Product } from "@/types/product";
+import { CompareIcon } from "@/components/icons/CompareIcon";
 
 import { useRouter } from "next/navigation";
 import { useIsClient } from "@/hooks/useIsClient";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface AddToCompareButtonProps {
   product: Product;
@@ -17,6 +19,7 @@ export default function AddToCompareButton({ product, className = "", showText =
   const router = useRouter();
   const { isInComparison, addToCompare, removeFromCompare } = useComparison();
   const isClient = useIsClient();
+  const { t } = useLanguage();
   const isAdded = isClient && isInComparison(product.id);
 
   const handleClick = (e: React.MouseEvent) => {
@@ -39,7 +42,7 @@ export default function AddToCompareButton({ product, className = "", showText =
     <button
       onClick={handleClick}
       className={combinedClass}
-      title={isAdded ? "Remove from Compare" : "Add to Compare"}
+      title={isAdded ? t.common.removeFromCompare : t.common.addToCompare}
       style={{
          ...(!showText && isAdded ? { color: "var(--primary)", borderColor: "var(--primary)" } : {}),
          ...(showText ? { 
@@ -55,20 +58,8 @@ export default function AddToCompareButton({ product, className = "", showText =
          } : {})
       }}
     >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M8 3v18L2 15"/>
-        <path d="M16 21V3l6 6"/>
-      </svg>
-      {showText && <span>{isAdded ? "Added to Compare" : "Compare"}</span>}
+      <CompareIcon width={20} height={20} className={showText ? "" : "w-5 h-5"} strokeWidth={1.5} />
+      {showText && <span>{isAdded ? t.common.addedToCompare : t.common.compare}</span>}
     </button>
   );
 }
