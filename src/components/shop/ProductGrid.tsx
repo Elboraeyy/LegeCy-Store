@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import ProductCard from "@/components/ProductCard";
-import ModernProductCard from "@/components/ModernProductCard";
+// import ModernProductCard from "@/components/ModernProductCard";
 import { Product } from "@/types/product";
 
 interface ProductGridProps {

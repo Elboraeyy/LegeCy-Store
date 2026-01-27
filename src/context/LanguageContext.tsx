@@ -19,6 +19,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
     // Load language from localStorage if available
     const savedLang = localStorage.getItem('site_language') as Locale;
     if (savedLang && (savedLang === 'en' || savedLang === 'ar')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLanguageState(savedLang);
     }
   }, []);
