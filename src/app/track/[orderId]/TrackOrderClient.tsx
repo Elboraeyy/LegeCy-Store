@@ -35,6 +35,7 @@ interface Order {
   customerEmail: string | null;
   customerPhone: string | null;
   shippingAddress: string | null;
+  shippingGovernorate: string | null;
   shippingCity: string | null;
   shippingNotes: string | null;
   paymentMethod: string;
@@ -222,7 +223,7 @@ export default function TrackOrderClient({ order }: Props) {
               <p className={styles.shippingAddress}>
                 {order.shippingAddress}
                 <br />
-                {order.shippingCity}
+                {order.shippingCity}{order.shippingGovernorate && `, ${order.shippingGovernorate}`}
               </p>
               {order.shippingNotes && (
                 <p className={styles.shippingAddress} style={{ marginTop: '8px', fontStyle: 'italic' }}>

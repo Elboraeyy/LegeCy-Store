@@ -10,6 +10,7 @@ import ModernProductCarousel from "@/components/ModernProductCarousel";
 import { PromotionsHub, FlashSale, BOGODeal, Bundle } from "@/components/home/PromotionsHub";
 import type { HomepageSettings } from "@/lib/settings";
 import type { Product } from "@/types/product";
+import { useLanguage } from "@/context/LanguageContext";
 
 type Props = {
   homepage: HomepageSettings;
@@ -30,6 +31,8 @@ export function HomeContentClient({
   bundles,
   bogos
 }: Props) {
+  const { t } = useLanguage();
+
   return (
     <main>
       {/* Hero Section */}
@@ -59,7 +62,7 @@ export function HomeContentClient({
             </Reveal>
             <Reveal delay={0.5}>
               <Link href={homepage.heroButtonLink || "/shop"} className="btn btn-primary">
-                {homepage.heroButtonText}
+                {t.home.hero_btn}
               </Link>
             </Reveal>
           </div>
@@ -77,8 +80,8 @@ export function HomeContentClient({
       {featuredProducts && featuredProducts.length > 0 && (
         <ModernProductCarousel
           products={featuredProducts}
-          title="Featured Collection"
-          subtitle="Handpicked for You"
+          title={t.home.featured_collection}
+          subtitle={t.home.handpicked}
           viewAllLink="/shop"
         />
       )}
@@ -97,10 +100,10 @@ export function HomeContentClient({
             </div>
             <div className="collection-overlay">
               <Reveal>
-                <h3>The Luxury Collection</h3>
+                <h3>{t.home.luxury_collection}</h3>
               </Reveal>
               <Reveal delay={0.1}>
-                <Link href="/shop" className="btn-link">View More</Link>
+                <Link href="/shop" className="btn-link">{t.home.view_more}</Link>
               </Reveal>
             </div>
           </motion.div>
@@ -110,10 +113,10 @@ export function HomeContentClient({
             </div>
             <div className="collection-overlay">
               <Reveal>
-                <h3>Modern Classics</h3>
+                <h3>{t.home.modern_classics}</h3>
               </Reveal>
               <Reveal delay={0.1}>
-                 <Link href="/shop" className="btn-link">View More</Link>
+                <Link href="/shop" className="btn-link">{t.home.view_more}</Link>
               </Reveal>
             </div>
           </motion.div>
@@ -126,8 +129,8 @@ export function HomeContentClient({
       {newArrivals && newArrivals.length > 0 && (
         <ModernProductCarousel
           products={newArrivals}
-          title="New Arrivals"
-          subtitle="Just Dropped"
+          title={t.home.new_arrivals}
+          subtitle={t.home.just_dropped}
           viewAllLink="/shop"
         />
       )}
@@ -149,8 +152,8 @@ export function HomeContentClient({
                 </svg>
               </div>
               <div>
-                <h4 className="text-2xl font-heading mb-1 text-white">100%</h4>
-                <p className="text-sm tracking-wide text-white/70 uppercase">Authentic Products</p>
+                <h4 className="text-2xl font-heading mb-1 text-white">{t.home.trust.authentic_desc}</h4>
+                <p className="text-sm tracking-wide text-white/70 uppercase">{t.home.trust.authentic}</p>
               </div>
             </motion.div>
             <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
@@ -161,8 +164,8 @@ export function HomeContentClient({
                 </svg>
               </div>
               <div>
-                 <h4 className="text-2xl font-heading mb-1 text-white">24/7</h4>
-                 <p className="text-sm tracking-wide text-white/70 uppercase">Customer Support</p>
+                <h4 className="text-2xl font-heading mb-1 text-white">{t.home.trust.support_desc}</h4>
+                <p className="text-sm tracking-wide text-white/70 uppercase">{t.home.trust.support}</p>
               </div>
             </motion.div>
             <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
@@ -175,8 +178,8 @@ export function HomeContentClient({
                 </svg>
               </div>
               <div>
-                <h4 className="text-2xl font-heading mb-1 text-white">Fast</h4>
-                <p className="text-sm tracking-wide text-white/70 uppercase">Reliable Shipping</p>
+                <h4 className="text-2xl font-heading mb-1 text-white">{t.home.trust.shipping_desc}</h4>
+                <p className="text-sm tracking-wide text-white/70 uppercase">{t.home.trust.shipping}</p>
               </div>
             </motion.div>
             <motion.div className="flex flex-col items-center gap-4" variants={fadeUpSlow}>
@@ -186,8 +189,8 @@ export function HomeContentClient({
                 </svg>
               </div>
               <div>
-                <h4 className="text-2xl font-heading mb-1 text-white">Premium</h4>
-                <p className="text-sm tracking-wide text-white/70 uppercase">Quality Materials</p>
+                <h4 className="text-2xl font-heading mb-1 text-white">{t.home.trust.quality_desc}</h4>
+                <p className="text-sm tracking-wide text-white/70 uppercase">{t.home.trust.quality}</p>
               </div>
             </motion.div>
           </motion.div>
@@ -214,19 +217,18 @@ export function HomeContentClient({
             </div>
             <div className="legacy-text-content">
               <Reveal delay={0.2}>
-                <span className="legacy-subtitle">Since 2025</span>
+                <span className="legacy-subtitle">{t.home.legacy.subtitle}</span>
               </Reveal>
               <Reveal delay={0.3}>
-                <h2 className="legacy-title">A Legacy of <br />Precision</h2>
+                <h2 className="legacy-title">{t.home.legacy.title}</h2>
               </Reveal>
               <Reveal delay={0.4}>
                 <p className="legacy-description">
-                  For those who value eternity over the momentary. {storeName} curates timepieces that are not just
-                  instruments of time, but guardians of history.
+                  {t.home.legacy.description}
                 </p>
               </Reveal>
               <Reveal delay={0.5}>
-                <Link href="/about" className="btn-link-gold">DISCOVER OUR HERITAGE</Link>
+                <Link href="/about" className="btn-link-gold">{t.home.legacy.btn}</Link>
               </Reveal>
             </div>
           </div>

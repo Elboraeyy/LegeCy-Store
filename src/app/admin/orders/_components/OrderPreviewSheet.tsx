@@ -27,6 +27,7 @@ interface OrderDetails {
     customerEmail?: string | null;
     customerPhone?: string | null;
     shippingAddress?: string | null;
+    shippingGovernorate?: string | null;
     shippingCity?: string | null;
     user: { name: string | null; email: string | null } | null;
 }
@@ -167,7 +168,7 @@ export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderP
                                     <div style={{ color: 'var(--admin-text-muted)' }}>{order.user?.email || order.customerEmail}</div>
                                     <div style={{ color: 'var(--admin-text-muted)' }}>{order.customerPhone || 'No phone'}</div>
                                     <div style={{ marginTop: '8px', lineHeight: '1.4' }}>
-                                        {order.shippingAddress}, {order.shippingCity}
+                                            {order.shippingAddress}, {order.shippingCity}{order.shippingGovernorate && `, ${order.shippingGovernorate}`}
                                     </div>
                                 </div>
                             </div>

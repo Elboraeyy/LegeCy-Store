@@ -12,6 +12,7 @@ interface OrderPageProps {
         customerPhone: string | null;
         customerEmail: string | null;
         shippingAddress: string | null;
+        shippingGovernorate: string | null;
         shippingCity: string | null;
         paymentMethod: string | null;
         items: Array<{
@@ -136,6 +137,7 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                                 <p className="text-gray-600">
                                     🏠 {order.shippingAddress}
                                     {order.shippingCity && `, ${order.shippingCity}`}
+                                    {order.shippingGovernorate && `, ${order.shippingGovernorate}`}
                                 </p>
                             )}
                         </div>

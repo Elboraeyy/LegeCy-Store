@@ -5,8 +5,10 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { resetPassword, verifyResetToken } from '@/lib/actions/password-reset';
 import { toast } from 'sonner';
+import { useLanguage } from '@/context/LanguageContext';
 
 function ResetPasswordForm() {
+    const { t } = useLanguage();
     const searchParams = useSearchParams();
     const router = useRouter();
     const token = searchParams.get('token');
@@ -31,12 +33,12 @@ function ResetPasswordForm() {
         e.preventDefault();
 
         if (password.length < 8) {
-            toast.error('Password must be at least 8 characters');
+            toast.error(t.auth.min_chars.replace('{count}', '8'));
             return;
         }
 
         if (password !== confirmPassword) {
-            toast.error('Passwords do not match');
+            toast.error(t.auth.passwords_mismatch);
             return;
         }
 
@@ -49,13 +51,13 @@ function ResetPasswordForm() {
 
             if (result.success) {
                 setIsSuccess(true);
-                toast.success('Password has been reset successfully');
+                toast.success(t.auth.reset_success);
                 setTimeout(() => router.push('/login'), 2000);
             } else {
-                toast.error(result.error || 'An error occurred');
+                toast.error(result.error || t.messages.error_occurred);
             }
         } catch {
-            toast.error('An unexpected error occurred');
+            toast.error(t.messages.error_occurred);
         } finally {
             setIsLoading(false);
         }
@@ -73,7 +75,7 @@ function ResetPasswordForm() {
             }}>
                 <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '32px', marginBottom: '16px' }}>⏳</div>
-                    <p>Verifying...</p>
+                    <p>{t.auth.verifying}</p>
                 </div>
             </div>
         );
@@ -113,17 +115,16 @@ function ResetPasswordForm() {
                         ❌
                     </div>
                     <h2 style={{ color: '#dc2626', marginBottom: '16px' }}>
-                        Invalid Link
+                        {t.auth.invalid_link}
                     </h2>
                     <p style={{ color: '#666', marginBottom: '24px' }}>
-                        This link has expired or is invalid. 
-                        Please request a new one.
+                        {t.auth.invalid_link_desc}
                     </p>
                     <Link 
                         href="/forgot-password"
                         className="btn btn-primary"
                     >
-                        Request New Link
+                        {t.auth.request_new_link}
                     </Link>
                 </div>
             </div>
@@ -164,10 +165,10 @@ function ResetPasswordForm() {
                         ✅
                     </div>
                     <h2 style={{ color: '#16a34a', marginBottom: '16px' }}>
-                        Password Changed
+                        {t.auth.password_changed}
                     </h2>
                     <p style={{ color: '#666', marginBottom: '24px' }}>
-                        Redirecting you to login...
+                        {t.auth.redirecting_login}
                     </p>
                 </div>
             </div>
@@ -209,7 +210,7 @@ function ResetPasswordForm() {
                     marginBottom: '12px',
                     fontSize: '24px'
                 }}>
-                    Create New Password
+                    {t.auth.create_new_password}
                 </h2>
                 <p style={{ 
                     textAlign: 'center', 
@@ -217,7 +218,7 @@ function ResetPasswordForm() {
                     marginBottom: '32px',
                     fontSize: '15px'
                 }}>
-                    Choose a strong password for your account
+                    {t.auth.choose_strong_password}
                 </p>
 
                 <form onSubmit={handleSubmit}>
@@ -229,7 +230,7 @@ function ResetPasswordForm() {
                             fontSize: '14px',
                             color: '#1a3c34'
                         }}>
-                            New Password
+                            {t.auth.new_password}
                         </label>
                         <input
                             type="password"
@@ -248,7 +249,7 @@ function ResetPasswordForm() {
                             }}
                         />
                         <span style={{ fontSize: '12px', color: '#888', marginTop: '4px', display: 'block' }}>
-                            Minimum 8 characters
+                            {t.auth.min_chars.replace('{count}', '8')}
                         </span>
                     </div>
 
@@ -260,7 +261,7 @@ function ResetPasswordForm() {
                             fontSize: '14px',
                             color: '#1a3c34'
                         }}>
-                            Confirm Password
+                            {t.auth.confirm_password}
                         </label>
                         <input
                             type="password"
@@ -295,7 +296,8 @@ function ResetPasswordForm() {
                             opacity: isLoading ? 0.7 : 1
                         }}
                     >
-                        {isLoading ? 'Saving...' : 'Save Password'}
+
+                        {isLoading ? t.auth.saving : t.auth.save_password}
                     </button>
                 </form>
             </div>

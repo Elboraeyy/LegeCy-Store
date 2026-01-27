@@ -183,9 +183,10 @@ model Order {
   customerName    String?
   customerEmail   String?
   customerPhone   String?
-  shippingAddress String?
-  shippingCity    String?
-  shippingNotes   String?
+  shippingAddress     String?
+  shippingGovernorate String?
+  shippingCity        String?
+  shippingNotes       String?
   paymentMethod   String  @default("cod") // cod, paymob, fawry
 
   // Shipping
@@ -737,10 +738,11 @@ model Address {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      String   @default("home") // home, work
   name      String
-  phone     String
-  street    String
-  city      String
-  isDefault Boolean  @default(false)
+  phone       String
+  street      String
+  governorate String?
+  city        String
+  isDefault   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

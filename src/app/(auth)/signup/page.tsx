@@ -4,8 +4,10 @@ import { useActionState } from 'react';
 import { signup } from '@/lib/actions/auth';
 import Link from 'next/link';
 import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
+import { useLanguage } from '@/context/LanguageContext';
 
 function SubmitButton() {
+    const { t } = useLanguage();
     return (
         <button 
             type="submit" 
@@ -36,7 +38,8 @@ function SubmitButton() {
                 e.currentTarget.style.background = '#12403C';
             }}
         >
-            CREATE ACCOUNT
+
+            {t.auth.create_account}
         </button>
     );
 }
@@ -44,6 +47,7 @@ function SubmitButton() {
 export default function SignupPage() {
     const [state, formAction] = useActionState(signup, null);
     const { containerRef } = useUncontrolledFormPersistence('signup_form');
+    const { t, language } = useLanguage();
 
     return (
         <div className="auth-container" style={{ 
@@ -199,7 +203,7 @@ export default function SignupPage() {
 
                  {/* Mobile Scroll Indicator */}
                 <div className="scroll-indicator">
-                    <span style={{marginBottom: '8px'}}>Scroll to Sign Up</span>
+                    <span style={{ marginBottom: '8px' }}>{t.auth.sign_up}</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M12 5v14M5 12l7 7 7-7"/>
                     </svg>
@@ -215,7 +219,7 @@ export default function SignupPage() {
                         marginBottom: '20px',
                         opacity: 0.9
                     }} className="fade-in brand-subtitle">
-                        Join the Legacy
+                        {t.auth.join_legacy}
                     </div>
 
                     <div style={{ 
@@ -224,8 +228,7 @@ export default function SignupPage() {
                         lineHeight: '1.1',
                         marginBottom: '32px',
                         color: '#f4f3f0'
-                    }} className="fade-in delay-1 brand-title">
-                        Begin Your<br/>Journey.
+                    }} className="fade-in delay-1 brand-title" dangerouslySetInnerHTML={{ __html: t.auth.begin_journey.replace('.', '<br/>.') }}>
                     </div>
                     
                     <p style={{ 
@@ -235,7 +238,7 @@ export default function SignupPage() {
                         marginBottom: '56px',
                         fontWeight: 300
                     }} className="fade-in delay-2 brand-quote">
-                       Create an account to track orders, manage your wishlist, and receive exclusive offers.
+                        {t.auth.create_account_desc}
                     </p>
                     
                      <div style={{ 
@@ -248,10 +251,11 @@ export default function SignupPage() {
                         color: '#5c6b66',
                         borderTop: '1px solid rgba(255,255,255,0.1)',
                         paddingTop: '32px'
+
                     }} className="fade-in delay-3 brand-footer">
-                        <span>Fast Checkout</span>
+                        <span>{t.auth.fast_checkout}</span>
                         <div style={{width: 4, height: 4, background: '#d4af37', borderRadius: '50%'}} />
-                        <span>Order Tracking</span>
+                        <span>{t.auth.order_tracking}</span>
                     </div>
                 </div>
             </div>
@@ -272,16 +276,16 @@ export default function SignupPage() {
                             marginBottom: '12px', 
                             fontFamily: "'Playfair Display', serif" 
                         }}>
-                            Create Account
+                            {t.auth.create_account}
                         </h2>
                         <p style={{ color: '#5c6b66', fontSize: '15px' }}>
-                            Already a member? <Link href="/login" style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }} className="hover:text-primary">Sign in</Link>
+                            {t.auth.already_have_account.split('?')[0]}? <Link href="/login" style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }} className="hover:text-primary">{t.auth.sign_in}</Link>
                         </p>
                     </div>
 
                     <form ref={containerRef} action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>Full Name</label>
+                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.auth.full_name}</label>
                             <input 
                                 name="name" 
                                 type="text" 
@@ -304,7 +308,7 @@ export default function SignupPage() {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>Email</label>
+                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.auth.email}</label>
                             <input 
                                 name="email" 
                                 type="email" 
@@ -327,7 +331,7 @@ export default function SignupPage() {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>Password</label>
+                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.auth.password}</label>
                             <input 
                                 name="password" 
                                 type="password" 
@@ -369,7 +373,7 @@ export default function SignupPage() {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '32px 0 24px 0' }}>
                         <div style={{ flex: 1, height: '1px', background: '#d1cfca' }}></div>
-                        <span style={{ fontSize: '12px', color: '#5c6b66', textTransform: 'uppercase', letterSpacing: '1px' }}>Or join with</span>
+                        <span style={{ fontSize: '12px', color: '#5c6b66', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.auth.or_join_with}</span>
                         <div style={{ flex: 1, height: '1px', background: '#d1cfca' }}></div>
                     </div>
 
@@ -424,7 +428,7 @@ export default function SignupPage() {
                     </div>
 
                     <p style={{ textAlign: 'center', marginTop: '40px', fontSize: '12px', color: '#a3b8b0' }}>
-                        By joining, you agree to our Terms of Service.
+                        {t.auth.terms}
                     </p>
                 </div>
             </div>

@@ -3,6 +3,7 @@
 import React from "react";
 import { Product } from "@/types/product";
 import ModernProductCarousel from "@/components/ModernProductCarousel";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface RelatedProductsProps {
   products: Product[];
@@ -15,13 +16,15 @@ export default function RelatedProducts({ products, currentProductId }: RelatedP
     .filter(p => String(p.id) !== String(currentProductId))
     .slice(0, 10); // Increased limit as carousel can handle more
 
+  const { t } = useLanguage();
+
   if (relatedProducts.length === 0) return null;
 
   return (
     <div className="mt-8">
       <ModernProductCarousel
         products={relatedProducts}
-        title="You May Also Like"
+        title={t.product.you_may_also_like}
       />
     </div>
   );

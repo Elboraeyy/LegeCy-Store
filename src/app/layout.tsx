@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Inter, Playfair_Display } from "next/font/google"; // Removed Geist_Mono due to build error
+import { Geist, Inter, Playfair_Display, Cairo } from "next/font/google"; // Removed Geist_Mono due to build error
 import "./globals.css";
 import "./mobile-fixes.css";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import Footer from "@/components/Footer";
 import ClientLayout from "@/components/ClientLayout";
+import { LanguageProvider } from "@/context/LanguageContext";
 import { getGeneralSettings, getSEOSettings, getCSSVariables, getAppearanceSettings } from "@/lib/settings";
 
 const geistSans = Geist({
@@ -25,6 +26,11 @@ const inter = Inter({
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
+});
+
+const cairo = Cairo({
+  variable: "--font-cairo",
+  subsets: ["arabic"],
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -64,14 +70,16 @@ export default async function RootLayout({
   ]);
 
   return (
-    <html lang="en" className={appearance.darkMode ? 'dark' : ''}>
+    <html lang="en" suppressHydrationWarning className={appearance.darkMode ? 'dark' : ''}>
       <head>
         <style dangerouslySetInnerHTML={{ __html: cssVars }} />
       </head>
-      <body className={`${geistSans.variable} ${inter.variable} ${playfair.variable}`}>
-        <ClientLayout navbar={<NavbarWrapper />} footer={<Footer />}>
-          {children}
-        </ClientLayout>
+      <body className={`${geistSans.variable} ${inter.variable} ${playfair.variable} ${cairo.variable}`}>
+        <LanguageProvider>
+          <ClientLayout navbar={<NavbarWrapper />} footer={<Footer />}>
+            {children}
+          </ClientLayout>
+        </LanguageProvider>
       </body>
     </html>
   );

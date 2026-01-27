@@ -82,12 +82,17 @@ export default function MobileComparisonView({
                 overflowX: "auto",
                 paddingBottom: "16px",
                 marginBottom: "24px",
+                marginLeft: "-28px",  // Pull to edge
+                marginRight: "-28px", // Pull to edge
+                paddingLeft: "16px",  // Restore start spacing
+                paddingRight: "16px", // Restore end spacing
                 WebkitOverflowScrolling: "touch"
             }} className="hide-scrollbar">
                 {products.map((product, idx) => (
                     <motion.div
                         key={product.id}
                         drag
+                        dragDirectionLock
                         dragSnapToOrigin
                         dragElastic={0.2}
                         whileDrag={{ scale: 1.1, zIndex: 100 }}
@@ -129,7 +134,7 @@ export default function MobileComparisonView({
                             background: "var(--surface)",
                             overflow: "hidden",
                             cursor: "pointer",
-                            touchAction: "none" // Prevents scroll interference while dragging
+                            touchAction: "pan-x" // Allow horizontal scroll (browser), Drag handles Vertical
                         }}
                     >
                         {/* Selection Badge */}
@@ -231,7 +236,10 @@ export default function MobileComparisonView({
                         borderRadius: "12px",
                         padding: "12px",
                         border: "1px solid var(--primary)",
-                        textAlign: "center"
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%"
                     }}>
                         <div style={{
                             width: "100%",
@@ -254,9 +262,12 @@ export default function MobileComparisonView({
                             fontSize: "13px",
                             fontFamily: "var(--font-heading)",
                             marginBottom: "4px",
-                            whiteSpace: "nowrap",
                             overflow: "hidden",
-                            textOverflow: "ellipsis"
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            minHeight: "36px", // Force 2 lines height
+                            lineHeight: "1.4"
                         }}>
                             {primary.name}
                         </h3>
@@ -267,7 +278,7 @@ export default function MobileComparisonView({
                             onClick={() => addToCart(String(primary.id))}
                             style={{
                                 width: "100%",
-                                marginTop: "8px",
+                                marginTop: "auto",
                                 padding: "8px",
                                 fontSize: "11px",
                                 fontWeight: "600",
@@ -289,7 +300,10 @@ export default function MobileComparisonView({
                         borderRadius: "12px",
                         padding: "12px",
                         border: "1px solid var(--accent)",
-                        textAlign: "center"
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%"
                     }}>
                         <div style={{
                             width: "100%",
@@ -312,9 +326,12 @@ export default function MobileComparisonView({
                             fontSize: "13px",
                             fontFamily: "var(--font-heading)",
                             marginBottom: "4px",
-                            whiteSpace: "nowrap",
                             overflow: "hidden",
-                            textOverflow: "ellipsis"
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            minHeight: "36px", // Force 2 lines height
+                            lineHeight: "1.4"
                         }}>
                             {secondary.name}
                         </h3>
@@ -325,7 +342,7 @@ export default function MobileComparisonView({
                             onClick={() => addToCart(String(secondary.id))}
                             style={{
                                 width: "100%",
-                                marginTop: "8px",
+                                marginTop: "auto",
                                 padding: "8px",
                                 fontSize: "11px",
                                 fontWeight: "600",

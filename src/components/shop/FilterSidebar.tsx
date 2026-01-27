@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface FilterSidebarProps {
     categories: { id: string; name: string; slug: string }[];
@@ -53,6 +54,7 @@ export default function FilterSidebar({
     onClearAll,
     activeFilterCount,
 }: FilterSidebarProps) {
+    const { t } = useLanguage();
     const [expandedSections, setExpandedSections] = useState({
         categories: true,
         price: true,
@@ -94,14 +96,14 @@ export default function FilterSidebar({
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-[#12403C] font-heading">
-                    Filters
+                    {t.shop.filters}
                 </h2>
                 {activeFilterCount > 0 && (
                     <button
                         onClick={onClearAll}
                         className="text-xs text-[#d4af37] hover:text-[#12403C] font-medium transition-colors"
                     >
-                        Clear All ({activeFilterCount})
+                        {t.shop.clear_all} ({activeFilterCount})
                     </button>
                 )}
             </div>
@@ -120,7 +122,7 @@ export default function FilterSidebar({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    placeholder="Search products..."
+                    placeholder={t.shop.search_placeholder}
                     className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#12403C] focus:ring-1 focus:ring-[#12403C] transition-all placeholder:text-gray-400"
                 />
                 {searchQuery && (
@@ -137,7 +139,7 @@ export default function FilterSidebar({
 
             {/* Categories */}
             <FilterSection
-                title="Categories"
+                title={t.shop.categories}
                 isExpanded={expandedSections.categories}
                 onToggle={() => toggleSection("categories")}
                 count={selectedCategories.length}
@@ -164,7 +166,7 @@ export default function FilterSidebar({
 
             {/* Price Range */}
             <FilterSection
-                title="Price Range"
+                title={t.shop.price_range}
                 isExpanded={expandedSections.price}
                 onToggle={() => toggleSection("price")}
             >
@@ -172,7 +174,7 @@ export default function FilterSidebar({
                     {/* Min/Max Inputs */}
                     <div className="flex items-center gap-2">
                         <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">EGP</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">{t.common.currency}</span>
                             <input
                                 type="number"
                                 value={priceRange.min}
@@ -184,7 +186,7 @@ export default function FilterSidebar({
                         </div>
                         <div className="text-gray-300 font-light">—</div>
                         <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">EGP</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">{t.common.currency}</span>
                             <input
                                 type="number"
                                 value={priceRange.max}
@@ -236,8 +238,8 @@ export default function FilterSidebar({
 
                     {/* Labels */}
                     <div className="flex justify-between text-[11px] text-gray-400 font-medium">
-                        <span>EGP 0</span>
-                        <span>EGP 3,000</span>
+                        <span>{t.common.currency} 0</span>
+                        <span>{t.common.currency} 3,000</span>
                     </div>
                 </div>
             </FilterSection>
@@ -245,7 +247,7 @@ export default function FilterSidebar({
             {/* Brands */}
             {brands.length > 0 && (
                 <FilterSection
-                    title="Brands"
+                    title={t.shop.brands}
                     isExpanded={expandedSections.brands}
                     onToggle={() => toggleSection("brands")}
                     count={selectedBrands.length}
@@ -274,7 +276,7 @@ export default function FilterSidebar({
             {/* Materials */}
             {materials.length > 0 && (
                 <FilterSection
-                    title="Materials"
+                    title={t.shop.materials}
                     isExpanded={expandedSections.materials}
                     onToggle={() => toggleSection("materials")}
                     count={selectedMaterials.length}
@@ -302,7 +304,7 @@ export default function FilterSidebar({
 
             {/* Status Filters */}
             <FilterSection
-                title="Status"
+                title={t.shop.status}
                 isExpanded={expandedSections.status}
                 onToggle={() => toggleSection("status")}
             >
@@ -315,7 +317,7 @@ export default function FilterSidebar({
                             className="w-4 h-4 rounded border-gray-300 text-[#12403C] focus:ring-[#d4af37] focus:ring-offset-0"
                         />
                         <span className="text-sm text-gray-700 group-hover:text-[#12403C] transition-colors">
-                            In Stock
+                            {t.shop.in_stock}
                         </span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer group">
@@ -326,7 +328,7 @@ export default function FilterSidebar({
                             className="w-4 h-4 rounded border-gray-300 text-[#12403C] focus:ring-[#d4af37] focus:ring-offset-0"
                         />
                         <span className="text-sm text-gray-700 group-hover:text-[#12403C] transition-colors">
-                            On Sale
+                            {t.shop.on_sale}
                         </span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer group">
@@ -337,7 +339,7 @@ export default function FilterSidebar({
                             className="w-4 h-4 rounded border-gray-300 text-[#12403C] focus:ring-[#d4af37] focus:ring-offset-0"
                         />
                         <span className="text-sm text-gray-700 group-hover:text-[#12403C] transition-colors">
-                            New Arrivals
+                            {t.shop.new_arrivals}
                         </span>
                     </label>
                 </div>

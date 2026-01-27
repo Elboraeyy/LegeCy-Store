@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { adminLogout } from '@/lib/actions/admin-auth';
+import { useLanguage } from '@/context/LanguageContext';
 import { useState } from 'react';
 
 // SVG Icons
@@ -129,6 +130,7 @@ const navStructure: Record<string, { icon: keyof typeof icons; items: NavItem[] 
 
 export function AdminSidebar() {
     const pathname = usePathname();
+    const { t } = useLanguage();
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
         'Sales': true,
         'Catalog': true,
@@ -136,6 +138,100 @@ export function AdminSidebar() {
         'Finance': true,
         'Management': true
     });
+
+    const getNavStructure = () => ({
+        'Sales': {
+            label: t.admin.sidebar.sales,
+            icon: 'sales' as keyof typeof icons,
+            items: [
+                { label: t.admin.sidebar.orders, href: '/admin/orders' },
+                { label: t.admin.sidebar.order_risk, href: '/admin/orders/risk' },
+                { label: t.admin.sidebar.returns_intel, href: '/admin/orders/returns/intelligence' },
+                { label: t.admin.sidebar.customers, href: '/admin/customers' },
+                { label: t.admin.sidebar.reviews, href: '/admin/reviews' },
+                { label: t.admin.sidebar.coupons, href: '/admin/coupons' }
+            ]
+        },
+        'Catalog': {
+            label: t.admin.sidebar.catalog,
+            icon: 'products' as keyof typeof icons,
+            items: [
+                { label: t.admin.sidebar.products, href: '/admin/products' },
+                { label: t.admin.sidebar.categories, href: '/admin/categories' },
+                { label: t.admin.sidebar.brands, href: '/admin/brands' },
+                { label: t.admin.sidebar.materials, href: '/admin/materials' }
+            ]
+        },
+        'Operations': {
+            label: t.admin.sidebar.operations,
+            icon: 'operations' as keyof typeof icons,
+            items: [
+                { label: t.admin.sidebar.inventory, href: '/admin/inventory' },
+                { label: t.admin.sidebar.procurement, href: '/admin/procurement' },
+                { label: t.admin.sidebar.supplier_perf, href: '/admin/procurement/performance' },
+                { label: t.admin.sidebar.warehouses, href: '/admin/inventory/warehouses' },
+                { label: t.admin.sidebar.transfers, href: '/admin/inventory/transfers' },
+            ]
+        },
+        'Finance': {
+            label: t.admin.sidebar.finance,
+            icon: 'finance' as keyof typeof icons,
+            items: [
+                { label: t.admin.sidebar.dashboard, href: '/admin/finance' },
+                {
+                    label: t.admin.sidebar.treasury,
+                    children: [
+                        { label: t.admin.sidebar.cash_forecast, href: '/admin/finance/forecast' },
+                        { label: t.admin.sidebar.break_even, href: '/admin/finance/break-even' },
+                        { label: t.admin.sidebar.profit_quality, href: '/admin/finance/profit-quality' },
+                    ]
+                },
+                {
+                    label: t.admin.sidebar.accounting,
+                    children: [
+                        { label: t.admin.sidebar.accounts, href: '/admin/finance/accounts' },
+                        { label: t.admin.sidebar.journal, href: '/admin/finance/transactions' },
+                        { label: t.admin.sidebar.expenses, href: '/admin/finance/expenses' },
+                        { label: t.admin.sidebar.inventory_value, href: '/admin/finance/inventory' },
+                    ]
+                },
+                {
+                    label: t.admin.sidebar.capital,
+                    children: [
+                        { label: t.admin.sidebar.partners, href: '/admin/finance/partners' },
+                        { label: t.admin.sidebar.equity, href: '/admin/finance/equity' },
+                        { label: t.admin.sidebar.periods, href: '/admin/finance/periods' },
+                    ]
+                },
+                {
+                    label: t.admin.sidebar.reports,
+                    children: [
+                        { label: t.admin.sidebar.pnl, href: '/admin/finance/reports/pnl' },
+                        { label: t.admin.sidebar.balance_sheet, href: '/admin/finance/reports/balance' },
+                        { label: t.admin.sidebar.cash_flow, href: '/admin/finance/reports/cashflow' },
+                        { label: t.admin.sidebar.board_report, href: '/admin/finance/reports/board' },
+                    ]
+                }
+            ]
+        },
+        'Management': {
+            label: t.admin.sidebar.management,
+            icon: 'management' as keyof typeof icons,
+            items: [
+                { label: t.admin.sidebar.daily_brief, href: '/admin/daily/ceo-brief' },
+                { label: t.admin.sidebar.team, href: '/admin/team' },
+                { label: t.admin.sidebar.decisions, href: '/admin/team/decisions' },
+                { label: t.admin.sidebar.roles, href: '/admin/team/roles' },
+                { label: t.admin.sidebar.approvals, href: '/admin/team/approvals' },
+                { label: t.admin.sidebar.activity, href: '/admin/activity' },
+                { label: t.admin.sidebar.audit_trail, href: '/admin/activity/audit-timeline' },
+                { label: t.admin.sidebar.kill_switches, href: '/admin/config/security/kill-switches' },
+                { label: t.admin.sidebar.settings, href: '/admin/config' }
+            ]
+        }
+    });
+
+    const navStructure = getNavStructure();
 
     const toggleSection = (section: string) => {
         setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -190,11 +286,11 @@ export function AdminSidebar() {
             </div>
 
             <nav className="admin-nav" style={{ padding: '16px 0' }}>
-                {Object.entries(navStructure).map(([section, data]) => (
-                    <div key={section} className="nav-section" style={{ marginBottom: '24px' }}>
+                {Object.entries(navStructure).map(([key, data]) => (
+                    <div key={key} className="nav-section" style={{ marginBottom: '24px' }}>
                         <div 
                             className="section-header" 
-                            onClick={() => toggleSection(section)}
+                            onClick={() => toggleSection(key)}
                             style={{ 
                                 padding: '8px 24px', 
                                 display: 'flex', 
@@ -207,20 +303,20 @@ export function AdminSidebar() {
                             <span className="section-icon" style={{ marginRight: '12px', width: '20px', height: '20px' }}>
                                 {icons[data.icon]}
                             </span>
-                            <span style={{ flex: 1 }}>{section}</span>
+                            <span style={{ flex: 1 }}>{data.label}</span>
                             <span 
                                 style={{ 
                                     width: '16px', 
                                     height: '16px', 
                                     transition: 'transform 0.2s',
-                                    transform: expandedSections[section] ? 'rotate(0deg)' : 'rotate(-90deg)'
+                                    transform: expandedSections[key] ? 'rotate(0deg)' : 'rotate(-90deg)'
                                 }}
                             >
                                 {icons.chevronDown}
                             </span>
                         </div>
                         
-                        {expandedSections[section] && (
+                        {expandedSections[key] && (
                             <div className="section-items" style={{ marginTop: '4px' }}>
                                 {renderNavItems(data.items)}
                             </div>
@@ -233,7 +329,7 @@ export function AdminSidebar() {
                 <form action={adminLogout}>
                     <button type="submit" className="admin-logout-btn" style={{ width: '100%', justifyContent: 'center' }}>
                         <span className="admin-nav-icon">{icons.logout}</span>
-                        <span>Logout</span>
+                        <span>{t.admin.sidebar.logout}</span>
                     </button>
                 </form>
             </div>

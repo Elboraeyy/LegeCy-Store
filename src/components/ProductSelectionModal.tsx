@@ -92,7 +92,7 @@ export default function ProductSelectionModal({ isOpen, onClose, onSelect, exclu
             ) : filteredProducts.length === 0 ? (
               <div className="empty-state">No products found</div>
             ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "16px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: "12px" }}>
                    {filteredProducts.map(product => (
                        <div 
                          key={product.id} 
@@ -115,15 +115,15 @@ export default function ProductSelectionModal({ isOpen, onClose, onSelect, exclu
                        >
                           <div style={{ position: "relative", aspectRatio: "3/4", background: "var(--surface-light)" }}>
                              {product.imageUrl ? (
-                               <Image src={product.imageUrl} alt={product.name} fill className="object-cover" sizes="150px" />
+                           <Image src={product.imageUrl} alt={product.name} fill className="object-cover" sizes="120px" />
                              ) : (
-                               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>No Image</div>
+                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '10px' }}>No Image</div>
                              )}
                           </div>
-                          <div style={{ padding: "10px" }}>
-                         <div style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>{product.category || 'Product'}</div>
-                             <div style={{ fontSize: "13px", fontWeight: "600", marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{product.name}</div>
-                             <div style={{ fontSize: "13px", color: "var(--primary)" }}>EGP {product.price.toLocaleString()}</div>
+                       <div style={{ padding: "8px" }}>
+                         <div style={{ fontSize: "10px", color: "var(--text-muted)", textTransform: "uppercase" }}>{product.category || 'Product'}</div>
+                         <div style={{ fontSize: "12px", fontWeight: "600", marginBottom: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{product.name}</div>
+                         <div style={{ fontSize: "12px", color: "var(--primary)" }}>EGP {product.price.toLocaleString()}</div>
                           </div>
                        </div>
                    ))}

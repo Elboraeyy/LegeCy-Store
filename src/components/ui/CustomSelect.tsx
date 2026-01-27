@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 
 interface SelectOption {
   value: string;
@@ -17,6 +17,7 @@ interface CustomSelectProps {
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  searchPlaceholder?: string;
 }
 
 export default function CustomSelect({
@@ -28,11 +29,24 @@ export default function CustomSelect({
   required,
   disabled,
   className = "",
+  searchPlaceholder = "Search...",
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
+
+  // Filter options based on search query
+  const filteredOptions = useMemo(() => {
+    if (!searchQuery.trim()) return options;
+    const query = searchQuery.toLowerCase().trim();
+    return options.filter(opt =>
+      opt.label.toLowerCase().includes(query) ||
+      opt.value.toLowerCase().includes(query)
+    );
+  }, [options, searchQuery]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -44,6 +58,17 @@ export default function CustomSelect({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    } else {
+      setSearchQuery("");
+    }
+  }, [isOpen]);
 
   const handleSelect = (optionValue: string) => {
     onChange(optionValue);
@@ -101,30 +126,58 @@ export default function CustomSelect({
       {/* Custom dropdown panel */}
       {isOpen && (
         <div className="custom-select-dropdown">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`custom-select-option ${option.value === value ? 'selected' : ''} ${option.disabled ? 'disabled' : ''}`}
-              onClick={() => !option.disabled && handleSelect(option.value)}
-              disabled={option.disabled}
+          {/* Search Input */}
+          <div className="custom-select-search-container">
+            <svg
+              className="search-icon"
+              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
             >
-              <span>{option.label}</span>
-              {option.value === value && (
-                <svg 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2.5"
-                  className="check-icon"
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              className="custom-select-search"
+              placeholder={searchPlaceholder}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+
+          <div className="custom-select-options">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`custom-select-option ${option.value === value ? 'selected' : ''} ${option.disabled ? 'disabled' : ''}`}
+                  onClick={() => !option.disabled && handleSelect(option.value)}
+                  disabled={option.disabled}
                 >
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              )}
-            </button>
-          ))}
+                  <span>{option.label}</span>
+                  {option.value === value && (
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      className="check-icon"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              ))
+            ) : (
+              <div className="custom-select-no-results">
+                No results found
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

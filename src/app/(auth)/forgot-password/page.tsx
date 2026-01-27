@@ -4,8 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { requestPasswordReset } from '@/lib/actions/password-reset';
 import { toast } from 'sonner';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function ForgotPasswordPage() {
+    const { t } = useLanguage();
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -14,7 +16,7 @@ export default function ForgotPasswordPage() {
         e.preventDefault();
         
         if (!email) {
-            toast.error('Please enter your email address');
+            toast.error(t.auth.enter_email);
             return;
         }
 
@@ -25,12 +27,12 @@ export default function ForgotPasswordPage() {
             
             if (result.success) {
                 setIsSuccess(true);
-                toast.success('Reset link has been sent');
+                toast.success(t.auth.send_link_success);
             } else {
-                toast.error(result.error || 'An error occurred');
+                toast.error(result.error || t.messages.error_occurred);
             }
         } catch {
-            toast.error('An unexpected error occurred');
+            toast.error(t.messages.error_occurred);
         } finally {
             setIsLoading(false);
         }
@@ -69,14 +71,13 @@ export default function ForgotPasswordPage() {
                         ✉️
                     </div>
                     <h2 style={{ color: '#12403C', marginBottom: '16px', fontSize: '24px', fontFamily: "'Playfair Display', serif" }}>
-                        Check Your Email
+                        {t.auth.check_email}
                     </h2>
                     <p style={{ color: '#5c6b66', lineHeight: 1.6, marginBottom: '24px' }}>
-                        If an account exists for <strong>{email}</strong>, 
-                        you will receive an email with a password reset link.
+                        {t.auth.email_sent_desc.replace('{email}', email)}
                     </p>
                     <p style={{ color: '#a3b8b0', fontSize: '14px', marginBottom: '24px' }}>
-                        Didn&apos;t receive the email? Check your spam folder.
+                        {t.auth.didnt_receive_email}
                     </p>
                     <Link 
                         href="/login" 
@@ -87,7 +88,8 @@ export default function ForgotPasswordPage() {
                             textDecoration: 'none'
                         }}
                     >
-                        Back to Login
+
+                        {t.auth.back_to_login}
                     </Link>
                 </div>
             </div>
@@ -130,7 +132,7 @@ export default function ForgotPasswordPage() {
                     fontSize: '24px',
                     fontFamily: "'Playfair Display', serif"
                 }}>
-                    Forgot Password?
+                    {t.auth.forgot_password_title}
                 </h2>
                 <p style={{ 
                     textAlign: 'center', 
@@ -138,7 +140,7 @@ export default function ForgotPasswordPage() {
                     marginBottom: '32px',
                     fontSize: '15px'
                 }}>
-                    Enter your email and we&apos;ll send you a reset link
+                    {t.auth.forgot_password_desc}
                 </p>
 
                 <form onSubmit={handleSubmit}>
@@ -152,7 +154,7 @@ export default function ForgotPasswordPage() {
                             textTransform: 'uppercase',
                             letterSpacing: '1px'
                         }}>
-                            Email Address
+                            {t.auth.email}
                         </label>
                         <input
                             type="email"
@@ -194,7 +196,7 @@ export default function ForgotPasswordPage() {
                             boxShadow: '0 4px 12px rgba(18, 64, 60, 0.2)'
                         }}
                     >
-                        {isLoading ? 'Sending...' : 'Send Reset Link'}
+                        {isLoading ? t.auth.sending : t.auth.send_reset_link}
                     </button>
                 </form>
 
@@ -204,9 +206,9 @@ export default function ForgotPasswordPage() {
                     fontSize: '14px',
                     color: '#5c6b66'
                 }}>
-                    Remember your password?{' '}
+                    {t.auth.remember_password}{' '}
                     <Link href="/login" style={{ color: '#d4af37', fontWeight: 600, textDecoration: 'none' }}>
-                        Sign In
+                        {t.auth.sign_in}
                     </Link>
                 </p>
             </div>
