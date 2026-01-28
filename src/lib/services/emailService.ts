@@ -811,7 +811,7 @@ export async function sendBackInStockEmail(data: BackInStockData): Promise<{ suc
       </p>
       
       <a href="${data.productUrl}" style="display: inline-block; background: ${BRAND.primaryColor}; color: white; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: 600;">
-        Shop Now →
+        Discover Our Legacy →
       </a>
     </div>
 

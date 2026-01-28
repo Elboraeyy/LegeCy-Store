@@ -33,6 +33,7 @@ export default function CartRecommendations() {
                 subtitle="You Might Also Like"
                 products={products}
                 viewAllLink="/shop"
+                enableMobilePadding={false}
             />
         </section>
     );

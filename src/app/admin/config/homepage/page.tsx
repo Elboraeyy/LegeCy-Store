@@ -30,7 +30,7 @@ type HomepageSettings = {
 const defaultHero: HeroSettings = {
     title: '',
     subtitle: '',
-    ctaText: 'Shop Now',
+    ctaText: 'Discover Our Legacy',
     ctaLink: '/shop',
     imageUrl: '',
 };
@@ -146,7 +146,7 @@ export default function HomepageSettingsPage() {
                             type="text"
                             value={hero.ctaText}
                             onChange={(e) => setHero({ ...hero, ctaText: e.target.value })}
-                            placeholder="Shop Now"
+                            placeholder="Discover Our Legacy"
                         />
                     </SettingsField>
 

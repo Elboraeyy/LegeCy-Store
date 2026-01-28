@@ -12,7 +12,7 @@ interface PromoBannerProps {
 
 export default function PromoBanner({
   message = "🎄 Holiday Special: FREE SHIPPING on orders over EGP 2,000! Use code: HOLIDAY25",
-  linkText = "Shop Now",
+  linkText = "Discover Our Legacy",
   linkHref = "/shop",
   dismissible = true,
 }: PromoBannerProps) {

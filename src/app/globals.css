@@ -662,25 +662,44 @@ select:disabled {
   top: 0;
   background: #fff;
   z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: block;
+    /* Changed from flex to block for absolute positioning context */
+    position: relative;
+    /* Ensure absolute child is relative to this */
 }
 
 .custom-select-search-container .search-icon {
-  flex-shrink: 0;
+  position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
   color: var(--text-muted);
+  pointer-events: none;
+    /* Let clicks pass through to input */
+    z-index: 2;
+  }
+  
+  [dir="rtl"] .custom-select-search-container .search-icon {
+    left: auto;
+    right: 12px;
 }
 
 .custom-select-search {
   width: 100% !important;
   margin: 0 !important;
-  padding: 8px 0 !important;
+  padding: 8px 0 8px 36px !important;
+    /* Left padding for icon */
   border: none !important;
   outline: none !important;
   font-size: 14px !important;
   background: transparent !important;
   color: var(--text);
+  line-height: normal !important;
+  }
+  
+  [dir="rtl"] .custom-select-search {
+    padding: 8px 36px 8px 0 !important;
+    /* Right padding for icon in RTL */
 }
 
 .custom-select-options {
