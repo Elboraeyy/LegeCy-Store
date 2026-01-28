@@ -44,7 +44,7 @@ export const dictionary = {
       profile: "Profile",
     },
     home: {
-      hero_btn: "Shop Now",
+      hero_btn: "Discover Our Legacy",
       featured_collection: "Featured Collection",
       handpicked: "Handpicked for You",
       view_all: "View All",
@@ -451,7 +451,7 @@ export const dictionary = {
       profile: "حسابي",
     },
     home: {
-      hero_btn: "تسوق الآن",
+      hero_btn: "اكتشف إرثنا",
       featured_collection: "تشكيلة مميزة",
       handpicked: "اخترناها لك بعناية",
       view_all: "عرض الكل",

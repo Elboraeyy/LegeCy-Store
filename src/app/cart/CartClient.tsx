@@ -230,7 +230,7 @@ export default function CartClient({
           {/* Right Column: Summary (Sticky) */}
           <div className="lg:w-[380px] flex-shrink-0">
             <div className="sticky top-24">
-              <Reveal delay={0.2} width="100%">
+
                 <div className="bg-white rounded-2xl border border-[rgba(18,64,60,0.08)] shadow-[0_10px_40px_rgba(0,0,0,0.05)] overflow-hidden">
                   <div className="p-6 border-b border-gray-100 bg-gray-50/50">
                     <h3 className="font-heading font-bold text-xl text-[#12403C]">{t.cart.summary}</h3>
@@ -286,7 +286,7 @@ export default function CartClient({
                     </div>
                   </div>
                 </div>
-              </Reveal>
+
 
               <Reveal delay={0.4} width="100%">
                 <p className="text-center text-xs text-gray-400 mt-6">

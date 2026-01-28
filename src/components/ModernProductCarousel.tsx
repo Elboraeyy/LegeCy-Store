@@ -13,13 +13,15 @@ interface ModernProductCarouselProps {
     title: string;
     subtitle?: string;
     viewAllLink?: string;
+    enableMobilePadding?: boolean;
 }
 
 export default function ModernProductCarousel({
     products,
     title,
     subtitle,
-    viewAllLink = "/shop"
+    viewAllLink = "/shop",
+    enableMobilePadding = true
 }: ModernProductCarouselProps) {
     const { t, direction } = useLanguage();
     const isRTL = direction === 'rtl';
@@ -90,7 +92,7 @@ export default function ModernProductCarousel({
             </div>
             </div>
 
-            <div className="relative w-full md:container md:mx-auto px-0 md:px-4">
+            <div className={`relative w-full md:container md:mx-auto ${enableMobilePadding ? 'px-4' : 'px-0 md:px-4'}`}>
                 {/* Navigation Arrows */}
                 {/* PREV BUTTON (Scrolls to start) */}
                 {canScrollLeft && (
@@ -132,7 +134,7 @@ export default function ModernProductCarousel({
                         {products.map((product) => (
                             <div
                                 key={product.id}
-                                className="carousel-item flex-none snap-start w-[calc(50vw-4px)] md:w-auto"
+                                className="carousel-item flex-none snap-start w-[calc(50%-4px)] md:w-auto"
                             >
                                 <div className="md:hidden">
                                      <ProductCard product={product} />
