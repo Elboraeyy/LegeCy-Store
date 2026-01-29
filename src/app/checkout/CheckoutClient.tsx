@@ -20,6 +20,7 @@ interface ShippingForm {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerAltPhone: string;
   shippingAddress: string;
   shippingGovernorate: string;
   shippingCity: string;
@@ -47,6 +48,7 @@ export default function CheckoutClient() {
     customerName: "",
     customerEmail: "",
     customerPhone: "",
+    customerAltPhone: "",
     shippingAddress: "",
     shippingGovernorate: "",
     shippingCity: "",
@@ -148,6 +150,7 @@ export default function CheckoutClient() {
       customerName: "",
       customerEmail: "",
       customerPhone: "",
+      customerAltPhone: "",
       shippingAddress: "",
       shippingGovernorate: "",
       shippingCity: "",
@@ -388,6 +391,20 @@ export default function CheckoutClient() {
                     {errors.customerPhone && <span className={styles.errorMessage}>{errors.customerPhone}</span>}
                   </div>
                 </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>
+                    {language === 'ar' ? 'رقم تليفون بديل' : 'Alternate Phone'}
+                  </label>
+                  <input
+                    type="tel"
+                    name="customerAltPhone"
+                    value={form.customerAltPhone}
+                    onChange={handleChange}
+                    placeholder="01XXXXXXXXX"
+                    className={styles.formInput}
+                  />
+                </div>
               </div>
             </section>
 
@@ -603,6 +620,23 @@ export default function CheckoutClient() {
                 </div>
               )}
             </section>
+
+            {/* Place Order Button - Mobile Friendly */}
+            <button type="submit" className={styles.submitBtn} disabled={isLoading || shippingCost === null} style={{ marginTop: '24px' }}>
+              {isLoading ? (
+                <span className={styles.submitBtnLoading}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" opacity="0.25" />
+                    <path d="M12 2a10 10 0 0110 10" strokeLinecap="round">
+                      <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
+                    </path>
+                  </svg>
+                  {t.checkout.processing}
+                </span>
+              ) : (
+                t.checkout.place_order
+              )}
+            </button>
           </div>
 
           {/* Right Column - Order Summary */}

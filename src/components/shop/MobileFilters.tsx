@@ -109,8 +109,8 @@ export default function MobileFilters({
     const [openSections, setOpenSections] = useState({
         categories: true,
         price: true,
-        brands: false,
-        materials: false,
+        brands: true,
+        materials: true,
         status: true
     });
 
@@ -172,7 +172,7 @@ export default function MobileFilters({
                         initial={{ y: "100%" }}
                         animate={{ y: 0 }}
                         exit={{ y: "100%" }}
-                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        transition={{ type: "tween", duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
                         drag="y"
                         dragConstraints={{ top: 0, bottom: 0 }}
                         dragElastic={{ top: 0, bottom: 0.3 }}

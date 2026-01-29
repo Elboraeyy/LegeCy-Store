@@ -541,13 +541,13 @@ export default function Navbar({
       {/* Mobile Sidebar */}
       {/* ALWAYS RENDERED, HIDDEN VIA CSS FOR PERFORMANCE */}
       <div
-        className={`fixed inset-0 z-[60] transition-all duration-300 ease-out ${isOpen ? 'visible' : 'invisible delay-300'
+        className={`fixed inset-0 z-[60] transition-all duration-[400ms] ease-out ${isOpen ? 'visible' : 'invisible delay-[400ms]'
           }`}
       >
         {/* Backdrop */}
         <div
           onClick={() => setIsOpen(false)}
-          className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ease-out ${isOpen ? 'opacity-100' : 'opacity-0'
+          className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-[400ms] ease-out ${isOpen ? 'opacity-100' : 'opacity-0'
             }`}
           aria-hidden="true"
         />
@@ -556,7 +556,7 @@ export default function Navbar({
         <div
           className={`
             fixed top-0 bottom-0 w-[85%] max-w-[320px] bg-[#FCF8F3] z-[70] shadow-2xl flex flex-col touch-pan-y 
-            transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1) overscroll-contain
+            transition-transform duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1) overscroll-contain
             ${isRTL ? 'left-0 rounded-e-[20px]' : 'right-0 rounded-s-[20px]'}
             ${isOpen ? 'translate-x-0' : (isRTL ? '-translate-x-full' : 'translate-x-full')}
           `}

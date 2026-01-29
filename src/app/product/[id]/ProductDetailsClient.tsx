@@ -586,7 +586,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
 
               {/* Compare */}
               <button
-                className="btn-action-icon"
+                className={`btn-action-icon ${isInComparison(product.id) ? 'active' : ''}`}
                 onClick={() => {
                   const productForCompare = {
                     id: product.id,
@@ -608,7 +608,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 title={t.product.compare}
               >
                 <CompareIcon width={20} height={20} className="w-5 h-5" />
-                <span>{isInComparison(product.id) ? t.common.addedToCompare : t.product.compare}</span>
+                <span>{t.product.compare}</span>
               </button>
 
               {/* Share */}

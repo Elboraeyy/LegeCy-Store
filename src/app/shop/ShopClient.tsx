@@ -277,7 +277,7 @@ export default function ShopClient({
                     {/* Main Content */}
                     <div className="flex-1">
                         {/* Toolbar - Mobile Optimized */}
-                        <div className="bg-white rounded-xl md:rounded-xl border border-gray-100 p-3 md:p-4 mb-4 md:mb-6 sticky top-0 z-20 lg:static lg:z-auto shadow-sm lg:shadow-none">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-3 mb-8 sticky top-4 z-40 shadow-sm">
                             <div className="flex items-center justify-between gap-2">
                                 {/* Left: Filter Button (Mobile) + Results */}
                                 <div className="flex items-center gap-2 md:gap-4">

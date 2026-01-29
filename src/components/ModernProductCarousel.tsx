@@ -129,7 +129,7 @@ export default function ModernProductCarousel({
                     <div
                         ref={scrollContainerRef}
                         onScroll={checkScroll}
-                        className="carousel-track w-full flex overflow-x-auto gap-2 md:gap-3 pb-4 hide-scrollbar snap-x"
+                        className={`carousel-track w-full flex overflow-x-auto gap-2 md:gap-3 pb-4 hide-scrollbar snap-x ${enableMobilePadding ? 'ps-4 md:ps-0' : ''}`}
                     >
                         {products.map((product) => (
                             <div
