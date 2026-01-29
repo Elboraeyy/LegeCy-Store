@@ -5,6 +5,7 @@ import { StoreProvider } from "@/context/StoreContext";
 import { ComparisonProvider } from "@/context/ComparisonContext";
 import CartDrawer from "./CartDrawer";
 import SplashScreen from "./SplashScreen";
+import ComingSoon from "./ComingSoon";
 import { Toaster } from "sonner";
 
 
@@ -87,6 +88,12 @@ function ClientLayoutContent({ children, navbar, footer }: { children: React.Rea
             </ComparisonProvider>
         );
     }
+
+  // Coming Soon Mode - blocks entire site except admin/auth pages
+  const isComingSoonMode = process.env.NEXT_PUBLIC_COMING_SOON_MODE === 'true';
+  if (isComingSoonMode) {
+    return <ComingSoon />;
+  }
 
     return (
       <ComparisonProvider>
