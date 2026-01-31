@@ -149,7 +149,7 @@ export default function HelpSupportClient() {
       } else {
         if (showToast) showToast(result.message, "danger");
       }
-    } catch (error) {
+    } catch {
       if (showToast) showToast("Failed to send message", "danger");
     }
   };

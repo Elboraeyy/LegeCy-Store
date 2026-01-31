@@ -1,6 +1,5 @@
 import React from 'react';
 import prisma from '@/lib/prisma';
-import Link from 'next/link';
 
 export const metadata = {
   title: 'Messages | Admin Dashboard',
