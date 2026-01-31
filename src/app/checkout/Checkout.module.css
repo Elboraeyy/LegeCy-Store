@@ -644,6 +644,19 @@
     gap: 10px;
 }
 
+/* Mobile-only submit button (convenience for long forms) */
+.mobileSubmitBtn {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .mobileSubmitBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
 /* ========================================
    TRUST BADGES
 ======================================== */

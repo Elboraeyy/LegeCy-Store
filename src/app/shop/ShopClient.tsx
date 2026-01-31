@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FilterSidebar from "@/components/shop/FilterSidebar";
 import MobileFilters from "@/components/shop/MobileFilters";
@@ -28,8 +28,7 @@ export default function ShopClient({
     const { t, language } = useLanguage();
 
     // State
-    const [products, setProducts] = useState<Product[]>(initialProducts);
-    const [isLoading, setIsLoading] = useState(false);
+    // We treat initialProducts as the FULL source of truth for client-side filtering
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "list" | "compact">("grid");
     const [currentPage, setCurrentPage] = useState(1);
@@ -51,7 +50,7 @@ export default function ShopClient({
     const absoluteMinPrice = 0;
     const absoluteMaxPrice = 3000;
 
-    // Update URL
+    // Update URL - Shallow routing for instant feel
     const updateFilters = React.useCallback((updates: Record<string, string | null>) => {
         const params = new URLSearchParams(searchParams.toString());
 
@@ -63,43 +62,88 @@ export default function ShopClient({
             }
         });
 
+        // Reset to page 1 on filter change
+        if (params.toString() !== searchParams.toString()) {
+            // We don't necessarily need to reset page if just changing view mode, but for filters yes.
+            // Simplification: always reset (managed by parent usage most of the time)
+            setCurrentPage(1);
+        }
+
         router.push(`/shop?${params.toString()}`, { scroll: false });
     }, [searchParams, router]);
 
-    // Fetch products
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setIsLoading(true);
-            try {
-                const params = new URLSearchParams();
-                if (selectedCategories.length) params.set("category", selectedCategories.join(","));
-                if (selectedBrands.length) params.set("brands", selectedBrands.join(","));
-                if (selectedMaterials.length) params.set("materials", selectedMaterials.join(","));
-                if (searchQuery) params.set("q", searchQuery);
-                if (minPrice > absoluteMinPrice) params.set("minPrice", minPrice.toString());
-                if (maxPrice < absoluteMaxPrice) params.set("maxPrice", maxPrice.toString());
-                if (inStock !== null) params.set("inStock", String(inStock));
-                if (onSale) params.set("onSale", "true");
-                if (isNew) params.set("new", "true");
+    // CLIENT-SIDE FILTERING LOGIC
+    // Instead of fetching from API, we filter the `initialProducts` array directly.
+    const filteredProducts = useMemo(() => {
+        let result = [...initialProducts];
 
-                const res = await fetch(`/api/products?${params.toString()}`);
-                const data = await res.json();
-                setProducts(data.products || []);
-            } catch (error) {
-                console.error("Failed to fetch products:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+        // 1. Search Query
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter(p =>
+                p.name.toLowerCase().includes(query) ||
+                (p.description && p.description.toLowerCase().includes(query))
+            );
+        }
 
-        fetchProducts();
-    }, [searchParams, selectedCategories, selectedBrands, selectedMaterials, searchQuery, minPrice, maxPrice, inStock, onSale, isNew, absoluteMinPrice, absoluteMaxPrice]);
+        // 2. Category Filter (by Slug)
+        if (selectedCategories.length > 0) {
+            result = result.filter(p => p.categorySlug && selectedCategories.includes(p.categorySlug));
+        }
 
-    // Filter and sort products
+        // 3. Brand Filter (by ID)
+        if (selectedBrands.length > 0) {
+            result = result.filter(p => p.brandId && selectedBrands.includes(p.brandId));
+        }
+
+        // 4. Material Filter (by ID)
+        if (selectedMaterials.length > 0) {
+            result = result.filter(p => p.materialId && selectedMaterials.includes(p.materialId));
+        }
+
+        // 5. Price Filter
+        if (minPrice > absoluteMinPrice || maxPrice < absoluteMaxPrice) {
+            result = result.filter(p => p.price >= minPrice && p.price <= maxPrice);
+        }
+
+        // 6. In Stock Filter
+        if (inStock === true) {
+            result = result.filter(p => p.inStock === true);
+        } else if (inStock === false) {
+            result = result.filter(p => !p.inStock);
+        }
+
+        // 7. On Sale Filter
+        if (onSale) {
+            result = result.filter(p => p.compareAtPrice && p.compareAtPrice > p.price);
+        }
+
+        // 8. New Arrivals Filter
+        if (isNew) {
+            // Assuming isNew flag or sort by date created recently
+            result = result.filter(p => p.isNew);
+        }
+
+        return result;
+    }, [
+        initialProducts,
+        searchQuery,
+        selectedCategories,
+        selectedBrands,
+        selectedMaterials,
+        minPrice,
+        maxPrice,
+        inStock,
+        onSale,
+        isNew,
+        absoluteMinPrice,
+        absoluteMaxPrice
+    ]);
+
+    // Apply Sorting to the Filtered Results
     const filteredAndSortedProducts = useMemo(() => {
-        const result = [...products];
+        const result = [...filteredProducts];
 
-        // Apply sorting
         switch (sortBy) {
             case "newest":
                 result.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
@@ -117,12 +161,12 @@ export default function ShopClient({
                 result.sort((a, b) => b.name.localeCompare(a.name));
                 break;
             default:
-                // Featured - keep original order
+                // Featured layout logic could be more complex, but keeping original order (usually by creation or separate 'featured' rank)
                 break;
         }
 
         return result;
-    }, [products, sortBy]);
+    }, [filteredProducts, sortBy]);
 
     // Pagination
     const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage);
@@ -162,7 +206,6 @@ export default function ShopClient({
         if (onSale === true) filters.push({ type: "onSale", value: "true", label: t.shop.on_sale });
         if (isNew === true) filters.push({ type: "new", value: "true", label: t.shop.new_arrivals });
 
-        return filters;
         return filters;
     }, [selectedCategories, selectedBrands, selectedMaterials, minPrice, maxPrice, inStock, onSale, isNew, categories, brands, materials, absoluteMinPrice, absoluteMaxPrice, t.shop.in_stock, t.shop.new_arrivals, t.shop.on_sale]);
 
@@ -375,7 +418,7 @@ export default function ShopClient({
                         <ProductGrid
                             products={paginatedProducts}
                             viewMode={viewMode}
-                            isLoading={isLoading}
+                            isLoading={false} // Always false as we are now instant
                         />
 
                         {/* Pagination */}

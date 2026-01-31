@@ -167,11 +167,7 @@ export default function CartDrawer() {
           <div className={styles.footer}>
             {/* Summary */}
             <div className={styles.summarySection}>
-              <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>{t.cart.subtotal}</span>
-                <span className={styles.summaryValue}>{formatPrice(subtotal)}</span>
-              </div>
-              <div className={styles.divider} />
+
               <div className={styles.totalRow}>
                 <span className={styles.totalLabel}>{t.cart.subtotal}</span>
                 <span className={styles.totalAmount}>{formatPrice(total)}</span>

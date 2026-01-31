@@ -123,8 +123,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         )}
                         <NavLink href="/admin/products" icon="📦" label="Products" active={pathname?.startsWith('/admin/products')} onClick={closeSidebar} />
                         <NavLink href="/admin/categories" icon="📁" label="Categories" active={pathname?.startsWith('/admin/categories')} onClick={closeSidebar} />
-                        <NavLink href="/admin/customers" icon="👥" label="Customers" active={pathname?.startsWith('/admin/customers')} onClick={closeSidebar} />
-                        <NavLink href="/admin/reviews" icon="⭐" label="Reviews" active={pathname?.startsWith('/admin/reviews')} onClick={closeSidebar} />
+                        {/* Customers Section with Nested Items */}
+                        <NavLink
+                            href="/admin/customers"
+                            icon="👥"
+                            label="Customers"
+                            active={pathname?.startsWith('/admin/customers') || pathname?.startsWith('/admin/reviews') || pathname?.startsWith('/admin/messages')}
+                            onClick={closeSidebar}
+                        />
+                        {(pathname?.startsWith('/admin/customers') || pathname?.startsWith('/admin/reviews') || pathname?.startsWith('/admin/messages')) && (
+                            <div style={{ marginLeft: '24px', marginBottom: '8px' }}>
+                                <NavLink href="/admin/reviews" icon="⭐" label="Reviews" active={pathname?.startsWith('/admin/reviews')} onClick={closeSidebar} />
+                                <NavLink href="/admin/messages" icon="✉️" label="Messages" active={pathname?.startsWith('/admin/messages')} onClick={closeSidebar} />
+                            </div>
+                        )}
                         
                         {/* Marketing Section */}
                         <div className="nav-label">Marketing</div>

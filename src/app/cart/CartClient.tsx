@@ -51,6 +51,9 @@ export default function CartClient({
   if (!isClient) return null;
 
   if (cart.length === 0) {
+    // Scenario C: Back Button Handling
+    const justOrdered = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('last_order_success');
+
     return (
       <main className="min-h-screen bg-[#FCF8F3] pb-20 flex flex-col justify-center">
         <div className="container px-4">
@@ -58,24 +61,49 @@ export default function CartClient({
             <div className="bg-gradient-to-br from-[#12403C] to-[#0E3330] text-center py-16 md:py-20 bg-white rounded-2xl md:rounded-3xl border border-[rgba(18,64,60,0.05)] shadow-sm max-w-2xl mx-auto relative overflow-hidden">
               <div className="absolute inset-0 opacity-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
               <div className="relative z-10 flex flex-col items-center">
-                <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <path d="M16 10a4 4 0 0 1-8 0" />
-                  </svg>
-                </div>
 
-                <h2 className="text-3xl font-heading text-[#FCF8F3] mb-4">{t.cart.empty_cart}</h2>
-                <p className="text-[#FCF8F3]/70 mb-8 max-w-md mx-auto px-4">
-                  {t.cart.empty_desc}
-                </p>
-                <Link
-                  href="/shop"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-[#FCF8F3] text-[#12403C] font-bold tracking-widest uppercase text-sm rounded-full hover:bg-[#d4af37] hover:text-white transition-all transform hover:-translate-y-1 shadow-lg"
-                >
-                  {t.cart.continue_shopping} <ArrowRight className={`w-4 h-4 ${language === 'ar' ? 'rotate-180' : ''}`} />
-                </Link>
+                {justOrdered ? (
+                  <>
+                    <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2">
+                        <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <h2 className="text-3xl font-heading text-[#FCF8F3] mb-4">{language === 'ar' ? 'تم استلام طلبك بنجاح' : 'Order Placed Successfully'}</h2>
+                    <p className="text-[#FCF8F3]/70 mb-8 max-w-md mx-auto px-4">
+                      {language === 'ar'
+                        ? 'تم إرسال طلبك بالفعل. يمكنك متابعة حالته في صفحة طلباتي.'
+                        : 'Your order has already been processed. You can track it in your orders page.'}
+                    </p>
+                    <Link
+                      href="/profile"
+                      className="inline-flex items-center gap-2 px-8 py-4 bg-[#FCF8F3] text-[#12403C] font-bold tracking-widest uppercase text-sm rounded-full hover:bg-green-500 hover:text-white transition-all transform hover:-translate-y-1 shadow-lg"
+                    >
+                      {language === 'ar' ? 'اتبع طلبك' : 'Track Order'}
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                      <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5">
+                          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                          <line x1="3" y1="6" x2="21" y2="6" />
+                          <path d="M16 10a4 4 0 0 1-8 0" />
+                        </svg>
+                      </div>
+
+                      <h2 className="text-3xl font-heading text-[#FCF8F3] mb-4">{t.cart.empty_cart}</h2>
+                      <p className="text-[#FCF8F3]/70 mb-8 max-w-md mx-auto px-4">
+                        {t.cart.empty_desc}
+                      </p>
+                      <Link
+                        href="/shop"
+                        className="inline-flex items-center gap-2 px-8 py-4 bg-[#FCF8F3] text-[#12403C] font-bold tracking-widest uppercase text-sm rounded-full hover:bg-[#d4af37] hover:text-white transition-all transform hover:-translate-y-1 shadow-lg"
+                      >
+                        {t.cart.continue_shopping} <ArrowRight className={`w-4 h-4 ${language === 'ar' ? 'rotate-180' : ''}`} />
+                      </Link>
+                  </>
+                )}
               </div>
             </div>
           </Reveal>
@@ -168,7 +196,7 @@ export default function CartClient({
                             <p className="text-gray-500 text-sm font-medium">{formatPrice(item.price)}</p>
                             {item.variantId && (
                               <span className="text-[10px] text-gray-500 bg-gray-50 px-2 py-1 rounded inline-block mt-1">
-                                One Size
+                                {item.variantName || (language === 'ar' ? 'مقاس واحد' : 'One Size')}
                               </span>
                             )}
                           </div>

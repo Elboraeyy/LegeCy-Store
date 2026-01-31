@@ -217,6 +217,22 @@ export const dictionary = {
       free: "Free",
       calculating: "Calculating...",
       secure_checkout: "Secure Checkout",
+      coupon_applied: "Promo code applied!",
+      coupon_invalid: "Invalid promo code",
+      coupon_failed: "Failed to validate promo code",
+      alt_phone: "Alternate Phone",
+      errors: {
+        name_required: "Full name is required",
+        name_min: "Name must be at least 3 characters",
+        email_required: "Email is required",
+        email_invalid: "Please enter a valid email",
+        phone_required: "Phone number is required",
+        phone_invalid: "Enter a valid 11-digit Egyptian number (01x...)",
+        address_required: "Address is required",
+        governorate_required: "Please select a governorate",
+        city_required: "Please select a city",
+        wallet_required: "Wallet number is required",
+      }
     },
     cart: {
       your_cart: "Shopping Bag",
@@ -406,6 +422,154 @@ export const dictionary = {
         search_placeholder: "Search orders, products...",
         profile: "Profile",
         settings: "Settings",
+      }
+    },
+    policy_pages: {
+      last_updated: "Last Updated: January 4, 2026",
+      terms: {
+        title: "Terms of Service",
+        subtitle: "Please read these terms carefully before shopping with us",
+        items: [
+          {
+            title: "1. Acceptance of Terms",
+            content: "By accessing or using LegaCy (\"we,\" \"our,\" or \"us\"), Egypt's premium destination for men's watches, wallets, and luxury accessories, you agree to be bound by these Terms of Service. If you do not agree to all terms, please do not use our services."
+          },
+          {
+            title: "2. Account Registration",
+            content: "You may browse our collection of premium watches, leather wallets, perfumes, sunglasses, and grooming products without registering. However, placing an order requires creating an account. You are responsible for maintaining account security and all activities under your account."
+          },
+          {
+            title: "3. Products and Pricing",
+            content: "All prices are displayed in Egyptian Pounds (EGP) and include applicable taxes unless stated otherwise. We reserve the right to modify prices at any time. All orders are subject to product availability. Product images are for illustration purposes; actual items may vary slightly."
+          },
+          {
+            title: "4. Payment",
+            content: "We accept Cash on Delivery (COD) and secure online payments via Paymob (Visa, Mastercard, and mobile wallets). For online payments, your order will be processed after successful payment confirmation."
+          },
+          {
+            title: "5. Shipping",
+            content: "All products are carefully packaged to ensure safe delivery. Delivery times are estimates and may vary based on your location. We are not liable for delays beyond our control. Risk of loss transfers to you upon delivery. For full details, see our Shipping Policy."
+          },
+          {
+            title: "6. Returns and Refunds",
+            content: "We want you to be completely satisfied with your purchase. Please review our Refund Policy for details on returns. Returns must be initiated within 14 days of delivery. Products must be unused and in original packaging."
+          },
+          {
+            title: "7. Product Authenticity",
+            content: "All watches, accessories, and products sold at LegaCy are 100% authentic. We source directly from authorized distributors and trusted suppliers. Each item comes with authenticity guarantee where applicable."
+          },
+          {
+            title: "8. Limitation of Liability",
+            content: "To the maximum extent permitted by law, LegaCy shall not be liable for indirect, incidental, or consequential damages arising from use of our services or products."
+          },
+          {
+            title: "9. Governing Law",
+            content: "These terms are governed by the laws of the Arab Republic of Egypt. Any disputes shall be resolved in the courts of Cairo."
+          }
+        ],
+        contact: {
+          title: "Questions About These Terms?",
+          subtitle: "Our team is here to help clarify any concerns"
+        }
+      },
+      refund: {
+        title: "Refund Policy",
+        subtitle: "Your satisfaction is our priority",
+        return_window: {
+          title: "Return Window",
+          content: "You may request a return within 14 days of receiving your order. All items must be unused, unworn, and in their original packaging with tags attached. This applies to watches, wallets, sunglasses, and all accessories."
+        },
+        non_returnable: {
+          title: "Non-Returnable Items",
+          content: "For hygiene and safety reasons, the following items cannot be returned:",
+          items: [
+            "Opened perfumes and fragrances",
+            "Used grooming products and skincare items",
+            "Personalized or engraved items",
+            "Items marked as \"Final Sale\"",
+            "Products with removed or damaged tags"
+          ]
+        },
+        how_to: {
+          title: "How to Return",
+          content: "Follow these simple steps to initiate a return:",
+          steps: [
+            "Log into your account and go to Order History",
+            "Select the order and click \"Request Return\"",
+            "Choose the item(s) and reason for return",
+            "Upload photos showing the item's condition",
+            "Wait for approval email with return instructions"
+          ]
+        },
+        processing: {
+          title: "Refund Processing",
+          online: "Online Payments: Refunded to your original payment method within 5-10 business days after we receive and inspect the returned item.",
+          cod: "Cash on Delivery: Refund via bank transfer. Please provide your bank account details when initiating the return."
+        },
+        product_returns: {
+          title: "Product Returns",
+          content: "All products must be returned with their original box, warranty card, manual, and any accessories. Protective stickers and seals must not be removed. Items with signs of use may be subject to a restocking fee."
+        },
+        damaged: {
+          title: "Damaged or Wrong Items",
+          content: "Received a damaged or wrong item? Contact us within 48 hours of delivery with photos. We'll arrange a replacement or full refund at no cost to you, including shipping.",
+          important: "Important",
+          important_text: "Always inspect your package at delivery. If the outer packaging appears damaged, document it with photos before opening."
+        },
+        contact: {
+          title: "Need Help With a Return?",
+          subtitle: "Our customer service team is ready to assist you"
+        }
+      },
+      shipping: {
+        title: "Shipping Policy",
+        subtitle: "Fast delivery from Samanoud to all of Egypt",
+        location: {
+          title: "Our Location",
+          content: "LegaCy ships from our headquarters in Samanoud, Gharbia Governorate. All orders are carefully prepared and shipped directly to your doorstep across Egypt."
+        },
+        times: {
+          title: "Delivery Times",
+          content: "Estimated delivery times based on distance from Samanoud:",
+          table_headers: ["Location", "Estimated Time"],
+          rows: [
+            { loc: "Gharbia & Dakahlia", time: "1-2 business days" },
+            { loc: "Sharqia, Kafr El-Sheikh & Monufia", time: "2-3 business days" },
+            { loc: "Cairo, Giza & Alexandria", time: "2-4 business days" },
+            { loc: "Other Delta Governorates", time: "3-4 business days" },
+            { loc: "Upper Egypt (Beni Suef to Assiut)", time: "4-5 business days" },
+            { loc: "Upper Egypt (Sohag to Aswan)", time: "5-7 business days" },
+            { loc: "Red Sea, Sinai & Remote Areas", time: "6-8 business days" }
+          ]
+        },
+        free_shipping: {
+          title: "Free Shipping",
+          box_title: "Gharbia & Dakahlia Special",
+          box_content: "Enjoy FREE shipping on orders above 1,500 EGP to Gharbia and Dakahlia governorates!",
+          content: "For other governorates, shipping fees are calculated at checkout based on your location and order weight."
+        },
+        packaging: {
+          title: "Premium Packaging",
+          content: "Every order is carefully packaged at our Samanoud facility to ensure your products arrive in perfect condition:",
+          items: [
+            "Protective boxes with cushioning for fragile items",
+            "Dust bags for leather goods",
+            "Sealed packaging for perfumes",
+            "Discreet outer packaging for privacy"
+          ]
+        },
+        tracking: {
+          title: "Order Tracking",
+          content: "Once your order ships from Samanoud, you'll receive an SMS and email with tracking information. Track your package in real-time through your account or the courier's website."
+        },
+        cod: {
+          title: "Cash on Delivery",
+          content: "Pay when you receive your order. You can inspect the package before paying. Please have the exact amount ready as couriers may not carry change."
+        },
+        contact: {
+          title: "Questions About Your Delivery?",
+          subtitle: "Our team in Samanoud is here to help"
+        }
       }
     },
   },
@@ -715,6 +879,22 @@ export const dictionary = {
       free: "مجاني",
       calculating: "جاري الحساب...",
       secure_checkout: "دفع آمن",
+      coupon_applied: "تم تطبيق كود الخصم!",
+      coupon_invalid: "الكود غير صحيح",
+      coupon_failed: "فشل التحقق من كود الخصم",
+      alt_phone: "رقم تليفون بديل",
+      errors: {
+        name_required: "الاسم مطلوب",
+        name_min: "الاسم لازم يكون على الأقل 3 حروف",
+        email_required: "البريد الإلكتروني مطلوب",
+        email_invalid: "من فضلك ادخل بريد إلكتروني صحيح",
+        phone_required: "رقم الموبايل مطلوب",
+        phone_invalid: "ادخل رقم مصري صحيح (01xxxxxxxxx)",
+        address_required: "العنوان مطلوب",
+        governorate_required: "من فضلك اختر المحافظة",
+        city_required: "من فضلك اختر المدينة",
+        wallet_required: "رقم المحفظة مطلوب",
+      }
     },
     cart: {
       your_cart: "حقيبة التسوق",
@@ -814,6 +994,154 @@ export const dictionary = {
       removed_from_cart: "شيلناه من السلة",
       order_success: "تمام! طلبك اتأكد وهنكلمك قريب 🎉",
       error_occurred: "حصلت مشكلة بسيطة، جرّب تاني",
-    }
+    },
+    policy_pages: {
+      last_updated: "آخر تحديث: ٤ يناير ٢٠٢٦",
+      terms: {
+        title: "شروط الخدمة",
+        subtitle: "من فضلك اقرأ الشروط دي كويس قبل ما تشتري",
+        items: [
+          {
+            title: "١. الموافقة على الشروط",
+            content: "باستخدامك لموقع ليجاسي (LegaCy)، وجهة مصر الأولى للساعات والمحافظ والإكسسوارات الرجالي، أنت بتوافق على الالتزام بشروط الخدمة دي. لو مش موافق على كل الشروط، من فضلك متستخدمش خدماتنا."
+          },
+          {
+            title: "٢. تسجيل الحساب",
+            content: "تقدر تتصفح مجموعتنا من الساعات والمحافظ والبرفانات والنظارات من غير تسجيل. لكن عشان تعمل طلب لازم تعمل حساب. أنت مسؤول عن تأمين حسابك وكل الأنشطة اللي بتحصل من خلاله."
+          },
+          {
+            title: "٣. المنتجات والأسعار",
+            content: "كل الأسعار بالجنيه المصري وشاملة الضرائب إلا لو ذكرنا عكس ده. بنحتفظ بحقنا في تغيير الأسعار في أي وقت. كل الطلبات خاضعة لتوفر المنتج. صور المنتجات للتوضيح وممكن تختلف اختلاف بسيط عن الحقيقة."
+          },
+          {
+            title: "٤. الدفع",
+            content: "بنقبل الدفع عند الاستلام ودفع أونلاين آمن عن طريق Paymob (فيزا، ماستركارد، ومحافظ إلكترونية). بالنسبة للدفع الأونلاين، طلبك هيتم تجهيزه بعد تأكيد الدفع."
+          },
+          {
+            title: "٥. الشحن",
+            content: "كل المنتجات بتتغلف بعناية عشان توصلك سليمة. مواعيد التوصيل تقديرية وممكن تختلف حسب مكانك. احنا مش مسؤولين عن أي تأخير خارج عن إرادتنا. مسؤولية المنتج بتنتقل ليك بمجرد الاستلام. للتفاصيل الكاملة، شوف سياسة الشحن."
+          },
+          {
+            title: "٦. الاسترجاع واسترداد الأموال",
+            content: "يهمنا تكون راضي تماماً عن شروتك. من فضلك راجع سياسة الاسترجاع للتفاصيل. الاسترجاع لازم يتم خلال ١٤ يوم من الاستلام. المنتجات لازم تكون جديدة وبالتغليف الأصلي."
+          },
+          {
+            title: "٧. ضمان الأصالة",
+            content: "كل الساعات والإكسسوارات اللي بتتباع على ليجاسي أصلية ١٠٠٪. بنجيب منتجاتنا مباشرة من الوكلاء المعتمدين والموردين الموثوقين. كل قطعة بتيجي معاها ضمان الأصالة لو متاح."
+          },
+          {
+            title: "٨. حدود المسؤولية",
+            content: "لأقصى حد يسمح به القانون، ليجاسي غير مسؤولة عن أي أضرار غير مباشرة أو عرضية ناتجة عن استخدام خدماتنا أو منتجاتنا."
+          },
+          {
+            title: "٩. القانون الحاكم",
+            content: "الشروط دي خاضعة لقوانين جمهورية مصر العربية. أي نزاع هيتم حله في محاكم القاهرة."
+          }
+        ],
+        contact: {
+          title: "عندك استفسار عن الشروط؟",
+          subtitle: "فريقنا موجود عشان يوضحلك أي حاجة"
+        }
+      },
+      refund: {
+        title: "سياسة الاسترجاع",
+        subtitle: "راحتك ورضاك هما أولويتنا",
+        return_window: {
+          title: "فترة الاسترجاع",
+          content: "تقدر تطلب استرجاع خلال ١٤ يوم من استلام طلبك. كل المنتجات لازم تكون غير مستخدمة، وفي حالتها الأصلية، وبالتاكيتات بتاعتها. ده بينطبق على الساعات والمحافظ والنظارات وكل الإكسسوارات."
+        },
+        non_returnable: {
+          title: "منتجات غير قابلة للاسترجاع",
+          content: "لأسباب صحية وللحفاظ على السلامة، المنتجات دي مينفعش تترجع:",
+          items: [
+            "البرفانات والعطور المفتوحة",
+            "منتجات العناية الشخصية المستخدمة",
+            "المنتجات المحفورة أو المصممة مخصوص (ساعات أو محافظ محفورة)",
+            "المنتجات المباعة في \"تصفية نهائية\"",
+            "المنتجات اللي شيلت منها التاكيت أو تضررت"
+          ]
+        },
+        how_to: {
+          title: "ازاي تعمل استرجاع؟",
+          content: "امشي على الخطوات البسيطة دي:",
+          steps: [
+            "ادخل على حسابك وروح لـ \"متابعة الطلبات\"",
+            "اختار الطلب ودوس \"طلب استرجاع\"",
+            "اختار المنتج وسبب الاسترجاع",
+            "ارفع صور توضح حالة المنتج",
+            "استنى ايميل الموافقة وفيه تعليمات الشحن"
+          ]
+        },
+        processing: {
+          title: "استرداد الفلوس",
+          online: "الدفع الأونلاين: بيرجع لنفس الكارت أو المحفظة خلال ٥-١٠ أيام عمل بعد ما نستلم المنتج ونفحصه.",
+          cod: "الدفع عند الاستلام: بيرجع عن طريق تحويل بنكي أو محفظة إلكترونية. من فضلك ابعتلنا بياناتك وانت بتقدم الطلب."
+        },
+        product_returns: {
+          title: "حالة المنتج",
+          content: "لازم ترجع المنتج بالعلبة الأصلية، كارت الضمان، الكتالوج، وأي ملحقات. استيكر الحماية ولزق الضمان مينفعش يتشال. أي علامة استعمال ممكن تخلينا نخصم جزء من المبلغ."
+        },
+        damaged: {
+          title: "منتج تالف أو غلط؟",
+          content: "استلمت منتج فيه مشكلة أو غير اللي طلبته؟ كلمنا خلال ٤٨ ساعة من الاستلام وابعتلنا صور. هنبدلهولك أو نرجعلك فلوسك بالكامل شاملة الشحن.",
+          important: "مهم جداً",
+          important_text: "دايماً افحص الشحنة وانت بتستلمها. لو العلبة من بره شكلها متبهدل، صورها قبل ما تفتحها."
+        },
+        contact: {
+          title: "محتاج مساعدة في الاسترجاع؟",
+          subtitle: "خدمة العملاء جاهزة تساعدك في أي وقت"
+        }
+      },
+      shipping: {
+        title: "سياسة الشحن",
+        subtitle: "توصيل سريع من سمنود لكل حتة في مصر",
+        location: {
+          title: "مكانا فين؟",
+          content: "ليجاسي بتشحن من مقرنا الرئيسي في سمنود، محافظة الغربية. كل الطلبات بتتجهز بعناية وبتتبعت مباشرة لحد باب بيتك في أي مكان في مصر."
+        },
+        times: {
+          title: "مواعيد التوصيل",
+          content: "الوقت التقديري للتوصيل حسب مكانك من سمنود:",
+          table_headers: ["المكان", "الوقت المتوقع"],
+          rows: [
+            { loc: "الغربية والدقهلية", time: "١-٢ يوم عمل" },
+            { loc: "الشرقية وكفر الشيخ والمنوفية", time: "٢-٣ أيام عمل" },
+            { loc: "القاهرة والجيزة والإسكندرية", time: "٢-٤ أيام عمل" },
+            { loc: "باقي محافظات الدلتا", time: "٣-٤ أيام عمل" },
+            { loc: "الصعيد (من بني سويف لأسيوط)", time: "٤-٥ أيام عمل" },
+            { loc: "الصعيد (من سوهاج لأسوان)", time: "٥-٧ أيام عمل" },
+            { loc: "البحر الأحمر وسيناء والمناطق النائية", time: "٦-٨ أيام عمل" }
+          ]
+        },
+        free_shipping: {
+          title: "شحن مجاني",
+          box_title: "عرض خاص للغربية والدقهلية",
+          box_content: "استمتع بشحن مجاني تماماً على كل الطلبات فوق ١٥٠٠ جنيه لمحافظات الغربية والدقهلية!",
+          content: "لباقي المحافظات، مصاريف الشحن بتتحسب وقت الدفع حسب مكانك ووزن الطلب."
+        },
+        packaging: {
+          title: "تغليف بريميوم",
+          content: "كل طلب بيتغلف باهتمام في مخازن سمنود عشان يوصلك ١٠٠٪ سليم:",
+          items: [
+            "كراتين حماية قوية للمنتجات القابلة للكسر",
+            "أكياس قماش (Dust bags) للمنتجات الجلدية",
+            "تغليف محكم للبرفانات",
+            "تغليف خارجي لضمان الخصوصية"
+          ]
+        },
+        tracking: {
+          title: "تتبع الشحنة",
+          content: "أول ما طلبك يخرج من سمنود، هيبعتلك رسالة وايميل فيهم رقم التتبع. تقدر تتابع شحنتك لحظة بلحظة من حسابك أو من موقع شركة الشحن."
+        },
+        cod: {
+          title: "الدفع عند الاستلام",
+          content: "ادفع لما تستلم طلبك. تقدر تعاين العلبة من بره قبل الدفع. ياريت تجهز المبلغ بالضبط عشان المناديب مش دايماً معاهم فكة."
+        },
+        contact: {
+          title: "عندك سؤال بخصوص التوصيل؟",
+          subtitle: "فريقنا في سمنود موجود عشانك"
+        }
+      }
+    },
   }
 };

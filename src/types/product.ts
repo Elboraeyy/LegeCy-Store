@@ -24,6 +24,11 @@ export interface Product {
         glass?: string;
     };
     gallery?: string[];
+    // Filter fields
+    categoryId?: string | null;
+    brandId?: string | null;
+    materialId?: string | null;
+    categorySlug?: string | null;
 }
 
 // Helper to normalize product data from different sources

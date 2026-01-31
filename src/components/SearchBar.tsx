@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface SearchResult {
   id: string;
@@ -21,6 +22,7 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const { language } = useLanguage();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -145,11 +147,42 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
         </div>
       )}
 
-      {/* No results message */}
+      {/* No results message with suggestions */}
       {isOpen && query.length >= 2 && results.length === 0 && (
         <div className="search-dropdown">
           <div className="search-no-results">
-            <p>No results for &quot;{query}&quot;</p>
+            <p>{language === 'ar' ? `لا توجد نتائج لـ "${query}"` : `No results for "${query}"`}</p>
+            <div className="search-suggestions">
+              <p className="suggestions-title">
+                {language === 'ar' ? 'جرب البحث عن:' : 'Try searching for:'}
+              </p>
+              <div className="suggestion-chips">
+                <button
+                  onClick={() => router.push('/shop?category=watches')}
+                  className="suggestion-chip"
+                >
+                  {language === 'ar' ? 'ساعات' : 'Watches'}
+                </button>
+                <button
+                  onClick={() => router.push('/shop?category=belts')}
+                  className="suggestion-chip"
+                >
+                  {language === 'ar' ? 'أحزمة' : 'Belts'}
+                </button>
+                <button
+                  onClick={() => router.push('/shop?category=accessories')}
+                  className="suggestion-chip"
+                >
+                  {language === 'ar' ? 'اكسسوارات' : 'Accessories'}
+                </button>
+              </div>
+              <button
+                onClick={() => router.push('/shop')}
+                className="browse-all-btn"
+              >
+                {language === 'ar' ? 'تصفح كل المنتجات' : 'Browse All Products'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -298,6 +331,59 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
           padding: 24px;
           text-align: center;
           color: #888;
+        }
+        
+        .search-suggestions {
+          margin-top: 16px;
+        }
+        
+        .suggestions-title {
+          font-size: 12px;
+          color: #666;
+          margin-bottom: 12px;
+        }
+        
+        .suggestion-chips {
+          display: flex;
+          gap: 8px;
+          justify-content: center;
+          flex-wrap: wrap;
+          margin-bottom: 12px;
+        }
+        
+        .suggestion-chip {
+          padding: 6px 12px;
+          background: #f5f5f5;
+          border: 1px solid #e0e0e0;
+          border-radius: 20px;
+          font-size: 12px;
+          color: #12403C;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        
+        .suggestion-chip:hover {
+          background: #12403C;
+          color: white;
+          border-color: #12403C;
+        }
+        
+        .browse-all-btn {
+          display: block;
+          width: 100%;
+          padding: 10px;
+          background: #12403C;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: opacity 0.2s;
+        }
+        
+        .browse-all-btn:hover {
+          opacity: 0.9;
         }
 
         @media (max-width: 768px) {

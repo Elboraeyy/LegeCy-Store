@@ -3492,6 +3492,8 @@ select:disabled {
   .faq-question {
     padding: 16px 20px;
     font-size: 15px;
+    text-align: start;
+      align-items: flex-start;
   }
 
   .faq-answer p {
@@ -3539,9 +3541,10 @@ select:disabled {
   display: inline-flex;
   gap: 8px;
   padding: 6px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 999px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .help-main-tab {
@@ -3882,13 +3885,23 @@ select:disabled {
   }
 
   .help-main-tabs {
-    flex-direction: column;
-    width: 100%;
-    max-width: 300px;
+    display: inline-flex !important;
+      flex-direction: row !important;
+      width: auto !important;
+      max-width: 100% !important;
+      background: #ffffff !important;
+      border-radius: 999px !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
   }
 
   .help-main-tab {
     justify-content: center;
+    color: var(--text-muted-light) !important;
+    }
+    
+    .help-main-tab.active {
+      color: #ffffff !important;
+      background: var(--primary) !important;
   }
 
   .contact-info-section {
@@ -6067,4 +6080,116 @@ select:disabled {
 
 .shipping-info-list li {
   margin-bottom: 8px;
+}
+
+/* Share Menu Styles */
+.share-dropdown-wrapper {
+  position: relative;
+}
+
+.share-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: auto;
+  min-width: 200px;
+  margin-top: 8px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  overflow: hidden;
+}
+
+[dir="rtl"] .share-dropdown {
+  right: auto;
+  left: 0;
+}
+
+.share-menu-inner {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.share-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s;
+}
+
+[dir="rtl"] .share-item {
+  text-align: right;
+  gap: 12px;
+}
+
+.share-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.share-item svg {
+  flex-shrink: 0;
+}
+
+/* File Upload Styles */
+.file-upload-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--surface);
+  border: 1px dashed var(--border-dark);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.file-upload-btn:hover {
+  background: rgba(18, 64, 60, 0.04);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.file-upload-btn svg {
+  color: var(--primary);
+}
+
+.remove-file-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.remove-file-btn:hover {
+  background: #fecaca;
 }

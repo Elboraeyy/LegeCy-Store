@@ -26,7 +26,7 @@ const BRAND = {
   lightBg: '#F6E5C6',
   darkBg: '#0A2622',
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://legecy.store',
-  whatsapp: '+201278432630',
+  whatsapp: '+201515205073',
 };
 
 // Get FROM email with fallback

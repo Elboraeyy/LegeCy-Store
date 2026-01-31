@@ -9,6 +9,7 @@ import {
     removeFromCartAction, 
     updateQtyAction, 
     clearCartAction as clearDbCartAction,
+    validateStockAction,
     CartItemDTO
 } from '@/lib/actions/cart';
 import { toast } from 'sonner';
@@ -80,6 +81,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             if (paymentJustCompleted) {
                 console.log("[Cart] Payment success flag detected - skipping cart load and clearing");
                 sessionStorage.removeItem(CART_CLEARED_FLAG);
+                // Set a flag for the UI to know we just finished an order (for "Back" button scenario)
+                sessionStorage.setItem('last_order_success', 'true');
+
                 localStorage.removeItem("cart");
                 // Also clear DB cart
                 clearDbCartAction().catch(() => {});
@@ -107,8 +111,44 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
             // 1. ALWAYS restore from localStorage first (for instant UX)
             const localStr = localStorage.getItem("cart");
-            const localItems: CartItem[] = localStr ? JSON.parse(localStr) : [];
+            let localItems: CartItem[] = localStr ? JSON.parse(localStr) : [];
             console.log("[Cart] LocalStorage items on load:", localItems.length);
+
+            // VALIDATE STOCK (Scenario D)
+            if (localItems.length > 0) {
+                try {
+                    const validation = await validateStockAction(localItems.map(i => ({ id: i.id, variantId: i.variantId, qty: i.qty })));
+                    let changed = false;
+                    // Update localItems based on validation
+                    localItems = localItems.filter(item => {
+                        const v = validation.find(res => res.id === item.id && (res.variantId === item.variantId || (!res.variantId && !item.variantId)));
+                        if (!v) return true; // Should not happen if passed correctly
+                        if (!v.valid) {
+                            if (v.available === 0) {
+                                // Out of stock completely
+                                changed = true;
+                                return false;
+                            } else {
+                                // Reduced stock
+                                if (item.qty > v.available) {
+                                    item.qty = v.available;
+                                    changed = true;
+                                }
+                                return true;
+                            }
+                        }
+                        return true;
+                    });
+
+                    if (changed && mounted) {
+                        showToast("Some items were removed or updated due to stock changes", "danger");
+                        // Update storage immediately so subsequent logic uses valid cart
+                        localStorage.setItem("cart", JSON.stringify(localItems));
+                    }
+                } catch (e) {
+                    console.error("Stock validation failed", e);
+                }
+            }
             
             // Keep reference to local items
             let currentCart = localItems;

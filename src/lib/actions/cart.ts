@@ -11,6 +11,7 @@ import { getDefaultWarehouseId } from '../services/orderService';
 export type CartItemDTO = {
     id: string; // Product ID (UUID)
     variantId?: string;
+    variantName?: string; // Display name for variant
     qty: number;
     // Hydrated Data
     name: string;
@@ -25,6 +26,48 @@ export type CartItemDTO = {
 };
 
 // --- Actions ---
+
+/**
+ * Validate Stock for Cart Items
+ * Returns list of items that are invalid (out of stock or insufficient quantity)
+ */
+export async function validateStockAction(items: { id: string, variantId?: string, qty: number }[]) {
+    // This action is public/guest accessible as it just checks stock
+    const warehouseId = await getDefaultWarehouseId(prisma);
+    const results: { id: string, variantId?: string, available: number, valid: boolean, reason?: string }[] = [];
+
+    for (const item of items) {
+        if (!item.variantId) {
+            results.push({ ...item, available: 0, valid: false, reason: "No variant selected" });
+            continue;
+        }
+
+        const variant = await prisma.variant.findUnique({
+            where: { id: item.variantId },
+            include: { inventory: { where: { warehouseId } } }
+        });
+
+        if (!variant) {
+            results.push({ ...item, available: 0, valid: false, reason: "Product variant not found" });
+            continue;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const totalStock = variant.inventory.reduce((sum: number, inv: any) => sum + inv.available, 0);
+
+        if (totalStock < item.qty) {
+            results.push({
+                id: item.id,
+                variantId: item.variantId,
+                available: totalStock,
+                valid: false,
+                reason: totalStock === 0 ? "Out of stock" : `Only ${totalStock} available`
+            });
+        }
+    }
+
+    return results;
+}
 
 /**
  * Get Authenticated User Cart
@@ -63,6 +106,7 @@ export async function getCartAction(): Promise<CartItemDTO[]> {
         return {
             id: item.productId,
             variantId: item.variantId || undefined,
+            variantName: variant?.name || undefined,
             qty: item.quantity,
             name: product.name,
             price: variant ? Number(variant.price) : 0,

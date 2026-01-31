@@ -2315,3 +2315,22 @@ model StoreSetting {
 }
 
 
+// ==========================================
+// Support & Contact
+// ==========================================
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  fileUrl   String?  // URL to uploaded attachment
+  status    String   @default("NEW") // NEW, READ, REPLIED, ARCHIVED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}

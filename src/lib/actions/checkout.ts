@@ -520,7 +520,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
                 id: order.id,
                 customerEmail: order.customerEmail || input.customerEmail || "customer@example.com",
                 customerName: order.customerName || input.customerName || "Visitor",
-                customerPhone: order.customerPhone || input.customerPhone || "01000000000",
+              customerPhone: order.customerPhone || input.customerPhone || "01515205073",
                 shippingAddress: order.shippingAddress || input.shippingAddress || "Cairo",
                 shippingCity: order.shippingCity || input.shippingCity || "Cairo"
             }, finalTotal, input.paymentMethod === 'paymob' ? 'card' : 'wallet', input.walletNumber);

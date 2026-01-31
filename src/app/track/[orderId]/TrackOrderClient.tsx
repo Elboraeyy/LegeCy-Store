@@ -346,7 +346,7 @@ export default function TrackOrderClient({ order }: Props) {
           <h4 className={styles.helpTitle}>Need Help?</h4>
           <div className={styles.helpActions}>
             <a
-              href={`https://wa.me/201278432630?text=Hi, I need help with order %23${order.id.slice(0, 8).toUpperCase()}`}
+              href={`https://wa.me/201515205073?text=Hi, I need help with order %23${order.id.slice(0, 8).toUpperCase()}`}
               target="_blank"
               rel="noopener noreferrer"
               className={`${styles.helpBtn} ${styles.helpBtnWhatsapp}`}

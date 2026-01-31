@@ -132,14 +132,18 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     window.scrollTo(0, 0);
   }, []);
 
+  const isUserScrolling = React.useRef(false);
+
   // Sync mobile gallery scroll with selection
   useEffect(() => {
-    if (mobileGalleryRef.current) {
+    if (mobileGalleryRef.current && !isUserScrolling.current) {
       const scrollLeft = selectedImageIndex * mobileGalleryRef.current.clientWidth;
       if (Math.abs(mobileGalleryRef.current.scrollLeft - scrollLeft) > 10) {
         mobileGalleryRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
       }
     }
+    // Reset flag after effect runs (for next external update)
+    isUserScrolling.current = false;
   }, [selectedImageIndex]);
 
   const handleMobileScroll = () => {
@@ -147,6 +151,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
       const { scrollLeft, clientWidth } = mobileGalleryRef.current;
       const newIndex = Math.round(scrollLeft / clientWidth);
       if (newIndex !== selectedImageIndex && newIndex >= 0 && newIndex < (allImages?.length || 0)) {
+        isUserScrolling.current = true;
         setSelectedImageIndex(newIndex);
       }
     }
@@ -416,7 +421,6 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 ref={mobileGalleryRef}
                 className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full h-full"
                 onScroll={handleMobileScroll}
-                style={{ scrollBehavior: 'smooth' }}
               >
                 {allImages.map((img, idx) => (
                   <div key={idx} className="flex-none w-full h-full snap-center relative">

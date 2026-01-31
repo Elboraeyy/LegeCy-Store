@@ -176,13 +176,13 @@ export default function CheckoutClient() {
           freeShipping: result.shippingFree,
           message: result.message,
         });
-        toast.success("Promo code applied!", { description: result.message });
+        toast.success(t.checkout.coupon_applied, { description: result.message });
       } else {
-        setCouponError(result.error || "Invalid promo code");
+        setCouponError(result.error || t.checkout.coupon_invalid);
         setAppliedCoupon(null);
       }
     } catch {
-      setCouponError("Failed to validate promo code");
+      setCouponError(t.checkout.coupon_failed);
     } finally {
       setIsValidatingCoupon(false);
     }
@@ -198,25 +198,25 @@ export default function CheckoutClient() {
   const validateForm = (): boolean => {
     const newErrors: Partial<ShippingForm> = {};
 
-    if (!form.customerName.trim()) newErrors.customerName = "Full name is required";
+    if (!form.customerName.trim()) newErrors.customerName = t.checkout.errors.name_required;
     if (!form.customerEmail.trim()) {
-      newErrors.customerEmail = "Email is required";
+      newErrors.customerEmail = t.checkout.errors.email_required;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customerEmail)) {
-      newErrors.customerEmail = "Please enter a valid email";
+      newErrors.customerEmail = t.checkout.errors.email_invalid;
     }
     if (!form.customerPhone.trim()) {
-      newErrors.customerPhone = "Phone number is required";
+      newErrors.customerPhone = t.checkout.errors.phone_required;
     } else if (!/^01[0125][0-9]{8}$/.test(form.customerPhone.replace(/\s/g, ""))) {
-      newErrors.customerPhone = "Enter a valid 11-digit Egyptian number (01x...)";
+      newErrors.customerPhone = t.checkout.errors.phone_invalid;
     }
     if (form.customerName.trim().length < 3) {
-      newErrors.customerName = "Name must be at least 3 characters";
+      newErrors.customerName = t.checkout.errors.name_min;
     }
-    if (!form.shippingAddress.trim()) newErrors.shippingAddress = "Address is required";
-    if (!form.shippingGovernorate) newErrors.shippingGovernorate = "Please select a governorate";
-    if (!form.shippingCity) newErrors.shippingCity = "Please select a city";
+    if (!form.shippingAddress.trim()) newErrors.shippingAddress = t.checkout.errors.address_required;
+    if (!form.shippingGovernorate) newErrors.shippingGovernorate = t.checkout.errors.governorate_required;
+    if (!form.shippingCity) newErrors.shippingCity = t.checkout.errors.city_required;
     if (form.paymentMethod === "wallet" && !form.walletNumber) {
-      newErrors.walletNumber = "Wallet number is required";
+      newErrors.walletNumber = t.checkout.errors.wallet_required;
     }
 
     setErrors(newErrors);
@@ -226,6 +226,9 @@ export default function CheckoutClient() {
   // Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // STRICT Double Submit Prevention
+    if (isLoading) return;
 
     if (!validateForm()) {
       toast.error(t.messages?.error_occurred || "Please fill in all required fields correctly");
@@ -258,20 +261,28 @@ export default function CheckoutClient() {
 
       if (result.success && result.orderId) {
         if (result.paymentUrl) {
+          // Scenario B: Slow Payment Redirect
+          // Show overlay instead of just spinning button, so user knows something is happening
+          // We keep isLoading true so the overlay stays
           window.location.href = result.paymentUrl;
           return;
         }
+
+        // Scenario C: Back Button Logic
+        // Mark as success so if they come back, we know why cart is empty
+        sessionStorage.setItem('last_order_success', 'true');
+
         clearCart();
         clearFormStorage();
         toast.success(t.messages.order_success);
         router.push(`/orders/${result.orderId}`);
       } else {
         toast.error(result.error || t.messages.error_occurred);
+        setIsLoading(false); // Only turn off loading on error
       }
     } catch (error) {
       console.error(error);
       toast.error(t.messages.error_occurred);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -291,6 +302,9 @@ export default function CheckoutClient() {
 
   // Empty cart state
   if (cart.length === 0) {
+    // Scenario C: Back Button Handling
+    const justOrdered = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('last_order_success');
+
     return (
       <main className={styles.checkoutPage}>
         <div className={styles.checkoutHero}>
@@ -300,15 +314,36 @@ export default function CheckoutClient() {
         </div>
         <div className={styles.checkoutContainer}>
           <div className={styles.emptyCart}>
-            <svg className={styles.emptyIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M9 22a1 1 0 100-2 1 1 0 000 2zM20 22a1 1 0 100-2 1 1 0 000 2z" />
-              <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
-            </svg>
-            <h2 className={styles.emptyTitle}>{t.cart.empty_cart}</h2>
-            <p className={styles.emptyText}>{t.cart.empty_desc}</p>
-            <Link href="/shop" className={styles.emptyBtn}>
-              {t.cart.continue_shopping}
-            </Link>
+            {justOrdered ? (
+              <>
+                <div style={{ width: 64, height: 64, background: '#e6fffa', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2">
+                    <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <h2 className={styles.emptyTitle}>{language === 'ar' ? 'تم استلام طلبك بنجاح' : 'Order Placed Successfully'}</h2>
+                <p className={styles.emptyText}>
+                  {language === 'ar'
+                    ? 'تم إرسال طلبك بالفعل. يمكنك متابعة حالته في صفحة طلباتي.'
+                    : 'Your order has already been processed. You can track it in your orders page.'}
+                </p>
+                <Link href="/profile" className={styles.emptyBtn}>
+                  {language === 'ar' ? 'اتبع طلبك' : 'Track Order'}
+                </Link>
+              </>
+            ) : (
+              <>
+                  <svg className={styles.emptyIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M9 22a1 1 0 100-2 1 1 0 000 2zM20 22a1 1 0 100-2 1 1 0 000 2z" />
+                    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+                  </svg>
+                  <h2 className={styles.emptyTitle}>{t.cart.empty_cart}</h2>
+                  <p className={styles.emptyText}>{t.cart.empty_desc}</p>
+                  <Link href="/shop" className={styles.emptyBtn}>
+                    {t.cart.continue_shopping}
+                  </Link>
+              </>
+            )}
           </div>
         </div>
       </main>
@@ -317,6 +352,44 @@ export default function CheckoutClient() {
 
   return (
     <main className={styles.checkoutPage}>
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            border: '4px solid #e5e7eb',
+            borderTopColor: '#12403C',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <style jsx>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+          <p style={{ marginTop: 16, fontSize: 18, fontWeight: 600, color: '#12403C' }}>
+            {t.checkout.processing}
+          </p>
+          <p style={{ marginTop: 8, color: '#6b7280' }}>
+            {language === 'ar' ? 'برجاء الانتظار، جاري تحويلك...' : 'Please wait, redirecting...'}
+          </p>
+        </div>
+      )}
+
       {/* Hero */}
       <div className={styles.checkoutHero}>
         <div className={styles.heroContent}>
@@ -347,7 +420,7 @@ export default function CheckoutClient() {
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>
-                    Full Name <span className={styles.required}>*</span>
+                    {t.checkout.full_name} <span className={styles.required}>*</span>
                   </label>
                   <input
                     type="text"
@@ -363,7 +436,7 @@ export default function CheckoutClient() {
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>
-                      Email <span className={styles.required}>*</span>
+                      {t.checkout.email} <span className={styles.required}>*</span>
                     </label>
                     <input
                       type="email"
@@ -394,7 +467,7 @@ export default function CheckoutClient() {
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>
-                    {language === 'ar' ? 'رقم تليفون بديل' : 'Alternate Phone'}
+                    {t.checkout.alt_phone}
                   </label>
                   <input
                     type="tel"
@@ -621,8 +694,8 @@ export default function CheckoutClient() {
               )}
             </section>
 
-            {/* Place Order Button - Mobile Friendly */}
-            <button type="submit" className={styles.submitBtn} disabled={isLoading || shippingCost === null} style={{ marginTop: '24px' }}>
+            {/* Place Order Button - Mobile only (convenience button) */}
+            <button type="submit" className={`${styles.submitBtn} ${styles.mobileSubmitBtn}`} disabled={isLoading || shippingCost === null} style={{ marginTop: '24px' }}>
               {isLoading ? (
                 <span className={styles.submitBtnLoading}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

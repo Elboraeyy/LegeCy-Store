@@ -102,6 +102,13 @@ export default function HelpSupportClient() {
   const [openItems, setOpenItems] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"faq" | "contact">("contact");
   const [subject, setSubject] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
 
   const filteredFAQs = activeCategory === "All" 
     ? faqData 
@@ -115,15 +122,36 @@ export default function HelpSupportClient() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
     
-    if (showToast) {
-      showToast("Message sent successfully! We'll get back to you soon.", "success");
+    // Append subject manually since it's a custom select
+    if (subject) formData.append("subject", subject);
+
+    // Append file if selected (though file input handles it, specific logic might be needed if custom input)
+    // The Input type="file" is already in the form, so new FormData(form) captures it.
+
+    try {
+      // Import dynamically to avoid server-only module errors on client if not handled right, 
+      // but standard import usually works with "use server" actions.
+      // We will use standard import at top of file, so let's skip dynamic import here.
+
+      const { submitContactForm } = await import("@/lib/actions/contact");
+      const result = await submitContactForm(null, formData);
+
+      if (result.success) {
+        if (showToast) showToast(result.message, "success");
+        form.reset();
+        setSubject("");
+        setSelectedFile(null);
+      } else {
+        if (showToast) showToast(result.message, "danger");
+      }
+    } catch (error) {
+      if (showToast) showToast("Failed to send message", "danger");
     }
-    form.reset();
-    setSubject("");
   };
 
   return (
@@ -308,7 +336,7 @@ export default function HelpSupportClient() {
                     </div>
                     <h4>Call Us</h4>
                     <p>Mon-Sat, 10am - 10pm</p>
-                    <a href="tel:+201278432630" className="contact-link">+20 127 843 2630</a>
+                      <a href="tel:+201515205073" className="contact-link">+20 151 520 5073</a>
                   </motion.div>
 
                   <motion.div 
@@ -340,7 +368,7 @@ export default function HelpSupportClient() {
                     <h3>Send us a Message</h3>
                     <p>We typically respond within 24 hours</p>
                   </div>
-                  <form id="contact-form" onSubmit={handleSubmit}>
+                    <form id="contact-form" onSubmit={handleFormSubmit}>
                     <div className="form-row">
                       <div className="form-group">
                         <label htmlFor="name">Your Name</label>
@@ -365,20 +393,22 @@ export default function HelpSupportClient() {
                     </div>
                     <div className="form-group">
                       <label htmlFor="subject">Subject</label>
-                      <CustomSelect
-                        name="subject"
-                        value={subject}
-                        onChange={setSubject}
-                        placeholder="Select a topic"
-                        required
-                        options={[
-                          { value: "order", label: "Order Inquiry" },
-                          { value: "product", label: "Product Question" },
-                          { value: "return", label: "Returns & Refunds" },
-                          { value: "shipping", label: "Shipping Issue" },
-                          { value: "other", label: "Other" },
-                        ]}
-                      />
+                        <CustomSelect
+                          name="subject"
+                          value={subject}
+                          onChange={setSubject}
+                          placeholder="Select a topic"
+                          required
+                          options={[
+                            { value: "order", label: "Order Inquiry" },
+                            { value: "product", label: "Product Question" },
+                            { value: "return", label: "Returns & Refunds" },
+                            { value: "shipping", label: "Shipping Issue" },
+                            { value: "other", label: "Other" },
+                          ]}
+                        />
+                        {/* Hidden input to ensure subject is submitted if CustomSelect doesn't use native select */}
+                        <input type="hidden" name="subject" value={subject} />
                     </div>
                     <div className="form-group">
                       <label htmlFor="message">Message</label>
@@ -390,6 +420,47 @@ export default function HelpSupportClient() {
                         required
                       ></textarea>
                     </div>
+
+                      <div className="form-group">
+                        <label htmlFor="attachment">Attachment (Optional)</label>
+                        <div className="file-upload-wrapper">
+                          <input
+                            type="file"
+                            id="attachment"
+                            name="attachment"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="file-input"
+                            style={{ display: 'none' }}
+                          />
+                          <button
+                            type="button"
+                            className="file-upload-btn"
+                            onClick={() => document.getElementById('attachment')?.click()}
+                          >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                            </svg>
+                            {selectedFile ? selectedFile.name : "Upload Image"}
+                          </button>
+                          {selectedFile && (
+                            <button
+                              type="button"
+                              className="remove-file-btn"
+                              onClick={() => {
+                                setSelectedFile(null);
+                                const input = document.getElementById('attachment') as HTMLInputElement;
+                                if (input) input.value = '';
+                              }}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     <button type="submit" className="btn btn-primary btn-block">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <line x1="22" y1="2" x2="11" y2="13"/>
