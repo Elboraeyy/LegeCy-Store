@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import VerifyEmailPageClient from './VerifyEmailPageClient';
 
 export default async function VerifyEmailPage({

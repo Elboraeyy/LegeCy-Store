@@ -41,7 +41,7 @@ export default function HelpSupportClient() {
 
   const filteredFAQs = activeCategory === t.help.faq.categories.all 
     ? faqData 
-    : faqData.filter((item: any) => item.cat === activeCategory);
+    : faqData.filter((item: { cat: string; q: string; a: string }) => item.cat === activeCategory);
 
   const toggleItem = (index: number) => {
     setOpenItems(prev => 
@@ -159,7 +159,7 @@ export default function HelpSupportClient() {
             {/* FAQ Items */}
             <section className="faq-content container">
               <div className="faq-list">
-                {filteredFAQs.map((item: any, index: number) => (
+                {filteredFAQs.map((item: { cat: string; q: string; a: string }, index: number) => (
                   <motion.div 
                     key={index}
                     className="faq-item"
@@ -400,7 +400,7 @@ export default function HelpSupportClient() {
                   <p>{t.help.faq.quick.subtitle}</p>
               </div>
               <div className="quick-help-grid">
-                  {faqData.slice(0, 4).map((item: any, index: number) => (
+                  {faqData.slice(0, 4).map((item: { cat: string; q: string; a: string }, index: number) => (
                   <motion.div 
                     key={index}
                     className="quick-help-card"

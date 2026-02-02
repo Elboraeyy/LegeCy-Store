@@ -18,7 +18,7 @@ export default function ProductGrid({
     viewMode,
     isLoading = false,
 }: ProductGridProps) {
-    const { t, language } = useLanguage();
+    const { t } = useLanguage();
 
     if (isLoading) {
         return (

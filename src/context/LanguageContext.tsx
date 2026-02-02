@@ -26,7 +26,6 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
       if (typeof navigator !== 'undefined' && navigator.language) {
         const browserLang = navigator.language.toLowerCase();
         if (browserLang.startsWith('ar')) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setLanguageState('ar');
           // Optional: Save this auto-detection so it persists until manually changed?
           // localStorage.setItem('site_language', 'ar'); 
