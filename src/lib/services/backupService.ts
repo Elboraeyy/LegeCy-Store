@@ -1,10 +1,10 @@
 import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+
 
 export type BackupData = {
   version: string;
   timestamp: string;
-  data: Record<string, any[]>;
+    data: Record<string, unknown[]>;
 };
 
 // List of models to backup in dependency order (Parents before Children)
@@ -45,14 +45,14 @@ export const backupService = {
    * Generates a full JSON backup of the database
    */
   async generateBackup(): Promise<BackupData> {
-    const data: Record<string, any[]> = {};
+        const data: Record<string, unknown[]> = {};
 
     // We execute sequentially to avoid overwhelming the DB connection
     for (const model of MODELS) {
       try {
-        // @ts-ignore - Dynamic access to prisma delegate
+          // @ts-expect-error - Dynamic access to prisma delegate
         if (prisma[model]) {
-          // @ts-ignore
+            // @ts-expect-error - Dynamic access to findMany
           const records = await prisma[model].findMany();
           data[model] = records;
         }

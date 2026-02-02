@@ -5,7 +5,7 @@ import { AdminPermissions } from '@/lib/auth/permissions';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // 1. Security Check
     // Backups are critical data. Only specific roles should access this.
