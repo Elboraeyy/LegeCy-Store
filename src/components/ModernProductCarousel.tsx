@@ -38,8 +38,9 @@ export default function ModernProductCarousel({
     const checkScroll = () => {
         if (scrollContainerRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-            setCanScrollLeft(scrollLeft > 0);
-            setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10); // buffer
+            // Use a buffer of 5px to prevent floating point issues or minor discrepancies
+            setCanScrollLeft(Math.abs(scrollLeft) > 5);
+            setCanScrollRight(Math.abs(scrollLeft) < scrollWidth - clientWidth - 5);
         }
     };
 
@@ -98,7 +99,7 @@ export default function ModernProductCarousel({
             </div>
             </div>
 
-            <div className={`relative w-full ${useContainer ? 'md:container md:mx-auto' : ''} ${enableMobilePadding ? 'px-4' : 'px-0 md:px-4'}`}>
+            <div className={`relative w-full ${useContainer ? 'md:container md:mx-auto' : ''} ${enableMobilePadding ? '!px-4' : 'px-0 md:px-4'}`}>
                 {/* Navigation Arrows */}
                 {/* PREV BUTTON (Scrolls to start) */}
                 {canScrollLeft && (
@@ -135,12 +136,12 @@ export default function ModernProductCarousel({
                     <div
                         ref={scrollContainerRef}
                         onScroll={checkScroll}
-                        className={`carousel-track w-full flex overflow-x-auto gap-2 md:gap-3 pb-4 hide-scrollbar snap-x ${enableMobilePadding ? 'ps-4 md:ps-0' : ''}`}
+                        className={`carousel-track w-full flex overflow-x-auto gap-3 md:gap-4 pb-4 hide-scrollbar snap-x`}
                     >
                         {products.map((product) => (
                             <div
                                 key={product.id}
-                                className={`carousel-item flex-none snap-start ${customItemClass || 'w-[calc(50%-4px)] md:w-auto'}`}
+                                className={`carousel-item flex-none snap-start ${customItemClass || 'w-[calc(50%-6px)] md:w-auto'}`}
                             >
                                 <div className="md:hidden">
                                      <ProductCard product={product} />

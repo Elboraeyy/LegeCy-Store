@@ -33,8 +33,8 @@ export default function CartRecommendations() {
                 subtitle="You Might Also Like"
                 products={products}
                 viewAllLink="/shop"
-                enableMobilePadding={false}
-                customItemClass="!min-w-[100px] w-[calc(33%-8px)] !md:w-[135px]"
+                enableMobilePadding={true}
+                customItemClass="!min-w-0 w-[calc(33.333%-10px)] md:w-[135px]" // 33.33% - (2/3 * gap) approx. gap is 12px.
                 useContainer={false}
                 compact={true}
             />

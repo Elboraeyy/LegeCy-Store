@@ -78,20 +78,19 @@ export default function LoginPage() {
 
                 @media (max-width: 900px) {
                     .auth-container { 
-                        display: block !important;
+                        display: flex !important;
+                        flex-direction: column !important;
                         background: #12403C !important;
-                        height: 100vh;
-                        overflow-y: scroll; /* Allow vertical scroll */
-                        scroll-snap-type: y mandatory; /* Force snap points */
-                        scroll-behavior: smooth;
+                        height: 100vh !important;
+                        overflow: hidden !important; /* Prevent scroll */
                     }
 
-                    /* 1. Green Header (Top 1/3) */
+                    /* 1. Green Header (Top Part) */
                     .auth-brand-side { 
-                        height: 35vh !important; /* Exactly 1/3 approx */
+                        height: 30vh !important; /* Reduced height */
                         width: 100% !important;
-                        padding: 24px 20px !important;
-                        scroll-snap-align: start; /* Snap point 1 */
+                        padding: 20px !important;
+                        flex-shrink: 0 !important;
                         
                         display: flex !important;
                         flex-direction: column !important;
@@ -102,10 +101,10 @@ export default function LoginPage() {
                         z-index: 1;
                     }
 
-                    /* Compact Text Scaling for 35vh */
+                    /* Compact Text Scaling */
                     .auth-brand-side .brand-title { 
                         display: block !important; 
-                        font-size: 32px !important; /* Readable but compact */
+                        font-size: 28px !important;
                         line-height: 1.1 !important;
                         margin-bottom: 8px !important;
                         text-align: center;
@@ -117,33 +116,25 @@ export default function LoginPage() {
                         text-align: center;
                         opacity: 0.8 !important;
                     }
-                    /* User requested ALL text visible */
                     .auth-brand-side .brand-quote { 
-                        display: block !important; 
-                        font-size: 11px !important; /* Small enough to fit */
-                        line-height: 1.4 !important;
-                        margin-bottom: 0 !important;
-                        text-align: center;
-                        max-width: 90% !important;
-                        opacity: 0.7 !important;
+                        display: none !important; /* Hide quote to save space */
                     }
                     .auth-brand-side .brand-footer { 
-                        display: none !important; /* Footer might be too much for 35vh, hiding to prioritize key text */
+                        display: none !important; 
                     }
                     
                     .mobile-brand-header { display: none !important; }
 
                     /* 2. White Form Sheet */
                     .auth-form-side { 
-                        height: 100vh !important; /* Full screen height */
+                        flex: 1 !important; /* Take remaining space */
                         width: 100% !important;
-                        scroll-snap-align: start; /* Snap point 2 */
-                        scroll-snap-stop: always; /* Force stop here */
+                        height: auto !important;
                         
                         background: #FCF8F3 !important;
                         border-radius: 30px 30px 0 0 !important;
                         margin-top: -20px !important; /* Overlap */
-                        padding: 40px 24px !important;
+                        padding: 30px 24px !important;
                         
                         display: flex !important;
                         align-items: center !important;
@@ -152,6 +143,7 @@ export default function LoginPage() {
                         position: relative;
                         z-index: 2;
                         box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+                        overflow-y: auto !important; /* Internal scroll if needed */
                     }
                     
                     .auth-form-side > div {
@@ -160,7 +152,7 @@ export default function LoginPage() {
                         margin: 0 auto;
                     }
 
-                    /* Drag Handle Indicator */
+                    /* Drag Handle - Optional visual cue */
                      .auth-form-side::before {
                         content: '';
                         display: block;
@@ -277,7 +269,7 @@ export default function LoginPage() {
                             marginBottom: '12px', 
                             fontFamily: "'Playfair Display', serif" 
                         }}>
-                            {t.auth.sign_in}
+                            {t.auth.sign_in} (Secure)
                         </h2>
                         <p style={{ color: '#5c6b66', fontSize: '15px' }}>
                             {t.auth.dont_have_account.split('?')[0]}? <Link href="/signup" style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }} className="hover:text-primary">{t.auth.sign_up}</Link>
@@ -363,49 +355,34 @@ export default function LoginPage() {
                         <a
                             href="/api/auth/google"
                             style={{
-                                width: '50px',
-                                height: '50px',
-                                borderRadius: '50%',
+                                width: '100%',
+                                padding: '12px',
+                                borderRadius: '999px',
                                 border: '1px solid #d1cfca',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
+                                gap: '12px',
                                 background: '#fff',
                                 transition: 'all 0.2s',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                                textDecoration: 'none',
+                                color: '#1a3c34',
+                                fontWeight: 600,
+                                fontSize: '14px'
                             }}
-                            className="hover:scale-105 hover:shadow-md"
+                            className="hover:shadow-md hover:border-[#12403C]/30 hover:bg-gray-50"
                         >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05" />
                                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                             </svg>
+                            <span>{t.auth.continue_with_google}</span>
                         </a>
 
-                        {/* Facebook */}
-                        <a
-                            href="/api/auth/facebook"
-                            style={{
-                                width: '50px',
-                                height: '50px',
-                                borderRadius: '50%',
-                                border: '1px solid #d1cfca',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: '#fff',
-                                transition: 'all 0.2s',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                            }}
-                            className="hover:scale-105 hover:shadow-md"
-                        >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="#1877F2">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                            </svg>
-                        </a>
+
                     </div>
 
                     <p style={{ textAlign: 'center', marginTop: '40px', fontSize: '12px', color: '#a3b8b0' }}>

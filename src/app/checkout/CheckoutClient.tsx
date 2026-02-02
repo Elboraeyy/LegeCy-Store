@@ -8,6 +8,7 @@ import { useStore } from "@/context/StoreContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { toast } from "sonner";
 import { placeOrderWithShipping } from "@/lib/actions/checkout";
+import { getCheckoutProfile, saveCheckoutProfile } from "@/lib/actions/user"; // Import new actions
 import { validateCoupon } from "@/lib/actions/coupons";
 import { getPaymentMethodsStatus } from "@/lib/actions/killswitches";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
@@ -63,6 +64,39 @@ export default function CheckoutClient() {
     wallet: false,
   });
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
+  const [saveInfo, setSaveInfo] = useState(true); // Default to saving info
+
+  // Auto-fill Profile
+  useEffect(() => {
+    async function loadProfile() {
+      // Only load if form is relatively empty to respect local persistence
+      // Or we can just overwrite if it's the first load. 
+      // Persistence might be stale. Let's fetch and fill if fields are empty.
+      try {
+        const profile = await getCheckoutProfile();
+        if (profile) {
+          setForm(prev => ({
+            ...prev,
+            customerName: prev.customerName || profile.contact.name || "",
+            customerEmail: prev.customerEmail || profile.contact.email || "",
+            customerPhone: prev.customerPhone || profile.contact.phone || "",
+            shippingAddress: prev.shippingAddress || profile.address?.street || "",
+            shippingCity: prev.shippingCity || (profile.address?.city?.split(',')[0].trim()) || "",
+            // Assuming city stored as "City, Gov" or just "City"
+            shippingGovernorate: prev.shippingGovernorate || (profile.address?.city?.split(',')[1]?.trim()) || "",
+            // This split is risky if format differs. Let's try to match.
+            // If we saved it as `City, Gov`, this works. 
+            // If we just saved city, Gov is missing.
+            // `saveCheckoutProfile` saves as `${City}, ${Gov}`.
+          }));
+        }
+      } catch (e) {
+        console.error("Failed to load profile", e);
+      }
+    }
+    loadProfile();
+  }, [setForm]);
+
 
   // Shipping State
   const [shippingCost, setShippingCost] = useState<number | null>(null);
@@ -243,6 +277,11 @@ export default function CheckoutClient() {
     setIsLoading(true);
 
     try {
+      if (saveInfo) {
+        // Fire and forget save profile to not block order placement
+        saveCheckoutProfile(form).catch(e => console.error("Failed to save profile", e));
+      }
+
       const cartItems = cart.map((item) => ({
         id: item.id,
         name: item.name,
@@ -589,6 +628,22 @@ export default function CheckoutClient() {
                 />
               </div>
             </section>
+
+
+
+            {/* Save Info Checkbox */}
+            <div className={styles.formGroup} style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="checkbox"
+                id="saveInfo"
+                checked={saveInfo}
+                onChange={(e) => setSaveInfo(e.target.checked)}
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              />
+              <label htmlFor="saveInfo" style={{ cursor: 'pointer', fontSize: '14px', color: 'var(--text-muted)' }}>
+                {language === 'ar' ? 'حفظ هذه المعلومات للمرة القادمة' : 'Save this information for next time'}
+              </label>
+            </div>
 
             {/* Payment Method */}
             <section className={styles.formSection} style={{ marginTop: "24px" }}>
