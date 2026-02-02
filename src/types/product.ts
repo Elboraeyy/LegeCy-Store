@@ -38,13 +38,14 @@ export interface Product {
     categorySlug?: string | null;
 }
 
-export function getLocalized<T extends Record<string, unknown>>(entity: T | undefined | null, lang: 'en' | 'ar', field: string): string {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getLocalized<T extends Record<string, any>>(entity: T | undefined | null, lang: 'en' | 'ar', field: string): string {
     if (!entity) return '';
     if (lang === 'ar') {
         const arField = `${field}Ar`;
-        if (entity[arField]) return String(entity[arField]);
+        if (entity[arField]) return entity[arField];
     }
-    return entity[field] ? String(entity[field]) : '';
+    return entity[field] || '';
 }
 
 // Helper to normalize product data from different sources
