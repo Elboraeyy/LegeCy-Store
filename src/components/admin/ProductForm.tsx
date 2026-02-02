@@ -387,8 +387,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                             <ImageUpload 
                                 value={gallery}
                                 disabled={loading}
-                                onChange={(url) => setGallery([...gallery, url])}
-                                onRemove={(url) => setGallery(gallery.filter((current) => current !== url))}
+                                onChange={(url) => setGallery((current) => [...current, url])}
+                                onRemove={(url) => setGallery((current) => current.filter((item) => item !== url))}
                             />
                         </div>
                     </div>

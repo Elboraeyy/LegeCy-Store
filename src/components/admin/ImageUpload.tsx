@@ -84,11 +84,11 @@ export default function ImageUpload({
                 onSuccess={onUpload} 
                 uploadPreset="nsigned_preset" 
                 options={{
-                    maxFiles: 1,
+                    maxFiles: 99,
                     sources: ['local', 'url'], 
                     resourceType: 'image',
                     clientAllowedFormats: ['png', 'jpeg', 'jpg', 'webp'],
-                    multiple: false,
+                    multiple: true,
                     styles: {
                         palette: {
                             window: "#12403C", // var(--bg-dark)
