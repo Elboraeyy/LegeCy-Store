@@ -4,7 +4,8 @@ import React from "react";
 import Image from "next/image";
 import ProductCard from "@/components/ProductCard";
 // import ModernProductCard from "@/components/ModernProductCard";
-import { Product } from "@/types/product";
+import { Product, getLocalized } from "@/types/product";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ProductGridProps {
     products: Product[];
@@ -17,6 +18,8 @@ export default function ProductGrid({
     viewMode,
     isLoading = false,
 }: ProductGridProps) {
+    const { t, language } = useLanguage();
+
     if (isLoading) {
         return (
             <>
@@ -67,10 +70,10 @@ export default function ProductGrid({
                     </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2 font-heading">
-                    No Products Found
+                    {t.product.no_products_found}
                 </h3>
                 <p className="text-gray-600 max-w-md">
-                    We couldn&apos;t find any products matching your filters. Try adjusting your search criteria.
+                    {t.product.no_products_desc}
                 </p>
             </div>
         );
@@ -129,7 +132,8 @@ function ProductSkeleton() {
 }
 
 function ProductListCard({ product }: { product: Product }) {
-    const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
+    const { t, language } = useLanguage();
+    const formatPrice = (p: number) => `${t.common.currency} ${p.toLocaleString()}`;
     const productImage = product.imageUrl || product.img || '/placeholder.jpg';
     const [imgSrc, setImgSrc] = React.useState(productImage);
 
@@ -146,7 +150,7 @@ function ProductListCard({ product }: { product: Product }) {
                 <div className="relative w-full sm:w-48 aspect-[3/4] sm:aspect-square flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
                     <Image
                         src={imgSrc}
-                        alt={product.name}
+                        alt={getLocalized(product, language, 'name')}
                         fill
                         className="object-cover"
                         onError={() => setImgSrc('/placeholder.jpg')}
@@ -159,7 +163,7 @@ function ProductListCard({ product }: { product: Product }) {
                     {isOutOfStock && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                             <span className="px-3 py-1 text-sm font-bold text-white bg-[#d4af37] rounded">
-                                Sold Out
+                                {t.product.sold_out}
                             </span>
                         </div>
                     )}
@@ -169,11 +173,11 @@ function ProductListCard({ product }: { product: Product }) {
                 <div className="flex-1 flex flex-col justify-between">
                     <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-[#d4af37] transition-colors cursor-pointer">
-                            {product.name}
+                            {getLocalized(product, language, 'name')}
                         </h3>
                         {product.description && (
                             <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                                {product.description}
+                                {getLocalized(product, language, 'description')}
                             </p>
                         )}
                     </div>
@@ -194,7 +198,7 @@ function ProductListCard({ product }: { product: Product }) {
                             href={`/product/${product.id}`}
                             className="px-6 py-2 bg-[#12403C] text-white rounded-lg text-sm font-medium hover:bg-[#d4af37] transition-colors"
                         >
-                            View Details
+                            {t.product.view_details}
                         </a>
                     </div>
                 </div>

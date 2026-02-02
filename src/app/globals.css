@@ -4093,7 +4093,7 @@ select:disabled {
 .policy-list li::before {
   content: '';
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 10px;
   width: 8px;
   height: 8px;
@@ -4112,6 +4112,7 @@ select:disabled {
 
 .policy-list.numbered li::before {
   content: counter(policy-counter);
+  inset-inline-start: 0;
   width: 24px;
   height: 24px;
   background: linear-gradient(135deg, var(--bg-dark), #1a5650);
@@ -6192,4 +6193,26 @@ select:disabled {
 
 .remove-file-btn:hover {
   background: #fecaca;
+}
+/* Skeleton Loading Animation */
+.skeleton {
+  background-color: var(--border-light);
+  animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-radius: var(--radius);
+}
+
+html.dark .skeleton {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes skeleton-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }

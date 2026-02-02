@@ -38,8 +38,11 @@ export default async function EditProductPage({ params }: PageProps) {
     const serializedProduct = {
         id: product.id,
         name: product.name,
+        nameAr: product.nameAr,
         description: product.description,
+        descriptionAr: product.descriptionAr,
         detailedDescription: product.detailedDescription,
+        detailedDescriptionAr: product.detailedDescriptionAr,
         imageUrl: product.imageUrl,
         compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
         status: product.status,

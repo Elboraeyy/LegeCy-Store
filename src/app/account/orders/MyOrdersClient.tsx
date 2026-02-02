@@ -6,6 +6,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { createReturnRequest } from "@/lib/actions/returns";
 import { toast } from "sonner";
 import styles from "./Orders.module.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface OrderItem {
   id: string;
@@ -29,24 +30,31 @@ interface Props {
   orders: Order[];
 }
 
-const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-  pending: { label: "Pending", color: "#d97706", bg: "#fef3c7" },
-  confirmed: { label: "Confirmed", color: "#2563eb", bg: "#dbeafe" },
-  paid: { label: "Paid", color: "#059669", bg: "#d1fae5" },
-  processing: { label: "Processing", color: "#7c3aed", bg: "#ede9fe" },
-  shipped: { label: "Shipped", color: "#0891b2", bg: "#cffafe" },
-  delivered: { label: "Delivered", color: "#16a34a", bg: "#dcfce7" },
-  cancelled: { label: "Cancelled", color: "#dc2626", bg: "#fee2e2" },
-};
-
 export default function MyOrdersClient({ orders }: Props) {
+  const { t, language } = useLanguage();
   const [activeReturn, setActiveReturn] = useState<string | null>(null);
   const [returnReason, setReturnReason] = useState("");
   const [selectedItems, setSelectedItems] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
 
-  const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
-  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', {
+  const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+    pending: { label: t.account.status.pending, color: "#d97706", bg: "#fef3c7" },
+    confirmed: { label: t.account.status.confirmed, color: "#2563eb", bg: "#dbeafe" },
+    paid: { label: t.account.status.paid, color: "#059669", bg: "#d1fae5" },
+    processing: { label: t.account.status.processing, color: "#7c3aed", bg: "#ede9fe" },
+    shipped: { label: t.account.status.shipped, color: "#0891b2", bg: "#cffafe" },
+    delivered: { label: t.account.status.delivered, color: "#16a34a", bg: "#dcfce7" },
+    cancelled: { label: t.account.status.cancelled, color: "#dc2626", bg: "#fee2e2" },
+  };
+
+  const formatPrice = (p: number) => {
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
+      style: 'currency',
+      currency: 'EGP'
+    }).format(p);
+  };
+
+  const formatDate = (d: string) => new Date(d).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
@@ -63,7 +71,7 @@ export default function MyOrdersClient({ orders }: Props) {
       .map(([id, qty]) => ({ id, quantity: qty }));
 
     if (itemsToReturn.length === 0) {
-      toast.error("Please select at least one item to return");
+      toast.error(language === 'ar' ? "يرجى اختيار عنصر واحد على الأقل للاسترجاع" : "Please select at least one item to return");
       return;
     }
 
@@ -71,31 +79,31 @@ export default function MyOrdersClient({ orders }: Props) {
     try {
       const result = await createReturnRequest(activeReturn, returnReason, itemsToReturn);
       if (result.success) {
-        toast.success("Return request submitted");
+        toast.success(language === 'ar' ? "تم تقديم طلب الاسترجاع" : "Return request submitted");
         setActiveReturn(null);
         setReturnReason("");
         setSelectedItems({});
         window.location.reload();
       } else {
-        toast.error(result.error || "Failed to submit request");
+        toast.error(result.error || (language === 'ar' ? "فشل تقديم الطلب" : "Failed to submit request"));
       }
     } catch {
-      toast.error("An error occurred");
+      toast.error(t.common.error);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className={styles.ordersPage}>
+    <main className={styles.ordersPage} dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Hero Section */}
       <section className="shop-hero">
         <div className="container">
           <Reveal>
-            <h1 className="fade-in">My Orders</h1>
+            <h1 className="fade-in">{t.account.orders_page.title}</h1>
           </Reveal>
           <Reveal delay={0.2}>
-            <p className="fade-in">View and track all your orders</p>
+            <p className="fade-in">{t.account.orders_page.subtitle}</p>
           </Reveal>
         </div>
       </section>
@@ -105,12 +113,12 @@ export default function MyOrdersClient({ orders }: Props) {
           <Reveal>
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>📦</div>
-              <h2 className={styles.emptyTitle}>No orders yet</h2>
+              <h2 className={styles.emptyTitle}>{t.account.orders_page.no_orders}</h2>
               <p className={styles.emptyText}>
-                Browse our collection and discover luxury timepieces
+                {t.account.orders_page.browse_collection}
               </p>
               <Link href="/shop" className="btn btn-primary">
-                Browse Products
+                {t.account.orders_page.browse_products}
               </Link>
             </div>
           </Reveal>
@@ -137,7 +145,7 @@ export default function MyOrdersClient({ orders }: Props) {
                         </span>
                         {order.returnStatus && (
                           <span className={styles.returnBadge}>
-                            Return: {order.returnStatus}
+                            {t.account.orders_page.return_status.replace('{status}', order.returnStatus)}
                           </span>
                         )}
                       </div>
@@ -145,7 +153,7 @@ export default function MyOrdersClient({ orders }: Props) {
                       {/* Meta Info */}
                       <div className={styles.orderMeta}>
                         <span>📅 {formatDate(order.createdAt)}</span>
-                        <span>📦 {order.itemCount} item{order.itemCount > 1 ? 's' : ''}</span>
+                        <span>📦 {order.itemCount} {order.itemCount > 1 ? t.account.orders_page.items : t.account.orders_page.item}</span>
                       </div>
 
                       {/* Price */}
@@ -166,14 +174,14 @@ export default function MyOrdersClient({ orders }: Props) {
                           href={`/account/returns/${order.id}`}
                           className={styles.btnReturn}
                         >
-                          Request Return
+                          {t.account.orders_page.request_return}
                         </Link>
                       )}
                       <Link 
                         href={`/track/${order.id}`}
                         className={styles.btnTrack}
                       >
-                        Track Order
+                        {t.account.orders_page.track_order}
                       </Link>
                     </div>
                   </div>
@@ -187,10 +195,10 @@ export default function MyOrdersClient({ orders }: Props) {
         {activeReturn && activeOrder && (
           <div className={styles.modalOverlay}>
             <div className={styles.modal}>
-              <h2 className={styles.modalTitle}>Request Return</h2>
+              <h2 className={styles.modalTitle}>{t.account.orders_page.request_return}</h2>
               <form onSubmit={handleCreateReturn}>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Select Items to Return:</label>
+                  <label className={styles.formLabel}>{t.account.returns_page.select_items_title}:</label>
                   <div className={styles.itemSelector}>
                     {activeOrder.items.map(item => (
                       <div key={item.id} className={styles.itemRow}>
@@ -214,9 +222,9 @@ export default function MyOrdersClient({ orders }: Props) {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Reason for Return</label>
+                  <label className={styles.formLabel}>{t.account.returns_page.steps.reason}</label>
                   <textarea 
-                    placeholder="Please describe why you want to return..."
+                    placeholder={language === 'ar' ? "يرجى ذكر سبب الاسترجاع..." : "Please describe why you want to return..."}
                     value={returnReason}
                     onChange={(e) => setReturnReason(e.target.value)}
                     className={styles.textarea}
@@ -230,14 +238,14 @@ export default function MyOrdersClient({ orders }: Props) {
                     onClick={() => { setActiveReturn(null); setSelectedItems({}); }}
                     className={styles.btnCancel}
                   >
-                    Cancel
+                    {t.common.cancel}
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
                     className={styles.btnSubmit}
                   >
-                    {loading ? 'Submitting...' : 'Submit Request'}
+                    {loading ? t.common.loading : t.common.submit}
                   </button>
                 </div>
               </form>
@@ -248,7 +256,9 @@ export default function MyOrdersClient({ orders }: Props) {
         {/* Back Link */}
         <div style={{ textAlign: "center", marginTop: "40px" }}>
           <Link href="/account" style={{ color: "var(--accent)", textDecoration: "underline" }}>
-            ← Back to My Account
+            {language === 'ar' ? '← ' : ''}
+            {t.account.orders_page.back_to_account}
+            {language !== 'ar' ? ' ←' : ''}
           </Link>
         </div>
       </section>

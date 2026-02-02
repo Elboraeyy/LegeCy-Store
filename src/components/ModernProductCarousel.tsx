@@ -14,6 +14,9 @@ interface ModernProductCarouselProps {
     subtitle?: string;
     viewAllLink?: string;
     enableMobilePadding?: boolean;
+    customItemClass?: string;
+    useContainer?: boolean;
+    compact?: boolean;
 }
 
 export default function ModernProductCarousel({
@@ -21,7 +24,10 @@ export default function ModernProductCarousel({
     title,
     subtitle,
     viewAllLink = "/shop",
-    enableMobilePadding = true
+    enableMobilePadding = true,
+    customItemClass,
+    useContainer = true,
+    compact = false
 }: ModernProductCarouselProps) {
     const { t, direction } = useLanguage();
     const isRTL = direction === 'rtl';
@@ -70,8 +76,8 @@ export default function ModernProductCarousel({
 
     return (
         <section className="py-4 md:py-8 bg-transparent relative group/carousel">
-            <div className="container px-4 mb-6">
-                <div className="container px-4 mb-6">
+            <div className={`container px-4 mb-6 ${!useContainer ? '!p-0' : ''}`}>
+                <div className={`container px-4 mb-6 ${!useContainer ? '!p-0 !min-w-0 !w-full' : ''}`}>
                     <div className="flex flex-col items-center text-center md:flex-row md:items-end md:justify-between md:text-left gap-4">
                         <div className="flex flex-col items-center md:items-start gap-2">
                         {subtitle && (
@@ -92,7 +98,7 @@ export default function ModernProductCarousel({
             </div>
             </div>
 
-            <div className={`relative w-full md:container md:mx-auto ${enableMobilePadding ? 'px-4' : 'px-0 md:px-4'}`}>
+            <div className={`relative w-full ${useContainer ? 'md:container md:mx-auto' : ''} ${enableMobilePadding ? 'px-4' : 'px-0 md:px-4'}`}>
                 {/* Navigation Arrows */}
                 {/* PREV BUTTON (Scrolls to start) */}
                 {canScrollLeft && (
@@ -134,13 +140,13 @@ export default function ModernProductCarousel({
                         {products.map((product) => (
                             <div
                                 key={product.id}
-                                className="carousel-item flex-none snap-start w-[calc(50%-4px)] md:w-auto"
+                                className={`carousel-item flex-none snap-start ${customItemClass || 'w-[calc(50%-4px)] md:w-auto'}`}
                             >
                                 <div className="md:hidden">
                                      <ProductCard product={product} />
                                 </div>
                                 <div className="hidden md:block">
-                                    <ModernProductCard product={product} />
+                                    <ModernProductCard product={product} compact={compact} />
                                 </div>
                             </div>
                         ))}

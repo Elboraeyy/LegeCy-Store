@@ -208,8 +208,8 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
                      </p>
 
                     <div className="flex items-baseline gap-3 mb-8" dir="ltr">
-                         <span className="text-3xl font-bold text-[#12403C]">EGP {bundle.bundlePrice}</span>
-                         <span className="text-lg text-gray-400 line-through">EGP {bundle.originalPrice}</span>
+                        <span className="text-3xl font-bold text-[#12403C]">{t.common.currency} {bundle.bundlePrice}</span>
+                        <span className="text-lg text-gray-400 line-through">{t.common.currency} {bundle.originalPrice}</span>
                      </div>
                  </div>
 

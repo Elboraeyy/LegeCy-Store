@@ -18,22 +18,26 @@ import { getStoreSettings } from "@/lib/actions/settings";
 import ModernProductCarousel from "@/components/ModernProductCarousel";
 import { CartIcon } from "@/components/icons/CartIcon";
 import { CompareIcon } from "@/components/icons/CompareIcon";
-import { Product } from "@/types/product";
+import { Product, getLocalized } from "@/types/product";
 
 // Types
 interface ProductData {
   id: string;
   name: string;
+  nameAr?: string | null;
   description: string | null;
+  descriptionAr?: string | null;
   detailedDescription: string | null;
+  detailedDescriptionAr?: string | null;
   price: number;
   compareAtPrice: number | null;
   imageUrl: string | null;
   images: string[];
   category: string | null;
+  categoryAr?: string | null;
   categoryId: string | null;
-  brand: { id: string; name: string; slug: string } | null;
-  material: { id: string; name: string } | null;
+  brand: { id: string; name: string; nameAr?: string; slug: string } | null;
+  material: { id: string; name: string; nameAr?: string } | null;
   totalStock: number;
   sku: string | null;
   specs?: {
@@ -248,8 +252,8 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
 
   const handleShare = async (platform: string) => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
-    const title = product?.name || 'Product';
-    const text = `Check out ${product?.name} at LegaCy Store!`;
+    const title = getLocalized(product, language, 'name') || 'Product';
+    const text = t.product.share_text.replace('{name}', getLocalized(product, language, 'name') || '');
 
     if (platform === 'native' && typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
       try {
@@ -364,7 +368,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
           <svg className="breadcrumb-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="9 18 15 12 9 6" />
           </svg>
-          <span className="breadcrumb-current">{product.name}</span>
+          <span className="breadcrumb-current">{getLocalized(product, language, 'name')}</span>
         </nav>
 
         {/* Main Content */}
@@ -383,7 +387,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               >
                 <Image
                   src={allImages[selectedImageIndex]}
-                  alt={product.name}
+                  alt={getLocalized(product, language, 'name')}
                   fill
                   className="main-product-image"
                   style={{
@@ -426,7 +430,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   <div key={idx} className="flex-none w-full h-full snap-center relative">
                     <Image
                       src={img}
-                      alt={`${product.name} ${idx + 1}`}
+                      alt={`${getLocalized(product, language, 'name')} ${idx + 1}`}
                       fill
                       className="object-cover"
                       priority={idx === 0}
@@ -459,7 +463,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   >
                     <Image
                       src={img}
-                      alt={`${product.name} ${idx + 1}`}
+                      alt={`${getLocalized(product, language, 'name')} ${idx + 1}`}
                       fill
                       style={{ objectFit: 'cover' }}
                     />
@@ -474,12 +478,12 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
             {/* Category */}
             {product.category && (
               <Link href={`/shop?category=${product.categoryId}`} className="detail-brand">
-                {product.category}
+                {getLocalized(product, language, 'category')}
               </Link>
             )}
 
             {/* Title */}
-            <h1 className="detail-title-large">{product.name}</h1>
+            <h1 className="detail-title-large">{getLocalized(product, language, 'name')}</h1>
 
             {/* Rating */}
             {reviews.length > 0 && (
@@ -519,7 +523,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
             {/* Short Description */}
             {product.description && (
               <p className="detail-desc">
-                {product.description}
+                {getLocalized(product, language, 'description')}
               </p>
             )}
 
@@ -594,20 +598,20 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 onClick={() => {
                   const productForCompare = {
                     id: product.id,
-                    name: product.name,
+                    name: getLocalized(product, language, 'name'),
                     price: product.price,
                     imageUrl: product.imageUrl,
                     img: product.imageUrl,
                     compareAtPrice: product.compareAtPrice,
                     inStock: product.totalStock > 0,
                     isNew: false,
-                    category: product.category,
-                    brand: product.brand?.name
+                    category: getLocalized(product, language, 'category'),
+                    brand: getLocalized(product.brand, language, 'name')
                   };
                   if (!isInComparison(product.id)) {
                     addToCompare(productForCompare as unknown as Product);
                   }
-                  router.push(`/compare?fromLabel=${product.name}`);
+                  router.push(`/compare?fromLabel=${getLocalized(product, language, 'name')}`);
                 }}
                 title={t.product.compare}
               >
@@ -715,7 +719,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                         transition={{ duration: 0.2 }}
                       >
                         <div className="prose prose-sm max-w-none text-muted-foreground whitespace-pre-wrap">
-                          {product.detailedDescription || product.description}
+                          {getLocalized(product, language, 'detailedDescription') || getLocalized(product, language, 'description')}
                         </div>
                       </motion.div>
                     )}
@@ -747,19 +751,19 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                         {product.brand && (
                           <>
                             <span className="spec-label">{t.product.brand}</span>
-                            <span className="spec-value">{product.brand.name}</span>
+                            <span className="spec-value">{getLocalized(product.brand, language, 'name')}</span>
                           </>
                         )}
                         {product.material && (
                           <>
                             <span className="spec-label">{t.product.material}</span>
-                            <span className="spec-value">{product.material.name}</span>
+                            <span className="spec-value">{getLocalized(product.material, language, 'name')}</span>
                           </>
                         )}
                         {product.category && (
                           <>
                             <span className="spec-label">{t.product.category}</span>
-                            <span className="spec-value">{product.category}</span>
+                            <span className="spec-value">{getLocalized(product, language, 'category')}</span>
                           </>
                         )}
                         {product.specs?.movement && (

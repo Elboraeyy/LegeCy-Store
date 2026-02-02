@@ -21,8 +21,11 @@ interface ProductFormProps {
     initialData?: {
         id: string;
         name: string;
+        nameAr?: string | null;
         description: string | null;
+        descriptionAr?: string | null;
         detailedDescription: string | null;
+        detailedDescriptionAr?: string | null;
         imageUrl: string | null;
         images: { url: string }[];
         variants: { sku: string; price: number }[]; 
@@ -71,8 +74,11 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     
     // Controlled State
     const [name, setName] = useState(initialData?.name || "");
+    const [nameAr, setNameAr] = useState(initialData?.nameAr || "");
     const [description, setDescription] = useState(initialData?.description || "");
+    const [descriptionAr, setDescriptionAr] = useState(initialData?.descriptionAr || "");
     const [detailedDescription, setDetailedDescription] = useState(initialData?.detailedDescription || "");
+    const [detailedDescriptionAr, setDetailedDescriptionAr] = useState(initialData?.detailedDescriptionAr || "");
     const [sku, setSku] = useState(defaultVariant?.sku || "");
     const [price, setPrice] = useState(defaultVariant?.price?.toString() || "");
     const [compareAtPrice, setCompareAtPrice] = useState(initialData?.compareAtPrice?.toString() || "");
@@ -127,8 +133,11 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         try {
             const payload: ProductInput = {
                 name,
+                nameAr: nameAr || undefined,
                 description: description || undefined,
+                descriptionAr: descriptionAr || undefined,
                 detailedDescription: detailedDescription || undefined,
+                detailedDescriptionAr: detailedDescriptionAr || undefined,
                 sku,
                 price: parseFloat(price),
                 compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
@@ -207,7 +216,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                         <h3 className="stat-label" style={{ marginBottom: '20px' }}>Product Information</h3>
                         
                         <div className="admin-form-group">
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Product Name</label>
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Product Name (English)</label>
                             <input 
                                 className="form-input" 
                                 placeholder="e.g. Royal Oak Offshore" 
@@ -219,7 +228,19 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                         </div>
 
                         <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Short Description (Show under price)</label>
+                            <label className="stat-label" style={{ fontSize: '11px', direction: 'rtl' }}>اسم المنتج (عربي)</label>
+                            <input
+                                className="form-input"
+                                placeholder="مثال: رويال أوك أوفشور"
+                                value={nameAr}
+                                onChange={(e) => setNameAr(e.target.value)}
+                                disabled={loading}
+                                dir="rtl"
+                            />
+                        </div>
+
+                        <div className="admin-form-group" style={{ marginTop: '16px' }}>
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Short Description (English)</label>
                             <textarea 
                                 className="form-input" 
                                 placeholder="Brief summary of the product..."
@@ -232,7 +253,21 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                         </div>
 
                         <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Detailed Description (Show in accordion)</label>
+                            <label className="stat-label" style={{ fontSize: '11px', direction: 'rtl' }}>وصف قصير (عربي)</label>
+                            <textarea
+                                className="form-input"
+                                placeholder="ملخص سريع للمنتج..."
+                                value={descriptionAr}
+                                onChange={(e) => setDescriptionAr(e.target.value)}
+                                disabled={loading}
+                                rows={3}
+                                style={{ resize: 'vertical', direction: 'rtl' }}
+                                dir="rtl"
+                            />
+                        </div>
+
+                        <div className="admin-form-group" style={{ marginTop: '16px' }}>
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Detailed Description (English)</label>
                             <textarea
                                 className="form-input"
                                 placeholder="Full technical details and storytelling..."
@@ -241,6 +276,20 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                                 disabled={loading}
                                 rows={6}
                                 style={{ resize: 'vertical' }}
+                            />
+                        </div>
+
+                        <div className="admin-form-group" style={{ marginTop: '16px' }}>
+                            <label className="stat-label" style={{ fontSize: '11px', direction: 'rtl' }}>وصف تفصيلي (عربي)</label>
+                            <textarea
+                                className="form-input"
+                                placeholder="التفاصيل التقنية الكاملة..."
+                                value={detailedDescriptionAr}
+                                onChange={(e) => setDetailedDescriptionAr(e.target.value)}
+                                disabled={loading}
+                                rows={6}
+                                style={{ resize: 'vertical', direction: 'rtl' }}
+                                dir="rtl"
                             />
                         </div>
                     </div>

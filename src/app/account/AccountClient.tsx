@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateProfile, updateProfileImage, removeProfileImage } from "@/lib/actions/profile";
 import { logoutAction } from "@/lib/actions/auth";
+import { useLanguage } from "@/context/LanguageContext";
 import styles from "./Account.module.css";
 
 interface RecentOrder {
@@ -32,17 +33,8 @@ interface Props {
     recentOrders: RecentOrder[];
 }
 
-const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-    pending: { label: "Pending", color: "#d97706", bg: "#fef3c7" },
-    confirmed: { label: "Confirmed", color: "#2563eb", bg: "#dbeafe" },
-    paid: { label: "Paid", color: "#059669", bg: "#d1fae5" },
-    processing: { label: "Processing", color: "#7c3aed", bg: "#ede9fe" },
-    shipped: { label: "Shipped", color: "#0891b2", bg: "#cffafe" },
-    delivered: { label: "Delivered", color: "#16a34a", bg: "#dcfce7" },
-    cancelled: { label: "Cancelled", color: "#dc2626", bg: "#fee2e2" },
-};
-
 export default function AccountClient({ user: initialUser, recentOrders }: Props) {
+    const { t, language } = useLanguage();
     const router = useRouter();
     const [user, setUser] = useState(initialUser);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -60,14 +52,29 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
     const galleryInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
 
+    const statusConfig = useMemo(() => ({
+        pending: { label: t.account.status.pending, color: "#d97706", bg: "#fef3c7" },
+        confirmed: { label: t.account.status.confirmed, color: "#2563eb", bg: "#dbeafe" },
+        paid: { label: t.account.status.paid, color: "#059669", bg: "#d1fae5" },
+        processing: { label: t.account.status.processing, color: "#7c3aed", bg: "#ede9fe" },
+        shipped: { label: t.account.status.shipped, color: "#0891b2", bg: "#cffafe" },
+        delivered: { label: t.account.status.delivered, color: "#16a34a", bg: "#dcfce7" },
+        cancelled: { label: t.account.status.cancelled, color: "#dc2626", bg: "#fee2e2" },
+    }), [t]);
+
     const formatDate = (d: string) =>
-        new Date(d).toLocaleDateString("en-US", {
+        new Date(d).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
             year: "numeric",
             month: "short",
             day: "numeric",
         });
 
-    const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
+    const formatPrice = (p: number) => {
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-US', {
+            style: 'currency',
+            currency: 'EGP'
+        }).format(p);
+    };
 
     const getInitial = () => {
         if (user.name) return user.name.charAt(0).toUpperCase();
@@ -108,20 +115,20 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
             const uploadData = await uploadRes.json();
 
             if (!uploadRes.ok || !uploadData.url) {
-                throw new Error(uploadData.error || 'Upload failed');
+                throw new Error(uploadData.error || t.account.upload_failed);
             }
 
             // Update profile with new image URL
             const res = await updateProfileImage(uploadData.url);
             if (res.success && res.data) {
                 setUser((prev) => ({ ...prev, image: res.data!.image }));
-                toast.success('Profile photo updated!');
+                toast.success(t.account.update_success);
             } else {
-                toast.error(res.error || 'Failed to update photo');
+                toast.error(res.error || t.account.upload_failed);
             }
         } catch (error) {
             console.error('Upload error:', error);
-            toast.error('Failed to upload photo');
+            toast.error(t.account.upload_failed);
         } finally {
             setIsUploading(false);
             // Reset input value to allow selecting the same file again
@@ -140,12 +147,12 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
             const res = await removeProfileImage();
             if (res.success) {
                 setUser((prev) => ({ ...prev, image: null }));
-                toast.success("Profile photo removed");
+                toast.success(t.account.remove_success);
             } else {
                 toast.error(res.error || "Failed to remove photo");
             }
         } catch {
-            toast.error("An error occurred");
+            toast.error(t.common.error);
         } finally {
             setIsUploading(false);
         }
@@ -169,12 +176,12 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                     phone: res.data!.phone,
                 }));
                 setShowEditModal(false);
-                toast.success("Profile updated successfully!");
+                toast.success(t.account.profile_updated);
             } else {
-                toast.error(res.error || "Failed to update profile");
+                toast.error(res.error || t.account.update_failed);
             }
         } catch {
-            toast.error("An error occurred");
+            toast.error(t.common.error);
         } finally {
             setIsLoading(false);
         }
@@ -187,17 +194,17 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
         router.refresh();
     };
 
-    const memberSince = new Date(user.createdAt).toLocaleDateString("en-US", {
+    const memberSince = new Date(user.createdAt).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
         month: "long",
         year: "numeric",
     });
 
     return (
-        <main className={styles.accountPage}>
+        <main className={styles.accountPage} dir={language === 'ar' ? 'rtl' : 'ltr'}>
             {/* Hero Section */}
             <div className={styles.accountHero}>
-                <h1 className={styles.heroTitle}>My Account</h1>
-                <p className={styles.heroSubtitle}>Manage your profile and preferences</p>
+                <h1 className={styles.heroTitle}>{t.account.title}</h1>
+                <p className={styles.heroSubtitle}>{t.account.subtitle}</p>
             </div>
 
             <div className={styles.accountContainer}>
@@ -226,7 +233,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                                 className={styles.avatarEdit}
                                 onClick={() => setShowAvatarMenu(!showAvatarMenu)}
                                 disabled={isUploading}
-                                title="Change photo"
+                                title={t.account.change_photo}
                             >
                                 {isUploading ? (
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -282,7 +289,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                                                 <circle cx="8.5" cy="8.5" r="1.5" />
                                                 <polyline points="21 15 16 10 5 21" />
                                             </svg>
-                                            Choose from Gallery
+                                            {t.account.choose_gallery}
                                         </button>
 
                                         {/* Camera option */}
@@ -295,7 +302,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                                                 <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
                                                 <circle cx="12" cy="13" r="4" />
                                             </svg>
-                                            Take a Photo
+                                            {t.account.take_photo}
                                         </button>
 
                                         {user.image && (
@@ -310,7 +317,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                                                     <line x1="10" y1="11" x2="10" y2="17" />
                                                     <line x1="14" y1="11" x2="14" y2="17" />
                                                 </svg>
-                                                Remove Photo
+                                                {t.account.remove_photo}
                                             </button>
                                         )}
                                     </div>
@@ -336,7 +343,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                                     <line x1="8" y1="2" x2="8" y2="6" />
                                     <line x1="3" y1="10" x2="21" y2="10" />
                                 </svg>
-                                Member since {memberSince}
+                                {t.account.member_since.replace('{date}', memberSince)}
                             </p>
                         </div>
 
@@ -352,7 +359,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
-                            Edit Profile
+                            {t.account.edit_profile}
                         </button>
                     </div>
 
@@ -360,19 +367,19 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                     <div className={styles.statsGrid}>
                         <div className={styles.statItem}>
                             <span className={styles.statValue}>{user.orderCount}</span>
-                            <span className={styles.statLabel}>Orders</span>
+                            <span className={styles.statLabel}>{t.account.orders}</span>
                         </div>
                         <div className={styles.statItem}>
                             <span className={styles.statValue}>{user.points}</span>
-                            <span className={styles.statLabel}>Points</span>
+                            <span className={styles.statLabel}>{t.account.points}</span>
                         </div>
                         <div className={styles.statItem}>
                             <span className={styles.statValue}>{user.addressCount}</span>
-                            <span className={styles.statLabel}>Addresses</span>
+                            <span className={styles.statLabel}>{t.account.addresses}</span>
                         </div>
                         <div className={styles.statItem}>
                             <span className={styles.statValue}>⭐</span>
-                            <span className={styles.statLabel}>VIP</span>
+                            <span className={styles.statLabel}>{t.account.vip}</span>
                         </div>
                     </div>
                 </div>
@@ -380,12 +387,12 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                 {/* Loyalty Card */}
                 <div className={styles.loyaltyCard}>
                     <div className={styles.loyaltyInfo}>
-                        <h3>Loyalty Points</h3>
+                        <h3>{t.account.loyalty_points}</h3>
                         <p className={styles.loyaltyPoints}>{user.points.toLocaleString()}</p>
                     </div>
                     <div className={styles.loyaltyMeta}>
-                        <p>Every 10 EGP = 1 Point</p>
-                        <p>Redeem on your next order</p>
+                        <p>{t.account.loyalty_desc}</p>
+                        <p>{t.account.loyalty_redeem}</p>
                     </div>
                 </div>
 
@@ -393,14 +400,14 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                 {recentOrders.length > 0 && (
                     <>
                         <div className={styles.sectionTitle}>
-                            <span>Recent Orders</span>
+                            <span>{t.account.recent_orders}</span>
                             <Link href="/account/orders" className={styles.viewAllLink}>
-                                View All →
+                                {t.account.view_all_orders} {language === 'ar' ? '←' : '→'}
                             </Link>
                         </div>
                         <div className={styles.recentOrders}>
                             {recentOrders.map((order) => {
-                                const status = statusConfig[order.status] || statusConfig.pending;
+                                const status = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.pending;
                                 return (
                                     <Link key={order.id} href={`/track/${order.id}`} className={styles.orderCard}>
                                         <div className={styles.orderIcon}>
@@ -412,7 +419,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                                         </div>
                                         <div className={styles.orderInfo}>
                                             <p className={styles.orderId}>#{order.id.slice(0, 8).toUpperCase()}</p>
-                                            <p className={styles.orderDate}>{formatDate(order.createdAt)} • {order.itemCount} item{order.itemCount > 1 ? "s" : ""}</p>
+                                            <p className={styles.orderDate}>{formatDate(order.createdAt)} • {order.itemCount} {t.cart.items_count.replace('{count}', '')}</p>
                                         </div>
                                         <span
                                             className={styles.orderStatus}
@@ -430,61 +437,61 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
 
                 {/* Quick Links */}
                 <div className={styles.sectionTitle} style={{ marginTop: recentOrders.length > 0 ? "24px" : "0" }}>
-                    <span>Quick Actions</span>
+                    <span>{t.account.quick_actions}</span>
                 </div>
                 <div className={styles.quickLinks}>
                     <Link href="/account/orders" className={styles.quickLink}>
                         <div className={styles.quickLinkIcon}>📦</div>
                         <div className={styles.quickLinkContent}>
-                            <p className={styles.quickLinkTitle}>My Orders</p>
-                            <p className={styles.quickLinkDesc}>View and track all your orders</p>
+                            <p className={styles.quickLinkTitle}>{t.nav.my_orders}</p>
+                            <p className={styles.quickLinkDesc}>{t.account.my_orders_desc}</p>
                         </div>
                         <svg className={styles.quickLinkArrow} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 18l6-6-6-6" />
+                            <path d={language === 'ar' ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
                         </svg>
                     </Link>
 
                     <Link href="/account/addresses" className={styles.quickLink}>
                         <div className={styles.quickLinkIcon}>🏠</div>
                         <div className={styles.quickLinkContent}>
-                            <p className={styles.quickLinkTitle}>Saved Addresses</p>
-                            <p className={styles.quickLinkDesc}>Manage your shipping addresses</p>
+                            <p className={styles.quickLinkTitle}>{t.account.saved_addresses}</p>
+                            <p className={styles.quickLinkDesc}>{t.account.addresses_desc}</p>
                         </div>
                         <svg className={styles.quickLinkArrow} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 18l6-6-6-6" />
+                            <path d={language === 'ar' ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
                         </svg>
                     </Link>
 
                     <Link href="/wishlist" className={styles.quickLink}>
                         <div className={styles.quickLinkIcon}>❤️</div>
                         <div className={styles.quickLinkContent}>
-                            <p className={styles.quickLinkTitle}>Wishlist</p>
-                            <p className={styles.quickLinkDesc}>Your saved products</p>
+                            <p className={styles.quickLinkTitle}>{t.footer.wishlist}</p>
+                            <p className={styles.quickLinkDesc}>{t.account.wishlist_desc}</p>
                         </div>
                         <svg className={styles.quickLinkArrow} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 18l6-6-6-6" />
+                            <path d={language === 'ar' ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
                         </svg>
                     </Link>
 
                     <Link href="/account/change-password" className={styles.quickLink}>
                         <div className={styles.quickLinkIcon}>🔒</div>
                         <div className={styles.quickLinkContent}>
-                            <p className={styles.quickLinkTitle}>Change Password</p>
-                            <p className={styles.quickLinkDesc}>Update your account password</p>
+                            <p className={styles.quickLinkTitle}>{t.account.change_password}</p>
+                            <p className={styles.quickLinkDesc}>{t.account.password_desc}</p>
                         </div>
                         <svg className={styles.quickLinkArrow} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 18l6-6-6-6" />
+                            <path d={language === 'ar' ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
                         </svg>
                     </Link>
 
                     <Link href="/contact" className={styles.quickLink}>
                         <div className={styles.quickLinkIcon}>💬</div>
                         <div className={styles.quickLinkContent}>
-                            <p className={styles.quickLinkTitle}>Support</p>
-                            <p className={styles.quickLinkDesc}>Contact us for help</p>
+                            <p className={styles.quickLinkTitle}>{t.account.support}</p>
+                            <p className={styles.quickLinkDesc}>{t.account.support_desc}</p>
                         </div>
                         <svg className={styles.quickLinkArrow} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 18l6-6-6-6" />
+                            <path d={language === 'ar' ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
                         </svg>
                     </Link>
                 </div>
@@ -492,11 +499,11 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                 {/* Logout Button */}
                 <button className={styles.logoutBtn} onClick={handleLogout}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                        <polyline points="16 17 21 12 16 7" />
-                        <line x1="21" y1="12" x2="9" y2="12" />
+                        <path d={language === 'ar' ? "M15 21H19A2 2 0 0021 19V5A2 2 0 0019 3H15" : "M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"} />
+                        <polyline points={language === 'ar' ? "8 17 3 12 8 7" : "16 17 21 12 16 7"} />
+                        <line x1={language === 'ar' ? "3" : "21"} y1="12" x2={language === 'ar' ? "15" : "9"} y2="12" />
                     </svg>
-                    Sign Out
+                    {t.account.sign_out}
                 </button>
 
 
@@ -507,7 +514,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                 <div className={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
                     <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.modalHeader}>
-                            <h3 className={styles.modalTitle}>Edit Profile</h3>
+                            <h3 className={styles.modalTitle}>{t.account.edit_profile}</h3>
                             <button className={styles.modalClose} onClick={() => setShowEditModal(false)}>
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M18 6L6 18M6 6l12 12" />
@@ -517,20 +524,20 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
 
                         <form onSubmit={handleSaveProfile}>
                             <div className={styles.formGroup}>
-                                <label className={styles.formLabel}>Full Name</label>
+                                <label className={styles.formLabel}>{t.account.full_name}</label>
                                 <input
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     className={styles.formInput}
-                                    placeholder="Enter your name"
+                                    placeholder={t.account.enter_name}
                                     required
                                     minLength={2}
                                 />
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label className={styles.formLabel}>Phone Number</label>
+                                <label className={styles.formLabel}>{t.account.phone_number}</label>
                                 <input
                                     type="tel"
                                     value={formData.phone}
@@ -538,26 +545,26 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                                     className={styles.formInput}
                                     placeholder="01XXXXXXXXX"
                                 />
-                                <p className={styles.formHint}>Egyptian mobile number (optional)</p>
+                                <p className={styles.formHint}>{t.account.egyptian_number_hint}</p>
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label className={styles.formLabel}>Email Address</label>
+                                <label className={styles.formLabel}>{t.auth.email}</label>
                                 <input
                                     type="email"
                                     value={user.email}
                                     className={styles.formInput}
                                     disabled
                                 />
-                                <p className={styles.formHint}>Email cannot be changed</p>
+                                <p className={styles.formHint}>{t.account.email_static}</p>
                             </div>
 
                             <div className={styles.modalActions}>
                                 <button type="button" className={styles.btnCancel} onClick={() => setShowEditModal(false)}>
-                                    Cancel
+                                    {t.account.cancel}
                                 </button>
                                 <button type="submit" className={styles.btnSave} disabled={isLoading}>
-                                    {isLoading ? "Saving..." : "Save Changes"}
+                                    {isLoading ? t.account.saving : t.account.save_changes}
                                 </button>
                             </div>
                         </form>

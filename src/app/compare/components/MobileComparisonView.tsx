@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Product } from "@/types/product";
 import { motion, PanInfo } from "framer-motion";
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface MobileComparisonViewProps {
     products: Product[];
@@ -19,6 +20,8 @@ export default function MobileComparisonView({
     onAddSlot,
     addToCart
 }: MobileComparisonViewProps) {
+    const { t, language } = useLanguage();
+
     // State for selecting Primary and Secondary products
     const [primaryIdx, setPrimaryIdx] = useState(0);
     const [secondaryIdx, setSecondaryIdx] = useState(products.length > 1 ? 1 : 0);
@@ -36,24 +39,26 @@ export default function MobileComparisonView({
     const primary = products[primaryIdx];
     const secondary = products[secondaryIdx];
 
-    // Spec groups (same as desktop)
+    // Spec groups
     const specGroups = [
         {
-            title: "Basic Info",
+            title: t.compare.basic_info,
+            id: "Basic Info",
             rows: [
-                { label: "Brand", key: "brand" },
-                { label: "Collection", key: "category" },
-                { label: "Status", key: "status" },
+                { label: t.compare.labels.brand, key: "brand" },
+                { label: t.compare.labels.collection, key: "category" },
+                { label: t.compare.labels.status, key: "status" },
             ]
         },
         {
-            title: "Specifications",
+            title: t.compare.specifications,
+            id: "Specifications",
             rows: [
-                { label: "Movement", specKey: "movement", default: "Quartz" },
-                { label: "Case Material", specKey: "case", default: "Stainless Steel" },
-                { label: "Water Resistance", specKey: "waterResistance", default: "3 ATM" },
-                { label: "Glass Type", specKey: "glass", default: "Mineral" },
-                { label: "Strap Material", key: "strap" },
+                { label: t.compare.labels.movement, specKey: "movement", default: "Quartz" },
+                { label: t.compare.labels.case_material, specKey: "case", default: "Stainless Steel" },
+                { label: t.compare.labels.water_resistance, specKey: "waterResistance", default: "3 ATM" },
+                { label: t.compare.labels.glass_type, specKey: "glass", default: "Mineral" },
+                { label: t.compare.labels.strap_material, key: "strap" },
             ]
         }
     ];
@@ -71,7 +76,12 @@ export default function MobileComparisonView({
         return "-";
     };
 
-    const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
+    const formatPrice = (p: number) => {
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
+            style: 'currency',
+            currency: 'EGP'
+        }).format(p);
+    };
 
     return (
         <div style={{ padding: "0 16px 100px 16px" }}>
@@ -290,7 +300,7 @@ export default function MobileComparisonView({
                                 cursor: "pointer"
                             }}
                         >
-                            Add to Cart
+                            {t.common.addToCart}
                         </button>
                     </div>
 
@@ -354,7 +364,7 @@ export default function MobileComparisonView({
                                 cursor: "pointer"
                             }}
                         >
-                            Add to Cart
+                            {t.common.addToCart}
                         </button>
                     </div>
                 </div>
@@ -371,7 +381,7 @@ export default function MobileComparisonView({
                     }}>
                         {/* Accordion Header */}
                         <button
-                            onClick={() => toggleSection(group.title)}
+                            onClick={() => toggleSection(group.id)}
                             style={{
                                 width: "100%",
                                 padding: "16px",
@@ -388,11 +398,11 @@ export default function MobileComparisonView({
                             }}
                         >
                             {group.title}
-                            {openSections[group.title] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            {openSections[group.id] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                         </button>
 
                         {/* Accordion Content */}
-                        {openSections[group.title] && (
+                        {openSections[group.id] && (
                             <div style={{ padding: "0 16px 16px 16px" }}>
                                 {group.rows.map((row, rIdx) => {
                                     const primaryVal = getSpecValue(primary, row);

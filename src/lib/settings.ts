@@ -180,8 +180,7 @@ const defaultFooter: FooterSettings = {
       links: [
         { label: "Shop", url: "/shop" },
         { label: "About", url: "/about" },
-        { label: "Contact", url: "/contact" },
-        { label: "FAQ", url: "/faq" },
+        { label: "Help & Contact", url: "/help" },
       ],
     },
   ],

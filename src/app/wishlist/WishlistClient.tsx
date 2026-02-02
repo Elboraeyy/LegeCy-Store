@@ -11,12 +11,14 @@ import { fadeUpSlow, staggerContainerSlow } from "@/lib/motion";
 import ModernProductCard from "@/components/ModernProductCard";
 
 import { useIsClient } from "@/hooks/useIsClient";
+import { useLanguage } from "@/context/LanguageContext";
 
 
 export default function WishlistClient() {
   const router = useRouter();
   const { fav, products, addToCart, toggleFav } = useStore();
   const isClient = useIsClient();
+  const { t } = useLanguage();
 
   const favProducts = products.filter((p) => fav.includes(p.id));
   const formatPrice = (p: number) => `$${p.toFixed(2)}`;
@@ -30,10 +32,10 @@ export default function WishlistClient() {
       <section className="shop-hero">
         <div className="container">
           <Reveal>
-             <h1 className="fade-in">Your Wishlist</h1>
+            <h1 className="fade-in">{t.wishlist.title}</h1>
           </Reveal>
           <Reveal delay={0.2}>
-             <p className="fade-in">A curated selection of timepieces you admire.</p>
+            <p className="fade-in">{t.wishlist.subtitle}</p>
           </Reveal>
         </div>
       </section>
@@ -42,16 +44,9 @@ export default function WishlistClient() {
         {favProducts.length === 0 ? (
           <Reveal width="100%">
             <div className="empty-state">
-              <h3>Your wish list is empty</h3>
+              <h3>{t.wishlist.empty_title}</h3>
               <p>
-                Explore our{" "}
-                <Link
-                  href="/shop"
-                  style={{ color: "var(--accent)", textDecoration: "underline" }}
-                >
-                  Collection
-                </Link>{" "}
-                and find your perfect timepiece.
+                {t.wishlist.empty_desc}
               </p>
             </div>
           </Reveal>
@@ -96,7 +91,7 @@ export default function WishlistClient() {
                       <Link
                         href={`/product/${p.id}`}
                         className="btn-icon"
-                        title="View Details"
+                        title={t.wishlist.view_details}
                       >
                         <svg
                           width="20"
@@ -112,7 +107,7 @@ export default function WishlistClient() {
                       </Link>
                       <button
                         className="btn-icon"
-                        title="Add to Cart"
+                        title={t.common.addToCart}
                         onClick={() => addToCart(String(p.id))}
                       >
                         <svg
@@ -130,7 +125,7 @@ export default function WishlistClient() {
                       </button>
                       <button
                         className="btn-icon"
-                        title="Remove"
+                        title={t.wishlist.remove}
                         onClick={() => toggleFav(String(p.id))}
                       >
                         <svg

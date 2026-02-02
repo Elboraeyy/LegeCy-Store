@@ -515,7 +515,7 @@ export default function CheckoutClient() {
                       }))}
                       placeholder={t.checkout.select_governorate}
                       className={errors.shippingGovernorate ? styles.formInputError : ""}
-                      searchPlaceholder={language === 'ar' ? "ابحث عن محافظة..." : "Search governorate..."}
+                      searchPlaceholder={t.checkout.search_governorate}
                     />
                     {errors.shippingGovernorate && <span className={styles.errorMessage}>{errors.shippingGovernorate}</span>}
                   </div>
@@ -540,7 +540,7 @@ export default function CheckoutClient() {
                       ) : []}
                       placeholder={t.checkout.select_city}
                       className={errors.shippingCity ? styles.formInputError : ""}
-                      searchPlaceholder={language === 'ar' ? "ابحث عن مدينة..." : "Search city..."}
+                      searchPlaceholder={t.checkout.search_city}
                     />
                     {errors.shippingCity && <span className={styles.errorMessage}>{errors.shippingCity}</span>}
                   </div>

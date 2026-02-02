@@ -14,9 +14,10 @@ import AddToCompareButton from "./AddToCompareButton";
 interface ModernProductCardProps {
     product: Product;
     priority?: boolean;
+    compact?: boolean;
 }
 
-export default function ModernProductCard({ product, priority = false }: ModernProductCardProps) {
+export default function ModernProductCard({ product, priority = false, compact = false }: ModernProductCardProps) {
     const { addToCart, toggleFav, isFav } = useStore();
     const isClient = useIsClient();
     const { t, language } = useLanguage();
@@ -77,6 +78,7 @@ export default function ModernProductCard({ product, priority = false }: ModernP
 
                 {/* Actions Container (Horizontal Bottom Center) */}
                 {/* Actions Container */}
+                {!compact && (
                 <div className="absolute bottom-2 right-2 flex flex-col gap-2 z-20 md:bottom-4 md:left-0 md:right-0 md:flex-row md:justify-center md:gap-3 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300 px-4">
 
                     {/* Add to Cart */}
@@ -113,6 +115,7 @@ export default function ModernProductCard({ product, priority = false }: ModernP
                         <AddToCompareButton product={product} className="!p-0 !bg-transparent !border-0 hover:!bg-transparent hover:!text-white w-full h-full flex items-center justify-center" />
                     </div>
                 </div>
+                )}
             </div>
 
             {/* 2. Info Area */}

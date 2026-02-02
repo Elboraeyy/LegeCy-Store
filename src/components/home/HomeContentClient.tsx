@@ -31,7 +31,7 @@ export function HomeContentClient({
   bundles,
   bogos
 }: Props) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
     <main>
@@ -48,16 +48,16 @@ export function HomeContentClient({
           <div className="hero-content">
             <Reveal delay={0.1}>
               <h1 className="hero-title">
-                {homepage.heroTitle.split('.').map((part, i) => (
+                {(language === 'ar' ? t.home.hero.title : homepage.heroTitle).split('.').map((part, i, arr) => (
                   <React.Fragment key={i}>
-                    {part.trim()}{i < homepage.heroTitle.split('.').length - 1 && '.'}<br />
+                    {part.trim()}{i < arr.length - 1 && '.'}<br />
                   </React.Fragment>
                 ))}
               </h1>
             </Reveal>
             <Reveal delay={0.3}>
               <p className="hero-sub">
-                {homepage.heroSubtitle}
+                {language === 'ar' ? t.home.hero.subtitle : homepage.heroSubtitle}
               </p>
             </Reveal>
             <Reveal delay={0.5}>

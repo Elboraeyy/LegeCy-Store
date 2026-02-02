@@ -16,11 +16,24 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
   const [language, setLanguageState] = useState<Locale>('en');
   
   useEffect(() => {
-    // Load language from localStorage if available
+    // 1. Check localStorage first (User preference)
     const savedLang = localStorage.getItem('site_language') as Locale;
     if (savedLang && (savedLang === 'en' || savedLang === 'ar')) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLanguageState(savedLang);
+    } else {
+      // 2. Check Browser/Device Language if no preference saved
+      if (typeof navigator !== 'undefined' && navigator.language) {
+        const browserLang = navigator.language.toLowerCase();
+        if (browserLang.startsWith('ar')) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setLanguageState('ar');
+          // Optional: Save this auto-detection so it persists until manually changed?
+          // localStorage.setItem('site_language', 'ar'); 
+          // Better to NOT save it immediately, so if they switch device lang, the site follows, 
+          // UNLESS they explicitly choose a language button.
+        }
+      }
     }
   }, []);
 

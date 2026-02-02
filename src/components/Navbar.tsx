@@ -274,9 +274,27 @@ export default function Navbar({
               {/* Language Switcher */}
               <button
                 onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-                className="hidden lg:flex items-center justify-center w-9 h-9 rounded-full bg-[#12403C]/5 text-[#12403C] hover:bg-[#12403C] hover:text-white transition-all font-bold text-sm"
+                className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#12403C]/20 text-[#12403C] hover:border-[#12403C] hover:bg-[#12403C] hover:text-[#d4af37] transition-all duration-300 group"
+                aria-label={language === 'en' ? "Switch to Arabic" : "Switch to English"}
               >
-                {language === 'en' ? 'عربي' : 'EN'}
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="group-hover:stroke-[#d4af37] transition-colors"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+                <span className="text-xs font-bold tracking-widest pt-0.5">
+                  {language === 'en' ? 'AR' : 'EN'}
+                </span>
               </button>
 
               {/* Search Trigger (Mobile) */}
@@ -557,7 +575,7 @@ export default function Navbar({
           className={`
             fixed top-0 bottom-0 w-[85%] max-w-[320px] bg-[#FCF8F3] z-[70] shadow-2xl flex flex-col touch-pan-y 
             transition-transform duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1) overscroll-contain
-            ${isRTL ? 'left-0 rounded-e-[20px]' : 'right-0 rounded-s-[20px]'}
+            ${isRTL ? 'left-0 rounded-r-[20px]' : 'right-0 rounded-l-[20px]'}
             ${isOpen ? 'translate-x-0' : (isRTL ? '-translate-x-full' : 'translate-x-full')}
           `}
         >
@@ -652,12 +670,30 @@ export default function Navbar({
               <div className="py-2 px-1">
                 <button
                   onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-                  className="flex items-center gap-3 w-full text-base font-medium text-[#12403C] py-3 px-1 rounded-lg hover:bg-[#12403C]/5 transition-all"
+                  className="flex items-center gap-3 w-full text-base font-medium text-[#12403C] py-3 px-1 rounded-lg hover:bg-[#12403C]/5 transition-all group"
                 >
-                  <span className="w-6 h-6 rounded-full bg-[#12403C] text-white flex items-center justify-center text-xs font-bold">
-                    {language === 'en' ? 'ع' : 'EN'}
+                  <span className="w-8 h-8 rounded-full bg-[#12403C]/5 text-[#12403C] group-hover:bg-[#12403C] group-hover:text-[#d4af37] flex items-center justify-center transition-all duration-300">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
                   </span>
-                  {language === 'en' ? 'عربي' : 'English'}
+                  <span className="flex-1 flex items-center justify-between">
+                    <span>{language === 'en' ? 'عربي' : 'English'}</span>
+                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#12403C]/10 text-[#12403C] uppercase">
+                      {language === 'en' ? 'AR' : 'EN'}
+                    </span>
+                  </span>
                 </button>
               </div>
 

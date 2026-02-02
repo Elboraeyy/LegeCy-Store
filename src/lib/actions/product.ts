@@ -10,8 +10,11 @@ import { getDefaultWarehouseId } from '@/lib/services/orderService'; // Reusing 
 
 export interface ProductInput {
     name: string;
+    nameAr?: string;
     description?: string;
+    descriptionAr?: string;
     detailedDescription?: string;
+    detailedDescriptionAr?: string;
     price: number;
     compareAtPrice?: number;
     sku: string;
@@ -45,8 +48,11 @@ export async function createProductAction(data: ProductInput) {
         const p = await tx.product.create({
             data: {
                 name: data.name,
+                nameAr: data.nameAr,
                 description: data.description,
+                descriptionAr: data.descriptionAr,
                 detailedDescription: data.detailedDescription,
+                detailedDescriptionAr: data.detailedDescriptionAr,
                 imageUrl: data.imageUrl,
                 compareAtPrice: data.compareAtPrice ? new Decimal(data.compareAtPrice) : null,
                 status: data.status || 'active',
@@ -105,8 +111,11 @@ export async function updateProductAction(id: string, data: ProductInput) {
         where: { id },
         data: {
             name: data.name,
+            nameAr: data.nameAr,
             description: data.description,
+            descriptionAr: data.descriptionAr,
             detailedDescription: data.detailedDescription,
+            detailedDescriptionAr: data.detailedDescriptionAr,
             imageUrl: data.imageUrl,
             images: {
                 deleteMany: {},
@@ -371,8 +380,11 @@ export async function duplicateProduct(id: string): Promise<{ success: boolean; 
             const p = await tx.product.create({
                 data: {
                     name: `${original.name} (Copy)`,
+                    nameAr: original.nameAr ? `${original.nameAr} (Copy)` : undefined,
                     description: original.description,
+                    descriptionAr: original.descriptionAr,
                     detailedDescription: original.detailedDescription,
+                    detailedDescriptionAr: original.detailedDescriptionAr,
                     imageUrl: original.imageUrl,
                     compareAtPrice: original.compareAtPrice,
                     status: 'draft',

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { addAddress, deleteAddress } from '@/lib/actions/user';
 import { Reveal } from '@/components/ui/Reveal';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Address {
     id: string;
@@ -20,6 +21,7 @@ interface AddressClientProps {
 }
 
 export default function AddressClient({ initialAddresses }: AddressClientProps) {
+    const { t, language } = useLanguage();
     const [addresses, setAddresses] = useState(initialAddresses);
     const [isAdding, setIsAdding] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -40,7 +42,7 @@ export default function AddressClient({ initialAddresses }: AddressClientProps) 
         try {
             const result = await addAddress(newAddress);
             if (result.success) {
-                toast.success('Address added successfully');
+                toast.success(t.account.addresses_page.added_success);
                 setIsAdding(false);
                 // Refresh logic would ideally involve revalidating path or refetching
                 // For now, we rely on router.refresh() or manual update if we returned the new address
@@ -48,40 +50,40 @@ export default function AddressClient({ initialAddresses }: AddressClientProps) 
                 // Simple: reload window or router.refresh()
                 window.location.reload();
             } else {
-                toast.error(result.error || 'Failed to add address');
+                toast.error(result.error || t.account.addresses_page.failed_add);
             }
         } catch {
-            toast.error('An error occurred');
+            toast.error(t.common.error);
         } finally {
             setLoading(false);
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this address?')) return;
+        if (!confirm(t.account.addresses_page.confirm_delete)) return;
         
         try {
             const result = await deleteAddress(id);
             if (result.success) {
-                toast.success('Address deleted');
+                toast.success(t.account.addresses_page.deleted_success);
                 setAddresses(addresses.filter(a => a.id !== id));
             } else {
-                toast.error('Failed to delete address');
+                toast.error(t.account.addresses_page.failed_delete);
             }
         } catch {
-            toast.error('An error occurred');
+            toast.error(t.common.error);
         }
     };
 
     return (
-        <div style={{ padding: '20px' }}>
+        <div style={{ padding: '20px' }} dir={language === 'ar' ? 'rtl' : 'ltr'}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h1 style={{ fontSize: '24px', fontFamily: 'var(--font-heading)' }}>My Addresses</h1>
+                <h1 style={{ fontSize: '24px', fontFamily: 'var(--font-heading)' }}>{t.account.addresses_page.title}</h1>
                 <button 
                     onClick={() => setIsAdding(!isAdding)}
                     className="btn btn-primary"
                 >
-                    {isAdding ? 'Cancel' : 'Add New Address'}
+                    {isAdding ? t.account.addresses_page.cancel : t.account.addresses_page.add_new}
                 </button>
             </div>
 
@@ -97,14 +99,14 @@ export default function AddressClient({ initialAddresses }: AddressClientProps) 
                     }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                             <input 
-                                placeholder="Address Name (e.g. Home)" 
+                                placeholder={t.account.addresses_page.placeholders.name}
                                 value={newAddress.type}
                                 onChange={e => setNewAddress({...newAddress, type: e.target.value})}
                                 style={inputStyle}
                                 required
                             />
                             <input 
-                                placeholder="Contact Name" 
+                                placeholder={t.account.addresses_page.placeholders.contact}
                                 value={newAddress.name}
                                 onChange={e => setNewAddress({...newAddress, name: e.target.value})}
                                 style={inputStyle}
@@ -113,14 +115,14 @@ export default function AddressClient({ initialAddresses }: AddressClientProps) 
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                             <input 
-                                placeholder="Phone Number" 
+                                placeholder={t.account.addresses_page.placeholders.phone}
                                 value={newAddress.phone}
                                 onChange={e => setNewAddress({...newAddress, phone: e.target.value})}
                                 style={inputStyle}
                                 required
                             />
                             <input 
-                                placeholder="City" 
+                                placeholder={t.account.addresses_page.placeholders.city}
                                 value={newAddress.city}
                                 onChange={e => setNewAddress({...newAddress, city: e.target.value})}
                                 style={inputStyle}
@@ -128,7 +130,7 @@ export default function AddressClient({ initialAddresses }: AddressClientProps) 
                             />
                         </div>
                         <input 
-                            placeholder="Full Address / Street" 
+                            placeholder={t.account.addresses_page.placeholders.street}
                             value={newAddress.street}
                             onChange={e => setNewAddress({...newAddress, street: e.target.value})}
                             style={inputStyle}
@@ -140,10 +142,10 @@ export default function AddressClient({ initialAddresses }: AddressClientProps) 
                                 checked={newAddress.isDefault}
                                 onChange={e => setNewAddress({...newAddress, isDefault: e.target.checked})}
                             />
-                            Set as default address
+                            {t.account.addresses_page.set_default}
                         </label>
                         <button type="submit" className="btn btn-primary" disabled={loading}>
-                            {loading ? 'Saving...' : 'Save Address'}
+                            {loading ? t.account.addresses_page.saving : t.account.addresses_page.save}
                         </button>
                     </form>
                 </Reveal>
@@ -151,7 +153,7 @@ export default function AddressClient({ initialAddresses }: AddressClientProps) 
 
             <div style={{ display: 'grid', gap: '16px' }}>
                 {addresses.length === 0 ? (
-                    <p style={{ color: 'var(--text-muted)' }}>No addresses saved yet.</p>
+                    <p style={{ color: 'var(--text-muted)' }}>{t.account.addresses_page.no_addresses}</p>
                 ) : (
                     addresses.map((addr) => (
                         <div key={addr.id} style={{ 
@@ -172,7 +174,7 @@ export default function AddressClient({ initialAddresses }: AddressClientProps) 
                                             padding: '2px 8px', 
                                             borderRadius: '4px', 
                                             fontSize: '12px' 
-                                        }}>Default</span>
+                                        }}>{t.account.addresses_page.default}</span>
                                     )}
                                 </div>
                                 <p><strong>{addr.name}</strong> • {addr.phone}</p>
@@ -182,7 +184,7 @@ export default function AddressClient({ initialAddresses }: AddressClientProps) 
                                 onClick={() => handleDelete(addr.id)}
                                 style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
                             >
-                                Delete
+                                {t.account.addresses_page.delete}
                             </button>
                         </div>
                     ))

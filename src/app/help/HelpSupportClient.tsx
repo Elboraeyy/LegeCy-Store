@@ -4,105 +4,34 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/context/StoreContext";
 import CustomSelect from "@/components/ui/CustomSelect";
-
-interface FAQItem {
-  question: string;
-  answer: string;
-  category: string;
-}
-
-const faqData: FAQItem[] = [
-  // Shipping & Delivery
-  {
-    category: "Shipping & Delivery",
-    question: "What is the delivery time?",
-    answer: "We ship from Samanoud, Gharbia. Orders to Gharbia & Dakahlia arrive in 1-2 business days. Cairo, Giza & Alexandria take 2-4 days. Other areas take 3-7 days depending on distance. You will receive a tracking number as soon as your order ships."
-  },
-  {
-    category: "Shipping & Delivery",
-    question: "Is shipping free?",
-    answer: "Free shipping is available for orders above 1,500 EGP to Gharbia and Dakahlia governorates. For other areas, shipping fees are calculated at checkout based on your location."
-  },
-  {
-    category: "Shipping & Delivery",
-    question: "Can I track my shipment?",
-    answer: "Absolutely! After your order is shipped, you will receive an email with the tracking number and a link to track your shipment."
-  },
-  // Payment
-  {
-    category: "Payment",
-    question: "What payment methods are available?",
-    answer: "We accept Cash on Delivery (COD), bank cards (Visa/Mastercard), and mobile wallets (Vodafone Cash, Orange Cash, Etisalat Cash)."
-  },
-  {
-    category: "Payment",
-    question: "Is payment secure?",
-    answer: "Yes, we use the latest encryption technologies and the certified Paymob gateway to ensure the security of all your financial transactions."
-  },
-  {
-    category: "Payment",
-    question: "Can I pay in installments?",
-    answer: "Currently, we do not offer installment payment, but we are working on adding this feature soon."
-  },
-  // Returns & Exchange
-  {
-    category: "Returns & Exchange",
-    question: "What is the return policy?",
-    answer: "You can return the product within 14 days of receipt, provided it is in its original condition with all accessories and packaging."
-  },
-  {
-    category: "Returns & Exchange",
-    question: "How do I request a return or exchange?",
-    answer: "You can contact us through the 'My Orders' page in your account, or contact customer service and we will arrange the return process."
-  },
-  {
-    category: "Returns & Exchange",
-    question: "When will I receive the refund?",
-    answer: "After receiving and inspecting the product, the refund will be processed within 5-7 business days to the original payment method."
-  },
-  // Products
-  {
-    category: "Products",
-    question: "Are the products authentic?",
-    answer: "Yes! All our products are 100% authentic and sourced from authorized dealers. We provide a certificate of authenticity where applicable."
-  },
-  {
-    category: "Products",
-    question: "What is the warranty period?",
-    answer: "We offer a one-year warranty on all products against manufacturing defects. The warranty does not cover misuse or breakage."
-  },
-  {
-    category: "Products",
-    question: "Can I try the product before purchasing?",
-    answer: "You can inspect the product upon delivery before payment (in case of Cash on Delivery). If it doesn't suit you, you can refuse the delivery."
-  },
-  // Account & Orders
-  {
-    category: "Account & Orders",
-    question: "How do I create an account?",
-    answer: "Click on 'Sign Up' at the top of the page, enter your details and create a password. You can also sign up with your Google account."
-  },
-  {
-    category: "Account & Orders",
-    question: "I forgot my password, what should I do?",
-    answer: "Click on 'Forgot Password' on the login page, enter your email and you will receive a message to reset your password."
-  },
-  {
-    category: "Account & Orders",
-    question: "How do I track my order status?",
-    answer: "Log in to your account, go to 'My Orders' and you will find all your orders with the status of each order."
-  },
-];
-
-const categories = ["All", "Shipping & Delivery", "Payment", "Returns & Exchange", "Products", "Account & Orders"];
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function HelpSupportClient() {
   const { showToast } = useStore();
+  const { t, language } = useLanguage();
   const [activeCategory, setActiveCategory] = useState("All");
   const [openItems, setOpenItems] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"faq" | "contact">("contact");
   const [subject, setSubject] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Get categories from dictionary
+  const categories = [
+    t.help.faq.categories.all,
+    t.help.faq.categories.shipping,
+    t.help.faq.categories.payment,
+    t.help.faq.categories.returns,
+    t.help.faq.categories.products,
+    t.help.faq.categories.account,
+  ];
+
+  // Get FAQs from dictionary
+  const faqData = t.help.faq.questions || [];
+
+  // Sync category when language changes
+  React.useEffect(() => {
+    setActiveCategory(t.help.faq.categories.all);
+  }, [language, t.help.faq.categories.all]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -110,9 +39,9 @@ export default function HelpSupportClient() {
     }
   };
 
-  const filteredFAQs = activeCategory === "All" 
+  const filteredFAQs = activeCategory === t.help.faq.categories.all 
     ? faqData 
-    : faqData.filter(item => item.category === activeCategory);
+    : faqData.filter((item: any) => item.cat === activeCategory);
 
   const toggleItem = (index: number) => {
     setOpenItems(prev => 
@@ -126,18 +55,10 @@ export default function HelpSupportClient() {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
-    
-    // Append subject manually since it's a custom select
+
     if (subject) formData.append("subject", subject);
 
-    // Append file if selected (though file input handles it, specific logic might be needed if custom input)
-    // The Input type="file" is already in the form, so new FormData(form) captures it.
-
     try {
-      // Import dynamically to avoid server-only module errors on client if not handled right, 
-      // but standard import usually works with "use server" actions.
-      // We will use standard import at top of file, so let's skip dynamic import here.
-
       const { submitContactForm } = await import("@/lib/actions/contact");
       const result = await submitContactForm(null, formData);
 
@@ -150,12 +71,18 @@ export default function HelpSupportClient() {
         if (showToast) showToast(result.message, "danger");
       }
     } catch {
-      if (showToast) showToast("Failed to send message", "danger");
+      if (showToast) showToast(language === 'ar' ? "فشل إرسال الرسالة" : "Failed to send message", "danger");
     }
   };
 
+  // Get subject options from dictionary
+  const subjectOptions = Object.entries(t.help.contact.subjects).map(([value, label]) => ({
+    value,
+    label: label as string
+  }));
+
   return (
-    <main className="help-support-page">
+    <main className="help-support-page" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Hero Section */}
       <section className="help-hero">
         <div className="container">
@@ -164,14 +91,14 @@ export default function HelpSupportClient() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            Help & Support
+            {t.help.hero.title}
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            Find answers to common questions or get in touch with our team
+            {t.help.hero.subtitle}
           </motion.p>
 
           {/* Main Tab Switcher */}
@@ -190,7 +117,7 @@ export default function HelpSupportClient() {
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
                 <line x1="12" y1="17" x2="12.01" y2="17"/>
               </svg>
-              FAQ
+              {t.help.tabs.faq}
             </button>
             <button 
               className={`help-main-tab ${activeTab === "contact" ? "active" : ""}`}
@@ -199,7 +126,7 @@ export default function HelpSupportClient() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
-              Contact Us
+              {t.help.tabs.contact}
             </button>
           </motion.div>
         </div>
@@ -209,9 +136,9 @@ export default function HelpSupportClient() {
         {activeTab === "faq" ? (
           <motion.div
             key="faq"
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: language === 'ar' ? 20 : -20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+            exit={{ opacity: 0, x: language === 'ar' ? -20 : 20 }}
             transition={{ duration: 0.3 }}
           >
             {/* Category Tabs */}
@@ -232,7 +159,7 @@ export default function HelpSupportClient() {
             {/* FAQ Items */}
             <section className="faq-content container">
               <div className="faq-list">
-                {filteredFAQs.map((item, index) => (
+                {filteredFAQs.map((item: any, index: number) => (
                   <motion.div 
                     key={index}
                     className="faq-item"
@@ -244,7 +171,7 @@ export default function HelpSupportClient() {
                       className={`faq-question ${openItems.includes(index) ? 'open' : ''}`}
                       onClick={() => toggleItem(index)}
                     >
-                      <span>{item.question}</span>
+                      <span>{item.q}</span>
                       <svg 
                         width="20" 
                         height="20" 
@@ -266,7 +193,7 @@ export default function HelpSupportClient() {
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.3 }}
                         >
-                          <p>{item.answer}</p>
+                          <p>{item.a}</p>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -283,13 +210,13 @@ export default function HelpSupportClient() {
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                   </svg>
                 </div>
-                <h3>Still have questions?</h3>
-                <p>Our support team is ready to help you with any inquiries</p>
+                <h3>{t.help.faq.cta.title}</h3>
+                <p>{t.help.faq.cta.subtitle}</p>
                 <button 
                   className="btn btn-primary"
                   onClick={() => setActiveTab("contact")}
                 >
-                  Contact Support
+                  {t.help.faq.cta.btn}
                 </button>
               </div>
             </section>
@@ -297,9 +224,9 @@ export default function HelpSupportClient() {
         ) : (
           <motion.div
             key="contact"
-            initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: language === 'ar' ? -20 : 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+              exit={{ opacity: 0, x: language === 'ar' ? 20 : -20 }}
             transition={{ duration: 0.3 }}
           >
             <section className="contact-section container">
@@ -318,8 +245,8 @@ export default function HelpSupportClient() {
                         <polyline points="22,6 12,13 2,6"/>
                       </svg>
                     </div>
-                    <h4>Email Us</h4>
-                    <p>Drop us a line anytime</p>
+                      <h4>{t.help.contact.info.email.title}</h4>
+                      <p>{t.help.contact.info.email.desc}</p>
                     <a href="mailto:info@legecy.store" className="contact-link">info@legecy.store</a>
                   </motion.div>
 
@@ -334,8 +261,8 @@ export default function HelpSupportClient() {
                         <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                       </svg>
                     </div>
-                    <h4>Call Us</h4>
-                    <p>Mon-Sat, 10am - 10pm</p>
+                      <h4>{t.help.contact.info.call.title}</h4>
+                      <p>{t.help.contact.info.call.desc}</p>
                       <a href="tel:+201515205073" className="contact-link">+20 151 520 5073</a>
                   </motion.div>
 
@@ -351,9 +278,9 @@ export default function HelpSupportClient() {
                         <circle cx="12" cy="10" r="3"/>
                       </svg>
                     </div>
-                    <h4>Visit Us</h4>
-                    <p>Our showroom location</p>
-                    <span className="contact-address">Samanoud, Gharbia, Egypt</span>
+                      <h4>{t.help.contact.info.visit.title}</h4>
+                      <p>{t.help.contact.info.visit.desc}</p>
+                      <span className="contact-address">{language === 'ar' ? 'سمنود، الغربية، مصر' : 'Samanoud, Gharbia, Egypt'}</span>
                   </motion.div>
                 </div>
 
@@ -365,64 +292,57 @@ export default function HelpSupportClient() {
                   transition={{ delay: 0.2 }}
                 >
                   <div className="contact-form-header">
-                    <h3>Send us a Message</h3>
-                    <p>We typically respond within 24 hours</p>
+                      <h3>{t.help.contact.title}</h3>
+                      <p>{t.help.contact.subtitle}</p>
                   </div>
                     <form id="contact-form" onSubmit={handleFormSubmit}>
                     <div className="form-row">
                       <div className="form-group">
-                        <label htmlFor="name">Your Name</label>
+                          <label htmlFor="name">{t.help.contact.form.name}</label>
                         <input
                           id="name"
                           type="text"
                           name="name"
-                          placeholder="John Doe"
+                            placeholder={t.help.contact.form.name_placeholder}
                           required
                         />
                       </div>
                       <div className="form-group">
-                        <label htmlFor="email">Email Address</label>
+                          <label htmlFor="email">{t.help.contact.form.email}</label>
                         <input
                           id="email"
                           type="email"
                           name="email"
-                          placeholder="john@example.com"
+                            placeholder={t.help.contact.form.email_placeholder}
                           required
                         />
                       </div>
                     </div>
                     <div className="form-group">
-                      <label htmlFor="subject">Subject</label>
+                        <label htmlFor="subject">{t.help.contact.form.subject}</label>
                         <CustomSelect
                           name="subject"
                           value={subject}
                           onChange={setSubject}
-                          placeholder="Select a topic"
+                          placeholder={t.help.contact.form.subject_placeholder}
                           required
-                          options={[
-                            { value: "order", label: "Order Inquiry" },
-                            { value: "product", label: "Product Question" },
-                            { value: "return", label: "Returns & Refunds" },
-                            { value: "shipping", label: "Shipping Issue" },
-                            { value: "other", label: "Other" },
-                          ]}
+                          options={subjectOptions}
                         />
-                        {/* Hidden input to ensure subject is submitted if CustomSelect doesn't use native select */}
                         <input type="hidden" name="subject" value={subject} />
                     </div>
                     <div className="form-group">
-                      <label htmlFor="message">Message</label>
+                        <label htmlFor="message">{t.help.contact.form.message}</label>
                       <textarea
                         id="message"
                         name="message"
-                        placeholder="How can we help you today?"
+                          placeholder={t.help.contact.form.message_placeholder}
                         rows={5}
                         required
                       ></textarea>
                     </div>
 
                       <div className="form-group">
-                        <label htmlFor="attachment">Attachment (Optional)</label>
+                        <label htmlFor="attachment">{t.help.contact.form.attachment}</label>
                         <div className="file-upload-wrapper">
                           <input
                             type="file"
@@ -441,7 +361,7 @@ export default function HelpSupportClient() {
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
                             </svg>
-                            {selectedFile ? selectedFile.name : "Upload Image"}
+                            {selectedFile ? selectedFile.name : t.help.contact.form.upload_image}
                           </button>
                           {selectedFile && (
                             <button
@@ -466,7 +386,7 @@ export default function HelpSupportClient() {
                         <line x1="22" y1="2" x2="11" y2="13"/>
                         <polygon points="22 2 15 22 11 13 2 9 22 2"/>
                       </svg>
-                      Send Message
+                        {t.help.contact.form.submit}
                     </button>
                   </form>
                 </motion.div>
@@ -476,11 +396,11 @@ export default function HelpSupportClient() {
             {/* Quick FAQ Links */}
             <section className="quick-help container">
               <div className="quick-help-header">
-                <h3>Quick Answers</h3>
-                <p>Check these common questions before reaching out</p>
+                  <h3>{t.help.faq.quick.title}</h3>
+                  <p>{t.help.faq.quick.subtitle}</p>
               </div>
               <div className="quick-help-grid">
-                {faqData.slice(0, 4).map((item, index) => (
+                  {faqData.slice(0, 4).map((item: any, index: number) => (
                   <motion.div 
                     key={index}
                     className="quick-help-card"
@@ -492,9 +412,9 @@ export default function HelpSupportClient() {
                       setOpenItems([index]);
                     }}
                   >
-                    <span className="quick-help-q">Q:</span>
-                    <span>{item.question}</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <span className="quick-help-q">{language === 'ar' ? 'س:' : 'Q:'}</span>
+                      <span>{item.q}</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: language === 'ar' ? 'rotate(180deg)' : 'none' }}>
                       <polyline points="9 18 15 12 9 6"/>
                     </svg>
                   </motion.div>
@@ -505,7 +425,7 @@ export default function HelpSupportClient() {
                   className="btn btn-outline"
                   onClick={() => setActiveTab("faq")}
                 >
-                  View All FAQs
+                    {t.help.faq.quick.view_all}
                 </button>
               </div>
             </section>

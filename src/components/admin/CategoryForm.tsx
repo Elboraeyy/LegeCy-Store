@@ -12,8 +12,10 @@ interface CategoryFormProps {
     initialData?: {
         id: string;
         name: string;
+        nameAr?: string | null;
         slug: string;
         description: string | null;
+        descriptionAr?: string | null;
         parentId: string | null;
         sortOrder: number;
     } | null;
@@ -25,8 +27,10 @@ export default function CategoryForm({ initialData }: CategoryFormProps) {
     const [categories, setCategories] = useState<{ id: string; name: string; sortOrder: number }[]>([]);
 
     const [name, setName] = useState(initialData?.name || "");
+    const [nameAr, setNameAr] = useState(initialData?.nameAr || "");
     const [slug, setSlug] = useState(initialData?.slug || "");
     const [description, setDescription] = useState(initialData?.description || "");
+    const [descriptionAr, setDescriptionAr] = useState(initialData?.descriptionAr || "");
     const [parentId, setParentId] = useState(initialData?.parentId || "");
     const [sortOrder, setSortOrder] = useState(initialData?.sortOrder?.toString() || "0");
 
@@ -52,8 +56,10 @@ export default function CategoryForm({ initialData }: CategoryFormProps) {
         try {
             const payload = {
                 name,
+                nameAr: nameAr || undefined,
                 slug,
                 description: description || undefined,
+                descriptionAr: descriptionAr || undefined,
                 parentId: parentId || undefined,
                 sortOrder: parseInt(sortOrder) || 0
             };
@@ -101,7 +107,7 @@ export default function CategoryForm({ initialData }: CategoryFormProps) {
                     <h3 className="stat-label" style={{ marginBottom: '20px' }}>Category Details</h3>
 
                     <div className="admin-form-group">
-                        <label className="stat-label" style={{ fontSize: '11px' }}>Category Name</label>
+                        <label className="stat-label" style={{ fontSize: '11px' }}>Category Name (English)</label>
                         <input
                             className="form-input"
                             placeholder="e.g. Luxury Watches"
@@ -109,6 +115,18 @@ export default function CategoryForm({ initialData }: CategoryFormProps) {
                             onChange={(e) => handleNameChange(e.target.value)}
                             disabled={loading}
                             required
+                        />
+                    </div>
+
+                    <div className="admin-form-group" style={{ marginTop: '16px' }}>
+                        <label className="stat-label" style={{ fontSize: '11px', direction: 'rtl' }}>اسم الفئة (عربي)</label>
+                        <input
+                            className="form-input"
+                            placeholder="مثال: ساعات فاخرة"
+                            value={nameAr}
+                            onChange={(e) => setNameAr(e.target.value)}
+                            disabled={loading}
+                            dir="rtl"
                         />
                     </div>
 
@@ -138,6 +156,20 @@ export default function CategoryForm({ initialData }: CategoryFormProps) {
                             disabled={loading}
                             rows={3}
                             style={{ resize: 'vertical' }}
+                        />
+                    </div>
+
+                    <div className="admin-form-group" style={{ marginTop: '16px' }}>
+                        <label className="stat-label" style={{ fontSize: '11px', direction: 'rtl' }}>وصف (عربي)</label>
+                        <textarea
+                            className="form-input"
+                            placeholder="وصف اختياري..."
+                            value={descriptionAr}
+                            onChange={(e) => setDescriptionAr(e.target.value)}
+                            disabled={loading}
+                            rows={3}
+                            style={{ resize: 'vertical', direction: 'rtl' }}
+                            dir="rtl"
                         />
                     </div>
                 </div>

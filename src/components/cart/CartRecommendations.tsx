@@ -34,6 +34,9 @@ export default function CartRecommendations() {
                 products={products}
                 viewAllLink="/shop"
                 enableMobilePadding={false}
+                customItemClass="!min-w-[100px] w-[calc(33%-8px)] !md:w-[135px]"
+                useContainer={false}
+                compact={true}
             />
         </section>
     );

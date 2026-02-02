@@ -2,12 +2,14 @@
 
 import React from "react";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface EmptyStateProps {
     onStartShopping?: () => void; // Unused but maybe referenced. Linter says unused.
 }
 
 export default function EmptyState({ }: EmptyStateProps) {
+    const { t } = useLanguage();
     return (
         <div style={{
             padding: "80px 24px",
@@ -45,7 +47,7 @@ export default function EmptyState({ }: EmptyStateProps) {
                 marginBottom: "16px",
                 color: "var(--primary)"
             }}>
-                Start Comparing
+                {t.compare.empty_title}
             </h2>
             <p style={{
                 fontSize: "16px",
@@ -54,12 +56,12 @@ export default function EmptyState({ }: EmptyStateProps) {
                 marginBottom: "32px",
                 lineHeight: "1.6"
             }}>
-                Select products from the shop to see their specifications side by side.
+                {t.compare.empty_desc}
             </p>
 
             <div style={{ display: "flex", gap: "16px" }}>
                 <Link href="/shop" className="btn btn-primary">
-                    Browse Collection
+                    {t.compare.browse_collection}
                 </Link>
             </div>
         </div >

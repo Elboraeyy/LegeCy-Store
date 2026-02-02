@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLanguage } from "@/context/LanguageContext";
 
 export function FlashSaleSingleClient({ endDate }: { endDate: Date }) {
+    const { t } = useLanguage();
+
     const calculateTimeLeft = useCallback(() => {
         const difference = new Date(endDate).getTime() - new Date().getTime();
         
@@ -42,7 +45,7 @@ export function FlashSaleSingleClient({ endDate }: { endDate: Date }) {
                 <>
                     <div className="flex flex-col items-center bg-[#FCF8F3]/10 backdrop-blur-md border border-[#FCF8F3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
                         <span className="text-2xl md:text-3xl font-bold text-[#FCF8F3] tabular-nums">{String(timeLeft.days).padStart(2, '0')}</span>
-                        <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">Days</span>
+                        <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">{t.home.promotions.days}</span>
                     </div>
                     <span className="text-xl md:text-3xl font-bold text-[#d4af37] hidden md:block">:</span>
                 </>
@@ -50,19 +53,19 @@ export function FlashSaleSingleClient({ endDate }: { endDate: Date }) {
             
             <div className="flex flex-col items-center bg-[#FCF8F3]/10 backdrop-blur-md border border-[#FCF8F3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
                 <span className="text-2xl md:text-3xl font-bold text-[#FCF8F3] tabular-nums">{String(timeLeft.hours).padStart(2, '0')}</span>
-                <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">Hours</span>
+                <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">{t.home.promotions.hours}</span>
             </div>
             <span className="text-xl md:text-3xl font-bold text-[#d4af37] hidden md:block">:</span>
             
             <div className="flex flex-col items-center bg-[#FCF8F3]/10 backdrop-blur-md border border-[#FCF8F3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
                 <span className="text-2xl md:text-3xl font-bold text-[#FCF8F3] tabular-nums">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">Mins</span>
+                <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">{t.home.promotions.mins}</span>
             </div>
             <span className="text-xl md:text-3xl font-bold text-[#d4af37] hidden md:block">:</span>
             
             <div className="flex flex-col items-center bg-[#FCF8F3]/10 backdrop-blur-md border border-[#FCF8F3]/20 rounded-lg px-3 py-2 min-w-[60px] md:min-w-[80px]">
                 <span className="text-2xl md:text-3xl font-bold text-[#FCF8F3] tabular-nums">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">Secs</span>
+                <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#d4af37] mt-0.5 font-medium">{t.home.promotions.secs}</span>
             </div>
         </div>
     );

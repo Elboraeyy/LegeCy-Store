@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
 import styles from "./TrackOrder.module.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface OrderItem {
   id: string;
@@ -52,39 +53,46 @@ interface Props {
   order: Order;
 }
 
-const statusConfig: Record<string, { label: string; color: string; bg: string; icon: string; step: number }> = {
-  pending: { label: "Order Placed", color: "#d97706", bg: "#fef3c7", icon: "📋", step: 1 },
-  confirmed: { label: "Confirmed", color: "#2563eb", bg: "#dbeafe", icon: "✓", step: 2 },
-  paid: { label: "Paid", color: "#059669", bg: "#d1fae5", icon: "💳", step: 2 },
-  processing: { label: "Processing", color: "#7c3aed", bg: "#ede9fe", icon: "📦", step: 3 },
-  shipped: { label: "On the Way", color: "#0891b2", bg: "#cffafe", icon: "🚚", step: 4 },
-  delivered: { label: "Delivered", color: "#16a34a", bg: "#dcfce7", icon: "✅", step: 5 },
-  cancelled: { label: "Cancelled", color: "#dc2626", bg: "#fee2e2", icon: "❌", step: 0 },
-};
-
-const steps = [
-  { key: "pending", label: "Order Placed", icon: "📋" },
-  { key: "confirmed", label: "Confirmed", icon: "✓" },
-  { key: "processing", label: "Processing", icon: "📦" },
-  { key: "shipped", label: "On the Way", icon: "🚚" },
-  { key: "delivered", label: "Delivered", icon: "🏠" },
-];
-
 export default function TrackOrderClient({ order }: Props) {
+  const { t, language } = useLanguage();
   const [copied, setCopied] = useState(false);
+
+  const statusConfig: Record<string, { label: string; color: string; bg: string; icon: string; step: number }> = {
+    pending: { label: t.orders.status.pending, color: "#d97706", bg: "#fef3c7", icon: "📋", step: 1 },
+    confirmed: { label: t.orders.status.confirmed, color: "#2563eb", bg: "#dbeafe", icon: "✓", step: 2 },
+    paid: { label: t.orders.status.paid, color: "#059669", bg: "#d1fae5", icon: "💳", step: 2 },
+    processing: { label: t.orders.status.processing, color: "#7c3aed", bg: "#ede9fe", icon: "📦", step: 3 },
+    shipped: { label: t.orders.status.shipped, color: "#0891b2", bg: "#cffafe", icon: "🚚", step: 4 },
+    delivered: { label: t.orders.status.delivered, color: "#16a34a", bg: "#dcfce7", icon: "✅", step: 5 },
+    cancelled: { label: t.orders.status.cancelled, color: "#dc2626", bg: "#fee2e2", icon: "❌", step: 0 },
+  };
+
+  const steps = [
+    { key: "pending", label: t.orders.tracking.steps.placed, icon: "📋" },
+    { key: "confirmed", label: t.orders.tracking.steps.confirmed, icon: "✓" },
+    { key: "processing", label: t.orders.tracking.steps.processing, icon: "📦" },
+    { key: "shipped", label: t.orders.tracking.steps.shipped, icon: "🚚" },
+    { key: "delivered", label: t.orders.tracking.steps.delivered, icon: "🏠" },
+  ];
+
   const currentStatus = statusConfig[order.status] || statusConfig.pending;
   const isCancelled = order.status === 'cancelled';
   const isDelivered = order.status === 'delivered';
 
-  const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
+  const formatPrice = (p: number) => {
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
+      style: 'currency',
+      currency: 'EGP'
+    }).format(p);
+  };
 
-  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', {
+  const formatDate = (d: string) => new Date(d).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
 
-  const formatDateTime = (d: string) => new Date(d).toLocaleDateString('en-US', {
+  const formatDateTime = (d: string) => new Date(d).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -100,17 +108,17 @@ export default function TrackOrderClient({ order }: Props) {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
-    if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffMinutes < 60) return t.orders.tracking.relative_time.minutes_ago.replace('{count}', diffMinutes.toString());
+    if (diffHours < 24) return t.orders.tracking.relative_time.hours_ago.replace('{count}', diffHours.toString());
+    if (diffDays === 1) return t.orders.tracking.relative_time.yesterday;
+    if (diffDays < 7) return t.orders.tracking.relative_time.days_ago.replace('{count}', diffDays.toString());
     return formatDate(d);
   };
 
   const copyOrderId = () => {
     navigator.clipboard.writeText(order.id);
     setCopied(true);
-    toast.success('Order ID copied!');
+    toast.success(t.orders.tracking.id_copied);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -125,14 +133,21 @@ export default function TrackOrderClient({ order }: Props) {
     return `${name.slice(0, 2)}***@${domain}`;
   };
 
+  const getPaymentLabel = () => {
+    if (order.paymentMethod === 'cod') return t.orders.tracking.payment_info.cod;
+    if (order.paymentMethod === 'paymob') return t.orders.tracking.payment_info.online;
+    if (order.paymentMethod === 'wallet') return t.orders.tracking.payment_info.wallet;
+    return order.paymentMethod;
+  };
+
   return (
-    <main className={styles.trackPage}>
+    <main className={styles.trackPage} dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Hero Section */}
       <div className={styles.hero}>
         <div className={styles.heroContent}>
-          <span className={styles.heroLabel}>Order Tracking</span>
+          <span className={styles.heroLabel}>{t.orders.tracking.title}</span>
           <h1 className={styles.heroTitle}>#{order.id.slice(0, 8).toUpperCase()}</h1>
-          <p className={styles.heroSubtitle}>Placed on {formatDate(order.createdAt)}</p>
+          <p className={styles.heroSubtitle}>{t.orders.tracking.placed_on.replace('{date}', formatDate(order.createdAt))}</p>
         </div>
       </div>
 
@@ -150,18 +165,18 @@ export default function TrackOrderClient({ order }: Props) {
           </h2>
           <p className={styles.statusDate}>
             {isDelivered && order.deliveredAt
-              ? `Delivered on ${formatDate(order.deliveredAt)}`
+              ? t.orders.tracking.delivered_on.replace('{date}', formatDate(order.deliveredAt))
               : isCancelled
-                ? 'This order has been cancelled'
-                : `Estimated delivery: ${formatDate(order.estimatedDelivery)}`
+                ? t.orders.tracking.cancelled_msg
+                : t.orders.tracking.estimated_delivery.replace('{date}', formatDate(order.estimatedDelivery))
             }
           </p>
 
           <div className={styles.statusMeta}>
             <div className={styles.metaItem}>
-              <span>Order ID:</span>
+              <span>{t.orders.tracking.subtitle.split('#')[0]}</span>
               <strong>#{order.id.slice(0, 8).toUpperCase()}</strong>
-              <button onClick={copyOrderId} className={styles.copyBtn} title="Copy order ID">
+              <button onClick={copyOrderId} className={styles.copyBtn} title={t.orders.tracking.copy_id}>
                 {copied ? '✓' : '📋'}
               </button>
             </div>
@@ -169,7 +184,8 @@ export default function TrackOrderClient({ order }: Props) {
               <span
                 className={`${styles.paymentBadge} ${order.paymentMethod === 'cod' ? styles.paymentCod : styles.paymentOnline}`}
               >
-                {order.paymentMethod === 'cod' ? '💵 Cash on Delivery' : '💳 Paid Online'}
+                {order.paymentMethod === 'cod' ? '💵 ' : '💳 '}
+                {getPaymentLabel()}
               </span>
             </div>
           </div>
@@ -179,13 +195,13 @@ export default function TrackOrderClient({ order }: Props) {
         {!isCancelled && (
           <div className={styles.timelineCard}>
             <h3 className={styles.timelineTitle}>
-              📍 Order Progress
+              📍 {t.orders.tracking.timeline}
             </h3>
             <div className={styles.timeline}>
               <div className={styles.timelineTrack}>
                 <div
                   className={styles.timelineProgress}
-                  style={{ width: `${getProgressWidth()}%` }}
+                  style={{ width: `${getProgressWidth()}%`, [language === 'ar' ? 'right' : 'left']: 0 }}
                 />
               </div>
 
@@ -216,7 +232,7 @@ export default function TrackOrderClient({ order }: Props) {
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>
               <span className={styles.cardIcon}>📍</span>
-              Delivery Address
+              {t.orders.details.shipping}
             </h3>
             <div className={styles.shippingDetails}>
               <p className={styles.shippingName}>{order.customerName}</p>
@@ -245,7 +261,7 @@ export default function TrackOrderClient({ order }: Props) {
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>
               <span className={styles.cardIcon}>🛒</span>
-              Order Items
+              {t.orders.details.items}
             </h3>
             <div className={styles.itemsList}>
               {order.items.map(item => (
@@ -265,7 +281,7 @@ export default function TrackOrderClient({ order }: Props) {
                   </div>
                   <div className={styles.itemInfo}>
                     <p className={styles.itemName}>{item.name}</p>
-                    <p className={styles.itemMeta}>Qty: {item.quantity}</p>
+                    <p className={styles.itemMeta}>{t.product.quantity}: {item.quantity}</p>
                   </div>
                   <span className={styles.itemPrice}>
                     {formatPrice(item.price * item.quantity)}
@@ -277,23 +293,23 @@ export default function TrackOrderClient({ order }: Props) {
             {/* Pricing Summary */}
             <div className={styles.pricingSummary}>
               <div className={styles.priceRow}>
-                <span>Subtotal</span>
+                <span>{t.orders.details.summary.subtotal}</span>
                 <span>{formatPrice(order.subtotal)}</span>
               </div>
               {order.discountAmount > 0 && (
                 <div className={`${styles.priceRow} ${styles.discount}`}>
-                  <span>Discount {order.couponCode && `(${order.couponCode})`}</span>
+                  <span>{t.orders.details.summary.discount} {order.couponCode && `(${order.couponCode})`}</span>
                   <span>-{formatPrice(order.discountAmount)}</span>
                 </div>
               )}
               {order.pointsRedeemed > 0 && (
                 <div className={`${styles.priceRow} ${styles.discount}`}>
-                  <span>Points Redeemed</span>
-                  <span>-{order.pointsRedeemed} pts</span>
+                  <span>{t.orders.details.summary.points_redeemed}</span>
+                  <span>-{order.pointsRedeemed}</span>
                 </div>
               )}
               <div className={`${styles.priceRow} ${styles.total}`}>
-                <span>Total</span>
+                <span>{t.orders.details.summary.total}</span>
                 <span>{formatPrice(order.totalPrice)}</span>
               </div>
             </div>
@@ -305,7 +321,7 @@ export default function TrackOrderClient({ order }: Props) {
           <div className={styles.card} style={{ marginBottom: '24px' }}>
             <h3 className={styles.cardTitle}>
               <span className={styles.cardIcon}>📜</span>
-              Order Timeline
+              {t.orders.tracking.history.title}
             </h3>
             <div className={styles.historyList}>
               {order.history.map((h) => (
@@ -320,7 +336,7 @@ export default function TrackOrderClient({ order }: Props) {
                     </p>
                     {h.reason && (
                       <p className={styles.historyTime} style={{ marginTop: '4px' }}>
-                        Note: {h.reason}
+                        {t.orders.tracking.history.note.replace('{note}', h.reason)}
                       </p>
                     )}
                   </div>
@@ -334,7 +350,7 @@ export default function TrackOrderClient({ order }: Props) {
         {order.pointsEarned > 0 && !isCancelled && (
           <div className={styles.rewardsCard}>
             <div className={styles.rewardsInfo}>
-              <h4>Points Earned</h4>
+              <h4>{t.orders.details.summary.points_earned}</h4>
               <p className={styles.rewardsPoints}>+{order.pointsEarned}</p>
             </div>
             <div className={styles.rewardsIcon}>🏆</div>
@@ -343,7 +359,7 @@ export default function TrackOrderClient({ order }: Props) {
 
         {/* Help Section */}
         <div className={styles.helpCard}>
-          <h4 className={styles.helpTitle}>Need Help?</h4>
+          <h4 className={styles.helpTitle}>{t.orders.details.help.title}</h4>
           <div className={styles.helpActions}>
             <a
               href={`https://wa.me/201515205073?text=Hi, I need help with order %23${order.id.slice(0, 8).toUpperCase()}`}
@@ -351,10 +367,10 @@ export default function TrackOrderClient({ order }: Props) {
               rel="noopener noreferrer"
               className={`${styles.helpBtn} ${styles.helpBtnWhatsapp}`}
             >
-              💬 WhatsApp
+              💬 {t.orders.details.help.whatsapp}
             </a>
             <Link href="/help" className={`${styles.helpBtn} ${styles.helpBtnEmail}`}>
-              ✉️ Contact Support
+              ✉️ {t.orders.details.help.contact}
             </Link>
           </div>
         </div>
@@ -362,10 +378,10 @@ export default function TrackOrderClient({ order }: Props) {
         {/* Actions */}
         <div className={styles.actions}>
           <Link href="/shop" className={`${styles.actionBtn} ${styles.btnOutline}`}>
-            🛍️ Continue Shopping
+            🛍️ {t.orders.details.actions.continue}
           </Link>
           <Link href="/account/orders" className={`${styles.actionBtn} ${styles.btnPrimary}`}>
-            📦 My Orders
+            📦 {t.account.orders_page.title}
           </Link>
         </div>
       </div>

@@ -8,8 +8,10 @@ import { auditService } from '@/lib/services/auditService';
 
 export interface CategoryInput {
     name: string;
+    nameAr?: string;
     slug: string;
     description?: string;
+    descriptionAr?: string;
     parentId?: string;
     sortOrder?: number;
 }
@@ -26,8 +28,10 @@ export async function fetchAllCategories() {
     return categories.map(c => ({
         id: c.id,
         name: c.name,
+        nameAr: c.nameAr,
         slug: c.slug,
         description: c.description,
+        descriptionAr: c.descriptionAr,
         parentId: c.parentId,
         parentName: c.parent?.name || null,
         productCount: c._count.products,
@@ -42,8 +46,10 @@ export async function createCategoryAction(data: CategoryInput) {
     const category = await prisma.category.create({
         data: {
             name: data.name,
+            nameAr: data.nameAr,
             slug: data.slug.toLowerCase().replace(/\s+/g, '-'),
             description: data.description,
+            descriptionAr: data.descriptionAr,
             parentId: data.parentId || null,
             sortOrder: data.sortOrder || 0
         }
@@ -62,8 +68,10 @@ export async function updateCategoryAction(id: string, data: CategoryInput) {
         where: { id },
         data: {
             name: data.name,
+            nameAr: data.nameAr,
             slug: data.slug.toLowerCase().replace(/\s+/g, '-'),
             description: data.description,
+            descriptionAr: data.descriptionAr,
             parentId: data.parentId || null,
             sortOrder: data.sortOrder || 0
         }

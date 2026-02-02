@@ -22,7 +22,7 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
     onProductSelect?.();
   };
 
-  const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
+  const formatPrice = (p: number) => `${t.common.currency} ${p.toLocaleString()}`;
 
   return (
     <div ref={wrapperRef} className="search-wrapper">
@@ -91,10 +91,10 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          placeholder="Search products..."
+          placeholder={t.common.search_placeholder}
           className="search-input"
         />
-        <button type="submit" className="search-btn" aria-label="Search">
+        <button type="submit" className="search-btn" aria-label={t.common.search}>
           {isLoading ? (
              <div className="spinner" style={{ width: 16, height: 16, border: '2px solid #ccc', borderTopColor: '#333', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
           ) : (
@@ -142,7 +142,7 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
             className="search-view-all"
             onClick={handleSearch}
           >
-            View all results for &quot;{query}&quot;
+            {t.common.view_all_results.replace('{query}', query)}
           </button>
         </div>
       )}
@@ -151,10 +151,10 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
       {isOpen && query.length >= 2 && results.length === 0 && (
         <div className="search-dropdown">
           <div className="search-no-results">
-            <p>{language === 'ar' ? `لا توجد نتائج لـ "${query}"` : `No results for "${query}"`}</p>
+            <p>{t.common.no_results.replace('{query}', query)}</p>
             <div className="search-suggestions">
               <p className="suggestions-title">
-                {language === 'ar' ? 'جرب البحث عن:' : 'Try searching for:'}
+                {t.common.try_searching}
               </p>
               <div className="suggestion-chips">
                 <button
@@ -180,7 +180,7 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
                 onClick={() => router.push('/shop')}
                 className="browse-all-btn"
               >
-                {language === 'ar' ? 'تصفح كل المنتجات' : 'Browse All Products'}
+                {t.common.browse_all_products}
               </button>
             </div>
           </div>

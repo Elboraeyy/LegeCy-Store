@@ -43,6 +43,7 @@ export default function ClientLayout({
 // Inner component to use hooks safely
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
+import ScrollToTop from "./ScrollToTop";
 
 function ClientLayoutContent({ children, navbar, footer }: { children: React.ReactNode; navbar: React.ReactNode; footer: React.ReactNode }) {
     const pathname = usePathname();
@@ -97,6 +98,7 @@ function ClientLayoutContent({ children, navbar, footer }: { children: React.Rea
 
     return (
       <ComparisonProvider>
+        <ScrollToTop />
         {/* Show splash screen only on homepage */}
         {showSplash && <SplashScreen onFinish={handleSplashFinish} storeName="Legacy" />}
         

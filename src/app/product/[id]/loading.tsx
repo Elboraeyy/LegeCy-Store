@@ -1,6 +1,5 @@
-import React from "react";
-import { ProductDetailsSkeleton } from "@/components/skeletons/ProductDetailsSkeleton";
+import { ProductSkeleton } from "@/components/skeletons/product-skeleton";
 
 export default function Loading() {
-  return <ProductDetailsSkeleton />;
+  return <ProductSkeleton />;
 }

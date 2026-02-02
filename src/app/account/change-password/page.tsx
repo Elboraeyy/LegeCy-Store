@@ -4,8 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { changePassword } from '@/lib/actions/auth';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function ChangePasswordPage() {
+    const { t, language } = useLanguage();
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,12 +17,12 @@ export default function ChangePasswordPage() {
         e.preventDefault();
         
         if (newPassword.length < 8) {
-            toast.error('New password must be at least 8 characters');
+            toast.error(t.account.password_page.min_chars.replace('{count}', '8'));
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            toast.error('Passwords do not match');
+            toast.error(t.account.password_page.mismatch);
             return;
         }
 
@@ -30,26 +32,26 @@ export default function ChangePasswordPage() {
             const result = await changePassword(currentPassword, newPassword);
             
             if (result.success) {
-                toast.success('Password changed successfully');
+                toast.success(t.account.password_page.success);
                 setCurrentPassword('');
                 setNewPassword('');
                 setConfirmPassword('');
             } else {
-                toast.error(result.error || 'Failed to change password');
+                toast.error(result.error || (language === 'ar' ? 'فشل تغيير كلمة المرور' : 'Failed to change password'));
             }
         } catch {
-            toast.error('An unexpected error occurred');
+            toast.error(t.common.error);
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <main>
+        <main dir={language === 'ar' ? 'rtl' : 'ltr'}>
             <section className="shop-hero">
                 <div className="container">
-                    <h1 className="fade-in">Change Password</h1>
-                    <p className="fade-in">Update your account password</p>
+                    <h1 className="fade-in">{t.account.password_page.title}</h1>
+                    <p className="fade-in">{t.account.password_page.subtitle}</p>
                 </div>
             </section>
 
@@ -67,7 +69,9 @@ export default function ChangePasswordPage() {
                             fontSize: '14px'
                         }}
                     >
-                        ← Back to My Account
+                        {language === 'ar' ? '← ' : ''}
+                        {t.account.orders_page.back_to_account}
+                        {language !== 'ar' ? ' ←' : ''}
                     </Link>
 
                     <div style={{
@@ -85,7 +89,7 @@ export default function ChangePasswordPage() {
                                     fontSize: '14px',
                                     color: '#12403C'
                                 }}>
-                                    Current Password
+                                    {t.account.password_page.current_password}
                                 </label>
                                 <input
                                     type="password"
@@ -112,7 +116,7 @@ export default function ChangePasswordPage() {
                                     fontSize: '14px',
                                     color: '#12403C'
                                 }}>
-                                    New Password
+                                    {t.account.password_page.new_password}
                                 </label>
                                 <input
                                     type="password"
@@ -131,7 +135,7 @@ export default function ChangePasswordPage() {
                                     }}
                                 />
                                 <span style={{ fontSize: '12px', color: '#888', marginTop: '4px', display: 'block' }}>
-                                    Minimum 8 characters
+                                    {t.account.password_page.min_chars.replace('{count}', '8')}
                                 </span>
                             </div>
 
@@ -143,7 +147,7 @@ export default function ChangePasswordPage() {
                                     fontSize: '14px',
                                     color: '#12403C'
                                 }}>
-                                    Confirm New Password
+                                    {t.account.password_page.confirm_password}
                                 </label>
                                 <input
                                     type="password"
@@ -178,7 +182,7 @@ export default function ChangePasswordPage() {
                                     opacity: isLoading ? 0.7 : 1
                                 }}
                             >
-                                {isLoading ? 'Updating...' : 'Change Password'}
+                                {isLoading ? t.account.password_page.updating : t.account.password_page.update_btn}
                             </button>
                         </form>
                     </div>

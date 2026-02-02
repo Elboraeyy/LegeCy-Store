@@ -1,0 +1,329 @@
+'use client';
+
+import Image from "next/image";
+import { Reveal } from "@/components/ui/Reveal";
+import AboutStyles from "./AboutStyles";
+import { useLanguage } from "@/context/LanguageContext";
+
+export default function AboutClient() {
+    const { t, language } = useLanguage();
+
+    return (
+        <main dir={language === 'ar' ? 'rtl' : 'ltr'}>
+            <AboutStyles />
+            <section className="shop-hero">
+                <div className="container">
+                    <Reveal>
+                        <h1 className="fade-in">{t.about.hero.title}</h1>
+                    </Reveal>
+                    <Reveal delay={0.2}>
+                        <p className="fade-in">{t.about.hero.subtitle}</p>
+                    </Reveal>
+                </div>
+            </section>
+
+            <section className="container about-container" style={{ marginBottom: "80px" }}>
+                <div className="grid detail-split" style={{ alignItems: "stretch" }}>
+                    <div>
+                        <Reveal>
+                            <h2 className="detail-title-large" style={{ fontSize: "36px", marginBottom: "24px" }}>
+                                {t.about.story.title}
+                            </h2>
+                        </Reveal>
+                        <Reveal delay={0.2}>
+                            <p className="detail-desc">
+                                {t.about.story.p1}
+                            </p>
+                            <p className="detail-desc" style={{ marginBottom: 0 }}>
+                                {t.about.story.p2}
+                            </p>
+                        </Reveal>
+                    </div>
+                    <div
+                        className="main-image-wrapper"
+                        style={{
+                            marginLeft: language === 'ar' ? '0' : 'auto',
+                            marginRight: language === 'ar' ? 'auto' : '40px',
+                            height: "400px",
+                            width: "100%",
+                            position: "relative",
+                            borderRadius: "12px",
+                            overflow: "hidden"
+                        }}
+                    >
+                        <Reveal width="100%" fullHeight>
+                            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                <Image
+                                    src="/image/3.jpeg"
+                                    alt="About Legacy"
+                                    className="about-img-full"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                    style={{ objectFit: "cover" }}
+                                />
+                            </div>
+                        </Reveal>
+                    </div>
+                </div>
+
+                <div
+                    className="grid about-features-grid"
+                    style={{
+                        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                        gap: "40px",
+                        marginTop: "60px",
+                    }}
+                >
+                    <Reveal width="100%" delay={0.3}>
+                        <div className="specs-list" style={{ textAlign: "center" }}>
+                            <h3 style={{ border: "none", fontSize: "24px" }}>{t.about.features.quality.title}</h3>
+                            <p style={{ color: "var(--text-muted)" }}>{t.about.features.quality.desc}</p>
+                        </div>
+                    </Reveal>
+                    <Reveal width="100%" delay={0.4}>
+                        <div className="specs-list" style={{ textAlign: "center" }}>
+                            <h3 style={{ border: "none", fontSize: "24px" }}>{t.about.features.authenticity.title}</h3>
+                            <p style={{ color: "var(--text-muted)" }}>{t.about.features.authenticity.desc}</p>
+                        </div>
+                    </Reveal>
+                    <Reveal width="100%" delay={0.5}>
+                        <div className="specs-list" style={{ textAlign: "center" }}>
+                            <h3 style={{ border: "none", fontSize: "24px" }}>{t.about.features.service.title}</h3>
+                            <p style={{ color: "var(--text-muted)" }}>{t.about.features.service.desc}</p>
+                        </div>
+                    </Reveal>
+                </div>
+            </section>
+
+            {/* Team Section */}
+            <section className="container" style={{ marginBottom: "80px" }}>
+                <Reveal>
+                    <div className="team-section-header" style={{ textAlign: "center", marginBottom: "48px" }}>
+                        <h2 style={{
+                            fontFamily: "var(--font-heading)",
+                            fontSize: "36px",
+                            marginBottom: "16px",
+                            color: "var(--primary)"
+                        }}>
+                            {t.about.team.title}
+                        </h2>
+                        <p style={{
+                            color: "var(--text-muted)",
+                            maxWidth: "700px",
+                            margin: "0 auto",
+                            fontSize: "16px",
+                            lineHeight: "1.8"
+                        }}>
+                            {t.about.team.desc}
+                        </p>
+                    </div>
+                </Reveal>
+
+                <div
+                    className="about-team-grid"
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                        gap: "24px",
+                        maxWidth: "1200px",
+                        margin: "0 auto",
+                    }}
+                >
+                    {/* Mohamed Elboraey - CEO */}
+                    <Reveal delay={0.05}>
+                        <a
+                            href="https://instagram.com/e.l.b.o.r.a.e.y"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ textDecoration: "none" }}
+                        >
+                            <div className="about-team-card" style={{
+                                background: "var(--surface)",
+                                borderRadius: "12px",
+                                padding: "24px 16px",
+                                textAlign: "center",
+                                border: "1px solid var(--border-light)",
+                                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                                cursor: "pointer",
+                            }}>
+                                <div className="about-team-avatar" style={{
+                                    width: "80px",
+                                    height: "80px",
+                                    borderRadius: "50%",
+                                    overflow: "hidden",
+                                    margin: "0 auto 16px",
+                                    border: "3px solid var(--accent)",
+                                    position: "relative",
+                                }}>
+                                    <Image src="/image/team/mohamed-elboraey.jpg" alt="Mohamed Elboraey" fill style={{ objectFit: "cover" }} />
+                                </div>
+                                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>
+                                    Mohamed Elboraey
+                                </h3>
+                                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
+                                    {t.about.team.roles.ceo}
+                                </p>
+                                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px", direction: 'ltr' }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                                    @e.l.b.o.r.a.e.y
+                                </div>
+                            </div>
+                        </a>
+                    </Reveal>
+
+                    {/* Ezzat Hussein - Supervisor */}
+                    <Reveal delay={0.1}>
+                        <a href="https://instagram.com/ezzat_hussen22" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                            <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+                                    <Image src="/image/team/ezzat-hussein.jpeg" alt="Ezzat Hussein" fill style={{ objectFit: "cover" }} />
+                                </div>
+                                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Ezzat Hussein</h3>
+                                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
+                                    {t.about.team.roles.supervisor}
+                                </p>
+                                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px", direction: 'ltr' }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                                    @ezzat_hussen22
+                                </div>
+                            </div>
+                        </a>
+                    </Reveal>
+
+                    {/* Karim Elboraey - HR Manager */}
+                    <Reveal delay={0.15}>
+                        <a href="https://instagram.com/3m_elkemoo" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                            <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+                                    <Image src="/image/team/karim-elboraey.jpeg" alt="Karim Elboraey" fill style={{ objectFit: "cover" }} />
+                                </div>
+                                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Karim Elboraey</h3>
+                                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
+                                    {t.about.team.roles.hr}
+                                </p>
+                                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px", direction: 'ltr' }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                                    @3m_elkemoo
+                                </div>
+                            </div>
+                        </a>
+                    </Reveal>
+
+                    {/* Ehab Tarek - CMO */}
+                    <Reveal delay={0.2}>
+                        <a href="https://instagram.com/ehab_tarek_2" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                            <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+                                    <Image src="/image/team/ehab-tarek.jpeg" alt="Ehab Tarek" fill style={{ objectFit: "cover" }} />
+                                </div>
+                                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Ehab Tarek</h3>
+                                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
+                                    {t.about.team.roles.marketing}
+                                </p>
+                                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px", direction: 'ltr' }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                                    @ehab_tarek_2
+                                </div>
+                            </div>
+                        </a>
+                    </Reveal>
+
+                    {/* Hossam Masoud - CMO */}
+                    <Reveal delay={0.25}>
+                        <a href="https://instagram.com/hossam__masoudd" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                            <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+                                    <Image src="/image/team/hossam-masoud.jpeg" alt="Hossam Masoud" fill style={{ objectFit: "cover" }} />
+                                </div>
+                                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Hossam Masoud</h3>
+                                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
+                                    {t.about.team.roles.content}
+                                </p>
+                                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px", direction: 'ltr' }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                                    @hossam_masoudd
+                                </div>
+                            </div>
+                        </a>
+                    </Reveal>
+
+                    {/* Yousef Elboraey - Customer Support Lead */}
+                    <Reveal delay={0.3}>
+                        <a href="https://instagram.com/youssefelbora3y" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                            <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+                                    <Image src="/image/team/yousef-elboraey.jpeg" alt="Yousef Elboraey" fill style={{ objectFit: "cover" }} />
+                                </div>
+                                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Yousef Elboraey</h3>
+                                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
+                                    {t.about.team.roles.support}
+                                </p>
+                                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px", direction: 'ltr' }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                                    @youssefelbora3y
+                                </div>
+                            </div>
+                        </a>
+                    </Reveal>
+
+                    {/* Moataz Mohamed - Inventory Manager */}
+                    <Reveal delay={0.35}>
+                        <a href="https://instagram.com/mo3taz_mo7mad" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                            <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+                                    <Image src="/image/team/moataz-mohamed.jpeg" alt="Moataz Mohamed" fill style={{ objectFit: "cover" }} />
+                                </div>
+                                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Moataz Mohamed</h3>
+                                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
+                                    {t.about.team.roles.inventory}
+                                </p>
+                                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px", direction: 'ltr' }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                                    @mo3taz_mo7mad
+                                </div>
+                            </div>
+                        </a>
+                    </Reveal>
+
+                    {/* Ahmed ElSaidy - Purchasing */}
+                    <Reveal delay={0.4}>
+                        <a href="https://instagram.com/a7med___ma7moud7" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                            <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+                                    <Image src="/image/team/ahmed-elsaidyyy.jpeg" alt="Ahmed ElSaidy" fill style={{ objectFit: "cover" }} />
+                                </div>
+                                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Ahmed ElSaidy</h3>
+                                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
+                                    {t.about.team.roles.purchasing}
+                                </p>
+                                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px", direction: 'ltr' }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                                    @a7med___ma7moud7
+                                </div>
+                            </div>
+                        </a>
+                    </Reveal>
+
+                    {/* Malek Khalifa - Purchasing */}
+                    <Reveal delay={0.45}>
+                        <a href="https://instagram.com/malekkhalifa72" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                            <div className="about-team-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "24px 16px", textAlign: "center", border: "1px solid var(--border-light)", transition: "transform 0.3s ease, box-shadow 0.3s ease", cursor: "pointer" }}>
+                                <div className="about-team-avatar" style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: "3px solid var(--accent)", position: "relative" }}>
+                                    <Image src="/image/team/malek-khalifaa.jpeg" alt="Malek Khalifa" fill style={{ objectFit: "cover" }} />
+                                </div>
+                                <h3 className="about-team-name" style={{ fontSize: "16px", marginBottom: "4px", fontFamily: "var(--font-heading)", color: "var(--primary)" }}>Malek Khalifa</h3>
+                                <p className="about-team-role" style={{ color: "var(--accent)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", fontWeight: "600" }}>
+                                    {t.about.team.roles.purchasing}
+                                </p>
+                                <div className="about-team-handle" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", color: "var(--text-muted)", fontSize: "12px", direction: 'ltr' }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                                    @malekkhalifa72
+                                </div>
+                            </div>
+                        </a>
+                    </Reveal>
+                </div>
+            </section>
+        </main >
+    );
+}

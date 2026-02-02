@@ -69,17 +69,15 @@ export default function CartClient({
                         <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>
-                    <h2 className="text-3xl font-heading text-[#FCF8F3] mb-4">{language === 'ar' ? 'تم استلام طلبك بنجاح' : 'Order Placed Successfully'}</h2>
+                    <h2 className="text-3xl font-heading text-[#FCF8F3] mb-4">{t.cart.order_placed_success}</h2>
                     <p className="text-[#FCF8F3]/70 mb-8 max-w-md mx-auto px-4">
-                      {language === 'ar'
-                        ? 'تم إرسال طلبك بالفعل. يمكنك متابعة حالته في صفحة طلباتي.'
-                        : 'Your order has already been processed. You can track it in your orders page.'}
+                      {t.cart.order_success_desc}
                     </p>
                     <Link
                       href="/profile"
                       className="inline-flex items-center gap-2 px-8 py-4 bg-[#FCF8F3] text-[#12403C] font-bold tracking-widest uppercase text-sm rounded-full hover:bg-green-500 hover:text-white transition-all transform hover:-translate-y-1 shadow-lg"
                     >
-                      {language === 'ar' ? 'اتبع طلبك' : 'Track Order'}
+                      {t.cart.track_order_btn}
                     </Link>
                   </>
                 ) : (
@@ -129,11 +127,11 @@ export default function CartClient({
       </div>
 
       <div className="container px-4">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <div className="flex flex-col md:flex-row justify-center gap-6 md:gap-8 lg:gap-12 items-start">
 
 
           {/* Left Column: Cart Items & Options */}
-          <div className="flex-1">
+          <div className="flex-1 max-w-3xl w-full">
             {/* Free Shipping Progress */}
             {/* Free Shipping Progress */}
             {isFreeShippingEnabled && (
@@ -196,7 +194,7 @@ export default function CartClient({
                             <p className="text-gray-500 text-sm font-medium">{formatPrice(item.price)}</p>
                             {item.variantId && (
                               <span className="text-[10px] text-gray-500 bg-gray-50 px-2 py-1 rounded inline-block mt-1">
-                                {item.variantName || (language === 'ar' ? 'مقاس واحد' : 'One Size')}
+                                {item.variantName || t.cart.one_size}
                               </span>
                             )}
                           </div>
@@ -250,13 +248,13 @@ export default function CartClient({
             </div>
 
             {/* Cross-Sell Recommendations - Desktop Only */}
-            <div className="hidden lg:block">
+            <div className="hidden md:block">
               <CartRecommendations />
             </div>
           </div>
 
           {/* Right Column: Summary (Sticky) */}
-          <div className="lg:w-[380px] flex-shrink-0">
+          <div className="w-full md:w-[320px] lg:w-[380px] flex-shrink-0">
             <div className="sticky top-24">
 
                 <div className="bg-white rounded-2xl border border-[rgba(18,64,60,0.08)] shadow-[0_10px_40px_rgba(0,0,0,0.05)] overflow-hidden">
@@ -326,7 +324,7 @@ export default function CartClient({
         </div>
 
         {/* Cross-Sell Recommendations - Mobile Only (Moved below summary) */}
-        <div className="block lg:hidden mt-8">
+        <div className="block md:hidden mt-8">
           <CartRecommendations />
         </div>
       </div>

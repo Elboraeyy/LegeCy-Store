@@ -309,8 +309,11 @@ model OrderItem {
 model Product {
   id             String         @id @default(uuid())
   name           String
+  nameAr         String?
   description    String?
+  descriptionAr  String?
   detailedDescription String? // Detailed content for accordion
+  detailedDescriptionAr String?
   imageUrl       String? // Main Image
   images         ProductImage[]
   variants       Variant[]
@@ -365,6 +368,7 @@ model Product {
 model Brand {
   id        String    @id @default(uuid())
   name      String
+  nameAr    String?
   slug      String    @unique
   imageUrl  String?
   products  Product[]
@@ -375,6 +379,7 @@ model Brand {
 model Material {
   id        String    @id @default(uuid())
   name      String    @unique // e.g., "Leather", "Stainless Steel"
+  nameAr    String?
   slug      String    @unique
   products  Product[]
   createdAt DateTime  @default(now())
@@ -406,8 +411,10 @@ model Review {
 model Category {
   id          String     @id @default(uuid())
   name        String
+  nameAr      String?
   slug        String     @unique
   description String?
+  descriptionAr String?
   parentId    String?
   parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children    Category[] @relation("CategoryHierarchy")

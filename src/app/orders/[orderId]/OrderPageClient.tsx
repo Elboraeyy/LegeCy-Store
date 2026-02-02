@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface OrderPageProps {
     order: {
@@ -26,21 +27,23 @@ interface OrderPageProps {
 }
 
 export default function OrderPageClient({ order, orderId }: OrderPageProps) {
+    const { t, language } = useLanguage();
+
     const statusInfo: Record<string, { emoji: string; label: string; color: string; bg: string }> = {
-        pending: { emoji: '⏳', label: 'Pending', color: '#b76e00', bg: '#fff4e5' },
-        payment_pending: { emoji: '💳', label: 'Awaiting Payment', color: '#f57c00', bg: '#fff8e1' },
-        paid: { emoji: '✅', label: 'Paid', color: '#137333', bg: '#e6f4ea' },
-        processing: { emoji: '📦', label: 'Processing', color: '#1565c0', bg: '#e3f2fd' },
-        shipped: { emoji: '🚚', label: 'On the Way!', color: '#1967d2', bg: '#e8f0fe' },
-        delivered: { emoji: '🎉', label: 'Delivered', color: '#0d652d', bg: '#ceead6' },
-        cancelled: { emoji: '❌', label: 'Cancelled', color: '#c5221f', bg: '#fce8e6' },
-        payment_failed: { emoji: '⚠️', label: 'Payment Failed', color: '#d32f2f', bg: '#ffebee' }
+        pending: { emoji: '⏳', label: t.orders.status.pending, color: '#b76e00', bg: '#fff4e5' },
+        payment_pending: { emoji: '💳', label: t.orders.status.payment_pending, color: '#f57c00', bg: '#fff8e1' },
+        paid: { emoji: '✅', label: t.orders.status.paid, color: '#137333', bg: '#e6f4ea' },
+        processing: { emoji: '📦', label: t.orders.status.processing, color: '#1565c0', bg: '#e3f2fd' },
+        shipped: { emoji: '🚚', label: t.orders.status.shipped, color: '#1967d2', bg: '#e8f0fe' },
+        delivered: { emoji: '🎉', label: t.orders.status.delivered, color: '#0d652d', bg: '#ceead6' },
+        cancelled: { emoji: '❌', label: t.orders.status.cancelled, color: '#c5221f', bg: '#fce8e6' },
+        payment_failed: { emoji: '⚠️', label: t.orders.status.payment_failed, color: '#d32f2f', bg: '#ffebee' }
     };
     
     const status = statusInfo[order.status] || { emoji: '📋', label: order.status, color: '#3c4043', bg: '#f1f3f4' };
 
     const formatDate = (dateStr: string) => {
-        return new Intl.DateTimeFormat('en-EG', {
+        return new Intl.DateTimeFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -52,18 +55,31 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
         window.print();
     };
 
+    const getPaymentLabel = () => {
+        if (order.paymentMethod === 'cod') return t.orders.tracking.payment_info.cod;
+        if (order.paymentMethod === 'paymob') return t.orders.tracking.payment_info.online;
+        if (order.paymentMethod === 'wallet') return t.orders.tracking.payment_info.wallet;
+        return order.paymentMethod || 'N/A';
+    };
+
+    const getPaymentStatusText = () => {
+        if (order.status === 'paid' || order.status === 'delivered') return `✅ ${t.orders.tracking.payment_info.paid}`;
+        if (order.paymentMethod === 'cod') return `💵 ${t.orders.tracking.payment_info.pay_on_delivery}`;
+        return `⏳ ${t.orders.status.payment_pending}`;
+    };
+
     return (
-        <div className="min-h-screen bg-[var(--color-background)] py-12 px-4">
+        <div className="min-h-screen bg-[var(--color-background)] py-12 px-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
             <div className="max-w-2xl mx-auto">
                 
                 {/* Success Header */}
                 <div className="text-center mb-8 print:hidden">
                     <div className="text-6xl mb-4">{status.emoji}</div>
                     <h1 className="text-3xl font-bold text-[var(--color-primary)] mb-2" style={{ fontFamily: 'var(--font-heading)' }}>
-                        Order Confirmed!
+                        {t.orders.details.success_title}
                     </h1>
                     <p className="text-gray-600">
-                        Thanks for shopping with us! Here&apos;s your order summary ✨
+                        {t.orders.details.success_desc} ✨
                     </p>
                 </div>
 
@@ -79,7 +95,7 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                             <span className="text-2xl">{status.emoji}</span>
                             <div>
                                 <p className="font-bold" style={{ color: status.color }}>{status.label}</p>
-                                <p className="text-sm text-gray-600">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+                                <p className="text-sm text-gray-600">#{order.id.slice(0, 8).toUpperCase()}</p>
                             </div>
                         </div>
                         <p className="text-sm text-gray-500">{formatDate(order.createdAt)}</p>
@@ -88,7 +104,7 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                     {/* Items Section */}
                     <div className="p-6 border-b border-gray-100">
                         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800">
-                            🛍️ Your Items
+                            🛍️ {t.orders.details.items}
                         </h2>
                         <div className="space-y-3">
                             {order.items.map((item) => (
@@ -100,7 +116,7 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                                         <p className="font-medium text-gray-800">{item.name}</p>
                                     </div>
                                     <p className="font-bold text-[var(--color-primary)]">
-                                        EGP {Number(item.price).toLocaleString()}
+                                        EGP {Number(item.price).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US')}
                                     </p>
                                 </div>
                             ))}
@@ -111,8 +127,10 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                     <div className="p-6 bg-[var(--color-primary)]">
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-[var(--color-secondary)] opacity-80 text-sm">Total Amount</p>
-                                <p className="text-3xl font-bold text-[var(--color-secondary)]">EGP {Number(order.totalPrice).toLocaleString()}</p>
+                                <p className="text-[var(--color-secondary)] opacity-80 text-sm">{t.orders.details.summary.total}</p>
+                                <p className="text-3xl font-bold text-[var(--color-secondary)]">
+                                    EGP {Number(order.totalPrice).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US')}
+                                </p>
                             </div>
                             <div className="text-4xl">💰</div>
                         </div>
@@ -121,7 +139,7 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                     {/* Shipping Info */}
                     <div className="p-6 border-b border-gray-100">
                         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800">
-                            📍 Shipping Details
+                            📍 {t.orders.details.shipping}
                         </h2>
                         <div className="bg-[var(--color-background)] rounded-2xl p-4 space-y-2">
                             {order.customerName && (
@@ -146,7 +164,7 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                     {/* Payment Info */}
                     <div className="p-6 border-b border-gray-100">
                         <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800">
-                            💳 Payment Method
+                            💳 {t.orders.details.payment}
                         </h2>
                         <div className="bg-[var(--color-background)] rounded-2xl p-4 flex items-center gap-3">
                             <span className="text-2xl">
@@ -156,15 +174,10 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                             </span>
                             <div>
                                 <p className="font-semibold text-gray-800">
-                                    {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 
-                                     order.paymentMethod === 'paymob' ? 'Online Payment (Card)' : 
-                                     order.paymentMethod === 'wallet' ? 'Mobile Wallet' : 
-                                     order.paymentMethod || 'N/A'}
+                                    {getPaymentLabel()}
                                 </p>
                                 <p className="text-sm text-gray-500">
-                                    {order.status === 'paid' || order.status === 'delivered' ? '✅ Payment completed' : 
-                                     order.paymentMethod === 'cod' ? '💵 Pay when you receive your order' :
-                                     '⏳ Awaiting payment'}
+                                    {getPaymentStatusText()}
                                 </p>
                             </div>
                         </div>
@@ -178,20 +191,20 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                                     href={`/track/${orderId}`}
                                     className="flex-1 text-center py-4 border-2 border-[var(--color-primary)] text-[var(--color-primary)] rounded-2xl font-bold hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)] transition flex items-center justify-center gap-2"
                                 >
-                                    🔍 Track Order
+                                    🔍 {t.orders.details.actions.track}
                                 </Link>
                                 <Link 
                                     href="/shop"
                                     className="flex-1 text-center py-4 bg-[var(--color-primary)] text-[var(--color-secondary)] rounded-2xl font-bold hover:opacity-90 transition flex items-center justify-center gap-2"
                                 >
-                                    🛒 Continue Shopping
+                                    🛒 {t.orders.details.actions.continue}
                                 </Link>
                             </div>
                             <button 
                                 onClick={handleDownloadInvoice}
                                 className="w-full text-center py-4 bg-gray-100 text-gray-700 rounded-2xl font-bold hover:bg-gray-200 transition flex items-center justify-center gap-2"
                             >
-                                📄 Download Invoice
+                                📄 {t.orders.details.actions.download}
                             </button>
                         </div>
                     </div>
@@ -200,8 +213,8 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                 {/* Thank You Footer */}
                 <div className="text-center mt-8 print:hidden">
                     <p className="text-2xl mb-2">🙏</p>
-                    <p className="text-gray-600 font-medium">Thank you for choosing Legacy!</p>
-                    <p className="text-gray-500 text-sm mt-1">We can&apos;t wait to get your order to you 💚</p>
+                    <p className="text-gray-600 font-medium">{t.orders.details.invoice_footer.thank_you}</p>
+                    <p className="text-gray-500 text-sm mt-1">{t.orders.details.invoice_footer.cant_wait} 💚</p>
                 </div>
             </div>
         </div>

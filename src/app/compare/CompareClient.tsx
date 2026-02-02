@@ -11,6 +11,7 @@ import EmptyState from "./components/EmptyState";
 import { Product } from "@/types/product";
 import { ShopProduct } from "@/lib/actions/shop";
 import DesktopComparisonView from "./components/DesktopComparisonView";
+import { useLanguage } from "@/context/LanguageContext";
 
 type ProductId = string | number;
 
@@ -24,6 +25,7 @@ export default function CompareClient({ }: CompareClientProps) {
     const fromLabel = searchParams.get("fromLabel");
     const { selectedProducts, removeFromCompare, addToCompare } = useComparison();
     const { addToCart, products, fav, isLoading: isStoreLoading } = useStore();
+    const { t } = useLanguage();
 
     // Responsive check for mobile
     const [isMobile, setIsMobile] = useState(false);
@@ -80,10 +82,10 @@ export default function CompareClient({ }: CompareClientProps) {
                 <div className="absolute inset-0 opacity-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
                 <div className="container mx-auto px-4 lg:px-8 relative z-10">
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-heading font-normal mb-2 text-[#FCF8F3] tracking-wide">
-                        Compare Watches
+                        {t.compare.title}
                     </h1>
                     <p className="text-xs sm:text-sm text-[#FCF8F3]/70 max-w-xl mx-auto">
-                        Analyze specifications, features, and prices side by side to make the perfect choice.
+                        {t.compare.subtitle}
                     </p>
                 </div>
             </div>
@@ -133,11 +135,11 @@ export default function CompareClient({ }: CompareClientProps) {
                                     </Link>
                                 ) : (
                                     <Link href="/shop" style={{ color: 'var(--primary)', textDecoration: 'none', fontFamily: "var(--font-heading)" }}>
-                                        Shop
+                                            {t.compare.breadcrumb_shop}
                                     </Link>
                                 )}
                                 <span style={{ color: "var(--border)" }}>/</span>
-                                <span style={{ color: 'var(--text-muted)', fontFamily: "var(--font-heading)" }}>COMPARE WATCHES</span>
+                                <span style={{ color: 'var(--text-muted)', fontFamily: "var(--font-heading)" }}>{t.compare.breadcrumb_compare}</span>
                             </div>
                         </>
                     </div>

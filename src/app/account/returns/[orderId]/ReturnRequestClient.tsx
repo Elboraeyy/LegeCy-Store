@@ -6,6 +6,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import styles from "./Return.module.css";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface OrderItem {
   id: string;
@@ -36,22 +37,8 @@ interface SelectedItem {
   images: string[];
 }
 
-const RETURN_REASONS = [
-  { id: 'defective', label: 'Defective or Damaged', icon: '🔧', desc: 'Product arrived broken or not working' },
-  { id: 'wrong_item', label: 'Wrong Item Received', icon: '📦', desc: 'Different product than what I ordered' },
-  { id: 'not_as_described', label: 'Not as Described', icon: '📋', desc: 'Product doesn\'t match the description' },
-  { id: 'changed_mind', label: 'Changed My Mind', icon: '🔄', desc: 'No longer need the product' },
-  { id: 'size_issue', label: 'Size/Fit Issue', icon: '📏', desc: 'Product doesn\'t fit as expected' },
-  { id: 'other', label: 'Other Reason', icon: '💬', desc: 'Different reason not listed above' }
-];
-
-const RETURN_TYPES = [
-  { id: 'refund', label: 'Refund', icon: '💰' },
-  { id: 'exchange', label: 'Exchange', icon: '🔄' },
-  { id: 'store_credit', label: 'Store Credit', icon: '🎁' }
-];
-
 export default function ReturnRequestClient({ order }: Props) {
+  const { t, language } = useLanguage();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [selectedItems, setSelectedItems] = useState<Map<string, SelectedItem>>(new Map());
@@ -64,7 +51,27 @@ export default function ReturnRequestClient({ order }: Props) {
   
   const fileInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
-  const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
+  const RETURN_REASONS = [
+    { id: 'defective', label: t.account.returns_page.reasons.defective, icon: '🔧', desc: t.account.returns_page.reasons.defective_desc },
+    { id: 'wrong_item', label: t.account.returns_page.reasons.wrong_item, icon: '📦', desc: t.account.returns_page.reasons.wrong_item_desc },
+    { id: 'not_as_described', label: t.account.returns_page.reasons.not_as_described, icon: '📋', desc: t.account.returns_page.reasons.not_as_described_desc },
+    { id: 'changed_mind', label: t.account.returns_page.reasons.changed_mind, icon: '🔄', desc: t.account.returns_page.reasons.changed_mind_desc },
+    { id: 'size_issue', label: t.account.returns_page.reasons.size_issue, icon: '📏', desc: t.account.returns_page.reasons.size_issue_desc },
+    { id: 'other', label: t.account.returns_page.reasons.other, icon: '💬', desc: t.account.returns_page.reasons.other_desc }
+  ];
+
+  const RETURN_TYPES = [
+    { id: 'refund', label: t.account.returns_page.types.refund, icon: '💰' },
+    { id: 'exchange', label: t.account.returns_page.types.exchange, icon: '🔄' },
+    { id: 'store_credit', label: t.account.returns_page.types.store_credit, icon: '🎁' }
+  ];
+
+  const formatPrice = (p: number) => {
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
+      style: 'currency',
+      currency: 'EGP'
+    }).format(p);
+  };
 
   const toggleItem = (item: OrderItem) => {
     const newMap = new Map(selectedItems);
@@ -108,12 +115,12 @@ export default function ReturnRequestClient({ order }: Props) {
           newMap.set(itemId, item);
           setSelectedItems(newMap);
         }
-        toast.success('Photo uploaded successfully');
+        toast.success(t.account.update_success); 
       } else {
-        toast.error(data.error || 'Failed to upload photo');
+        toast.error(data.error || t.account.upload_failed);
       }
     } catch {
-      toast.error('Failed to upload photo');
+      toast.error(t.account.upload_failed);
     } finally {
       setUploading(false);
     }
@@ -172,12 +179,12 @@ export default function ReturnRequestClient({ order }: Props) {
 
       if (data.success) {
         setSuccess(true);
-        toast.success('Return request submitted successfully!');
+        toast.success(t.account.returns_page.received_title);
       } else {
-        toast.error(data.error || 'Failed to submit return request');
+        toast.error(data.error || (language === 'ar' ? 'فشل إرسال طلب الاسترجاع' : 'Failed to submit return request'));
       }
     } catch {
-      toast.error('An error occurred');
+      toast.error(t.common.error);
     } finally {
       setSubmitting(false);
     }
@@ -185,29 +192,28 @@ export default function ReturnRequestClient({ order }: Props) {
 
   if (success) {
     return (
-      <main className={styles.returnPage}>
+      <main className={styles.returnPage} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <div className={styles.hero}>
           <div className={styles.heroContent}>
-            <span className={styles.heroLabel}>Return Request</span>
-            <h1 className={styles.heroTitle}>Request Submitted!</h1>
+            <span className={styles.heroLabel}>{t.account.returns_page.title}</span>
+            <h1 className={styles.heroTitle}>{t.account.returns_page.success_title}</h1>
           </div>
         </div>
         <div className={styles.container}>
           <div className={`${styles.card} ${styles.successCard}`}>
             <div className={styles.successIcon}>✅</div>
-            <h2 className={styles.successTitle}>We&apos;ve Received Your Request</h2>
+            <h2 className={styles.successTitle}>{t.account.returns_page.received_title}</h2>
             <p className={styles.successText}>
-              Your return request for order #{order.id.slice(0, 8).toUpperCase()} has been submitted successfully.
+              {t.account.returns_page.received_desc.replace('{number}', order.id.slice(0, 8).toUpperCase())}
               <br /><br />
-              Our team will review your request and get back to you within 24-48 hours.
-              You&apos;ll receive an email with the next steps once approved.
+              {t.account.returns_page.received_next}
             </p>
             <div className={styles.successActions}>
               <Link href="/account/orders" className={styles.btnNext}>
-                View My Orders
+                {t.account.returns_page.view_orders}
               </Link>
               <Link href="/shop" className={styles.btnBack}>
-                Continue Shopping
+                {t.account.returns_page.continue_shopping}
               </Link>
             </div>
           </div>
@@ -217,13 +223,13 @@ export default function ReturnRequestClient({ order }: Props) {
   }
 
   return (
-    <main className={styles.returnPage}>
+    <main className={styles.returnPage} dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {/* Hero */}
       <div className={styles.hero}>
         <div className={styles.heroContent}>
-          <span className={styles.heroLabel}>Order #{order.id.slice(0, 8).toUpperCase()}</span>
-          <h1 className={styles.heroTitle}>Request a Return</h1>
-          <p className={styles.heroSubtitle}>We&apos;re sorry to see these items go</p>
+          <span className={styles.heroLabel}>{t.account.returns_page.order_number.replace('{number}', order.id.slice(0, 8).toUpperCase())}</span>
+          <h1 className={styles.heroTitle}>{t.account.returns_page.title}</h1>
+          <p className={styles.heroSubtitle}>{t.account.returns_page.subtitle}</p>
         </div>
       </div>
 
@@ -232,15 +238,15 @@ export default function ReturnRequestClient({ order }: Props) {
         <div className={styles.progressBar}>
           <div className={`${styles.progressStep} ${step === 1 ? styles.active : ''} ${step > 1 ? styles.completed : ''}`}>
             <span className={styles.stepNumber}>{step > 1 ? '✓' : '1'}</span>
-            Select Items
+            {t.account.returns_page.steps.select}
           </div>
           <div className={`${styles.progressStep} ${step === 2 ? styles.active : ''} ${step > 2 ? styles.completed : ''}`}>
             <span className={styles.stepNumber}>{step > 2 ? '✓' : '2'}</span>
-            Reason
+            {t.account.returns_page.steps.reason}
           </div>
           <div className={`${styles.progressStep} ${step === 3 ? styles.active : ''}`}>
             <span className={styles.stepNumber}>3</span>
-            Review
+            {t.account.returns_page.steps.review}
           </div>
         </div>
 
@@ -249,10 +255,10 @@ export default function ReturnRequestClient({ order }: Props) {
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>
               <span className={styles.cardIcon}>📦</span>
-              Select Items to Return
+              {t.account.returns_page.select_items_title}
             </h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '14px' }}>
-              Select the items you wish to return and upload photos for each.
+              {t.account.returns_page.select_items_desc}
             </p>
 
             <div className={styles.productList}>
@@ -292,7 +298,7 @@ export default function ReturnRequestClient({ order }: Props) {
                       {isSelected && (
                         <>
                           <div className={styles.qtySelector}>
-                            <span className={styles.qtyLabel}>Return Quantity:</span>
+                            <span className={styles.qtyLabel}>{t.account.returns_page.qty_label}</span>
                             <select 
                               className={styles.qtySelect}
                               value={selected.quantity}
@@ -306,7 +312,7 @@ export default function ReturnRequestClient({ order }: Props) {
 
                           <div className={styles.photoUpload}>
                             <p className={styles.photoLabel}>
-                              📷 Upload Photos <span className={styles.photoRequired}>*</span>
+                              📷 {t.account.returns_page.upload_photos} <span className={styles.photoRequired}>{t.account.returns_page.mandatory}</span>
                             </p>
                             <div className={styles.photoGrid}>
                               {selected.images.map((url, idx) => (
@@ -358,14 +364,14 @@ export default function ReturnRequestClient({ order }: Props) {
                 className={styles.btnBack}
                 onClick={() => router.back()}
               >
-                Cancel
+                {t.account.addresses_page.cancel || t.common.cancel}
               </button>
               <button 
                 className={styles.btnNext}
                 disabled={!canProceedStep1()}
                 onClick={() => setStep(2)}
               >
-                Continue →
+                {t.common.continue} {language === 'ar' ? '←' : '→'}
               </button>
             </div>
           </div>
@@ -376,7 +382,7 @@ export default function ReturnRequestClient({ order }: Props) {
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>
               <span className={styles.cardIcon}>📝</span>
-              Why are you returning?
+              {t.account.returns_page.why_returning}
             </h2>
 
             <div className={styles.reasonList}>
@@ -400,7 +406,7 @@ export default function ReturnRequestClient({ order }: Props) {
 
             <div style={{ marginTop: '24px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
-                How would you like to be compensated?
+                {t.account.returns_page.compensation}
               </h3>
               <div className={styles.returnTypes}>
                 {RETURN_TYPES.map(t => (
@@ -418,11 +424,11 @@ export default function ReturnRequestClient({ order }: Props) {
 
             <div style={{ marginTop: '24px' }}>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>
-                Additional Details (Optional)
+                {t.account.returns_page.additional_details}
               </label>
               <textarea 
                 className={styles.textarea}
-                placeholder="Provide any additional details about your return request..."
+                placeholder={t.account.returns_page.additional_placeholder}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
@@ -433,14 +439,14 @@ export default function ReturnRequestClient({ order }: Props) {
                 className={styles.btnBack}
                 onClick={() => setStep(1)}
               >
-                ← Back
+                {language === 'ar' ? '→' : '←'} {t.common.back}
               </button>
               <button 
                 className={styles.btnNext}
                 disabled={!canProceedStep2()}
                 onClick={() => setStep(3)}
               >
-                Review Request →
+                {t.account.returns_page.steps.review} {language === 'ar' ? '←' : '→'}
               </button>
             </div>
           </div>
@@ -451,11 +457,11 @@ export default function ReturnRequestClient({ order }: Props) {
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>
               <span className={styles.cardIcon}>✅</span>
-              Review Your Request
+              {t.account.returns_page.review_title}
             </h2>
 
             <div className={styles.summarySection}>
-              <p className={styles.summaryLabel}>Items to Return</p>
+              <p className={styles.summaryLabel}>{t.account.returns_page.items_to_return}</p>
               <div className={styles.summaryItems}>
                 {Array.from(selectedItems.entries()).map(([itemId, selected]) => {
                   const item = order.items.find(i => i.id === itemId);
@@ -467,7 +473,7 @@ export default function ReturnRequestClient({ order }: Props) {
                       </div>
                       <div className={styles.summaryItemInfo}>
                         <p className={styles.summaryItemName}>{item.name}</p>
-                        <p className={styles.summaryItemMeta}>Qty: {selected.quantity} • {formatPrice(item.price * selected.quantity)}</p>
+                        <p className={styles.summaryItemMeta}>{t.account.returns_page.qty_label} {selected.quantity} • {formatPrice(item.price * selected.quantity)}</p>
                       </div>
                       <div className={styles.summaryPhotos}>
                         {selected.images.map((url, idx) => (
@@ -483,14 +489,14 @@ export default function ReturnRequestClient({ order }: Props) {
             </div>
 
             <div className={styles.summarySection}>
-              <p className={styles.summaryLabel}>Reason</p>
+              <p className={styles.summaryLabel}>{t.account.returns_page.steps.reason}</p>
               <p className={styles.summaryValue}>
                 {RETURN_REASONS.find(r => r.id === reason)?.label}
               </p>
             </div>
 
             <div className={styles.summarySection}>
-              <p className={styles.summaryLabel}>Preferred Resolution</p>
+              <p className={styles.summaryLabel}>{t.account.returns_page.preferred_resolution}</p>
               <p className={styles.summaryValue}>
                 {RETURN_TYPES.find(t => t.id === returnType)?.label}
               </p>
@@ -498,7 +504,7 @@ export default function ReturnRequestClient({ order }: Props) {
 
             {description && (
               <div className={styles.summarySection}>
-                <p className={styles.summaryLabel}>Additional Details</p>
+                <p className={styles.summaryLabel}>{t.account.returns_page.additional_details}</p>
                 <p className={styles.summaryValue}>{description}</p>
               </div>
             )}
@@ -508,14 +514,14 @@ export default function ReturnRequestClient({ order }: Props) {
                 className={styles.btnBack}
                 onClick={() => setStep(2)}
               >
-                ← Back
+                {language === 'ar' ? '→' : '←'} {t.common.back}
               </button>
               <button 
                 className={styles.btnSubmit}
                 disabled={submitting}
                 onClick={handleSubmit}
               >
-                {submitting ? 'Submitting...' : 'Submit Return Request'}
+                {submitting ? t.account.returns_page.submitting : t.account.returns_page.submit_btn}
               </button>
             </div>
           </div>

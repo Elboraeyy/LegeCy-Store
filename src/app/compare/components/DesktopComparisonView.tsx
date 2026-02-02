@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, PanInfo } from "framer-motion";
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 import { Product } from "@/types/product";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface DesktopComparisonViewProps {
     products: Product[];
@@ -20,6 +21,8 @@ export default function DesktopComparisonView({
     addToCart,
     onAddSlot
 }: DesktopComparisonViewProps) {
+    const { t, language } = useLanguage();
+
     // State for selecting 3 slots (indices in the products array)
     const [slot1Idx, setSlot1Idx] = useState<number | null>(0);
     const [slot2Idx, setSlot2Idx] = useState<number | null>(products.length > 1 ? 1 : null);
@@ -72,21 +75,23 @@ export default function DesktopComparisonView({
     // Spec groups
     const specGroups = [
         {
-            title: "Basic Info",
+            title: t.compare.basic_info,
+            id: "Basic Info",
             rows: [
-                { label: "Brand", key: "brand" },
-                { label: "Collection", key: "category" },
-                { label: "Status", key: "status" },
+                { label: t.compare.labels.brand, key: "brand" },
+                { label: t.compare.labels.collection, key: "category" },
+                { label: t.compare.labels.status, key: "status" },
             ]
         },
         {
-            title: "Specifications",
+            title: t.compare.specifications,
+            id: "Specifications",
             rows: [
-                { label: "Movement", specKey: "movement", default: "Quartz" },
-                { label: "Case Material", specKey: "case", default: "Stainless Steel" },
-                { label: "Water Resistance", specKey: "waterResistance", default: "3 ATM" },
-                { label: "Glass Type", specKey: "glass", default: "Mineral" },
-                { label: "Strap Material", key: "strap" },
+                { label: t.compare.labels.movement, specKey: "movement", default: "Quartz" },
+                { label: t.compare.labels.case_material, specKey: "case", default: "Stainless Steel" },
+                { label: t.compare.labels.water_resistance, specKey: "waterResistance", default: "3 ATM" },
+                { label: t.compare.labels.glass_type, specKey: "glass", default: "Mineral" },
+                { label: t.compare.labels.strap_material, key: "strap" },
             ]
         }
     ];
@@ -104,21 +109,14 @@ export default function DesktopComparisonView({
         return "-";
     };
 
-    const formatPrice = (p: number) => `EGP ${p.toLocaleString()}`;
+    const formatPrice = (p: number) => {
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
+            style: 'currency',
+            currency: 'EGP'
+        }).format(p);
+    };
 
     const handleThumbnailClick = (idx: number) => {
-        // Logic:
-        // If idx is already in a slot, do nothing? or maybe flash it.
-        // If not in a slot, put it in the "first available" or "last interacted" slot? 
-        // Mobile behavior: 
-        // "Toggle between primary and secondary". 
-        // Logic there was: If neither, put in secondary. If primary, do nothing. If secondary, swap?
-
-        // For 3 slots, simple rotation or "First Empty -> Then Replace Slot 3 -> Then Slot 2..."?
-        // Let's go with: Replace first empty. If full, replace the last one (Slot 3) or shift?
-        // User asked for "Same experience". 
-        // Mobile: "If P!=idx && S!=idx -> setSecondary(idx)". 
-
         if (slot1Idx === idx || slot2Idx === idx || slot3Idx === idx) return;
 
         if (slot1Idx === null) { setSlot1Idx(idx); return; }
@@ -130,13 +128,6 @@ export default function DesktopComparisonView({
     };
 
     const onDropHandler = (droppedIdx: number, targetSlot: 1 | 2 | 3) => {
-        // If droppedIdx is already in a slot, swap it? 
-        // Example: Drag Slot1 Item to Slot2. 
-        // But here we drag from "Thumbnails" to "Slots".
-
-        // If droppedIdx is already in Slot X, and we drop on Slot Y:
-        // Swap Slot X and Slot Y.
-
         let currentSlotOfDropped = -1;
         if (slot1Idx === droppedIdx) currentSlotOfDropped = 1;
         if (slot2Idx === droppedIdx) currentSlotOfDropped = 2;
@@ -207,6 +198,7 @@ export default function DesktopComparisonView({
                 {products.length < 10 && (
                     <button
                         onClick={onAddSlot}
+                        title={t.compare.add_slot}
                         style={{
                             flexShrink: 0,
                             width: "100px",
@@ -302,7 +294,7 @@ export default function DesktopComparisonView({
                                     }}
                                     className="hover:opacity-90 transition-opacity"
                                 >
-                                    Add to Cart
+                                    {t.common.addToCart}
                                 </button>
                             </>
                         ) : (
@@ -310,8 +302,8 @@ export default function DesktopComparisonView({
                                 <div className="w-16 h-16 rounded-full bg-[var(--bg)] flex items-center justify-center mb-4">
                                     <Plus size={32} />
                                 </div>
-                                <span className="font-medium text-lg">Add to Slot {slot.slotNum}</span>
-                                <span className="text-sm opacity-70 mt-2">or drag a product here</span>
+                                    <span className="font-medium text-lg">{t.compare.add_to_slot.replace('{slot}', String(slot.slotNum))}</span>
+                                    <span className="text-sm opacity-70 mt-2">{t.compare.drag_hint}</span>
                             </div>
                         )}
                     </div>
@@ -329,7 +321,7 @@ export default function DesktopComparisonView({
                     }}>
                         {/* Accordion Header */}
                         <button
-                            onClick={() => toggleSection(group.title)}
+                            onClick={() => toggleSection(group.id)}
                             style={{
                                 width: "100%", padding: "24px",
                                 display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -339,11 +331,11 @@ export default function DesktopComparisonView({
                             }}
                         >
                             {group.title}
-                            {openSections[group.title] ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                            {openSections[group.id] ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                         </button>
 
                         {/* Accordion Content */}
-                        {openSections[group.title] && (
+                        {openSections[group.id] && (
                             <div style={{ padding: "0 24px 24px 24px" }}>
                                 {group.rows.map((row, rIdx) => {
                                     const val1 = getSpecValue(slot1, row);
