@@ -24,6 +24,9 @@ export const AdminPermissions = {
     },
     DASHBOARD: {
         VIEW: 'DASHBOARD_VIEW'
+    },
+    SYSTEM: {
+        MANAGE: 'SYSTEM_MANAGE'
     }
 } as const;
 

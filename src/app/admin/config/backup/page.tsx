@@ -203,12 +203,32 @@ export default function BackupSettingsPage() {
             )}
 
             {activeTab === 'export' && (
-                <SettingsSection title="Data Export" description="Export store data" icon="📤">
-                    <div className="settings-toggle-row"><div className="settings-toggle-info"><div className="settings-toggle-label">Enable Data Export</div></div><ToggleSwitch checked={settings.enableDataExport} onChange={(c) => setSettings({ ...settings, enableDataExport: c })} /></div>
-                    {settings.enableDataExport && (<>
-                        <SettingsField label="Export Format"><AdminDropdown value={settings.exportFormat} onChange={(v) => setSettings({ ...settings, exportFormat: v })} options={[{ value: 'json', label: 'JSON' }, { value: 'csv', label: 'CSV' }, { value: 'xml', label: 'XML' }]} /></SettingsField>
-                        <div className="settings-toggle-row"><div className="settings-toggle-info"><div className="settings-toggle-label">Include Images</div></div><ToggleSwitch checked={settings.includeImages} onChange={(c) => setSettings({ ...settings, includeImages: c })} /></div>
-                    </>)}
+                <SettingsSection title="System Backup & Export" description="Download a full copy of your database" icon="bx bx-download">
+                    <div className="admin-card" style={{ padding: '24px', textAlign: 'center', border: '1px dashed var(--border-color)', backgroundColor: 'var(--bg-subtle)' }}>
+                        <div style={{ marginBottom: '16px', fontSize: '48px', color: 'var(--admin-primary)' }}>📦</div>
+                        <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>Full Database Backup</h3>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '24px', maxWidth: '500px', margin: '0 auto 24px auto' }}>
+                            Download a complete JSON snapshot of your entire system. This file contains all products, orders, users, and configuration.
+                            Keep this file safe for disaster recovery.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => window.open('/api/admin/backup', '_blank')}
+                            className="admin-btn admin-btn-primary"
+                            style={{ padding: '12px 24px', fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                        >
+                            <span>Download Backup Now</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                        </button>
+                    </div>
+
+                    <div style={{ marginTop: '32px' }}>
+                        <div className="settings-toggle-row"><div className="settings-toggle-info"><div className="settings-toggle-label">Enable Automated Data Export</div></div><ToggleSwitch checked={settings.enableDataExport} onChange={(c) => setSettings({ ...settings, enableDataExport: c })} /></div>
+                        {settings.enableDataExport && (<>
+                            <SettingsField label="Export Format"><AdminDropdown value={settings.exportFormat} onChange={(v) => setSettings({ ...settings, exportFormat: v })} options={[{ value: 'json', label: 'JSON' }, { value: 'csv', label: 'CSV' }, { value: 'xml', label: 'XML' }]} /></SettingsField>
+                            <div className="settings-toggle-row"><div className="settings-toggle-info"><div className="settings-toggle-label">Include Images</div></div><ToggleSwitch checked={settings.includeImages} onChange={(c) => setSettings({ ...settings, includeImages: c })} /></div>
+                        </>)}
+                    </div>
                 </SettingsSection>
             )}
 
