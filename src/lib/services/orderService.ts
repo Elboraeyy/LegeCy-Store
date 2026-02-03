@@ -285,9 +285,9 @@ export async function getOrders({ page = 1, limit = 10, status, sortBy = 'newest
   
   if (search) {
      where.OR = [
-         { id: { contains: search } },
-         { user: { email: { contains: search } } },
-         { user: { name: { contains: search } } }
+       { id: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
+       { user: { email: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
+       { user: { name: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } }
      ];
   }
 

@@ -19,6 +19,7 @@ export interface ShopProduct {
     inStock: boolean;
     defaultVariantId: string | null; // For cart operations
     isNew?: boolean;
+    variants?: { id: string; sku: string; price: number; stock: number }[];
 }
 
 export async function fetchShopProducts(): Promise<ShopProduct[]> {
@@ -64,7 +65,13 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
             variantCount: product.variants.length,
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
-            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000)
+            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
+            variants: product.variants.map(v => ({
+                id: v.id,
+                sku: v.sku,
+                price: Number(v.price),
+                stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
+            }))
         };
     });
 }
@@ -191,7 +198,13 @@ export async function fetchRelatedProducts(productId: string, category: string |
             variantCount: product.variants.length,
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
-            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000)
+            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
+            variants: product.variants.map(v => ({
+                id: v.id,
+                sku: v.sku,
+                price: Number(v.price),
+                stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
+            }))
         };
     });
 }
@@ -234,7 +247,13 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProd
             variantCount: product.variants.length,
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
-            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000)
+            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
+            variants: product.variants.map(v => ({
+                id: v.id,
+                sku: v.sku,
+                price: Number(v.price),
+                stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
+            }))
         };
     });
 }
@@ -283,7 +302,13 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             variantCount: product.variants.length,
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
-            isNew: true
+            isNew: true,
+            variants: product.variants.map(v => ({
+                id: v.id,
+                sku: v.sku,
+                price: Number(v.price),
+                stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
+            }))
         };
     });
 }

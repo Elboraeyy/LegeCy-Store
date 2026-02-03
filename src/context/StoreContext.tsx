@@ -33,7 +33,7 @@ export interface Product {
 }
 
 // Cart Item extends DTO logic - Add 'img' for legacy UI compatibility
-type CartItem = CartItemDTO & { img?: string };
+type CartItem = CartItemDTO & { img?: string; stock?: number }; // Ensure stock is optional but verified
 
 type ProductId = string; 
 
@@ -102,7 +102,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                     imageUrl: p.imageUrl,
                     brand: p.brand,
                     description: null,
-                    variants: [],
+                    variants: p.variants || [],
                     defaultVariantId: p.defaultVariantId
                 }));
                 if (mounted) setProducts(mapped);
@@ -167,7 +167,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 imageUrl: p.imageUrl,
                 brand: p.brand,
                 description: null,
-                variants: [],
+                variants: p.variants || [],
                 defaultVariantId: p.defaultVariantId
             }));
             
@@ -325,22 +325,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // Add Item
     const addToCart = (id: string, variantId?: string, openDrawer: boolean = true) => {
-      const product = products.find(p => p.id === id);
-      // Use provided variantId, or fallback to product's defaultVariantId
+        const product = products.find(p => p.id === id);
       const vId = variantId || product?.defaultVariantId || "";
+
+        // Find variant stock
+        const variant = product?.variants?.find(v => v.id === vId);
+        const stock = variant?.stock ?? 0;
+
+        // Check current qty in cart
+        const currentItem = cart.find(i => i.id === id && (i.variantId || "") === vId);
+        const currentQty = currentItem?.qty || 0;
+
+        if (currentQty >= stock) {
+            showToast("No more stock available", "danger");
+            return;
+        }
+
       const tempItem: CartItem = {
            id, variantId: vId, qty: 1, 
            name: product?.name || 'Item', 
            price: product?.price || 0,
            imageUrl: product?.imageUrl || '',
            img: product?.img || product?.imageUrl || '',
-           stock: 99 // Placeholder
+          stock: stock 
       };
 
       setCart(prev => {
           const exists = prev.find(i => i.id === id && (i.variantId || "") === vId);
           if (exists) {
-              return prev.map(i => i.id === id && (i.variantId || "") === vId ? { ...i, qty: Math.min(i.qty + 1, 99) } : i);
+              return prev.map(i => i.id === id && (i.variantId || "") === vId ? { ...i, qty: Math.min(i.qty + 1, stock) } : i);
           }
           return [...prev, tempItem];
       });

@@ -147,6 +147,8 @@ export default function CartDrawer() {
                           onClick={() => addToCart(item.id)}
                           className={styles.qtyBtn}
                           aria-label="Increase quantity"
+                          disabled={item.qty >= (item.stock || 99)}
+                          style={{ opacity: item.qty >= (item.stock || 99) ? 0.3 : 1, cursor: item.qty >= (item.stock || 99) ? 'not-allowed' : 'pointer' }}
                         >
                           +
                         </button>

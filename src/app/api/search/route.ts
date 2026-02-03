@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -21,15 +22,15 @@ export async function GET(request: Request) {
           {
             OR: [
               // 1. Exact match logic (for SKU or exact name)
-              { name: { contains: q } },
-              { description: { contains: q } },
-              { variants: { some: { sku: { contains: q } } } },
+              { name: { contains: q, mode: 'insensitive' as Prisma.QueryMode } },
+              { description: { contains: q, mode: 'insensitive' as Prisma.QueryMode } },
+              { variants: { some: { sku: { contains: q, mode: 'insensitive' as Prisma.QueryMode } } } },
               
               // 2. Partial match for each term (simulating fuzzy)
               ...terms.map(term => ({
                 OR: [
-                  { name: { contains: term } },
-                  { category: { contains: term } }
+                  { name: { contains: term, mode: 'insensitive' as Prisma.QueryMode } },
+                  { category: { contains: term, mode: 'insensitive' as Prisma.QueryMode } }
                 ]
               }))
             ]

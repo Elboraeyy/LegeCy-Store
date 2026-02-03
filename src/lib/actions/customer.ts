@@ -30,8 +30,8 @@ export async function fetchCustomers(params: {
     const where: Prisma.UserWhereInput = {};
     if (params.search) {
         where.OR = [
-            { email: { contains: params.search } },
-            { name: { contains: params.search } }
+            { email: { contains: params.search, mode: 'insensitive' as Prisma.QueryMode } },
+            { name: { contains: params.search, mode: 'insensitive' as Prisma.QueryMode } }
         ];
     }
 

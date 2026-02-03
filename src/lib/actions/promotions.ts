@@ -1,6 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { requireAdmin } from '@/lib/auth/guards';
 import { revalidatePath } from 'next/cache';
 
@@ -56,7 +57,7 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
     const products = await prisma.product.findMany({
         where: {
             OR: [
-                { name: { contains: query, mode: 'insensitive' } },
+                { name: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
                 { id: { contains: query } }
             ]
         },
@@ -789,7 +790,7 @@ export async function searchCategories(query: string) {
     await requireAdmin();
     const categories = await prisma.category.findMany({
         where: {
-            name: { contains: query } 
+            name: { contains: query, mode: 'insensitive' as Prisma.QueryMode } 
         },
         take: 5,
         select: { id: true, name: true }

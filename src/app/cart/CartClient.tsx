@@ -220,7 +220,8 @@ export default function CartClient({
                             <span className="w-8 text-center font-bold text-[#12403C] text-sm tabular-nums leading-none">{item.qty}</span>
                             <button 
                               onClick={() => addToCart(item.id, undefined, false)}
-                              className="w-10 h-full flex items-center justify-center text-[#12403C] hover:bg-[#12403C] hover:text-white active:bg-[#12403C] active:text-white transition-all duration-200"
+                              disabled={item.qty >= (item.stock || 99)}
+                              className={`w-10 h-full flex items-center justify-center text-[#12403C] transition-all duration-200 ${item.qty >= (item.stock || 99) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[#12403C] hover:text-white active:bg-[#12403C] active:text-white'}`}
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>

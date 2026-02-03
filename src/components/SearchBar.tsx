@@ -64,7 +64,7 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      router.push(`/shop?search=${encodeURIComponent(query.trim())}`);
+      router.push(`/shop?q=${encodeURIComponent(query.trim())}`);
       setIsOpen(false);
       setQuery("");
       onProductSelect?.();
