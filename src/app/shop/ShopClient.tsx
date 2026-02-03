@@ -34,8 +34,8 @@ export default function ShopClient({
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
-    // Initialize filters from URL, but use local state for instant updates
-    const [filters, setFilters] = useState(() => ({
+    // Derived filters from URL - Single Source of Truth
+    const filters = useMemo(() => ({
         selectedCategories: searchParams.get("category")?.split(",").filter(Boolean) || [],
         selectedBrands: searchParams.get("brands")?.split(",").filter(Boolean) || [],
         selectedMaterials: searchParams.get("materials")?.split(",").filter(Boolean) || [],
@@ -46,31 +46,7 @@ export default function ShopClient({
         inStock: searchParams.get("inStock") === "true" ? true : searchParams.get("inStock") === "false" ? false : null,
         onSale: searchParams.get("onSale") === "true" ? true : null,
         isNew: searchParams.get("new") === "true" ? true : null,
-    }));
-
-    // Sync URL params to local state when URL changes (e.g., browser back/forward)
-    useEffect(() => {
-        const newFilters = {
-            selectedCategories: searchParams.get("category")?.split(",").filter(Boolean) || [],
-            selectedBrands: searchParams.get("brands")?.split(",").filter(Boolean) || [],
-            selectedMaterials: searchParams.get("materials")?.split(",").filter(Boolean) || [],
-            sortBy: searchParams.get("sort") || "featured",
-            searchQuery: searchParams.get("q") || "",
-            minPrice: Number(searchParams.get("minPrice")) || 0,
-            maxPrice: Number(searchParams.get("maxPrice")) || 3000,
-            inStock: searchParams.get("inStock") === "true" ? true : searchParams.get("inStock") === "false" ? false : null,
-            onSale: searchParams.get("onSale") === "true" ? true : null,
-            isNew: searchParams.get("new") === "true" ? true : null,
-        };
-
-        setFilters(prevFilters => {
-            // Simple JSON comparison to avoid redundant updates
-            if (JSON.stringify(newFilters) !== JSON.stringify(prevFilters)) {
-                return newFilters;
-            }
-            return prevFilters;
-        });
-    }, [searchParams]);
+    }), [searchParams]);
 
     // Fixed price bounds (0-3000)
     const absoluteMinPrice = 0;
@@ -79,15 +55,12 @@ export default function ShopClient({
     // Deferred search query for smoother typing experience
     const deferredSearchQuery = useDeferredValue(filters.searchQuery);
 
-    // Update filters instantly (local state) and sync URL asynchronously
+    // Update URL asynchronously
     const updateFilters = useCallback((updates: Partial<typeof filters>) => {
-        // Calculate new filters based on current state
+        // Calculate new filters based on current derived state
         const newFilters = { ...filters, ...updates };
 
-        // Update local state immediately for instant filtering
-        setFilters(newFilters);
-
-        // Update URL asynchronously without blocking UI
+        // Update URL
         startTransition(() => {
             const params = new URLSearchParams();
 
