@@ -101,7 +101,7 @@ export default function AddressClient({ initialAddresses, userDetails }: Address
             } else {
                 toast.error(res.error || t.account.addresses_page.failed_add);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error(t.common.error);
         } finally {
             setIsLoading(false);
@@ -115,7 +115,7 @@ export default function AddressClient({ initialAddresses, userDetails }: Address
             await deleteAddress(id);
             setAddresses(addresses.filter(addr => addr.id !== id));
             toast.success(t.account.addresses_page.deleted_success);
-        } catch (error) {
+        } catch (_error) {
             toast.error(t.account.addresses_page.failed_delete);
         }
     };
@@ -132,7 +132,7 @@ export default function AddressClient({ initialAddresses, userDetails }: Address
             } else {
                 toast.error(res.error || t.account.update_failed);
             }
-        } catch (e) {
+        } catch (_e) {
             toast.error(t.common.error);
         } finally {
             setIsLoading(false);

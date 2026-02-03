@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { getLoyaltySettings, updateLoyaltySettings, getLoyaltyStats, searchUsersForLoyalty, adjustUserPoints, getUserLoyaltyDetails } from '@/lib/services/loyaltyService';
+import { getLoyaltySettings, updateLoyaltySettings, getLoyaltyStats, searchUsersForLoyalty, adjustUserPoints } from '@/lib/services/loyaltyService';
 
 // Types
 type LoyaltyTab = 'overview' | 'settings' | 'members';
@@ -24,6 +24,15 @@ interface Stats {
     config: any;
 }
 
+interface LoyaltyMember {
+    id: string;
+    name: string | null;
+    email: string;
+    phone: string | null;
+    points: number;
+    _count: { orders: number };
+}
+
 export default function LoyaltySection() {
     const [activeTab, setActiveTab] = useState<LoyaltyTab>('overview');
     const [loading, setLoading] = useState(true);
@@ -33,9 +42,9 @@ export default function LoyaltySection() {
 
     // Members Search
     const [memberSearch, setMemberSearch] = useState('');
-    const [members, setMembers] = useState<any[]>([]);
+    const [members, setMembers] = useState<LoyaltyMember[]>([]);
     const [searchingMembers, setSearchingMembers] = useState(false);
-    const [selectedMember, setSelectedMember] = useState<any | null>(null);
+    const [selectedMember, setSelectedMember] = useState<LoyaltyMember | null>(null);
     const [adjustPointsValue, setAdjustPointsValue] = useState('');
     const [adjustReason, setAdjustReason] = useState('');
 
@@ -66,7 +75,7 @@ export default function LoyaltySection() {
         try {
             await updateLoyaltySettings(settings);
             toast.success('Settings updated successfully');
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to update settings');
         } finally {
             setSaving(false);
@@ -101,7 +110,7 @@ export default function LoyaltySection() {
             setAdjustPointsValue('');
             setAdjustReason('');
             // Refresh member list if needed or just close modal
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to adjust points');
         }
     };

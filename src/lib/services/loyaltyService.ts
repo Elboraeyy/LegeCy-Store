@@ -419,7 +419,7 @@ export async function searchUsersForLoyalty(query: string, limit = 20) {
  * Get user details with loyalty info for admin
  */
 export async function getUserLoyaltyDetails(userId: string) {
-    const [user, transactions, orderStats] = await Promise.all([
+    const [user, transactions] = await Promise.all([
         prisma.user.findUnique({
             where: { id: userId },
             select: {
@@ -444,10 +444,7 @@ export async function getUserLoyaltyDetails(userId: string) {
                 }
             }
         }),
-        prisma.loyaltyTransaction.aggregate({
-            where: { userId },
-            _sum: { points: true }
-        })
+
     ]);
 
     if (!user) return null;
@@ -472,8 +469,7 @@ export async function getUserLoyaltyDetails(userId: string) {
 // Coupon Generation from Points
 // ==========================================
 
-const MIN_COUPON_VALUE = 100; // Minimum 100 EGP discount
-const COUPON_VALIDITY_DAYS = 30; // 30 days validity
+
 
 /**
  * Generate a discount coupon from loyalty points

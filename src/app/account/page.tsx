@@ -70,11 +70,11 @@ export default async function AccountPage() {
     addressCount: fullUser._count.addresses
   };
 
-  const formattedOrders = recentOrders.map((order: any) => ({
+  const formattedOrders = recentOrders.map((order) => ({
     id: order.id,
     status: order.status,
     createdAt: order.createdAt.toISOString(),
-    totalPrice: order.totalPrice,
+    totalPrice: Number(order.totalPrice),
     itemCount: order._count.items
   }));
 
