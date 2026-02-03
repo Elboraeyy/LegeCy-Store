@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, memo, useCallback, useMemo } from "react";
+import React, { useState, memo, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import PriceRangeSlider from "./PriceRangeSlider";
 

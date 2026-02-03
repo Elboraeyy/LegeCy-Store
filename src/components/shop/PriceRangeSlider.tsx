@@ -178,9 +178,6 @@ export default function PriceRangeSlider({
                 ref={sliderRef}
                 className="relative h-1.5 bg-gray-100 rounded-full cursor-pointer mb-6"
                 onClick={handleTrackClick}
-                role="slider"
-                aria-valuemin={min}
-                aria-valuemax={max}
             >
                 {/* Active Range */}
                 <div

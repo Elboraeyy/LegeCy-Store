@@ -50,7 +50,7 @@ export default function ShopClient({
 
     // Sync URL params to local state when URL changes (e.g., browser back/forward)
     useEffect(() => {
-        setFilters({
+        const newFilters = {
             selectedCategories: searchParams.get("category")?.split(",").filter(Boolean) || [],
             selectedBrands: searchParams.get("brands")?.split(",").filter(Boolean) || [],
             selectedMaterials: searchParams.get("materials")?.split(",").filter(Boolean) || [],
@@ -61,8 +61,13 @@ export default function ShopClient({
             inStock: searchParams.get("inStock") === "true" ? true : searchParams.get("inStock") === "false" ? false : null,
             onSale: searchParams.get("onSale") === "true" ? true : null,
             isNew: searchParams.get("new") === "true" ? true : null,
-        });
-    }, [searchParams]);
+        };
+
+        // Simple JSON comparison to avoid redundant updates
+        if (JSON.stringify(newFilters) !== JSON.stringify(filters)) {
+            setFilters(newFilters);
+        }
+    }, [searchParams, filters]);
 
     // Fixed price bounds (0-3000)
     const absoluteMinPrice = 0;

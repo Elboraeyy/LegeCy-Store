@@ -44,7 +44,7 @@ export function ComparisonProvider({ children }: { children: ReactNode }) {
         setSelectedProducts(validProducts);
       }
     }
-  }, [products, selectedProducts.length]); // Check when products load or selection changes
+  }, [products, selectedProducts]); // Check when products load or selection changes
 
   // Save to localStorage whenever selectedProducts changes
   React.useEffect(() => {
