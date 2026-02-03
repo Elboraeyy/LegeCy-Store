@@ -63,11 +63,14 @@ export default function ShopClient({
             isNew: searchParams.get("new") === "true" ? true : null,
         };
 
-        // Simple JSON comparison to avoid redundant updates
-        if (JSON.stringify(newFilters) !== JSON.stringify(filters)) {
-            setFilters(newFilters);
-        }
-    }, [searchParams, filters]);
+        setFilters(prevFilters => {
+            // Simple JSON comparison to avoid redundant updates
+            if (JSON.stringify(newFilters) !== JSON.stringify(prevFilters)) {
+                return newFilters;
+            }
+            return prevFilters;
+        });
+    }, [searchParams]);
 
     // Fixed price bounds (0-3000)
     const absoluteMinPrice = 0;
