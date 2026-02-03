@@ -354,11 +354,17 @@ export async function getLoyaltyStats() {
         getLoyaltySettings()
     ]);
 
+    // Serialize Decimal to number for client components
+    const formattedTransactions = recentTransactions.map(t => ({
+        ...t,
+        order: t.order ? { ...t.order, totalPrice: Number(t.order.totalPrice) } : null
+    }));
+
     return {
         totalPointsInCirculation,
         totalPointsRedeemedThisMonth,
         activeLoyaltyMembers,
-        recentTransactions,
+        recentTransactions: formattedTransactions,
         config: settings
     };
 }
