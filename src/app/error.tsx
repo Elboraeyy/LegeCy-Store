@@ -12,7 +12,14 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log exception to service if needed
-    console.error(error);
+    // In production, this should be sent to error tracking service
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[Error Boundary]', {
+        message: error.message,
+        digest: error.digest,
+        stack: error.stack,
+      });
+    }
   }, [error]);
 
   return (

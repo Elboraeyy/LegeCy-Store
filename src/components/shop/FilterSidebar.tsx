@@ -101,6 +101,7 @@ const FilterSidebar = memo(function FilterSidebar({
                 {activeFilterCount > 0 && (
                     <button
                         onClick={onClearAll}
+                        aria-label={`${t.shop.clear_all || 'Clear all'} ${activeFilterCount} ${t.shop.filters || 'filters'}`}
                         className="text-xs text-[#d4af37] hover:text-[#12403C] font-medium transition-colors"
                     >
                         {t.shop.clear_all} ({activeFilterCount})
@@ -123,11 +124,17 @@ const FilterSidebar = memo(function FilterSidebar({
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder={t.shop.search_placeholder}
+                    aria-label={t.shop.search_placeholder || "Search products"}
+                    aria-describedby="search-description"
                     className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#12403C] focus:ring-1 focus:ring-[#12403C] transition-all placeholder:text-gray-400"
                 />
+                <span id="search-description" className="sr-only">
+                    {t.shop.search_placeholder || "Search for products by name or description"}
+                </span>
                 {searchQuery && (
                     <button
                         onClick={() => onSearchChange("")}
+                        aria-label="Clear search"
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,7 +183,13 @@ const FilterSidebar = memo(function FilterSidebar({
                         <input
                             type="number"
                             value={priceRange.min}
-                            onChange={(e) => onPriceChange({ ...priceRange, min: Math.min(Number(e.target.value), priceRange.max) })}
+                            min={minPrice}
+                            max={maxPrice}
+                            onChange={(e) => {
+                                const value = Math.max(minPrice, Math.min(maxPrice, Number(e.target.value) || minPrice));
+                                onPriceChange({ ...priceRange, min: Math.min(value, priceRange.max) });
+                            }}
+                            aria-label={`Price range: Min (EGP)`}
                             className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#12403C] focus:ring-1 focus:ring-[#12403C]"
                         />
                     </div>
@@ -185,7 +198,13 @@ const FilterSidebar = memo(function FilterSidebar({
                         <input
                             type="number"
                             value={priceRange.max}
-                            onChange={(e) => onPriceChange({ ...priceRange, max: Math.max(Number(e.target.value), priceRange.min) })}
+                            min={minPrice}
+                            max={maxPrice}
+                            onChange={(e) => {
+                                const value = Math.max(minPrice, Math.min(maxPrice, Number(e.target.value) || maxPrice));
+                                onPriceChange({ ...priceRange, max: Math.max(value, priceRange.min) });
+                            }}
+                            aria-label={`Price range: Max (EGP)`}
                             className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#12403C] focus:ring-1 focus:ring-[#12403C]"
                         />
                     </div>
@@ -317,6 +336,8 @@ const FilterSection = memo(function FilterSection({
         <div className="border-b border-gray-100 pb-5 mb-5 last:border-b-0 last:pb-0 last:mb-0">
             <button
                 onClick={onToggle}
+                aria-expanded={isExpanded}
+                aria-controls={`filter-section-${title.toLowerCase().replace(/\s+/g, '-')}`}
                 className="flex items-center justify-between w-full mb-3 group"
             >
                 <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
@@ -337,7 +358,7 @@ const FilterSection = memo(function FilterSection({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-            {isExpanded && <div>{children}</div>}
+            {isExpanded && <div id={`filter-section-${title.toLowerCase().replace(/\s+/g, '-')}`}>{children}</div>}
         </div>
     );
 });

@@ -28,10 +28,11 @@ export default function ActiveFilters({
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-sm text-gray-600 font-medium">{t.shop.active_filters}</span>
       
-      {filters.map((filter, index) => (
+      {filters.map((filter) => (
         <button
-          key={`${filter.type}-${filter.value}-${index}`}
+          key={`${filter.type}-${filter.value}`}
           onClick={() => onRemove(filter)}
+          aria-label={`Remove filter: ${filter.label}`}
           className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#12403C] text-white text-sm rounded-full hover:bg-[#d4af37] transition-colors group"
         >
           <span>{filter.label}</span>
@@ -49,6 +50,7 @@ export default function ActiveFilters({
       {filters.length > 1 && (
         <button
           onClick={onClearAll}
+          aria-label={`${t.shop.clear_all || 'Clear all'} ${filters.length} ${t.shop.filters || 'filters'}`}
           className="text-sm text-[#d4af37] hover:text-[#12403C] font-medium underline transition-colors"
         >
           {t.shop.clear_all} ({filters.length})

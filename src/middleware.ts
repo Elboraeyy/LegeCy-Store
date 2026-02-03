@@ -44,8 +44,9 @@ export async function middleware(request: NextRequest) {
     }
 
     // 0.5 Rate Limiting (Sensitive Routes)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ip = (request as any).ip || '127.0.0.1';
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+        request.headers.get('x-real-ip') ||
+        '127.0.0.1';
     if (path.startsWith('/api/auth') || path.startsWith('/api/checkout')) {
         try {
             // Dynamic import to avoid edge startup issues if unused
@@ -62,7 +63,13 @@ export async function middleware(request: NextRequest) {
                 );
             }
         } catch (e) {
-            console.error('Rate Limit Error', e);
+            // Edge runtime - use console.error with sanitized error
+            const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+            console.error('[Rate Limit Error]', {
+                message: errorMessage,
+                path,
+                requestId
+            });
         }
     }
 
@@ -147,7 +154,13 @@ export async function middleware(request: NextRequest) {
                 response.headers.set('x-admin-session-id', sessionId);
             }
         } catch (error) {
-            console.error('Middleware Auth Error:', error);
+            // Edge runtime - use console.error with sanitized error
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            console.error('[Middleware Auth Error]', {
+                message: errorMessage,
+                path,
+                requestId
+            });
         }
 
         if (!isValidSession) {

@@ -7,10 +7,26 @@ import prisma from "@/lib/prisma";
 
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
 
-export const metadata: Metadata = {
-  title: "Shop Premium Accessories | Legacy Store",
-  description: "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Shop Premium Accessories | Legacy Store",
+    description: "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more. Filter by category, brand, price, and more.",
+    keywords: "shop, accessories, watches, wallets, sunglasses, perfumes, handbags, legacy store, egypt",
+    openGraph: {
+      title: "Shop Premium Accessories | Legacy Store",
+      description: "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more.",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Shop Premium Accessories | Legacy Store",
+      description: "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more.",
+    },
+    alternates: {
+      canonical: "/shop",
+    },
+  };
+}
 
 export default async function Shop() {
   // Fetch server-side data for SEO and initial render

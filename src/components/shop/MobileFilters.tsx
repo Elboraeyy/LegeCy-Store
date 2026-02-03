@@ -47,6 +47,8 @@ const FilterSection = ({
         <div className="border-b border-[#12403C]/10 last:border-0">
             <button
                 onClick={onToggle}
+                aria-expanded={isOpen}
+                aria-controls={`filter-section-${title.toLowerCase().replace(/\s+/g, '-')}`}
                 className="w-full flex items-center justify-between py-4 px-5 bg-[#FCF8F3] hover:bg-[#12403C]/5 transition-colors"
             >
                 <span className="font-serif text-[#12403C] text-base tracking-wide">{title}</span>
@@ -62,6 +64,7 @@ const FilterSection = ({
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
+                        id={`filter-section-${title.toLowerCase().replace(/\s+/g, '-')}`}
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -145,13 +148,12 @@ const MobileFilters = memo(function MobileFilters({
     // Prevent body scroll when open
     React.useEffect(() => {
         if (isOpen) {
+            const originalOverflow = document.body.style.overflow;
             document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
+            return () => {
+                document.body.style.overflow = originalOverflow;
+            };
         }
-        return () => {
-            document.body.style.overflow = "";
-        };
     }, [isOpen]);
 
     return (
@@ -184,8 +186,20 @@ const MobileFilters = memo(function MobileFilters({
                         className="fixed bottom-0 left-0 right-0 bg-[#FCF8F3] rounded-t-[24px] z-[70] max-h-[85vh] flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.1)]"
                     >
                         {/* Drag Handle */}
-                        <div className="pt-3 pb-1 flex justify-center w-full" onClick={onClose}>
-                            <div className="w-12 h-1 bg-[#12403C]/10 rounded-full" />
+                        <div
+                            className="pt-3 pb-1 flex justify-center w-full cursor-grab active:cursor-grabbing"
+                            onClick={onClose}
+                            role="button"
+                            aria-label="Close filters"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onClose();
+                                }
+                            }}
+                        >
+                            <div className="w-12 h-1 bg-[#12403C]/10 rounded-full" aria-hidden="true" />
                         </div>
 
                         {/* Header */}
@@ -200,6 +214,7 @@ const MobileFilters = memo(function MobileFilters({
                             </div>
                             <button
                                 onClick={onClose}
+                                aria-label="Close filters"
                                 className="w-9 h-9 flex items-center justify-center rounded-full text-[#5c6b66] hover:bg-[#12403C]/5 hover:text-[#12403C] transition-colors"
                             >
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -238,6 +253,7 @@ const MobileFilters = memo(function MobileFilters({
                                                 className="hidden"
                                                 checked={selectedCategories.includes(cat.slug)}
                                                 onChange={() => handleCategoryToggle(cat.slug)}
+                                                aria-label={`${t.shop.categories || 'Category'}: ${cat.name}`}
                                             />
                                             <span className={`text-[15px] ${selectedCategories.includes(cat.slug) ? "text-[#12403C] font-medium" : "text-[#5c6b66]"
                                                 }`}>
@@ -260,7 +276,13 @@ const MobileFilters = memo(function MobileFilters({
                                         <input
                                             type="number"
                                             value={priceRange.min}
-                                            onChange={(e) => onPriceChange({ ...priceRange, min: Math.min(Number(e.target.value), priceRange.max) })}
+                                            min={minPrice}
+                                            max={maxPrice}
+                                            onChange={(e) => {
+                                                const value = Math.max(minPrice, Math.min(maxPrice, Number(e.target.value) || minPrice));
+                                                onPriceChange({ ...priceRange, min: Math.min(value, priceRange.max) });
+                                            }}
+                                            aria-label={`Price range: Min (EGP)`}
                                             className="w-full px-4 py-3 bg-white border border-[#12403C]/20 rounded-xl text-[#12403C] font-medium focus:outline-none focus:border-[#12403C] transition-colors text-sm"
                                         />
                                     </div>
@@ -269,7 +291,13 @@ const MobileFilters = memo(function MobileFilters({
                                         <input
                                             type="number"
                                             value={priceRange.max}
-                                            onChange={(e) => onPriceChange({ ...priceRange, max: Math.max(Number(e.target.value), priceRange.min) })}
+                                            min={minPrice}
+                                            max={maxPrice}
+                                            onChange={(e) => {
+                                                const value = Math.max(minPrice, Math.min(maxPrice, Number(e.target.value) || maxPrice));
+                                                onPriceChange({ ...priceRange, max: Math.max(value, priceRange.min) });
+                                            }}
+                                            aria-label={`Price range: Max (EGP)`}
                                             className="w-full px-4 py-3 bg-white border border-[#12403C]/20 rounded-xl text-[#12403C] font-medium focus:outline-none focus:border-[#12403C] transition-colors text-sm"
                                         />
                                     </div>
@@ -302,6 +330,7 @@ const MobileFilters = memo(function MobileFilters({
                                                 className="hidden"
                                                 checked={item.checked}
                                                 onChange={() => item.onChange(item.checked ? null : true)}
+                                                aria-label={item.label}
                                             />
                                         </label>
                                     ))}
@@ -373,6 +402,7 @@ const MobileFilters = memo(function MobileFilters({
                                 {activeFilterCount > 0 && (
                                     <button
                                         onClick={onClearAll}
+                                        aria-label={`${t.shop.clear_all || 'Clear all'} ${activeFilterCount} ${t.shop.filters || 'filters'}`}
                                         className="px-6 py-3.5 border border-[#12403C]/20 text-[#12403C] rounded-full font-semibold text-xs uppercase tracking-wider hover:bg-[#12403C] hover:text-white transition-colors"
                                     >
                                         {t.shop.clear_all}
@@ -380,6 +410,7 @@ const MobileFilters = memo(function MobileFilters({
                                 )}
                                 <button
                                     onClick={onClose}
+                                    aria-label={t.shop.show_results || "Show results"}
                                     className="flex-1 py-3.5 bg-[#12403C] text-white rounded-full font-semibold text-xs uppercase tracking-wider shadow-lg shadow-[#12403C]/20 active:scale-95 transition-transform flex items-center justify-center gap-2 hover:bg-[#0E3330]"
                                 >
                                     {t.shop.show_results}

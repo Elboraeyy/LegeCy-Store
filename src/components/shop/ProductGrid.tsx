@@ -53,8 +53,13 @@ export default function ProductGrid({
 
     if (products.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-                <div className="w-24 h-24 mb-6 rounded-full bg-gray-100 flex items-center justify-center">
+            <div
+                className="flex flex-col items-center justify-center py-20 px-6 text-center"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+            >
+                <div className="w-24 h-24 mb-6 rounded-full bg-gray-100 flex items-center justify-center" aria-hidden="true">
                     <svg
                         className="w-12 h-12 text-gray-400"
                         fill="none"
