@@ -2,6 +2,7 @@
 
 import React, { useState, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import PriceRangeSlider from "./PriceRangeSlider";
 
 interface MobileFiltersProps {
     isOpen: boolean;
@@ -270,36 +271,48 @@ const MobileFilters = memo(function MobileFilters({
                                 isOpen={openSections.price}
                                 onToggle={() => toggleSection('price')}
                             >
-                                <div className="flex items-center gap-2 pt-2 pb-6 px-1">
-                                    <div className="flex-1">
-                                        <label className="text-xs text-[#5c6b66] mb-1 block">Min (EGP)</label>
-                                        <input
-                                            type="number"
-                                            value={priceRange.min}
-                                            min={minPrice}
-                                            max={maxPrice}
-                                            onChange={(e) => {
-                                                const value = Math.max(minPrice, Math.min(maxPrice, Number(e.target.value) || minPrice));
-                                                onPriceChange({ ...priceRange, min: Math.min(value, priceRange.max) });
-                                            }}
-                                            aria-label={`Price range: Min (EGP)`}
-                                            className="w-full px-4 py-3 bg-white border border-[#12403C]/20 rounded-xl text-[#12403C] font-medium focus:outline-none focus:border-[#12403C] transition-colors text-sm"
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <label className="text-xs text-[#5c6b66] mb-1 block">Max (EGP)</label>
-                                        <input
-                                            type="number"
-                                            value={priceRange.max}
-                                            min={minPrice}
-                                            max={maxPrice}
-                                            onChange={(e) => {
-                                                const value = Math.max(minPrice, Math.min(maxPrice, Number(e.target.value) || maxPrice));
-                                                onPriceChange({ ...priceRange, max: Math.max(value, priceRange.min) });
-                                            }}
-                                            aria-label={`Price range: Max (EGP)`}
-                                            className="w-full px-4 py-3 bg-white border border-[#12403C]/20 rounded-xl text-[#12403C] font-medium focus:outline-none focus:border-[#12403C] transition-colors text-sm"
-                                        />
+                                <div className="space-y-5 pt-2 pb-6 px-1">
+                                    {/* Range Slider */}
+                                    <PriceRangeSlider
+                                        min={minPrice}
+                                        max={maxPrice}
+                                        value={priceRange}
+                                        onChange={onPriceChange}
+                                    />
+
+                                    {/* Number Inputs */}
+                                    <div className="flex items-end gap-3">
+                                        <div className="flex-1">
+                                            <label className="text-xs text-[#5c6b66] mb-1.5 block font-medium">Min</label>
+                                            <input
+                                                type="number"
+                                                value={priceRange.min}
+                                                min={minPrice}
+                                                max={maxPrice}
+                                                onChange={(e) => {
+                                                    const value = Math.max(minPrice, Math.min(maxPrice, Number(e.target.value) || minPrice));
+                                                    onPriceChange({ ...priceRange, min: Math.min(value, priceRange.max) });
+                                                }}
+                                                aria-label="Minimum price"
+                                                className="w-full px-4 py-3 bg-white border border-[#12403C]/20 rounded-xl text-[#12403C] font-medium focus:outline-none focus:border-[#12403C] focus:ring-2 focus:ring-[#12403C]/10 transition-all text-sm"
+                                            />
+                                        </div>
+                                        <div className="pb-2.5 text-[#5c6b66]">-</div>
+                                        <div className="flex-1">
+                                            <label className="text-xs text-[#5c6b66] mb-1.5 block font-medium">Max</label>
+                                            <input
+                                                type="number"
+                                                value={priceRange.max}
+                                                min={minPrice}
+                                                max={maxPrice}
+                                                onChange={(e) => {
+                                                    const value = Math.max(minPrice, Math.min(maxPrice, Number(e.target.value) || maxPrice));
+                                                    onPriceChange({ ...priceRange, max: Math.max(value, priceRange.min) });
+                                                }}
+                                                aria-label="Maximum price"
+                                                className="w-full px-4 py-3 bg-white border border-[#12403C]/20 rounded-xl text-[#12403C] font-medium focus:outline-none focus:border-[#12403C] focus:ring-2 focus:ring-[#12403C]/10 transition-all text-sm"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </FilterSection>
