@@ -23,7 +23,7 @@ interface RecentTransaction {
     description: string | null;
     createdAt: Date;
     user: { name: string | null; email: string };
-    order: { id: string; totalPrice: any } | null;
+    order: { id: string; totalPrice: number } | null;
 }
 
 interface Stats {
