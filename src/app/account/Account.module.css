@@ -270,8 +270,8 @@
 
 /* Stats Grid */
 .statsGrid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
+        justify-content: space-around;
     gap: 16px;
     margin-top: 28px;
     padding-top: 28px;
@@ -280,6 +280,7 @@
 
 .statItem {
     text-align: center;
+    flex: 1;
 }
 
 .statValue {
@@ -754,5 +755,449 @@
 
     .modal {
         padding: 24px;
+    }
+}
+/* ==========================================
+   Loyalty Page Styles
+   ========================================== */
+
+.backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #12403C;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    margin-bottom: 24px;
+    transition: opacity 0.2s;
+}
+
+.backLink:hover {
+    opacity: 0.7;
+}
+
+.loyaltyHeader {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.loyaltyIcon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.loyaltyTitle {
+    font-size: 28px;
+    font-weight: 700;
+    color: #12403C;
+    margin: 0 0 8px;
+}
+
+.loyaltySubtitle {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+}
+
+.loyaltyBalanceCard {
+    background: linear-gradient(135deg, #12403C 0%, #1a5650 100%);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 32px rgba(18, 64, 60, 0.25);
+}
+
+.balanceMain {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.balanceLabel {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.balanceValue {
+    font-size: 48px;
+    font-weight: 700;
+    color: #d4af37;
+}
+
+.balanceUnit {
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+.balanceEquivalent {
+    font-size: 14px;
+    opacity: 0.7;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.loyaltyConvertCard,
+.loyaltyCouponsCard,
+.loyaltyHistoryCard,
+.loyaltyHowItWorks {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.sectionTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #12403C;
+    margin: 0 0 20px;
+}
+
+.conversionInfo {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.infoItem {
+    text-align: center;
+}
+
+.infoLabel {
+    display: block;
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.infoValue {
+    font-size: 13px;
+    font-weight: 600;
+    color: #12403C;
+}
+
+.convertForm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.inputGroup label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+.input {
+    padding: 14px 16px;
+    border: 2px solid #e5e5e5;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: border-color 0.2s;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #12403C;
+}
+
+.discountPreview {
+    font-size: 14px;
+    color: #d4af37;
+    font-weight: 600;
+}
+
+.convertBtn {
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #d4af37 0%, #c4a030 100%);
+    color: #12403C;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.convertBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+}
+
+.convertBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.useAllBtn {
+    padding: 12px;
+    background: transparent;
+    border: 2px solid #12403C;
+    border-radius: 12px;
+    color: #12403C;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.useAllBtn:hover {
+    background: rgba(18, 64, 60, 0.05);
+}
+
+.notEnoughPoints {
+    text-align: center;
+    padding: 32px;
+    background: #fff5e6;
+    border-radius: 12px;
+}
+
+.warningIcon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.notEnoughPoints p {
+    margin: 0 0 8px;
+    font-weight: 500;
+    color: #12403C;
+}
+
+.hint {
+    font-size: 13px;
+    color: #888;
+}
+
+/* Coupons List */
+.couponsList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.couponItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px solid transparent;
+}
+
+.couponItem.coupon_active {
+    background: #f0fdf4;
+    border-color: #22c55e;
+}
+
+.couponItem.coupon_used {
+    opacity: 0.6;
+}
+
+.couponItem.coupon_expired {
+    opacity: 0.5;
+    background: #fef2f2;
+}
+
+.couponMain {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.couponCode {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #12403C;
+    letter-spacing: 1px;
+}
+
+.couponValue {
+    font-size: 13px;
+    color: #d4af37;
+    font-weight: 600;
+}
+
+.couponMeta {
+    font-size: 12px;
+    color: #888;
+}
+
+.usedBadge {
+    background: #ddd;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.expiredBadge {
+    background: #fecaca;
+    color: #dc2626;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.copyBtn {
+    padding: 10px 16px;
+    background: #12403C;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.copyBtn:hover {
+    transform: scale(1.05);
+}
+
+/* History */
+.historyList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.historyItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.historyMain {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.historyType {
+    font-size: 20px;
+}
+
+.historyDesc {
+    font-size: 14px;
+    color: #333;
+}
+
+.historyPoints {
+    text-align: left;
+}
+
+.positive {
+    color: #22c55e;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.negative {
+    color: #ef4444;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.historyDate {
+    font-size: 11px;
+    color: #888;
+    display: block;
+}
+
+/* How it works */
+.stepsGrid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    min-width: 80px;
+}
+
+.stepIcon {
+    font-size: 28px;
+}
+
+.stepText {
+    font-size: 12px;
+    font-weight: 500;
+    color: #12403C;
+    text-align: center;
+}
+
+.stepArrow {
+    color: #d4af37;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .conversionInfo {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .balanceValue {
+        font-size: 36px;
+    }
+
+    .couponItem {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .copyBtn {
+        width: 100%;
+    }
+
+    .stepsGrid {
+        gap: 4px;
+    }
+
+    .step {
+        min-width: 60px;
+        padding: 12px 8px;
+    }
+
+    .stepIcon {
+        font-size: 22px;
+    }
+
+    .stepArrow {
+        font-size: 16px;
     }
 }

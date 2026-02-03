@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { validateCustomerSession } from "@/lib/auth/session";
 import prisma from "@/lib/prisma";
 import AccountClient from "./AccountClient";
+import { getLoyaltySettings } from "@/lib/services/loyaltyService";
 
 export const metadata: Metadata = {
   title: "My Account | Legacy Store",
@@ -17,7 +18,7 @@ export default async function AccountPage() {
   }
 
   // Fetch full user data with counts and recent orders
-  const [fullUser, recentOrders] = await Promise.all([
+  const [fullUser, recentOrders, loyaltySettings] = await Promise.all([
     prisma.user.findUnique({
       where: { id: user.id },
       select: {
@@ -27,6 +28,7 @@ export default async function AccountPage() {
         phone: true,
         image: true,
         points: true,
+        tags: true,
         createdAt: true,
         _count: {
           select: {
@@ -47,35 +49,40 @@ export default async function AccountPage() {
         totalPrice: true,
         items: {
           select: { id: true }
+        },
+        _count: {
+          select: { items: true }
         }
       }
-    })
+    }),
+    getLoyaltySettings()
   ]);
 
   if (!fullUser) {
-    redirect('/login?redirect=/account');
+    redirect('/login');
   }
 
   // Transform data for client component
-  const userData = {
-    id: fullUser.id,
-    name: fullUser.name,
-    email: fullUser.email,
-    phone: fullUser.phone,
-    image: fullUser.image,
-    points: fullUser.points,
+  const formattedUser = {
+    ...fullUser,
     createdAt: fullUser.createdAt.toISOString(),
     orderCount: fullUser._count.orders,
     addressCount: fullUser._count.addresses
   };
 
-  const ordersData = recentOrders.map(order => ({
+  const formattedOrders = recentOrders.map((order: any) => ({
     id: order.id,
     status: order.status,
     createdAt: order.createdAt.toISOString(),
-    totalPrice: Number(order.totalPrice),
-    itemCount: order.items.length
+    totalPrice: order.totalPrice,
+    itemCount: order._count.items
   }));
 
-  return <AccountClient user={userData} recentOrders={ordersData} />;
+  return (
+    <AccountClient
+      user={formattedUser}
+      recentOrders={formattedOrders}
+      loyaltyEnabled={loyaltySettings.enabled}
+    />
+  );
 }

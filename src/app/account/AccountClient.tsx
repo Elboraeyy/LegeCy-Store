@@ -26,14 +26,16 @@ interface Props {
         phone: string | null;
         image: string | null;
         points: number;
+        tags: string[];
         createdAt: string;
         orderCount: number;
         addressCount: number;
     };
     recentOrders: RecentOrder[];
+    loyaltyEnabled?: boolean;
 }
 
-export default function AccountClient({ user: initialUser, recentOrders }: Props) {
+export default function AccountClient({ user: initialUser, recentOrders, loyaltyEnabled = true }: Props) {
     const { t, language } = useLanguage();
     const router = useRouter();
     const [user, setUser] = useState(initialUser);
@@ -330,11 +332,6 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                         <div className={styles.profileInfo}>
                             <h2 className={styles.userName}>
                                 {user.name || "User"}
-                                <span className={styles.verifiedBadge}>
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                                        <path d="M20 6L9 17l-5-5" />
-                                    </svg>
-                                </span>
                             </h2>
                             <p className={styles.userEmail}>{user.email}</p>
                             <p className={styles.memberSince}>
@@ -378,24 +375,29 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                             <span className={styles.statValue}>{user.addressCount}</span>
                             <span className={styles.statLabel}>{t.account.addresses}</span>
                         </div>
-                        <div className={styles.statItem}>
-                            <span className={styles.statValue}>⭐</span>
-                            <span className={styles.statLabel}>{t.account.vip}</span>
-                        </div>
+                        {user.tags && user.tags.length > 0 && (
+                            <div className={styles.statItem}>
+                                <span className={styles.statValue}>⭐</span>
+                                <span className={styles.statLabel}>{user.tags[0]}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Loyalty Card */}
-                <div className={styles.loyaltyCard}>
-                    <div className={styles.loyaltyInfo}>
-                        <h3>{t.account.loyalty_points}</h3>
-                        <p className={styles.loyaltyPoints}>{user.points.toLocaleString('en-US')}</p>
-                    </div>
-                    <div className={styles.loyaltyMeta}>
-                        <p>{t.account.loyalty_desc}</p>
-                        <p>{t.account.loyalty_redeem}</p>
-                    </div>
-                </div>
+                {loyaltyEnabled && (
+                    <Link href="/account/loyalty" className={styles.loyaltyCard} style={{ textDecoration: 'none', cursor: 'pointer' }}>
+                        <div className={styles.loyaltyInfo}>
+                            <h3>{t.account.loyalty_points}</h3>
+                            <p className={styles.loyaltyPoints}>{user.points.toLocaleString('en-US')}</p>
+                        </div>
+                        <div className={styles.loyaltyMeta}>
+                            <p>{t.account.loyalty_desc}</p>
+                            <p>{t.account.loyalty_redeem}</p>
+                        </div>
+                        <span style={{ marginInlineStart: 'auto', fontSize: '20px', opacity: 0.5 }}>{language === 'ar' ? '←' : '→'}</span>
+                    </Link>
+                )}
 
                 {/* Recent Orders */}
                 {recentOrders.length > 0 && (

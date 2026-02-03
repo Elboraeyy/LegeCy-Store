@@ -48,12 +48,13 @@ import {
     ProductOfferWithStats
 } from '@/lib/actions/promotions';
 import { getStoreSettings, updateStoreSetting } from '@/lib/actions/settings';
+import LoyaltySection from './LoyaltySection';
 
 // ==========================================
 // Types
 // ==========================================
 
-type MainPromoType = 'coupons' | 'flash-sales' | 'bogo' | 'bundles' | 'product-offers' | 'shipping';
+type MainPromoType = 'coupons' | 'flash-sales' | 'bogo' | 'bundles' | 'product-offers' | 'shipping' | 'loyalty';
 type TabType = 'all' | 'active' | 'scheduled' | 'expired' | 'inactive';
 type ModalType = 'create' | 'edit' | 'bulk' | 'flash-sale' | 'bogo' | 'bundle' | 'product-offer' | null;
 
@@ -397,7 +398,7 @@ export default function PromosPage() {
                     <span className="tab-icon">📦</span>
                     <span className="tab-label">Bundles</span>
                 </button>
-                <button 
+                <button
                     className={`main-promo-tab ${mainPromoType === 'product-offers' ? 'active' : ''}`}
                     onClick={() => setMainPromoType('product-offers')}
                 >
@@ -410,6 +411,13 @@ export default function PromosPage() {
                 >
                     <span className="tab-icon">🚚</span>
                     <span className="tab-label">Shipping</span>
+                </button>
+                <button
+                    className={`main-promo-tab ${mainPromoType === 'loyalty' ? 'active' : ''}`}
+                    onClick={() => setMainPromoType('loyalty')}
+                >
+                    <span className="tab-icon">⭐</span>
+                    <span className="tab-label">Loyalty</span>
                 </button>
             </div>
 
@@ -570,6 +578,11 @@ export default function PromosPage() {
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* Loyalty Section */}
+            {mainPromoType === 'loyalty' && (
+                <LoyaltySection />
             )}
 
             {/* Coupons Section */}
@@ -3764,3 +3777,5 @@ function ProductOfferModal({
         </div>
     );
 }
+
+

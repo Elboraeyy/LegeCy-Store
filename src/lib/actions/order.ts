@@ -40,7 +40,7 @@ export async function updateOrderStatusAction(
         // Get current status before update
         const order = await prisma.order.findUnique({
             where: { id: orderId },
-            select: { status: true, totalPrice: true }
+            select: { status: true, totalPrice: true, userId: true }
         });
         const previousStatus = order?.status;
         
@@ -62,6 +62,36 @@ export async function updateOrderStatusAction(
             reason,
             triggeredBy: admin.id
         });
+
+        // ==========================================
+        // LOYALTY POINTS HANDLING
+        // ==========================================
+        if (order?.userId) {
+            const { awardPoints, refundRedeemedPoints } = await import('@/lib/services/loyaltyService');
+
+            // Award points on delivery
+            if ((newStatus as string) === 'Delivered') {
+                const result = await awardPoints({
+                    userId: order.userId,
+                    orderId,
+                    orderTotal: Number(order.totalPrice || 0)
+                });
+                if (result.pointsAwarded > 0) {
+                    console.log(`[Loyalty] Awarded ${result.pointsAwarded} points to user ${order.userId} for order ${orderId}`);
+                }
+            }
+
+            // Refund redeemed points on cancellation/refund
+            if ((newStatus as string) === 'Cancelled' || (newStatus as string) === 'Refunded') {
+                const result = await refundRedeemedPoints({
+                    userId: order.userId,
+                    orderId
+                });
+                if (result.pointsRefunded > 0) {
+                    console.log(`[Loyalty] Refunded ${result.pointsRefunded} points to user ${order.userId} for cancelled order ${orderId}`);
+                }
+            }
+        }
 
         revalidatePath(`/admin/orders/${orderId}`);
         revalidatePath('/admin/orders');

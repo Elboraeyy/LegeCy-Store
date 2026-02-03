@@ -47,6 +47,42 @@ model User {
 
   // Fraud Detection
   riskProfile CustomerRiskProfile?
+
+  // Loyalty Transactions
+  loyaltyTransactions LoyaltyTransaction[]
+}
+
+// ==========================================
+// Loyalty Points System
+// ==========================================
+
+model LoyaltyTransaction {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId     String?
+  order       Order?   @relation(fields: [orderId], references: [id])
+  type        String   // EARN, REDEEM, ADJUST, EXPIRE, SIGNUP_BONUS
+  points      Int      // Positive for earn, negative for redeem
+  balance     Int      // Balance after transaction
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model LoyaltySettings {
+  id              String   @id @default("default")
+  enabled         Boolean  @default(true)
+  pointsPerEgp    Float    @default(0.1)  // How many points earned per 1 EGP
+  pointValue      Float    @default(0.1)  // Value of 1 point in EGP
+  minRedeemPoints Int      @default(1000)
+  minOrderTotal   Int      @default(0)
+  couponValidity  Int      @default(30)   // Days
+  updatedAt       DateTime @updatedAt
 }
 
 model Session {
@@ -202,9 +238,10 @@ model Order {
   coupon   Coupon? @relation(fields: [couponId], references: [id])
 
   // Returns & Loyalty
-  returnRequest  ReturnRequest?
-  pointsEarned   Int            @default(0)
-  pointsRedeemed Int            @default(0)
+  returnRequest       ReturnRequest?
+  pointsEarned        Int            @default(0)
+  pointsRedeemed      Int            @default(0)
+  loyaltyTransactions LoyaltyTransaction[]
 
   // Idempotency for checkout safety
   idempotencyKey String? @unique
