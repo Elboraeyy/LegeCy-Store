@@ -85,6 +85,20 @@ export async function middleware(request: NextRequest) {
             return response;
         }
 
+        // Allow customer avatar upload (uses customer session, not admin)
+        if (path === '/api/upload/avatar') {
+            // Check for customer session instead
+            const customerSession = request.cookies.get('auth_session')?.value;
+            if (!customerSession) {
+                return NextResponse.json(
+                    { error: 'Login required' },
+                    { status: 401 }
+                );
+            }
+            // Let the route handler validate the session
+            return response;
+        }
+
         const adminSessionCookie = request.cookies.get('admin_auth_session')?.value;
 
         // Strict Check: No cookie = No entry

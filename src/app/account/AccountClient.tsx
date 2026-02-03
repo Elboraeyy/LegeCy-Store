@@ -110,6 +110,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
             const uploadRes = await fetch('/api/upload/avatar', {
                 method: 'POST',
                 body: formData,
+                credentials: 'include', // Send cookies with request
             });
 
             const uploadData = await uploadRes.json();
@@ -388,7 +389,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                 <div className={styles.loyaltyCard}>
                     <div className={styles.loyaltyInfo}>
                         <h3>{t.account.loyalty_points}</h3>
-                        <p className={styles.loyaltyPoints}>{user.points.toLocaleString()}</p>
+                        <p className={styles.loyaltyPoints}>{user.points.toLocaleString('en-US')}</p>
                     </div>
                     <div className={styles.loyaltyMeta}>
                         <p>{t.account.loyalty_desc}</p>
@@ -484,7 +485,7 @@ export default function AccountClient({ user: initialUser, recentOrders }: Props
                         </svg>
                     </Link>
 
-                    <Link href="/contact" className={styles.quickLink}>
+                    <Link href="/help" className={styles.quickLink}>
                         <div className={styles.quickLinkIcon}>💬</div>
                         <div className={styles.quickLinkContent}>
                             <p className={styles.quickLinkTitle}>{t.account.support}</p>
