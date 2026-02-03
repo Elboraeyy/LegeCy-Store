@@ -16,12 +16,22 @@ interface Settings {
     couponValidity: number;
 }
 
+interface RecentTransaction {
+    id: string;
+    type: string;
+    points: number;
+    description: string | null;
+    createdAt: Date;
+    user: { name: string | null; email: string };
+    order: { id: string; totalPrice: any } | null;
+}
+
 interface Stats {
     totalPointsInCirculation: number;
     totalPointsRedeemedThisMonth: number;
     activeLoyaltyMembers: number;
-    recentTransactions: any[];
-    config: any;
+    recentTransactions: RecentTransaction[];
+    config: Settings;
 }
 
 interface LoyaltyMember {
@@ -75,7 +85,7 @@ export default function LoyaltySection() {
         try {
             await updateLoyaltySettings(settings);
             toast.success('Settings updated successfully');
-        } catch (_error) {
+        } catch {
             toast.error('Failed to update settings');
         } finally {
             setSaving(false);
@@ -110,7 +120,7 @@ export default function LoyaltySection() {
             setAdjustPointsValue('');
             setAdjustReason('');
             // Refresh member list if needed or just close modal
-        } catch (_error) {
+        } catch {
             toast.error('Failed to adjust points');
         }
     };
