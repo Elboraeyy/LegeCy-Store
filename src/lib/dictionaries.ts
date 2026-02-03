@@ -63,8 +63,8 @@ export const dictionary = {
       new_arrivals: "New Arrivals",
       just_dropped: "Just Dropped",
       trust: {
-        authentic: "Authentic Products",
-        authentic_desc: "100%",
+        authentic: "Secure Payment",
+        authentic_desc: "100% Safe",
         support: "Customer Support",
         support_desc: "24/7",
         shipping: "Reliable Shipping",
@@ -173,7 +173,7 @@ export const dictionary = {
       trust: {
         returns: "14-Day Returns",
         secure: "Secure Payment",
-        authentic: "100% Authentic",
+        authentic: "Premium Quality",
       },
       write_review: "Write a Review",
       your_name: "Your Name",
@@ -693,7 +693,7 @@ export const dictionary = {
       },
       features: {
         quality: { title: "Quality Selection", desc: "Carefully curated products from trusted brands." },
-        authenticity: { title: "Authenticity", desc: "Every piece is verified and certified by our experts." },
+        authenticity: { title: "Premium Quality", desc: "Every piece is carefully selected by our experts." },
         service: { title: "Service", desc: "Dedicated support for every purchase you make." },
       },
       team: {

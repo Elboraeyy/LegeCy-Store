@@ -96,7 +96,7 @@ export function HomeContentClient({
           variants={staggerContainerSlow}
         >
           <motion.div className="collection-card large" variants={fadeUpSlow}>
-            <div className="collection-media" style={{ backgroundImage: "url('/image/download (4).jpeg')" }}>
+            <div className="collection-media" style={{ backgroundImage: "url('/image/luxury-collection.jpg')" }}>
             </div>
             <div className="collection-overlay">
               <Reveal>
@@ -109,7 +109,7 @@ export function HomeContentClient({
           </motion.div>
           <motion.div className="collection-card modern-card" variants={fadeUpSlow}>
             <div className="collection-media"
-              style={{ backgroundImage: "url('/image/BUREI Green Sun_Emerald dial, golden stainless….jpeg')" }}>
+              style={{ backgroundImage: "url('/image/modern-classics-green.jpg')" }}>
             </div>
             <div className="collection-overlay">
               <Reveal>
@@ -205,7 +205,7 @@ export function HomeContentClient({
               <Reveal width="100%" fullHeight>
                 <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                   <Image
-                    src="/image/legacy-watch.jpeg"
+                    src="/image/legacy-precision.jpg"
                     alt={`${storeName} Heritage`}
                     fill
                     sizes="(max-width: 900px) 100vw, 50vw"

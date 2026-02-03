@@ -25,7 +25,7 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
     const products = await prisma.product.findMany({
         where: {
             // Only show active products on the frontend
-            // status: 'active' // Uncomment when status field is available
+            status: 'active'
         },
         orderBy: { createdAt: 'desc' },
         include: {

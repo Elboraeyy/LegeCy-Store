@@ -278,8 +278,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
       // Simplified: Just load from Local for now as per legacy
       const s = localStorage.getItem("fav");
-      if (s) setFav(JSON.parse(s));
-  }, []);
+      if (s) {
+          try {
+              let parsedFav = JSON.parse(s);
+              // Filter out stale products if products are loaded
+              if (products.length > 0) {
+                  const activeProductIds = new Set(products.map(p => p.id));
+                  const validFav = parsedFav.filter((id: string) => activeProductIds.has(id));
+
+                  // Only update if there's a difference to avoid loop
+                  if (validFav.length !== parsedFav.length) {
+                      console.log("[Wishlist] Removed stale items", parsedFav.length - validFav.length);
+                      parsedFav = validFav;
+                      localStorage.setItem("fav", JSON.stringify(validFav));
+                  }
+
+                  setFav(parsedFav);
+              } else {
+                  // Products not loaded yet, just set invalid temporarily
+                  setFav(parsedFav);
+              }
+          } catch (e) {
+              console.error("Failed to parse wishlist", e);
+              setFav([]);
+          }
+      }
+  }, [products]); // Re-run when products load
   
   useEffect(() => {
        localStorage.setItem("fav", JSON.stringify(fav));

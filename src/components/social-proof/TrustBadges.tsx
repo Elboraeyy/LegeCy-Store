@@ -27,7 +27,7 @@ export default function TrustBadges() {
             <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
       ),
-      text: "100% Authentic"
+      text: "Premium Quality"
     }
   ];
 

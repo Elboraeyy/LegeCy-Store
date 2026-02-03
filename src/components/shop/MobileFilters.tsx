@@ -254,72 +254,23 @@ export default function MobileFilters({
                                 isOpen={openSections.price}
                                 onToggle={() => toggleSection('price')}
                             >
-                                <div className="pt-2 pb-6 px-1">
-                                    <div className="flex items-center gap-4 mb-8">
-                                        <div className="flex-1">
-                                            <div className="relative group">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#5c6b66] text-sm">EGP</span>
-                                                <input
-                                                    type="number"
-                                                    value={priceRange.min}
-                                                    onChange={(e) => onPriceChange({ ...priceRange, min: Math.min(Number(e.target.value), priceRange.max) })}
-                                                    className="w-full pl-12 pr-4 py-3 bg-white border border-[#12403C]/20 rounded-xl text-[#12403C] font-medium focus:outline-none focus:border-[#12403C] transition-colors text-sm"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="w-3 h-[1px] bg-[#12403C]/20 flex-shrink-0" />
-                                        <div className="flex-1">
-                                            <div className="relative group">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#5c6b66] text-sm">EGP</span>
-                                                <input
-                                                    type="number"
-                                                    value={priceRange.max}
-                                                    onChange={(e) => onPriceChange({ ...priceRange, max: Math.max(Number(e.target.value), priceRange.min) })}
-                                                    className="w-full pl-12 pr-4 py-3 bg-white border border-[#12403C]/20 rounded-xl text-[#12403C] font-medium focus:outline-none focus:border-[#12403C] transition-colors text-sm"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Slider UI */}
-                                    <div className="relative h-1.5 mx-2">
-                                        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-[#12403C]/10 rounded-full" />
-                                        <div
-                                            className="absolute top-1/2 -translate-y-1/2 h-1 bg-[#12403C] rounded-full"
-                                            style={{
-                                                left: `${(priceRange.min / maxPrice) * 100}%`,
-                                                right: `${100 - (priceRange.max / maxPrice) * 100}%`,
-                                            }}
-                                        />
+                                <div className="flex items-center gap-2 pt-2 pb-6 px-1">
+                                    <div className="flex-1">
+                                        <label className="text-xs text-[#5c6b66] mb-1 block">Min (EGP)</label>
                                         <input
-                                            type="range"
-                                            min={minPrice}
-                                            max={maxPrice}
-                                            step={50}
+                                            type="number"
                                             value={priceRange.min}
-                                            onChange={(e) => onPriceChange({ ...priceRange, min: Math.min(Number(e.target.value), priceRange.max - 50) })}
-                                            className="absolute w-full h-full top-0 left-0 opacity-0 cursor-pointer pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto"
-                                            style={{ zIndex: 3 }}
+                                            onChange={(e) => onPriceChange({ ...priceRange, min: Math.min(Number(e.target.value), priceRange.max) })}
+                                            className="w-full px-4 py-3 bg-white border border-[#12403C]/20 rounded-xl text-[#12403C] font-medium focus:outline-none focus:border-[#12403C] transition-colors text-sm"
                                         />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="text-xs text-[#5c6b66] mb-1 block">Max (EGP)</label>
                                         <input
-                                            type="range"
-                                            min={minPrice}
-                                            max={maxPrice}
-                                            step={50}
+                                            type="number"
                                             value={priceRange.max}
-                                            onChange={(e) => onPriceChange({ ...priceRange, max: Math.max(Number(e.target.value), priceRange.min + 50) })}
-                                            className="absolute w-full h-full top-0 left-0 opacity-0 cursor-pointer pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto"
-                                            style={{ zIndex: 4 }}
-                                        />
-
-                                        {/* Visual Thumbs */}
-                                        <div
-                                            className="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-[#12403C] border-[2px] border-[#FCF8F3] rounded-full shadow-md pointer-events-none z-10"
-                                            style={{ left: `calc(${(priceRange.min / maxPrice) * 100}% - 12px)` }}
-                                        />
-                                        <div
-                                            className="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-[#12403C] border-[2px] border-[#FCF8F3] rounded-full shadow-md pointer-events-none z-10"
-                                            style={{ left: `calc(${(priceRange.max / maxPrice) * 100}% - 12px)` }}
+                                            onChange={(e) => onPriceChange({ ...priceRange, max: Math.max(Number(e.target.value), priceRange.min) })}
+                                            className="w-full px-4 py-3 bg-white border border-[#12403C]/20 rounded-xl text-[#12403C] font-medium focus:outline-none focus:border-[#12403C] transition-colors text-sm"
                                         />
                                     </div>
                                 </div>

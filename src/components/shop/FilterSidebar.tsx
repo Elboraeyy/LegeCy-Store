@@ -170,76 +170,24 @@ export default function FilterSidebar({
                 isExpanded={expandedSections.price}
                 onToggle={() => toggleSection("price")}
             >
-                <div className="space-y-5">
-                    {/* Min/Max Inputs */}
-                    <div className="flex items-center gap-2">
-                        <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">{t.common.currency}</span>
-                            <input
-                                type="number"
-                                value={priceRange.min}
-                                onChange={(e) => onPriceChange({ ...priceRange, min: Math.min(Number(e.target.value), priceRange.max) })}
-                                min={0}
-                                max={3000}
-                                className="w-full pl-10 pr-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#12403C] focus:ring-1 focus:ring-[#12403C] transition-all"
-                            />
-                        </div>
-                        <div className="text-gray-300 font-light">—</div>
-                        <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">{t.common.currency}</span>
-                            <input
-                                type="number"
-                                value={priceRange.max}
-                                onChange={(e) => onPriceChange({ ...priceRange, max: Math.max(Number(e.target.value), priceRange.min) })}
-                                min={0}
-                                max={3000}
-                                className="w-full pl-10 pr-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#12403C] focus:ring-1 focus:ring-[#12403C] transition-all"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Dual Range Slider */}
-                    <div className="relative h-5">
-                        {/* Track */}
-                        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-gray-200 rounded-full" />
-                        {/* Active Range */}
-                        <div
-                            className="absolute top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-[#12403C] to-[#d4af37] rounded-full transition-all"
-                            style={{
-                                left: `${(priceRange.min / maxPrice) * 100}%`,
-                                right: `${100 - (priceRange.max / maxPrice) * 100}%`,
-                            }}
-                        />
-                        {/* Min Slider */}
+                <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                        <label className="text-xs text-gray-500 mb-1 block">Min (EGP)</label>
                         <input
-                            type="range"
-                            min={minPrice}
-                            max={maxPrice}
-                            step={50}
+                            type="number"
                             value={priceRange.min}
-                            onChange={(e) => onPriceChange({ ...priceRange, min: Math.min(Number(e.target.value), priceRange.max - 50) })}
-                            className="absolute w-full h-1 top-1/2 -translate-y-1/2 appearance-none bg-transparent pointer-events-none z-10
-                [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#12403C] [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-[0_2px_6px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110
-                [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#12403C] [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:cursor-pointer"
-                        />
-                        {/* Max Slider */}
-                        <input
-                            type="range"
-                            min={minPrice}
-                            max={maxPrice}
-                            step={50}
-                            value={priceRange.max}
-                            onChange={(e) => onPriceChange({ ...priceRange, max: Math.max(Number(e.target.value), priceRange.min + 50) })}
-                            className="absolute w-full h-1 top-1/2 -translate-y-1/2 appearance-none bg-transparent pointer-events-none z-20
-                [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#d4af37] [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-[0_2px_6px_rgba(0,0,0,0.15)] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110
-                [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#d4af37] [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:cursor-pointer"
+                            onChange={(e) => onPriceChange({ ...priceRange, min: Math.min(Number(e.target.value), priceRange.max) })}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#12403C] focus:ring-1 focus:ring-[#12403C]"
                         />
                     </div>
-
-                    {/* Labels */}
-                    <div className="flex justify-between text-[11px] text-gray-400 font-medium">
-                        <span>{t.common.currency} 0</span>
-                        <span>{t.common.currency} 3,000</span>
+                    <div className="flex-1">
+                        <label className="text-xs text-gray-500 mb-1 block">Max (EGP)</label>
+                        <input
+                            type="number"
+                            value={priceRange.max}
+                            onChange={(e) => onPriceChange({ ...priceRange, max: Math.max(Number(e.target.value), priceRange.min) })}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#12403C] focus:ring-1 focus:ring-[#12403C]"
+                        />
                     </div>
                 </div>
             </FilterSection>
