@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface MobileFiltersProps {
@@ -78,7 +78,7 @@ const FilterSection = ({
     );
 };
 
-export default function MobileFilters({
+const MobileFilters = memo(function MobileFilters({
     isOpen,
     onClose,
     categories,
@@ -114,33 +114,33 @@ export default function MobileFilters({
         status: true
     });
 
-    const toggleSection = (key: keyof typeof openSections) => {
+    const toggleSection = useCallback((key: keyof typeof openSections) => {
         setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
-    };
+    }, []);
 
-    const handleCategoryToggle = (slug: string) => {
+    const handleCategoryToggle = useCallback((slug: string) => {
         if (selectedCategories.includes(slug)) {
             onCategoryChange(selectedCategories.filter(c => c !== slug));
         } else {
             onCategoryChange([...selectedCategories, slug]);
         }
-    };
+    }, [selectedCategories, onCategoryChange]);
 
-    const handleBrandToggle = (id: string) => {
+    const handleBrandToggle = useCallback((id: string) => {
         if (selectedBrands.includes(id)) {
             onBrandChange(selectedBrands.filter(b => b !== id));
         } else {
             onBrandChange([...selectedBrands, id]);
         }
-    };
+    }, [selectedBrands, onBrandChange]);
 
-    const handleMaterialToggle = (id: string) => {
+    const handleMaterialToggle = useCallback((id: string) => {
         if (selectedMaterials.includes(id)) {
             onMaterialChange(selectedMaterials.filter(m => m !== id));
         } else {
             onMaterialChange([...selectedMaterials, id]);
         }
-    };
+    }, [selectedMaterials, onMaterialChange]);
 
     // Prevent body scroll when open
     React.useEffect(() => {
@@ -392,4 +392,8 @@ export default function MobileFilters({
             )}
         </AnimatePresence>
     );
-}
+});
+
+MobileFilters.displayName = 'MobileFilters';
+
+export default MobileFilters;

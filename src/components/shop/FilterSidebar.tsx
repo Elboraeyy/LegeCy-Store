@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, memo, useCallback, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface FilterSidebarProps {
@@ -29,7 +29,7 @@ interface FilterSidebarProps {
     activeFilterCount: number;
 }
 
-export default function FilterSidebar({
+const FilterSidebar = memo(function FilterSidebar({
     categories,
     brands,
     materials,
@@ -63,33 +63,33 @@ export default function FilterSidebar({
         status: true,
     });
 
-    const toggleSection = (section: keyof typeof expandedSections) => {
+    const toggleSection = useCallback((section: keyof typeof expandedSections) => {
         setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
-    };
+    }, []);
 
-    const handleCategoryToggle = (slug: string) => {
+    const handleCategoryToggle = useCallback((slug: string) => {
         if (selectedCategories.includes(slug)) {
             onCategoryChange(selectedCategories.filter(c => c !== slug));
         } else {
             onCategoryChange([...selectedCategories, slug]);
         }
-    };
+    }, [selectedCategories, onCategoryChange]);
 
-    const handleBrandToggle = (id: string) => {
+    const handleBrandToggle = useCallback((id: string) => {
         if (selectedBrands.includes(id)) {
             onBrandChange(selectedBrands.filter(b => b !== id));
         } else {
             onBrandChange([...selectedBrands, id]);
         }
-    };
+    }, [selectedBrands, onBrandChange]);
 
-    const handleMaterialToggle = (id: string) => {
+    const handleMaterialToggle = useCallback((id: string) => {
         if (selectedMaterials.includes(id)) {
             onMaterialChange(selectedMaterials.filter(m => m !== id));
         } else {
             onMaterialChange([...selectedMaterials, id]);
         }
-    };
+    }, [selectedMaterials, onMaterialChange]);
 
     return (
         <aside className="w-[280px] bg-white rounded-xl border border-gray-100 p-6 h-fit sticky top-24">
@@ -294,9 +294,13 @@ export default function FilterSidebar({
             </FilterSection>
         </aside>
     );
-}
+});
 
-function FilterSection({
+FilterSidebar.displayName = 'FilterSidebar';
+
+export default FilterSidebar;
+
+const FilterSection = memo(function FilterSection({
     title,
     isExpanded,
     onToggle,
@@ -336,4 +340,6 @@ function FilterSection({
             {isExpanded && <div>{children}</div>}
         </div>
     );
-}
+});
+
+FilterSection.displayName = 'FilterSection';

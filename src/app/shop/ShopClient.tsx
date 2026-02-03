@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useTransition, useDeferredValue, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FilterSidebar from "@/components/shop/FilterSidebar";
 import MobileFilters from "@/components/shop/MobileFilters";
@@ -26,60 +26,110 @@ export default function ShopClient({
     const router = useRouter();
     const searchParams = useSearchParams();
     const { t, language } = useLanguage();
+    const [isPending, startTransition] = useTransition();
 
-    // State
-    // We treat initialProducts as the FULL source of truth for client-side filtering
+    // State - Local state for instant filtering
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "list" | "compact">("grid");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
-    // Filters from URL
-    const selectedCategories = useMemo(() => searchParams.get("category")?.split(",").filter(Boolean) || [], [searchParams]);
-    const selectedBrands = useMemo(() => searchParams.get("brands")?.split(",").filter(Boolean) || [], [searchParams]);
-    const selectedMaterials = useMemo(() => searchParams.get("materials")?.split(",").filter(Boolean) || [], [searchParams]);
-    const sortBy = searchParams.get("sort") || "featured";
-    const searchQuery = searchParams.get("q") || "";
-    const minPrice = Number(searchParams.get("minPrice")) || 0;
-    const maxPrice = Number(searchParams.get("maxPrice")) || 3000;
-    const inStock = searchParams.get("inStock") === "true" ? true : searchParams.get("inStock") === "false" ? false : null;
-    const onSale = searchParams.get("onSale") === "true" ? true : null;
-    const isNew = searchParams.get("new") === "true" ? true : null;
+    // Initialize filters from URL, but use local state for instant updates
+    const [filters, setFilters] = useState(() => ({
+        selectedCategories: searchParams.get("category")?.split(",").filter(Boolean) || [],
+        selectedBrands: searchParams.get("brands")?.split(",").filter(Boolean) || [],
+        selectedMaterials: searchParams.get("materials")?.split(",").filter(Boolean) || [],
+        sortBy: searchParams.get("sort") || "featured",
+        searchQuery: searchParams.get("q") || "",
+        minPrice: Number(searchParams.get("minPrice")) || 0,
+        maxPrice: Number(searchParams.get("maxPrice")) || 3000,
+        inStock: searchParams.get("inStock") === "true" ? true : searchParams.get("inStock") === "false" ? false : null,
+        onSale: searchParams.get("onSale") === "true" ? true : null,
+        isNew: searchParams.get("new") === "true" ? true : null,
+    }));
+
+    // Sync URL params to local state when URL changes (e.g., browser back/forward)
+    useEffect(() => {
+        setFilters({
+            selectedCategories: searchParams.get("category")?.split(",").filter(Boolean) || [],
+            selectedBrands: searchParams.get("brands")?.split(",").filter(Boolean) || [],
+            selectedMaterials: searchParams.get("materials")?.split(",").filter(Boolean) || [],
+            sortBy: searchParams.get("sort") || "featured",
+            searchQuery: searchParams.get("q") || "",
+            minPrice: Number(searchParams.get("minPrice")) || 0,
+            maxPrice: Number(searchParams.get("maxPrice")) || 3000,
+            inStock: searchParams.get("inStock") === "true" ? true : searchParams.get("inStock") === "false" ? false : null,
+            onSale: searchParams.get("onSale") === "true" ? true : null,
+            isNew: searchParams.get("new") === "true" ? true : null,
+        });
+    }, [searchParams]);
 
     // Fixed price bounds (0-3000)
     const absoluteMinPrice = 0;
     const absoluteMaxPrice = 3000;
 
-    // Update URL - Shallow routing for instant feel
-    const updateFilters = React.useCallback((updates: Record<string, string | null>) => {
-        const params = new URLSearchParams(searchParams.toString());
+    // Deferred search query for smoother typing experience
+    const deferredSearchQuery = useDeferredValue(filters.searchQuery);
 
-        Object.entries(updates).forEach(([key, value]) => {
-            if (value === null || value === "" || value === "null") {
-                params.delete(key);
-            } else {
-                params.set(key, value);
+    // Update filters instantly (local state) and sync URL asynchronously
+    const updateFilters = useCallback((updates: Partial<typeof filters>) => {
+        // Calculate new filters based on current state
+        const newFilters = { ...filters, ...updates };
+
+        // Update local state immediately for instant filtering
+        setFilters(newFilters);
+
+        // Update URL asynchronously without blocking UI
+        startTransition(() => {
+            const params = new URLSearchParams();
+
+            if (newFilters.selectedCategories.length > 0) {
+                params.set("category", newFilters.selectedCategories.join(","));
             }
+            if (newFilters.selectedBrands.length > 0) {
+                params.set("brands", newFilters.selectedBrands.join(","));
+            }
+            if (newFilters.selectedMaterials.length > 0) {
+                params.set("materials", newFilters.selectedMaterials.join(","));
+            }
+            if (newFilters.searchQuery) {
+                params.set("q", newFilters.searchQuery);
+            }
+            if (newFilters.sortBy !== "featured") {
+                params.set("sort", newFilters.sortBy);
+            }
+            if (newFilters.minPrice > absoluteMinPrice) {
+                params.set("minPrice", String(newFilters.minPrice));
+            }
+            if (newFilters.maxPrice < absoluteMaxPrice) {
+                params.set("maxPrice", String(newFilters.maxPrice));
+            }
+            if (newFilters.inStock !== null) {
+                params.set("inStock", String(newFilters.inStock));
+            }
+            if (newFilters.onSale === true) {
+                params.set("onSale", "true");
+            }
+            if (newFilters.isNew === true) {
+                params.set("new", "true");
+            }
+
+            const url = params.toString() ? `/shop?${params.toString()}` : "/shop";
+            router.replace(url, { scroll: false });
         });
 
         // Reset to page 1 on filter change
-        if (params.toString() !== searchParams.toString()) {
-            // We don't necessarily need to reset page if just changing view mode, but for filters yes.
-            // Simplification: always reset (managed by parent usage most of the time)
-            setCurrentPage(1);
-        }
+        setCurrentPage(1);
+    }, [filters, router, absoluteMinPrice, absoluteMaxPrice]);
 
-        router.push(`/shop?${params.toString()}`, { scroll: false });
-    }, [searchParams, router]);
-
-    // CLIENT-SIDE FILTERING LOGIC
-    // Instead of fetching from API, we filter the `initialProducts` array directly.
+    // CLIENT-SIDE FILTERING LOGIC - Optimized for instant filtering
+    // Use deferred search query for smoother typing
     const filteredProducts = useMemo(() => {
         let result = [...initialProducts];
 
-        // 1. Search Query
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
+        // 1. Search Query (using deferred value for smoother typing)
+        if (deferredSearchQuery) {
+            const query = deferredSearchQuery.toLowerCase();
             result = result.filter(p =>
                 p.name.toLowerCase().includes(query) ||
                 (p.description && p.description.toLowerCase().includes(query))
@@ -87,55 +137,54 @@ export default function ShopClient({
         }
 
         // 2. Category Filter (by Slug)
-        if (selectedCategories.length > 0) {
-            result = result.filter(p => p.categorySlug && selectedCategories.includes(p.categorySlug));
+        if (filters.selectedCategories.length > 0) {
+            result = result.filter(p => p.categorySlug && filters.selectedCategories.includes(p.categorySlug));
         }
 
         // 3. Brand Filter (by ID)
-        if (selectedBrands.length > 0) {
-            result = result.filter(p => p.brandId && selectedBrands.includes(p.brandId));
+        if (filters.selectedBrands.length > 0) {
+            result = result.filter(p => p.brandId && filters.selectedBrands.includes(p.brandId));
         }
 
         // 4. Material Filter (by ID)
-        if (selectedMaterials.length > 0) {
-            result = result.filter(p => p.materialId && selectedMaterials.includes(p.materialId));
+        if (filters.selectedMaterials.length > 0) {
+            result = result.filter(p => p.materialId && filters.selectedMaterials.includes(p.materialId));
         }
 
         // 5. Price Filter
-        if (minPrice > absoluteMinPrice || maxPrice < absoluteMaxPrice) {
-            result = result.filter(p => p.price >= minPrice && p.price <= maxPrice);
+        if (filters.minPrice > absoluteMinPrice || filters.maxPrice < absoluteMaxPrice) {
+            result = result.filter(p => p.price >= filters.minPrice && p.price <= filters.maxPrice);
         }
 
         // 6. In Stock Filter
-        if (inStock === true) {
+        if (filters.inStock === true) {
             result = result.filter(p => p.inStock === true);
-        } else if (inStock === false) {
+        } else if (filters.inStock === false) {
             result = result.filter(p => !p.inStock);
         }
 
         // 7. On Sale Filter
-        if (onSale) {
+        if (filters.onSale) {
             result = result.filter(p => p.compareAtPrice && p.compareAtPrice > p.price);
         }
 
         // 8. New Arrivals Filter
-        if (isNew) {
-            // Assuming isNew flag or sort by date created recently
+        if (filters.isNew) {
             result = result.filter(p => p.isNew);
         }
 
         return result;
     }, [
         initialProducts,
-        searchQuery,
-        selectedCategories,
-        selectedBrands,
-        selectedMaterials,
-        minPrice,
-        maxPrice,
-        inStock,
-        onSale,
-        isNew,
+        deferredSearchQuery,
+        filters.selectedCategories,
+        filters.selectedBrands,
+        filters.selectedMaterials,
+        filters.minPrice,
+        filters.maxPrice,
+        filters.inStock,
+        filters.onSale,
+        filters.isNew,
         absoluteMinPrice,
         absoluteMaxPrice
     ]);
@@ -144,7 +193,7 @@ export default function ShopClient({
     const filteredAndSortedProducts = useMemo(() => {
         const result = [...filteredProducts];
 
-        switch (sortBy) {
+        switch (filters.sortBy) {
             case "newest":
                 result.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
                 break;
@@ -161,67 +210,67 @@ export default function ShopClient({
                 result.sort((a, b) => b.name.localeCompare(a.name));
                 break;
             default:
-                // Featured layout logic could be more complex, but keeping original order (usually by creation or separate 'featured' rank)
+                // Featured layout logic - keep original order
                 break;
         }
 
         return result;
-    }, [filteredProducts, sortBy]);
+    }, [filteredProducts, filters.sortBy]);
 
-    // Pagination
-    const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage);
-    const paginatedProducts = filteredAndSortedProducts.slice(
+    // Pagination - Memoized for performance
+    const totalPages = useMemo(() => Math.ceil(filteredAndSortedProducts.length / itemsPerPage), [filteredAndSortedProducts.length, itemsPerPage]);
+    const paginatedProducts = useMemo(() => filteredAndSortedProducts.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
-    );
+    ), [filteredAndSortedProducts, currentPage, itemsPerPage]);
 
     // Active filters
     const activeFilters = useMemo(() => {
-        const filters: Array<{ type: string; value: string; label: string }> = [];
+        const active: Array<{ type: string; value: string; label: string }> = [];
 
-        selectedCategories.forEach(slug => {
+        filters.selectedCategories.forEach(slug => {
             const cat = categories.find(c => c.slug === slug);
-            if (cat) filters.push({ type: "category", value: slug, label: cat.name });
+            if (cat) active.push({ type: "category", value: slug, label: cat.name });
         });
 
-        selectedBrands.forEach(id => {
+        filters.selectedBrands.forEach(id => {
             const brand = brands.find(b => b.id === id);
-            if (brand) filters.push({ type: "brand", value: id, label: brand.name });
+            if (brand) active.push({ type: "brand", value: id, label: brand.name });
         });
 
-        selectedMaterials.forEach(id => {
+        filters.selectedMaterials.forEach(id => {
             const material = materials.find(m => m.id === id);
-            if (material) filters.push({ type: "material", value: id, label: material.name });
+            if (material) active.push({ type: "material", value: id, label: material.name });
         });
 
-        if (minPrice > absoluteMinPrice || maxPrice < absoluteMaxPrice) {
-            filters.push({
+        if (filters.minPrice > absoluteMinPrice || filters.maxPrice < absoluteMaxPrice) {
+            active.push({
                 type: "price",
                 value: "price",
-                label: `EGP ${minPrice.toLocaleString()} - ${maxPrice.toLocaleString()}`,
+                label: `EGP ${filters.minPrice.toLocaleString()} - ${filters.maxPrice.toLocaleString()}`,
             });
         }
 
-        if (inStock === true) filters.push({ type: "inStock", value: "true", label: t.shop.in_stock });
-        if (onSale === true) filters.push({ type: "onSale", value: "true", label: t.shop.on_sale });
-        if (isNew === true) filters.push({ type: "new", value: "true", label: t.shop.new_arrivals });
+        if (filters.inStock === true) active.push({ type: "inStock", value: "true", label: t.shop.in_stock });
+        if (filters.onSale === true) active.push({ type: "onSale", value: "true", label: t.shop.on_sale });
+        if (filters.isNew === true) active.push({ type: "new", value: "true", label: t.shop.new_arrivals });
 
-        return filters;
-    }, [selectedCategories, selectedBrands, selectedMaterials, minPrice, maxPrice, inStock, onSale, isNew, categories, brands, materials, absoluteMinPrice, absoluteMaxPrice, t.shop.in_stock, t.shop.new_arrivals, t.shop.on_sale]);
+        return active;
+    }, [filters, categories, brands, materials, absoluteMinPrice, absoluteMaxPrice, t.shop.in_stock, t.shop.new_arrivals, t.shop.on_sale]);
 
     const handleRemoveFilter = (filter: { type: string; value: string }) => {
         switch (filter.type) {
             case "category":
-                updateFilters({ category: selectedCategories.filter(c => c !== filter.value).join(",") || null });
+                updateFilters({ selectedCategories: filters.selectedCategories.filter(c => c !== filter.value) });
                 break;
             case "brand":
-                updateFilters({ brands: selectedBrands.filter(b => b !== filter.value).join(",") || null });
+                updateFilters({ selectedBrands: filters.selectedBrands.filter(b => b !== filter.value) });
                 break;
             case "material":
-                updateFilters({ materials: selectedMaterials.filter(m => m !== filter.value).join(",") || null });
+                updateFilters({ selectedMaterials: filters.selectedMaterials.filter(m => m !== filter.value) });
                 break;
             case "price":
-                updateFilters({ minPrice: null, maxPrice: null });
+                updateFilters({ minPrice: absoluteMinPrice, maxPrice: absoluteMaxPrice });
                 break;
             case "inStock":
                 updateFilters({ inStock: null });
@@ -230,14 +279,24 @@ export default function ShopClient({
                 updateFilters({ onSale: null });
                 break;
             case "new":
-                updateFilters({ new: null });
+                updateFilters({ isNew: null });
                 break;
         }
     };
 
     const handleClearAll = () => {
-        router.push("/shop");
-        setCurrentPage(1);
+        updateFilters({
+            selectedCategories: [],
+            selectedBrands: [],
+            selectedMaterials: [],
+            searchQuery: "",
+            sortBy: "featured",
+            minPrice: absoluteMinPrice,
+            maxPrice: absoluteMaxPrice,
+            inStock: null,
+            onSale: null,
+            isNew: null,
+        });
     };
 
     return (
@@ -268,14 +327,14 @@ export default function ShopClient({
                     </svg>
                     <input
                         type="text"
-                        value={searchQuery}
-                        onChange={(e) => updateFilters({ q: e.target.value || null })}
+                        value={filters.searchQuery}
+                        onChange={(e) => updateFilters({ searchQuery: e.target.value })}
                         placeholder={t.shop.search_placeholder}
                         className="w-full pl-12 pr-10 py-3.5 text-base bg-white border border-gray-200 rounded-2xl focus:outline-none focus:border-[#12403C] focus:ring-2 focus:ring-[#12403C]/10 shadow-sm transition-all placeholder:text-gray-400"
                     />
-                    {searchQuery && (
+                    {filters.searchQuery && (
                         <button
-                            onClick={() => updateFilters({ q: null })}
+                            onClick={() => updateFilters({ searchQuery: "" })}
                             className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,24 +353,24 @@ export default function ShopClient({
                             categories={categories}
                             brands={brands}
                             materials={materials}
-                            selectedCategories={selectedCategories}
-                            selectedBrands={selectedBrands}
-                            selectedMaterials={selectedMaterials}
-                            priceRange={{ min: minPrice, max: maxPrice }}
+                            selectedCategories={filters.selectedCategories}
+                            selectedBrands={filters.selectedBrands}
+                            selectedMaterials={filters.selectedMaterials}
+                            priceRange={{ min: filters.minPrice, max: filters.maxPrice }}
                             minPrice={absoluteMinPrice}
                             maxPrice={absoluteMaxPrice}
-                            inStock={inStock}
-                            onSale={onSale}
-                            isNew={isNew}
-                            searchQuery={searchQuery}
-                            onCategoryChange={(cats) => updateFilters({ category: cats.join(",") || null })}
-                            onBrandChange={(brds) => updateFilters({ brands: brds.join(",") || null })}
-                            onMaterialChange={(mats) => updateFilters({ materials: mats.join(",") || null })}
-                            onPriceChange={(range) => updateFilters({ minPrice: String(range.min), maxPrice: String(range.max) })}
-                            onInStockChange={(val) => updateFilters({ inStock: val === null ? null : String(val) })}
-                            onSaleChange={(val) => updateFilters({ onSale: val === null ? null : "true" })}
-                            onNewChange={(val) => updateFilters({ new: val === null ? null : "true" })}
-                            onSearchChange={(q) => updateFilters({ q: q || null })}
+                            inStock={filters.inStock}
+                            onSale={filters.onSale}
+                            isNew={filters.isNew}
+                            searchQuery={filters.searchQuery}
+                            onCategoryChange={(cats) => updateFilters({ selectedCategories: cats })}
+                            onBrandChange={(brds) => updateFilters({ selectedBrands: brds })}
+                            onMaterialChange={(mats) => updateFilters({ selectedMaterials: mats })}
+                            onPriceChange={(range) => updateFilters({ minPrice: range.min, maxPrice: range.max })}
+                            onInStockChange={(val) => updateFilters({ inStock: val })}
+                            onSaleChange={(val) => updateFilters({ onSale: val })}
+                            onNewChange={(val) => updateFilters({ isNew: val })}
+                            onSearchChange={(q) => updateFilters({ searchQuery: q })}
                             onClearAll={handleClearAll}
                             activeFilterCount={activeFilters.length}
                         />
@@ -396,8 +455,8 @@ export default function ShopClient({
 
                                     {/* Sort */}
                                     <SortDropdown
-                                        value={sortBy}
-                                        onChange={(val) => updateFilters({ sort: val })}
+                                        value={filters.sortBy}
+                                        onChange={(val) => updateFilters({ sortBy: val })}
                                     />
                                 </div>
                             </div>
@@ -418,7 +477,7 @@ export default function ShopClient({
                         <ProductGrid
                             products={paginatedProducts}
                             viewMode={viewMode}
-                            isLoading={false} // Always false as we are now instant
+                            isLoading={isPending} // Show loading state during URL sync
                         />
 
                         {/* Pagination */}
@@ -479,22 +538,22 @@ export default function ShopClient({
                 categories={categories}
                 brands={brands}
                 materials={materials}
-                selectedCategories={selectedCategories}
-                selectedBrands={selectedBrands}
-                selectedMaterials={selectedMaterials}
-                priceRange={{ min: minPrice, max: maxPrice }}
+                selectedCategories={filters.selectedCategories}
+                selectedBrands={filters.selectedBrands}
+                selectedMaterials={filters.selectedMaterials}
+                priceRange={{ min: filters.minPrice, max: filters.maxPrice }}
                 minPrice={absoluteMinPrice}
                 maxPrice={absoluteMaxPrice}
-                inStock={inStock}
-                onSale={onSale}
-                isNew={isNew}
-                onCategoryChange={(cats) => updateFilters({ category: cats.join(",") || null })}
-                onBrandChange={(brds) => updateFilters({ brands: brds.join(",") || null })}
-                onMaterialChange={(mats) => updateFilters({ materials: mats.join(",") || null })}
-                onPriceChange={(range) => updateFilters({ minPrice: String(range.min), maxPrice: String(range.max) })}
-                onInStockChange={(val) => updateFilters({ inStock: val === null ? null : String(val) })}
-                onSaleChange={(val) => updateFilters({ onSale: val === null ? null : "true" })}
-                onNewChange={(val) => updateFilters({ new: val === null ? null : "true" })}
+                inStock={filters.inStock}
+                onSale={filters.onSale}
+                isNew={filters.isNew}
+                onCategoryChange={(cats) => updateFilters({ selectedCategories: cats })}
+                onBrandChange={(brds) => updateFilters({ selectedBrands: brds })}
+                onMaterialChange={(mats) => updateFilters({ selectedMaterials: mats })}
+                onPriceChange={(range) => updateFilters({ minPrice: range.min, maxPrice: range.max })}
+                onInStockChange={(val) => updateFilters({ inStock: val })}
+                onSaleChange={(val) => updateFilters({ onSale: val })}
+                onNewChange={(val) => updateFilters({ isNew: val })}
                 onClearAll={handleClearAll}
                 activeFilterCount={activeFilters.length}
             />
