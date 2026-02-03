@@ -317,39 +317,6 @@ const MobileFilters = memo(function MobileFilters({
                                 </div>
                             </FilterSection>
 
-                            {/* Status Section */}
-                            <FilterSection
-                                title={t.shop.status.toUpperCase()}
-                                isOpen={openSections.status}
-                                onToggle={() => toggleSection('status')}
-                            >
-                                <div className="space-y-3 pt-2">
-                                    {[
-                                        { label: t.shop.new_arrivals, checked: isNew === true, onChange: onNewChange },
-                                        { label: t.shop.on_sale, checked: onSale === true, onChange: onSaleChange },
-                                        { label: t.shop.in_stock, checked: inStock === true, onChange: onInStockChange },
-                                    ].map((item, i) => (
-                                        <label key={i} className="flex items-center justify-between group cursor-pointer py-1">
-                                            <span className={`text-sm transition-colors ${item.checked ? 'text-[#12403C] font-medium' : 'text-[#5c6b66] group-hover:text-[#12403C]'}`}>
-                                                {item.label}
-                                            </span>
-                                            <div className={`w-10 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${item.checked ? 'bg-[#12403C]' : 'bg-gray-200'}`}>
-                                                <div
-                                                    className={`bg-white w-4 h-4 rounded-full shadow-sm transform duration-300 ease-in-out ${item.checked ? 'translate-x-4' : 'translate-x-0'}`}
-                                                />
-                                            </div>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
-                                                checked={item.checked}
-                                                onChange={() => item.onChange(item.checked ? null : true)}
-                                                aria-label={item.label}
-                                            />
-                                        </label>
-                                    ))}
-                                </div>
-                            </FilterSection>
-
                             {/* Brands Section */}
                             {brands.length > 0 && (
                                 <FilterSection
@@ -407,6 +374,39 @@ const MobileFilters = memo(function MobileFilters({
                                     </div>
                                 </FilterSection>
                             )}
+
+                            {/* Status Section */}
+                            <FilterSection
+                                title={t.shop.status.toUpperCase()}
+                                isOpen={openSections.status}
+                                onToggle={() => toggleSection('status')}
+                            >
+                                <div className="space-y-3 pt-2">
+                                    {[
+                                        { label: t.shop.new_arrivals, checked: isNew === true, onChange: onNewChange },
+                                        { label: t.shop.on_sale, checked: onSale === true, onChange: onSaleChange },
+                                        { label: t.shop.in_stock, checked: inStock === true, onChange: onInStockChange },
+                                    ].map((item, i) => (
+                                        <label key={i} className="flex items-center justify-between group cursor-pointer py-1">
+                                            <span className={`text-sm transition-colors ${item.checked ? 'text-[#12403C] font-medium' : 'text-[#5c6b66] group-hover:text-[#12403C]'}`}>
+                                                {item.label}
+                                            </span>
+                                            <div className={`w-10 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${item.checked ? 'bg-[#12403C]' : 'bg-gray-200'}`}>
+                                                <div
+                                                    className={`bg-white w-4 h-4 rounded-full shadow-sm transform duration-300 ease-in-out ${item.checked ? 'translate-x-4' : 'translate-x-0'}`}
+                                                />
+                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                className="hidden"
+                                                checked={item.checked}
+                                                onChange={() => item.onChange(item.checked ? null : true)}
+                                                aria-label={item.label}
+                                            />
+                                        </label>
+                                    ))}
+                                </div>
+                            </FilterSection>
                         </div>
 
                         {/* Sticky Footer */}

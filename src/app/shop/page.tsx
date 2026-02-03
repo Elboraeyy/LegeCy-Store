@@ -79,6 +79,7 @@ export default async function Shop() {
       categories={categories.map(c => ({
         id: c.id,
         name: c.name,
+        nameAr: c.nameAr,
         slug: c.slug,
       }))}
       brands={brands.map(b => ({

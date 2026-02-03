@@ -9,16 +9,18 @@ import { useLanguage } from "@/context/LanguageContext";
 
 interface ProductGridProps {
     products: Product[];
-    viewMode: "grid" | "list" | "compact";
+    viewMode: "grid" | "list" | "compact" | "categories";
     isLoading?: boolean;
+    categories?: { id: string; name: string; nameAr?: string | null; slug: string }[];
 }
 
 export default function ProductGrid({
     products,
     viewMode,
     isLoading = false,
+    categories = [],
 }: ProductGridProps) {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     if (isLoading) {
         return (
@@ -91,6 +93,120 @@ export default function ProductGrid({
                     <ProductListCard key={product.id} product={product} />
                 ))}
             </div>
+        );
+    }
+
+    if (viewMode === "categories") {
+        // Group products by category
+        const productsByCategory = new Map<string, { category: { id: string; name: string; nameAr?: string | null; slug: string }; products: Product[] }>();
+
+        // Initialize all categories
+        categories.forEach(cat => {
+            productsByCategory.set(cat.slug, { category: cat, products: [] });
+        });
+
+        // Add "Uncategorized" for products without category
+        const uncategorizedName = language === "ar" ? "غير مصنف" : "Uncategorized";
+        productsByCategory.set("uncategorized", {
+            category: {
+                id: "",
+                name: uncategorizedName,
+                nameAr: language === "ar" ? uncategorizedName : null,
+                slug: "uncategorized"
+            },
+            products: []
+        });
+
+        // Group products
+        products.forEach(product => {
+            const categorySlug = product.categorySlug || "uncategorized";
+            const categoryData = productsByCategory.get(categorySlug);
+            if (categoryData) {
+                categoryData.products.push(product);
+            } else {
+                // If category not found, add to uncategorized
+                const uncategorized = productsByCategory.get("uncategorized");
+                if (uncategorized) {
+                    uncategorized.products.push(product);
+                }
+            }
+        });
+
+        // Filter out empty categories
+        const categoriesWithProducts = Array.from(productsByCategory.values()).filter(
+            item => item.products.length > 0
+        );
+
+        if (categoriesWithProducts.length === 0) {
+            return (
+                <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                    <div className="w-24 h-24 mb-6 rounded-full bg-gray-100 flex items-center justify-center" aria-hidden="true">
+                        <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2 font-heading">
+                        {t.product.no_products_found}
+                    </h3>
+                    <p className="text-gray-600 max-w-md">
+                        {t.product.no_products_desc}
+                    </p>
+                </div>
+            );
+        }
+
+        return (
+            <>
+                <style jsx global>{`
+                    .category-scroll {
+                        scrollbar-width: none !important;
+                        -ms-overflow-style: none !important;
+                        -webkit-overflow-scrolling: touch !important;
+                        scroll-behavior: smooth;
+                    }
+                    .category-scroll::-webkit-scrollbar {
+                        display: none !important;
+                        width: 0 !important;
+                        height: 0 !important;
+                        background: transparent !important;
+                    }
+                `}</style>
+                <div className="space-y-10">
+                    {categoriesWithProducts.map(({ category, products: categoryProducts }) => (
+                        <div key={category.slug} className="space-y-5">
+                            {/* Category Header */}
+                            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                                <h2 className="text-2xl font-semibold text-[#12403C] font-heading">
+                                    {getLocalized(category, language, 'name')}
+                                </h2>
+                                <span className="text-sm text-gray-500 font-medium">
+                                    {categoryProducts.length} {categoryProducts.length === 1 ? (language === "ar" ? "منتج" : "product") : (language === "ar" ? "منتجات" : "products")}
+                                </span>
+                            </div>
+
+                            {/* Horizontal Scrollable Products */}
+                            <div className="relative w-full">
+                                <div
+                                    className="category-scroll overflow-x-auto overflow-y-hidden w-full"
+                                    style={{
+                                        scrollbarWidth: 'none',
+                                        msOverflowStyle: 'none',
+                                        WebkitOverflowScrolling: 'touch'
+                                    }}
+                                >
+                                    <div className="flex gap-3 px-1" style={{ width: "max-content", paddingRight: "1rem" }}>
+                                        {categoryProducts.map((product, index) => (
+                                            <div key={product.id} className="flex-shrink-0" style={{ width: '140px' }}>
+                                                <ProductCard product={product} priority={index < 4} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </>
         );
     }
 

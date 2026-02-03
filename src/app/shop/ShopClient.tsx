@@ -12,7 +12,7 @@ import { useLanguage } from "@/context/LanguageContext";
 
 interface ShopClientProps {
     initialProducts?: Product[];
-    categories?: { id: string; name: string; slug: string }[];
+    categories?: { id: string; name: string; nameAr?: string | null; slug: string }[];
     brands?: { id: string; name: string }[];
     materials?: { id: string; name: string }[];
 }
@@ -30,7 +30,7 @@ export default function ShopClient({
 
     // State - Local state for instant filtering
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<"grid" | "list" | "compact">("grid");
+    const [viewMode, setViewMode] = useState<"grid" | "list" | "compact" | "categories">("grid");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
@@ -377,12 +377,12 @@ export default function ShopClient({
                     </div>
 
                     {/* Main Content */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                         {/* Toolbar - Mobile Optimized */}
-                        <div className="bg-white rounded-2xl border border-gray-100 p-3 mb-8 sticky top-4 z-40 shadow-sm">
-                            <div className="flex items-center justify-between gap-2">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-3 mb-8 sticky top-4 z-40 shadow-sm overflow-hidden">
+                            <div className="flex items-center justify-between gap-2 min-w-0 w-full">
                                 {/* Left: Filter Button (Mobile) + Results */}
-                                <div className="flex items-center gap-2 md:gap-4">
+                                <div className="flex items-center gap-2 md:gap-4 flex-shrink-0 min-w-0">
                                     <button
                                         onClick={() => setMobileFiltersOpen(true)}
                                         className="lg:hidden flex items-center gap-1.5 px-3 py-2 bg-[#12403C] text-white rounded-full font-medium text-xs shadow-sm active:scale-95 transition-all"
@@ -398,7 +398,7 @@ export default function ShopClient({
                                         )}
                                     </button>
 
-                                    <p className="text-xs md:text-sm text-gray-600">
+                                    <p className="text-xs md:text-sm text-gray-600 whitespace-nowrap">
                                         <span className="font-bold text-[#12403C]">{filteredAndSortedProducts.length}</span>
                                         <span className="hidden sm:inline"> {language === 'ar' ? t.shop.products_count : 'Products'}</span>
                                         <span className="sm:hidden"> {language === 'ar' ? t.shop.products_items : 'items'}</span>
@@ -406,9 +406,9 @@ export default function ShopClient({
                                 </div>
 
                                 {/* Right: View Mode + Sort */}
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
                                     {/* View Mode */}
-                                    <div className="hidden sm:flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                                    <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 flex-shrink-0">
                                         <button
                                             onClick={() => setViewMode("grid")}
                                             className={`p-2 rounded ${viewMode === "grid" ? "bg-white shadow-sm" : "text-gray-500"}`}
@@ -422,42 +422,28 @@ export default function ShopClient({
                                             </svg>
                                         </button>
                                         <button
-                                            onClick={() => setViewMode("list")}
-                                            className={`p-2 rounded ${viewMode === "list" ? "bg-white shadow-sm" : "text-gray-500"}`}
-                                            title={t.shop.view_list}
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <line x1="8" y1="6" x2="21" y2="6" />
-                                                <line x1="8" y1="12" x2="21" y2="12" />
-                                                <line x1="8" y1="18" x2="21" y2="18" />
-                                                <rect x="3" y="4" width="2" height="4" fill="currentColor" />
-                                                <rect x="3" y="10" width="2" height="4" fill="currentColor" />
-                                                <rect x="3" y="16" width="2" height="4" fill="currentColor" />
-                                            </svg>
-                                        </button>
-                                        <button
-                                            onClick={() => setViewMode("compact")}
-                                            className={`p-2 rounded ${viewMode === "compact" ? "bg-white shadow-sm" : "text-gray-500"}`}
-                                            title={t.shop.view_compact}
+                                            onClick={() => setViewMode("categories")}
+                                            className={`p-2 rounded ${viewMode === "categories" ? "bg-white shadow-sm" : "text-gray-500"}`}
+                                            title="View by Categories"
                                         >
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                                <rect x="2" y="2" width="4" height="4" rx="0.5" />
-                                                <rect x="8" y="2" width="4" height="4" rx="0.5" />
-                                                <rect x="14" y="2" width="4" height="4" rx="0.5" />
-                                                <rect x="20" y="2" width="2" height="4" rx="0.5" />
-                                                <rect x="2" y="8" width="4" height="4" rx="0.5" />
-                                                <rect x="8" y="8" width="4" height="4" rx="0.5" />
-                                                <rect x="14" y="8" width="4" height="4" rx="0.5" />
-                                                <rect x="20" y="8" width="2" height="4" rx="0.5" />
+                                                <rect x="4" y="5" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                                                <rect x="11" y="6" width="9" height="2" rx="1" />
+                                                <rect x="4" y="11" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                                                <rect x="11" y="12" width="9" height="2" rx="1" />
+                                                <rect x="4" y="17" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                                                <rect x="11" y="18" width="9" height="2" rx="1" />
                                             </svg>
                                         </button>
                                     </div>
 
                                     {/* Sort */}
-                                    <SortDropdown
-                                        value={filters.sortBy}
-                                        onChange={(val) => updateFilters({ sortBy: val })}
-                                    />
+                                    <div className="flex-shrink-0">
+                                        <SortDropdown
+                                            value={filters.sortBy}
+                                            onChange={(val) => updateFilters({ sortBy: val })}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -475,13 +461,14 @@ export default function ShopClient({
 
                         {/* Products Grid */}
                         <ProductGrid
-                            products={paginatedProducts}
+                            products={viewMode === "categories" ? filteredAndSortedProducts : paginatedProducts}
                             viewMode={viewMode}
-                            isLoading={isPending} // Show loading state during URL sync
+                            isLoading={isPending}
+                            categories={categories}
                         />
 
                         {/* Pagination */}
-                        {totalPages > 1 && (
+                        {viewMode !== "categories" && totalPages > 1 && (
                             <div className="mt-8 flex items-center justify-center gap-2">
                                 <button
                                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
