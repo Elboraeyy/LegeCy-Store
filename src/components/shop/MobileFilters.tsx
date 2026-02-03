@@ -324,12 +324,12 @@ const MobileFilters = memo(function MobileFilters({
                                     isOpen={openSections.brands}
                                     onToggle={() => toggleSection('brands')}
                                 >
-                                    <div className="grid grid-cols-2 gap-2 pt-2">
+                                    <div className="flex flex-wrap gap-2 pt-2">
                                         {brands.map((brand) => (
                                             <label
                                                 key={brand.id}
-                                                className={`flex items-center justify-center px-4 py-2.5 rounded-lg border text-sm cursor-pointer transition-all duration-200 ${selectedBrands.includes(brand.id)
-                                                    ? "border-[#12403C] bg-[#12403C] text-white shadow-md shadow-[#12403C]/10 font-medium"
+                                                className={`cursor-pointer px-4 py-2 rounded-lg border text-sm transition-all duration-200 ${selectedBrands.includes(brand.id)
+                                                    ? "border-[#12403C] bg-[#12403C] text-white shadow-sm font-medium"
                                                     : "border-[#12403C]/10 bg-white text-[#5c6b66] hover:border-[#12403C]/30"
                                                     }`}
                                             >

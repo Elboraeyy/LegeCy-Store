@@ -379,7 +379,7 @@ export default function ShopClient({
                     {/* Main Content */}
                     <div className="flex-1 min-w-0">
                         {/* Toolbar - Mobile Optimized */}
-                        <div className="bg-white rounded-2xl border border-gray-100 p-3 mb-8 sticky top-4 z-40 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-3 mb-8 sticky top-4 z-40 shadow-sm">
                             <div className="flex items-center justify-between gap-2 min-w-0 w-full">
                                 {/* Left: Filter Button (Mobile) + Results */}
                                 <div className="flex items-center gap-2 md:gap-4 flex-shrink-0 min-w-0">
