@@ -122,7 +122,7 @@ export async function confirmPaymentIntent(intentId: string) {
             shipping: 0,
             total: orderTotal,
             shippingAddress: `${intent.order.shippingAddress || ''}, ${intent.order.shippingCity || ''}`,
-            paymentMethod: intent.order.paymentMethod || 'paymob'
+            paymentMethod: intent.order.paymentMethod || 'online_payment'
         }).catch(err => {
             logger.error('Failed to send payment confirmation email', { orderId: intent.orderId, error: err });
         });

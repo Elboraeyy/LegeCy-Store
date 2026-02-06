@@ -106,21 +106,9 @@ function checkRateLimitHealth(): ComponentHealth {
 }
 
 function checkPaymentsHealth(): ComponentHealth {
-  const hasApiKey = !!process.env.PAYMOB_API_KEY;
-  const hasHmacSecret = !!process.env.PAYMOB_HMAC_SECRET;
-  const hasIntegrationId = !!process.env.PAYMOB_INTEGRATION_ID;
-  
-  if (!hasApiKey || !hasHmacSecret || !hasIntegrationId) {
-    return {
-      status: 'critical',
-      message: 'Paymob configuration incomplete',
-      lastChecked: new Date().toISOString()
-    };
-  }
-  
   return {
     status: 'healthy',
-    message: 'Paymob configuration complete',
+    message: 'Manual payments configured',
     lastChecked: new Date().toISOString()
   };
 }

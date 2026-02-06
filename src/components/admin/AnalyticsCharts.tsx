@@ -82,7 +82,6 @@ const CHART_COLORS = [
 
 const PAYMENT_COLORS: Record<string, string> = {
   'cod': COLORS.primary,
-  'paymob': COLORS.gold,
   'fawry': COLORS.orange,
   'cash': COLORS.green
 };
@@ -295,7 +294,6 @@ export function PaymentMethodChart({ data }: { data: PaymentMethodData[] }) {
 
   const methodLabels: Record<string, string> = {
     'cod': 'Cash on Delivery',
-    'paymob': 'PayMob',
     'fawry': 'Fawry',
     'cash': 'Cash'
   };

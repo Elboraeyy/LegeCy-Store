@@ -11,8 +11,8 @@ import prisma from '@/lib/prisma';
 
 export type KillSwitches = {
   payments_enabled: boolean;      // Master payment kill switch
-  paymob_enabled: boolean;        // Card payments via Paymob
   wallet_enabled: boolean;        // Mobile wallet payments
+  instapay_enabled: boolean;      // InstaPay (Manual)
   cod_enabled: boolean;           // Cash on delivery
   checkout_enabled: boolean;      // Entire checkout flow
   coupons_enabled: boolean;       // Coupon usage
@@ -26,13 +26,13 @@ export type KillSwitchKey = keyof KillSwitches;
 // Safe defaults - online payments disabled until verified
 export const DEFAULT_KILL_SWITCHES: KillSwitches = {
   payments_enabled: true,
-  paymob_enabled: false,     // DISABLED by default - enable after testing
-  wallet_enabled: false,     // DISABLED by default - enable after testing
+  wallet_enabled: true,      // ENABLED for Manual Payment Workflow
+  instapay_enabled: true,    // ENABLED for Manual Payment Workflow
   cod_enabled: true,         // Safe - no money movement online
   checkout_enabled: true,
   coupons_enabled: true,    // ENABLED
   registration_enabled: true,
-  admin_manual_pay: false,   // DISABLED - security risk
+  admin_manual_pay: true,   // ENABLED for confirming manual payments
   pos_enabled: false,        // DISABLED until needed
 };
 
@@ -123,7 +123,7 @@ export async function requireFeature(feature: keyof KillSwitches, errorMessage?:
  * Payment method guard - checks if specific payment method is allowed
  * Reads from BOTH kill switches AND payment_settings (admin panel)
  */
-export async function isPaymentMethodEnabled(method: 'cod' | 'paymob' | 'wallet'): Promise<boolean> {
+export async function isPaymentMethodEnabled(method: 'cod' | 'wallet' | 'instapay'): Promise<boolean> {
   const switches = await getKillSwitches();
   
   if (!switches.payments_enabled) {
@@ -131,13 +131,13 @@ export async function isPaymentMethodEnabled(method: 'cod' | 'paymob' | 'wallet'
   }
   
   // Also check payment_settings from admin config
-  let paymentSettings: { enableCOD?: boolean; enablePaymob?: boolean } = {};
+  let paymentSettings: { enableCOD?: boolean } = {};
   try {
     const config = await prisma.storeConfig.findUnique({
       where: { key: 'payment_settings' }
     });
     if (config?.value) {
-      paymentSettings = config.value as { enableCOD?: boolean; enablePaymob?: boolean };
+      paymentSettings = config.value as { enableCOD?: boolean };
     }
   } catch {
     // Silent fail - use defaults
@@ -146,10 +146,10 @@ export async function isPaymentMethodEnabled(method: 'cod' | 'paymob' | 'wallet'
   switch (method) {
     case 'cod':
       return switches.cod_enabled && (paymentSettings.enableCOD !== false);
-    case 'paymob':
-      return switches.paymob_enabled || (paymentSettings.enablePaymob === true);
     case 'wallet':
       return switches.wallet_enabled;
+    case 'instapay':
+      return switches.instapay_enabled;
     default:
       return false;
   }

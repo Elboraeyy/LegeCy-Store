@@ -135,7 +135,6 @@ export default function TrackOrderClient({ order }: Props) {
 
   const getPaymentLabel = () => {
     if (order.paymentMethod === 'cod') return t.orders.tracking.payment_info.cod;
-    if (order.paymentMethod === 'paymob') return t.orders.tracking.payment_info.online;
     if (order.paymentMethod === 'wallet') return t.orders.tracking.payment_info.wallet;
     return order.paymentMethod;
   };

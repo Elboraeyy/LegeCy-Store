@@ -19,9 +19,11 @@ interface OrdersBoardProps {
 
 const COLUMNS: { id: OrderStatus; label: string; color: string }[] = [
     { id: OrderStatus.Pending, label: 'Pending', color: '#f59e0b' },
+    { id: OrderStatus.PaymentPending, label: 'Payment Pending', color: '#fbbf24' }, // Yellow-400
     { id: OrderStatus.Paid, label: 'Paid', color: '#3b82f6' },
     { id: OrderStatus.Shipped, label: 'Shipped', color: '#8b5cf6' },
     { id: OrderStatus.Delivered, label: 'Delivered', color: '#10b981' },
+    { id: OrderStatus.PaymentFailed, label: 'Payment Failed', color: '#f87171' }, // Red-400
     { id: OrderStatus.Cancelled, label: 'Cancelled', color: '#ef4444' },
 ];
 

@@ -162,11 +162,6 @@ export type ShippingSettings = {
 
 export type PaymentSettings = {
   enableCOD: boolean;
-  enablePaymob: boolean;
-  paymobApiKey: string;
-  paymobIntegrationId: string;
-  paymobHmacSecret: string;
-  paymobIframeId: string;
   enableFawry: boolean;
   fawryMerchantCode: string;
   fawrySecurityKey: string;

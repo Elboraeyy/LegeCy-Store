@@ -2157,7 +2157,7 @@ export const dictionary = {
         cancelled: "تم الإلغاء",
         refunded: "تم الاسترجاع",
         partially_refunded: "استرجاع جزئي",
-        payment_pending: "في انتظار الدفع",
+        payment_pending: "في انتظار تأكيد الدفع",
         payment_failed: "فشل الدفع",
       },
       tracking: {

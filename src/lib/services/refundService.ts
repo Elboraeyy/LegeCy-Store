@@ -10,7 +10,6 @@ import { getStoreConfig } from '@/lib/actions/config';
  * Refund Service
  * 
  * Handles return request processing and refund workflows.
- * Note: Actual Paymob refund API integration should be added when ready.
  */
 
 export type RefundEligibility = {

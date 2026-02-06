@@ -20,11 +20,7 @@ const envSchema = z.object({
     SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters').optional(),
     ADMIN_SESSION_SECRET: z.string().min(32, 'ADMIN_SESSION_SECRET must be at least 32 characters').optional(),
     
-    // Payment Provider (Paymob)
-    PAYMOB_API_KEY: z.string().optional(),
-    PAYMOB_HMAC_SECRET: z.string().optional(),
-    PAYMOB_INTEGRATION_ID: z.string().optional(),
-    PAYMOB_IFRAME_ID: z.string().optional(),
+
     
     // Operational Config
     RESERVATION_TTL_MINUTES: z.string().transform(Number).pipe(z.number().min(1).max(60)).optional(),
@@ -65,10 +61,7 @@ function getDefaultConfig() {
         DATABASE_URL: 'file:./prisma/dev.db',
         SESSION_SECRET: undefined,
         ADMIN_SESSION_SECRET: undefined,
-        PAYMOB_API_KEY: undefined,
-        PAYMOB_HMAC_SECRET: undefined,
-        PAYMOB_INTEGRATION_ID: undefined,
-        PAYMOB_IFRAME_ID: undefined,
+
         RESERVATION_TTL_MINUTES: 15,
         ZOMBIE_THRESHOLD_MINUTES: 30,
         LOG_LEVEL: 'info' as const,
@@ -93,17 +86,7 @@ export const config = {
     // Session
     sessionSecret: env.SESSION_SECRET,
     adminSessionSecret: env.ADMIN_SESSION_SECRET,
-    
-    // Payment
-    paymob: {
-        apiKey: env.PAYMOB_API_KEY,
-        hmacSecret: env.PAYMOB_HMAC_SECRET,
-        integrationId: env.PAYMOB_INTEGRATION_ID,
-        walletIntegrationId: process.env.PAYMOB_WALLET_INTEGRATION_ID,
-        iframeId: env.PAYMOB_IFRAME_ID,
-        isConfigured: !!(env.PAYMOB_API_KEY && env.PAYMOB_HMAC_SECRET),
-    },
-    
+
     // Operational
     reservationTtlMinutes: env.RESERVATION_TTL_MINUTES ?? 15,
     zombieThresholdMinutes: env.ZOMBIE_THRESHOLD_MINUTES ?? 30,
@@ -125,7 +108,6 @@ export function validateProductionConfig(): { valid: boolean; issues: string[] }
     if (config.isProd) {
         if (!config.sessionSecret) issues.push('SESSION_SECRET is required in production');
         if (!config.adminSessionSecret) issues.push('ADMIN_SESSION_SECRET is required in production');
-        if (!config.paymob.isConfigured) issues.push('Paymob credentials required in production');
     }
     
     return { valid: issues.length === 0, issues };

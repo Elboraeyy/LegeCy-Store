@@ -29,13 +29,7 @@ const SWITCH_CONFIG: Array<{
     icon: '💳',
     danger: true
   },
-  {
-    key: 'paymob_enabled',
-    label: 'Paymob (Online Payments)',
-    description: 'Credit card and online payment methods',
-    icon: '🌐',
-    danger: false
-  },
+
   {
     key: 'wallet_enabled',
     label: 'Mobile Wallet',

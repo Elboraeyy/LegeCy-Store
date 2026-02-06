@@ -262,6 +262,9 @@ export async function addToCartAction(
                 }
             });
         }
+    }, {
+        maxWait: 5000, // default: 2000
+        timeout: 20000 // default: 5000
     });
 
     revalidatePath('/cart');

@@ -21,11 +21,8 @@ const REQUIRED_SECRETS: RequiredSecret[] = [
   { key: 'NEXTAUTH_SECRET', description: 'NextAuth.js secret for JWT', critical: true },
   { key: 'NEXTAUTH_URL', description: 'Application URL', critical: true },
   
-  // Payment (Paymob)
-  { key: 'PAYMOB_API_KEY', description: 'Paymob API key', critical: true },
-  { key: 'PAYMOB_SECRET_KEY', description: 'Paymob secret key', critical: true },
-  { key: 'PAYMOB_HMAC_SECRET', description: 'Paymob HMAC for webhook verification', critical: true },
-  { key: 'PAYMOB_INTEGRATION_ID', description: 'Paymob integration ID', critical: true },
+
+
   
   // Email
   { key: 'RESEND_API_KEY', description: 'Resend email API key', critical: true },
@@ -51,8 +48,6 @@ const REQUIRED_SECRETS: RequiredSecret[] = [
 const FORBIDDEN_NEXT_PUBLIC_SECRETS = [
   'NEXT_PUBLIC_ADMIN_SECRET',
   'NEXT_PUBLIC_DATABASE_URL',
-  'NEXT_PUBLIC_PAYMOB_SECRET',
-  'NEXT_PUBLIC_PAYMOB_HMAC',
   'NEXT_PUBLIC_NEXTAUTH_SECRET',
 ];
 
@@ -102,13 +97,6 @@ export function validateProductionSecrets(): ValidationResult {
 
   // Production-specific checks
   if (isProduction || isVercel) {
-    // Ensure HMAC is actually set (not just present)
-    const hmacSecret = process.env.PAYMOB_HMAC_SECRET;
-    if (hmacSecret && hmacSecret.length < 16) {
-      result.missing.push('PAYMOB_HMAC_SECRET: Secret appears too short (min 16 chars)');
-      result.valid = false;
-    }
-
     // Ensure database URL is not localhost
     const dbUrl = process.env.DATABASE_URL;
     if (dbUrl && (dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1'))) {

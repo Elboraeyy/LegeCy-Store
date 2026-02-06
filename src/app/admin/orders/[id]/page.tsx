@@ -169,6 +169,17 @@ function OrderDetailsView({ id }: { id: string }) {
                                     <span style={{ color: '#999' }}>No payment info</span>
                                 )}
                             </div>
+                            {order.paymentIntent?.providerReference && (
+                                <div style={{ marginTop: '12px', padding: '12px', background: '#fff9c4', borderRadius: '6px', border: '1px solid #fbc02d' }}>
+                                    <label className="admin-label" style={{ color: '#8a6d3b', marginBottom: '4px' }}>Verification Details</label>
+                                    <div style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 600, color: '#333' }}>
+                                        {order.paymentIntent.providerReference}
+                                    </div>
+                                    <div style={{ fontSize: '11px', color: '#8a6d3b', marginTop: '4px' }}>
+                                        Check bank app for this reference/sender.
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

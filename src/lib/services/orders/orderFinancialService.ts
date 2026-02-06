@@ -171,7 +171,7 @@ export const orderFinancialService = {
                         ]
                     });
                 } else {
-                    // Online (Paymob): Debit Deferred Revenue (Liability), Credit Revenue & Tax
+                    // Online Payment: Debit Deferred Revenue (Liability), Credit Revenue & Tax
                     // Move from Liability (Deferred) to Revenue
 
                     await revenueService.createJournalEntry({

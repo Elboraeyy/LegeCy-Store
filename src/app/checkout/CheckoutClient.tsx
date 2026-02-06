@@ -15,6 +15,7 @@ import { useFormPersistence } from "@/hooks/useFormPersistence";
 import { calculateShipping } from "@/lib/actions/shipping";
 import { EGYPT_LOCATIONS } from "@/data/egypt-locations";
 import CustomSelect from "@/components/ui/CustomSelect";
+import ManualPaymentInstructions from "@/components/shop/ManualPaymentInstructions"; // New Import
 import styles from "./Checkout.module.css";
 
 interface ShippingForm {
@@ -26,8 +27,9 @@ interface ShippingForm {
   shippingGovernorate: string;
   shippingCity: string;
   shippingNotes: string;
-  paymentMethod: "cod" | "paymob" | "wallet";
+  paymentMethod: "cod" | "wallet" | "instapay";
   walletNumber?: string;
+  walletReference?: string;
 }
 
 // Locations are imported from @/data/egypt-locations
@@ -58,13 +60,18 @@ export default function CheckoutClient() {
   });
 
   const [errors, setErrors] = useState<Partial<ShippingForm>>({});
-  const [paymentMethods, setPaymentMethods] = useState<{ cod: boolean; paymob: boolean; wallet: boolean }>({
+  const [paymentMethods, setPaymentMethods] = useState<{ cod: boolean; wallet: boolean; instapay: boolean }>({
     cod: true,
-    paymob: false,
     wallet: false,
+    instapay: false,
   });
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
-  const [saveInfo, setSaveInfo] = useState(true); // Default to saving info
+  const [saveInfo, setSaveInfo] = useState(false); // Default to NOT saving info
+
+  // Handle Copy Number
+  const handleCopyNumber = () => {
+    toast.success(language === 'ar' ? "تم نسخ الرقم بنجاح" : "Number copied to clipboard");
+  };
 
   // Auto-fill Profile
   useEffect(() => {
@@ -123,9 +130,9 @@ export default function CheckoutClient() {
     if (loadingPaymentMethods) return;
     const currentEnabled = paymentMethods[form.paymentMethod];
     if (!currentEnabled) {
-      let availableMethod: "cod" | "paymob" | "wallet" | null = null;
+      let availableMethod: "cod" | "wallet" | "instapay" | null = null;
       if (paymentMethods.cod) availableMethod = "cod";
-      else if (paymentMethods.paymob) availableMethod = "paymob";
+      else if (paymentMethods.instapay) availableMethod = "instapay";
       else if (paymentMethods.wallet) availableMethod = "wallet";
       if (availableMethod) {
         setForm((prev) => ({ ...prev, paymentMethod: availableMethod! }));
@@ -249,8 +256,9 @@ export default function CheckoutClient() {
     if (!form.shippingAddress.trim()) newErrors.shippingAddress = t.checkout.errors.address_required;
     if (!form.shippingGovernorate) newErrors.shippingGovernorate = t.checkout.errors.governorate_required;
     if (!form.shippingCity) newErrors.shippingCity = t.checkout.errors.city_required;
-    if (form.paymentMethod === "wallet" && !form.walletNumber) {
-      newErrors.walletNumber = t.checkout.errors.wallet_required;
+    if (form.paymentMethod === "wallet" || form.paymentMethod === "instapay") {
+      if (!form.walletNumber) newErrors.walletNumber = t.checkout.errors.wallet_required;
+      if (!form.walletReference) newErrors.walletReference = language === 'ar' ? 'رقم العملية مطلوب' : 'Transaction ID is required';
     }
 
     setErrors(newErrors);
@@ -299,16 +307,16 @@ export default function CheckoutClient() {
       });
 
       if (result.success && result.orderId) {
-        if (result.paymentUrl) {
-          // Scenario B: Slow Payment Redirect
-          // Show overlay instead of just spinning button, so user knows something is happening
-          // We keep isLoading true so the overlay stays
+        if (result.paymentUrl) { 
+          // Check if it is a manual wallet payment (no URL redirection needed usually, but logic might vary)
+          // For manual wallet, we might NOT get a paymentUrl if we changed the backend to "pending"
+          // But if we did get one (e.g., Paymob), redirect.
+
           window.location.href = result.paymentUrl;
           return;
         }
 
-        // Scenario C: Back Button Logic
-        // Mark as success so if they come back, we know why cart is empty
+        // Success (COD or Manual Wallet)
         sessionStorage.setItem('last_order_success', 'true');
 
         clearCart();
@@ -334,7 +342,7 @@ export default function CheckoutClient() {
     }
   };
 
-  const selectPaymentMethod = (method: "cod" | "paymob" | "wallet") => {
+  const selectPaymentMethod = (method: "cod" | "wallet" | "instapay") => {
     if (!paymentMethods[method]) return;
     setForm((prev) => ({ ...prev, paymentMethod: method }));
   };
@@ -632,7 +640,7 @@ export default function CheckoutClient() {
 
 
             {/* Save Info Checkbox */}
-            <div className={styles.formGroup} style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className={styles.formGroup} style={{ marginTop: '16px', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
               <input
                 type="checkbox"
                 id="saveInfo"
@@ -674,10 +682,11 @@ export default function CheckoutClient() {
                       >
                         <div className={styles.paymentRadio} />
                         <div className={styles.paymentIcon}>
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="1.5">
-                            <rect x="1" y="4" width="22" height="16" rx="2" />
-                            <line x1="1" y1="10" x2="23" y2="10" />
-                            <circle cx="18" cy="15" r="2" />
+                          {/* Cash on Delivery (Professional Box + Cash) Icon */}
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="6" width="20" height="12" rx="2" />
+                            <circle cx="12" cy="12" r="2" />
+                            <path d="M6 12h.01M18 12h.01" />
                           </svg>
                         </div>
                         <div className={styles.paymentInfo}>
@@ -687,65 +696,140 @@ export default function CheckoutClient() {
                       </div>
                     )}
 
-                    {paymentMethods.paymob && (
-                      <div
-                        className={`${styles.paymentOption} ${form.paymentMethod === "paymob" ? styles.paymentOptionSelected : ""}`}
-                        onClick={() => selectPaymentMethod("paymob")}
-                      >
-                        <div className={styles.paymentRadio} />
-                        <div className={styles.paymentIcon}>
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="1.5">
-                            <rect x="1" y="4" width="22" height="16" rx="2" />
-                            <line x1="1" y1="10" x2="23" y2="10" />
-                          </svg>
+                    {paymentMethods.instapay && (
+                      <>
+                        <div
+                          className={`${styles.paymentOption} ${form.paymentMethod === "instapay" ? styles.paymentOptionSelected : ""}`}
+                          onClick={() => selectPaymentMethod("instapay")}
+                        >
+                          <div className={styles.paymentRadio} />
+                          <div className={styles.paymentIcon}>
+                            {/* InstaPay Logo Representation */}
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M4 12L9 7L13 11L19 4" stroke="#7e22ce" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M15 4H19V8" stroke="#7e22ce" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M20 12L15 17L11 13L5 20" stroke="#7e22ce" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M9 20H5V16" stroke="#7e22ce" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                          <div className={styles.paymentInfo}>
+                            <p className={styles.paymentName}>InstaPay</p>
+                            <p className={styles.paymentDesc}>{language === 'ar' ? 'تحويل فوري عبر انستا باي' : 'Instant transfer via InstaPay'}</p>
+                          </div>
                         </div>
-                        <div className={styles.paymentInfo}>
-                          <p className={styles.paymentName}>{t.checkout.card}</p>
-                          <p className={styles.paymentDesc}>{t.checkout.card_desc}</p>
-                        </div>
-                      </div>
+
+                        {/* InstaPay Details embedded immediately below */}
+                        {form.paymentMethod === "instapay" && (
+                          <div className="animate-fade-in" style={{ marginTop: "16px", marginBottom: "16px" }}>
+                            <ManualPaymentInstructions type="instapay" onCopyNumber={handleCopyNumber} />
+
+                            <div className={styles.formGroup}>
+                              <label className={styles.formLabel}>
+                                {language === 'ar' ? 'رقم الهاتف (المرسل)' : 'Sender Phone Number'} <span className={styles.required}>*</span>
+                              </label>
+                              <input
+                                type="tel"
+                                name="walletNumber"
+                                value={form.walletNumber || ""}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, "").slice(0, 11);
+                                  handleChange({ target: { name: "walletNumber", value } } as React.ChangeEvent<HTMLInputElement>);
+                                }}
+                                placeholder="01XXXXXXXXX"
+                                className={`${styles.formInput} ${errors.walletNumber ? styles.formInputError : ""}`}
+                              />
+                              {errors.walletNumber && <span className={styles.errorMessage}>{errors.walletNumber}</span>}
+                            </div>
+
+                            <div className={styles.formGroup} style={{ marginTop: "16px" }}>
+                              <label className={styles.formLabel}>
+                                {language === 'ar' ? 'رقم العملية (Reference ID)' : 'Transaction Reference ID'} <span className={styles.required}>*</span>
+                              </label>
+                              <input
+                                type="text"
+                                name="walletReference"
+                                value={form.walletReference || ""}
+                                onChange={handleChange}
+                                placeholder={language === 'ar' ? 'أدخل رقم العملية أو كود التحويل' : 'Enter Transaction ID or Reference Code'}
+                                className={`${styles.formInput} ${errors.walletReference ? styles.formInputError : ""}`}
+                                style={{ letterSpacing: '0.05em', fontFamily: 'monospace' }}
+                              />
+                              {errors.walletReference && <span className={styles.errorMessage}>{errors.walletReference}</span>}
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
 
                     {paymentMethods.wallet && (
-                      <div
-                        className={`${styles.paymentOption} ${form.paymentMethod === "wallet" ? styles.paymentOptionSelected : ""}`}
-                        onClick={() => selectPaymentMethod("wallet")}
-                      >
-                        <div className={styles.paymentRadio} />
-                        <div className={styles.paymentIcon}>
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="1.5">
-                            <rect x="2" y="3" width="20" height="18" rx="2" />
-                            <path d="M16 8v8M8 8v8M12 8v8" />
-                          </svg>
+                      <>
+                        <div
+                          className={`${styles.paymentOption} ${form.paymentMethod === "wallet" ? styles.paymentOptionSelected : ""}`}
+                          onClick={() => selectPaymentMethod("wallet")}
+                        >
+                          <div className={styles.paymentRadio} />
+                          <div className={styles.paymentIcon}>
+                            {/* Specific Wallet Shape Icon */}
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
+                              <path d="M4 6v12c0 1.1.9 2 2 2h14v-4" />
+                              <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z" />
+                            </svg>
+                          </div>
+                          <div className={styles.paymentInfo}>
+                            <p className={styles.paymentName}>{t.checkout.wallet}</p>
+                            <p className={styles.paymentDesc}>{language === 'ar' ? 'فودافون كاش، اتصالات محفظة' : 'Vodafone Cash, Etisalat Wallet'}</p>
+                          </div>
                         </div>
-                        <div className={styles.paymentInfo}>
-                          <p className={styles.paymentName}>{t.checkout.wallet}</p>
-                          <p className={styles.paymentDesc}>{t.checkout.wallet_desc}</p>
-                        </div>
-                      </div>
-                  )}
-                </div>
-              )}
 
-              {form.paymentMethod === "wallet" && (
-                <div className={styles.formGroup} style={{ marginTop: "16px" }}>
-                  <label className={styles.formLabel}>
-                    {t.checkout.wallet_number} <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    name="walletNumber"
-                    value={form.walletNumber || ""}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, "").slice(0, 11);
-                      handleChange({ target: { name: "walletNumber", value } } as React.ChangeEvent<HTMLInputElement>);
-                    }}
-                    placeholder="01XXXXXXXXX"
-                    className={`${styles.formInput} ${errors.walletNumber ? styles.formInputError : ""}`}
-                  />
-                  {errors.walletNumber && <span className={styles.errorMessage}>{errors.walletNumber}</span>}
-                  <p className={styles.inputHint}>{t.checkout.wallet_hint}</p>
-                </div>
+                        {/* Wallet Details embedded immediately below */}
+                        {form.paymentMethod === "wallet" && (
+                          <div className="animate-fade-in" style={{ marginTop: "16px", marginBottom: "16px" }}>
+                            <ManualPaymentInstructions type="wallet" onCopyNumber={handleCopyNumber} />
+
+                            <div className={styles.formGroup}>
+                              <label className={styles.formLabel}>
+                                {language === 'ar' ? 'رقم المحفظة (المرسل)' : 'Sender Wallet Number'} <span className={styles.required}>*</span>
+                              </label>
+                              <input
+                                type="tel"
+                                name="walletNumber"
+                                value={form.walletNumber || ""}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, "").slice(0, 11);
+                                  handleChange({ target: { name: "walletNumber", value } } as React.ChangeEvent<HTMLInputElement>);
+                                }}
+                                placeholder="01XXXXXXXXX"
+                                className={`${styles.formInput} ${errors.walletNumber ? styles.formInputError : ""}`}
+                              />
+                              {errors.walletNumber && <span className={styles.errorMessage}>{errors.walletNumber}</span>}
+                            </div>
+
+                            <div className={styles.formGroup} style={{ marginTop: "16px" }}>
+                              <label className={styles.formLabel}>
+                                {language === 'ar' ? 'رقم العملية (Reference ID)' : 'Transaction Reference ID'} <span className={styles.required}>*</span>
+                              </label>
+                              <input
+                                type="text"
+                                name="walletReference"
+                                value={form.walletReference || ""}
+                                onChange={handleChange}
+                                placeholder={language === 'ar' ? 'أدخل رقم العملية أو كود التحويل' : 'Enter Transaction ID or Reference Code'}
+                                className={`${styles.formInput} ${errors.walletReference ? styles.formInputError : ""}`}
+                                style={{ letterSpacing: '0.05em', fontFamily: 'monospace' }}
+                              />
+                              {errors.walletReference && <span className={styles.errorMessage}>{errors.walletReference}</span>}
+                              <p className={styles.inputHint}>
+                                {language === 'ar'
+                                  ? 'يرجى إدخال رقم العملية الموجود في رسالة تأكيد التحويل لضمان سرعة التنفيذ.'
+                                  : 'Please enter the reference number from your transfer confirmation message.'}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
               )}
             </section>
 

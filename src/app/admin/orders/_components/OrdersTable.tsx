@@ -23,9 +23,15 @@ const getStatusClass = (status: OrderStatus) => {
         case OrderStatus.Shipped: return 'status-shipped';
         case OrderStatus.Delivered: return 'status-delivered';
         case OrderStatus.Cancelled: return 'status-cancelled';
+        case OrderStatus.PaymentPending: return 'status-warning'; // New class for pending payment
+        case OrderStatus.PaymentFailed: return 'status-cancelled';
         case OrderStatus.Pending: return 'status-pending';
         default: return 'status-pending';
     }
+};
+
+const formatStatus = (status: string) => {
+    return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
 export default function OrdersTable({ orders, onOrderClick }: OrdersTableProps) {
@@ -74,7 +80,7 @@ export default function OrdersTable({ orders, onOrderClick }: OrdersTableProps) 
                                     </td>
                                     <td>
                                         <span className={`status-badge ${statusClass}`}>
-                                            {order.status}
+                                            {formatStatus(order.status)}
                                         </span>
                                     </td>
                                     <td style={{ fontWeight: 600, fontFamily: 'var(--font-heading)', fontSize: '15px' }}>

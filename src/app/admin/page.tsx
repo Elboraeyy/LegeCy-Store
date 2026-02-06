@@ -155,7 +155,7 @@ async function getExecutiveStats() {
         
         // Count disabled critical switches
         const disabledSwitches = Object.entries(killSwitches).filter(([key, val]) => {
-            const critical = ['checkout_enabled', 'payments_enabled', 'paymob_enabled'];
+            const critical = ['checkout_enabled', 'payments_enabled'];
             return critical.includes(key) && !val;
         }).length;
         

@@ -58,11 +58,14 @@ export default function OrdersClient({ initialOrders, stats }: OrdersClientProps
 
     const statusFilters = [
         { value: '', label: 'All' },
+        { value: 'partially_refunded', label: 'All' },
         { value: 'pending', label: 'Pending' },
+        { value: 'payment_pending', label: 'Payment Pending' },
         { value: 'paid', label: 'Paid' },
         { value: 'shipped', label: 'Shipped' },
         { value: 'delivered', label: 'Delivered' },
         { value: 'cancelled', label: 'Cancelled' },
+        { value: 'payment_failed', label: 'Payment Failed' },
     ];
 
     return (

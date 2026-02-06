@@ -196,7 +196,7 @@ export async function reconcileInventory(): Promise<JobResult> {
           variantId: inv.variantId,
           order: {
             status: { in: ['pending', 'processing'] },
-            paymentMethod: { in: ['paymob', 'wallet'] } // Only online payments have reservations
+            paymentMethod: { in: ['wallet', 'instapay'] } // Only online payments have reservations
           }
         }
       });

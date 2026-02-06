@@ -23,12 +23,13 @@ interface CheckoutInput {
   shippingGovernorate: string;
   shippingCity: string;
   shippingNotes: string;
-  paymentMethod: 'cod' | 'paymob' | 'wallet';
+  paymentMethod: 'cod' | 'wallet' | 'instapay';
   cartItems: CartItemInput[];
   totalPrice: number;
   shippingCost?: number; // Shipping cost calculated at checkout
   couponCode?: string;
   walletNumber?: string;
+  walletReference?: string; // New Field
   idempotencyKey?: string; // Prevents duplicate orders on refresh/retry
 }
 
@@ -319,7 +320,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
 
       // STEP 2: Create the order
       // Use PaymentPending for online payments, Pending for COD
-      const initialStatus = (input.paymentMethod === 'paymob' || input.paymentMethod === 'wallet')
+      const initialStatus = (input.paymentMethod === 'wallet' || input.paymentMethod === 'instapay')
         ? OrderStatus.PaymentPending
         : OrderStatus.Pending;
 
@@ -511,36 +512,35 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     // Handle Payment Method
     let paymentUrl: string | undefined;
 
-    if (input.paymentMethod === 'paymob' || input.paymentMethod === 'wallet') {
-        const { initiatePaymobPayment } = await import('@/lib/paymob');
-        console.log(`💳 Initiating Paymob (${input.paymentMethod}) for Order:`, order.id);
+    if (input.paymentMethod === 'wallet' || input.paymentMethod === 'instapay') {
+    // Manual Payment Logic (Wallet & InstaPay)
+    // 1. Create PaymentIntent with "pending" status
+    // 2. Store the reference number AND sender number in providerReference since we lack metadata field
 
-        try {
-            const paymentResult = await initiatePaymobPayment({
-                id: order.id,
-                customerEmail: order.customerEmail || input.customerEmail || "customer@example.com",
-                customerName: order.customerName || input.customerName || "Visitor",
-              customerPhone: order.customerPhone || input.customerPhone || "01515205073",
-                shippingAddress: order.shippingAddress || input.shippingAddress || "Cairo",
-                shippingCity: order.shippingCity || input.shippingCity || "Cairo"
-            }, finalTotal, input.paymentMethod === 'paymob' ? 'card' : 'wallet', input.walletNumber);
+      const provider = input.paymentMethod === 'instapay' ? 'manual_instapay' : 'manual_wallet';
+      const referenceString = input.walletReference
+        ? `${input.walletReference} (Sender: ${input.walletNumber || 'N/A'})`
+        : null;
 
-            if (paymentResult.success && paymentResult.paymentUrl) {
-                paymentUrl = paymentResult.paymentUrl;
-            } else {
-                logger.error('Paymob initiation failed', { orderId: order.id, error: paymentResult.error });
-                return {
-                    success: false,
-                    error: paymentResult.error || 'Payment initiation failed'
-                };
-            }
-        } catch (e) {
-             logger.error('Paymob initiation exception', { orderId: order.id, error: e });
-             return {
-                 success: false,
-                 error: 'System error during payment initiation.'
-             };
+      await prisma.paymentIntent.create({
+        data: {
+          orderId: order.id,
+          amount: new Prisma.Decimal(finalTotal),
+          currency: 'EGP',
+          provider: provider,
+          providerReference: referenceString, // Store Ref + Sender for admin view
+          status: 'pending',
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours to verify
         }
+      });
+
+      logger.info(`Manual Payment Intent created for Order: ${order.id}`, {
+        provider,
+        reference: input.walletReference,
+        sender: input.walletNumber
+      });
+
+      // No paymentUrl required, client handles success state directly
     }
 
     // Send confirmation email ONLY for COD orders
@@ -600,6 +600,9 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         errorMessage = 'Unable to process order at this time. Please contact support.';
       } else if (msg.includes('payment')) {
         errorMessage = 'Payment processing error. Please try again or use a different payment method.';
+      } else {
+        // FALLBACK DEBUGGING: Include actual error message
+        errorMessage = `An error occurred: ${error.message}`;
       }
     }
 

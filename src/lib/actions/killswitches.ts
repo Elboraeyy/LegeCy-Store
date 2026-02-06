@@ -5,7 +5,6 @@ import prisma from '@/lib/prisma';
 
 interface PaymentSettings {
   enableCOD?: boolean;
-  enablePaymob?: boolean;
   enableFawry?: boolean;
 }
 
@@ -15,8 +14,8 @@ interface PaymentSettings {
  */
 export async function getPaymentMethodsStatus(): Promise<{
   cod: boolean;
-  paymob: boolean;
   wallet: boolean;
+  instapay: boolean;
 }> {
   const switches = await getKillSwitches();
   
@@ -36,10 +35,9 @@ export async function getPaymentMethodsStatus(): Promise<{
   return {
     // COD: master switch enabled AND payment settings allows it
     cod: switches.payments_enabled && (paymentSettings.enableCOD !== false),
-    // Paymob: master switch enabled AND payment settings allows it  
-    paymob: switches.payments_enabled && (paymentSettings.enablePaymob === true),
     // Wallet: master switch enabled AND individual kill switch (no settings page yet)
     wallet: switches.payments_enabled && switches.wallet_enabled,
+    instapay: switches.payments_enabled && switches.instapay_enabled,
   };
 }
 

@@ -11,7 +11,7 @@ export const createOrderSchema = z.object({
   })).min(1, 'Order must have at least one item'),
   totalPrice: z.number().nonnegative(),
   userId: z.string().optional(), // Link order to user
-  paymentMethod: z.enum(['cod', 'paymob']).optional(),
+  paymentMethod: z.enum(['cod', 'wallet', 'instapay']).optional(),
   options: z.object({
     skipReservation: z.boolean().optional(),
   }).optional(),
