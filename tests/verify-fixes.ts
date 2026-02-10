@@ -2,6 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 import { createOrder } from '../src/lib/services/orderService';
 import { confirmPaymentIntent, processZombieOrders, PaymentIntentStatus } from '../src/lib/services/paymentService';
+import { inventoryService } from '../src/lib/services/inventoryService';
 import { OrderStatus } from '../src/types/order';
 
 const prisma = new PrismaClient();
@@ -60,16 +61,30 @@ async function main() {
     // ====================================================
     console.log('\n🧪 Test 2: Zombie Order Cleanup (Transaction Check)');
 
-    const order2 = await createOrder({
-        items: [{
-            productId: product.id,
-            variantId: variant.id,
-            name: product.name,
-            price: 100,
-            quantity: 1
-        }],
-        totalPrice: 100,
-        paymentMethod: 'paymob' // Explicitly set to paymob so it gets cleaned up
+    const warehouseId = await prisma.warehouse.findFirst().then(w => w?.id);
+    if (!warehouseId) throw new Error("No warehouse found");
+
+    const order2 = await prisma.$transaction(async (tx) => {
+        // Reserve Stock
+        await inventoryService.reserveStock(tx, warehouseId, variant.id, 1);
+
+        return await tx.order.create({
+            data: {
+                totalPrice: 100,
+                status: OrderStatus.Pending,
+                paymentMethod: 'paymob',
+                items: {
+                    create: [{
+                        productId: product.id,
+                        variantId: variant.id,
+                        name: product.name,
+                        price: 100,
+                        quantity: 1
+                    }]
+                }
+            },
+            include: { items: true }
+        });
     });
     console.log(`Created potential zombie order: ${order2.id}`);
 
