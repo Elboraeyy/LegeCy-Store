@@ -1,7 +1,7 @@
 'use client';
 
 import '@/app/admin/admin.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getPartners, createPartner, processPayoutAction } from '@/lib/actions/partners';
 import { toast } from 'sonner';
 import { useLanguage } from '@/context/LanguageContext';
@@ -36,11 +36,7 @@ export default function PartnersPage() {
     const [payoutAmount, setPayoutAmount] = useState('');
     const [payoutRef, setPayoutRef] = useState('');
 
-    useEffect(() => {
-        loadPartners();
-    }, []);
-
-    const loadPartners = async () => {
+    const loadPartners = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getPartners();
@@ -50,7 +46,13 @@ export default function PartnersPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [t.partners?.failed_load]);
+
+    useEffect(() => {
+        loadPartners();
+    }, [loadPartners]);
+
+
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -59,7 +59,7 @@ export default function ManualPaymentInstructions({ type, onCopyNumber }: Manual
     };
 
     const themeColor = type === 'instapay' ? 'text-purple-900 bg-purple-50 border-purple-100' : 'text-emerald-900 bg-emerald-50 border-emerald-100';
-    const iconColor = type === 'instapay' ? 'text-purple-600' : 'text-emerald-700';
+
 
     return (
         <div className={`border rounded-lg p-4 mb-6 relative overflow-hidden ${themeColor}`}>

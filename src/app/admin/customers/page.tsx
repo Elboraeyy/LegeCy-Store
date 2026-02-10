@@ -1,8 +1,6 @@
 import { fetchCustomersPro, CustomerFilterParams } from '@/lib/actions/customer-pro';
 import { validateAdminSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
-import CustomerTableClient from '@/components/admin/customers/CustomerTableClient';
-import EmptyState from '@/components/admin/EmptyState';
 import CustomersPageClient from './CustomersPageClient';
 import '@/app/admin/admin.css';
 

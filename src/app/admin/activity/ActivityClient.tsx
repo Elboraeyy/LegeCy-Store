@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
 import EmptyState from '@/components/admin/EmptyState';
@@ -28,7 +27,7 @@ interface ActivityClientProps {
 export default function ActivityClient({ logs, total, page, totalPages, actionFilter }: ActivityClientProps) {
     const { language } = useLanguage();
     const t = adminDictionary[language as keyof typeof adminDictionary];
-    const searchParams = useSearchParams();
+
 
     const actionIcons: Record<string, string> = {
         'LOGIN': '🔐',

@@ -85,9 +85,7 @@ export default function AnalyticsClient({
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
-    const getStatusLabel = (status: string): string => {
-        return (ta as any)[status.toLowerCase()] || status;
-    };
+
 
     // Helper to get range label
     const getRangeLabel = () => {

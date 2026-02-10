@@ -2,13 +2,13 @@
 
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
+import { CustomerFilterParams, CustomerProData } from '@/lib/actions/customer-pro';
 import CustomerTableClient from '@/components/admin/customers/CustomerTableClient';
 import EmptyState from '@/components/admin/EmptyState';
-import { CustomerFilterParams } from '@/lib/actions/customer-pro';
 
 interface CustomersPageClientProps {
     total: number;
-    data: any[];
+    data: CustomerProData[];
     totalPages: number;
     params: CustomerFilterParams;
     searchParams: Record<string, string | undefined>;

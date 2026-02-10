@@ -319,7 +319,7 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                                         { value: '', label: t.orders.create.governorate + '...' },
                                         ...egyptGovernorates.map(gov => ({
                                             value: gov,
-                                            label: (t as any).governorates?.[gov] || gov
+                                            label: (t.governorates as Record<string, string>)?.[gov] || gov
                                         }))
                                     ]}
                                     value={governorate}

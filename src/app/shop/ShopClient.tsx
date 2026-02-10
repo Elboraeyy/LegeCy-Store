@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useTransition, useDeferredValue, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useTransition, useDeferredValue, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FilterSidebar from "@/components/shop/FilterSidebar";
 import MobileFilters from "@/components/shop/MobileFilters";
