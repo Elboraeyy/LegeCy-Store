@@ -13,8 +13,12 @@ import {
     StockCountItemWithDetails
 } from '@/lib/actions/stockcount-actions';
 import { toast } from 'sonner';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 export default function StockCountPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const params = useParams();
     const router = useRouter();
     const countId = params.id as string;
@@ -65,8 +69,8 @@ export default function StockCountPage() {
 
     const handleComplete = async (applyAdjustments: boolean) => {
         const action = applyAdjustments 
-            ? 'Complete and apply inventory adjustments? This will update stock levels.' 
-            : 'Complete without applying adjustments? Variances will be recorded but not applied.';
+            ? t.inventory.counts.detail.toasts.complete_confirm_apply
+            : t.inventory.counts.detail.toasts.complete_confirm_only;
         
         if (!confirm(action)) return;
 
@@ -75,7 +79,7 @@ export default function StockCountPage() {
         if ('error' in res) {
             toast.error(res.error);
         } else {
-            toast.success('Stock count completed successfully!');
+            toast.success(t.inventory.counts.detail.toasts.complete_success);
             router.push('/admin/inventory/counts');
         }
         setCompleting(false);
@@ -127,21 +131,21 @@ export default function StockCountPage() {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ fontSize: '48px' }}>📋</div>
-                <div style={{ color: 'var(--admin-text-muted)' }}>Loading stock count...</div>
+                <div style={{ color: 'var(--admin-text-muted)' }}>{t.inventory.counts.detail.loading}</div>
             </div>
         );
     }
 
     if (!hasPermission('INVENTORY_MANAGE')) {
-        return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#991b1b' }}>Access Denied</div>;
+        return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#991b1b' }}>{t.inventory.access_denied}</div>;
     }
 
     if (!count) {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ fontSize: '48px' }}>❌</div>
-                <div style={{ color: 'var(--admin-text-muted)' }}>Stock count not found</div>
-                <button onClick={() => router.back()} className="admin-btn admin-btn-outline">← Back</button>
+                <div style={{ color: 'var(--admin-text-muted)' }}>{t.inventory.counts.detail.not_found}</div>
+                <button onClick={() => router.back()} className="admin-btn admin-btn-outline">← {t.inventory.counts.detail.back}</button>
             </div>
         );
     }
@@ -152,7 +156,7 @@ export default function StockCountPage() {
             <div className="admin-header" style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <button onClick={() => router.back()} className="admin-btn admin-btn-outline" style={{ padding: '10px 16px' }}>
-                        ← Back
+                        ← {t.inventory.counts.detail.back}
                     </button>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -166,11 +170,11 @@ export default function StockCountPage() {
                                 background: isReadOnly ? 'rgba(22, 101, 52, 0.1)' : 'rgba(183, 110, 0, 0.1)',
                                 color: isReadOnly ? '#166534' : '#b76e00'
                             }}>
-                                {count.status.replace('_', ' ')}
+                                {t.inventory.counts.status[count.status.toLowerCase() as keyof typeof t.inventory.counts.status] || count.status.replace('_', ' ')}
                             </span>
                         </div>
                         <p className="admin-subtitle" style={{ margin: '4px 0 0' }}>
-                            📦 {count.warehouseName} • {items.length} items
+                            📦 {count.warehouseName} • {items.length} {t.inventory.counts.detail.results.total_items.toLowerCase()}
                         </p>
                     </div>
                 </div>
@@ -183,11 +187,11 @@ export default function StockCountPage() {
                         <span style={{ fontSize: '28px' }}>📊</span>
                         <div>
                             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', margin: 0, color: 'var(--admin-text-on-light)' }}>
-                                Count Results
+                                {t.inventory.counts.detail.results.title}
                             </h2>
                             {count.completedByName && (
                                 <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--admin-text-muted)' }}>
-                                    Completed by {count.completedByName}
+                                    {t.inventory.counts.detail.results.completed_by.replace('{name}', count.completedByName)}
                                 </p>
                             )}
                         </div>
@@ -195,7 +199,7 @@ export default function StockCountPage() {
 
                     <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
                         <div style={{ textAlign: 'center', padding: '20px', background: 'var(--admin-surface-light)', borderRadius: 'var(--admin-radius-sm)' }}>
-                            <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginBottom: '8px' }}>Total Items</div>
+                            <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginBottom: '8px' }}>{t.inventory.counts.detail.results.total_items}</div>
                             <div style={{ fontSize: '32px', fontWeight: 700, color: 'var(--admin-text-on-light)' }}>{items.length}</div>
                         </div>
                         <div style={{ 
@@ -204,17 +208,17 @@ export default function StockCountPage() {
                             background: accuracyPercent >= 95 ? 'rgba(22, 101, 52, 0.08)' : 'rgba(183, 110, 0, 0.08)', 
                             borderRadius: 'var(--admin-radius-sm)' 
                         }}>
-                            <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginBottom: '8px' }}>Accuracy</div>
+                            <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginBottom: '8px' }}>{t.inventory.counts.detail.results.accuracy}</div>
                             <div style={{ fontSize: '32px', fontWeight: 700, color: accuracyPercent >= 95 ? '#166534' : '#b76e00' }}>{accuracyPercent}%</div>
                         </div>
                         <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(30, 64, 175, 0.06)', borderRadius: 'var(--admin-radius-sm)' }}>
-                            <div style={{ fontSize: '13px', color: '#1e40af', marginBottom: '8px' }}>Over (+)</div>
+                            <div style={{ fontSize: '13px', color: '#1e40af', marginBottom: '8px' }}>{t.inventory.counts.detail.results.over}</div>
                             <div style={{ fontSize: '32px', fontWeight: 700, color: '#1e40af' }}>
                                 +{items.filter(i => i.variance && i.variance > 0).reduce((sum, i) => sum + (i.variance || 0), 0)}
                             </div>
                         </div>
                         <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(153, 27, 27, 0.06)', borderRadius: 'var(--admin-radius-sm)' }}>
-                            <div style={{ fontSize: '13px', color: '#991b1b', marginBottom: '8px' }}>Short (-)</div>
+                            <div style={{ fontSize: '13px', color: '#991b1b', marginBottom: '8px' }}>{t.inventory.counts.detail.results.short}</div>
                             <div style={{ fontSize: '32px', fontWeight: 700, color: '#991b1b' }}>
                                 {items.filter(i => i.variance && i.variance < 0).reduce((sum, i) => sum + (i.variance || 0), 0)}
                             </div>
@@ -223,7 +227,7 @@ export default function StockCountPage() {
 
                     {count.notes && (
                         <div style={{ marginTop: '20px', padding: '16px', background: 'var(--admin-surface-light)', borderRadius: 'var(--admin-radius-sm)', fontSize: '14px', color: 'var(--admin-text-muted)' }}>
-                            <strong>Notes:</strong> {count.notes}
+                            <strong>{t.inventory.counts.detail.results.notes}:</strong> {count.notes}
                         </div>
                     )}
                 </div>
@@ -235,7 +239,7 @@ export default function StockCountPage() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                             <div>
-                                <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '4px' }}>Progress</div>
+                                <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '4px' }}>{t.inventory.counts.detail.progress.label}</div>
                                 <div style={{ fontSize: '24px', fontWeight: 700 }}>{countedCount}/{items.length}</div>
                             </div>
                             <div style={{ width: '200px', height: '10px', background: 'var(--admin-border)', borderRadius: 'var(--admin-radius)' }}>
@@ -249,7 +253,7 @@ export default function StockCountPage() {
                             </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '4px' }}>Net Variance</div>
+                            <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '4px' }}>{t.inventory.counts.detail.progress.net_variance}</div>
                             <div style={{ fontSize: '24px', fontWeight: 700, color: totalVariance === 0 ? '#166534' : (totalVariance > 0 ? '#1e40af' : '#991b1b') }}>
                                 {totalVariance > 0 ? '+' : ''}{totalVariance}
                             </div>
@@ -265,7 +269,7 @@ export default function StockCountPage() {
                     <input
                         ref={searchRef}
                         type="text"
-                        placeholder="Search SKU or product..."
+                        placeholder={t.inventory.counts.detail.search_placeholder}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="admin-search-input"
@@ -274,10 +278,10 @@ export default function StockCountPage() {
 
                 <div className="admin-tabs-container">
                     {[
-                        { key: 'ALL', label: 'All' },
-                        { key: 'PENDING', label: 'Pending' },
-                        { key: 'COUNTED', label: 'Counted' },
-                        { key: 'VARIANCE', label: 'Variance' },
+                        { key: 'ALL', label: t.inventory.counts.detail.tabs.all },
+                        { key: 'PENDING', label: t.inventory.counts.detail.tabs.pending },
+                        { key: 'COUNTED', label: t.inventory.counts.detail.tabs.counted },
+                        { key: 'VARIANCE', label: t.inventory.counts.detail.tabs.variance },
                     ].map(f => (
                         <button
                             key={f.key}
@@ -297,10 +301,10 @@ export default function StockCountPage() {
                         <thead>
                             <tr>
                                 <th style={{ width: '60px' }}></th>
-                                <th>Product</th>
-                                <th style={{ textAlign: 'center', width: '100px' }}>System</th>
-                                <th style={{ textAlign: 'center', width: '120px' }}>Counted</th>
-                                <th style={{ textAlign: 'center', width: '100px' }}>Variance</th>
+                                <th>{t.inventory.counts.detail.table.product}</th>
+                                <th style={{ textAlign: 'center', width: '100px' }}>{t.inventory.counts.detail.table.system}</th>
+                                <th style={{ textAlign: 'center', width: '120px' }}>{t.inventory.counts.detail.table.counted}</th>
+                                <th style={{ textAlign: 'center', width: '100px' }}>{t.inventory.counts.detail.table.variance}</th>
                                 <th style={{ width: '50px' }}></th>
                             </tr>
                         </thead>
@@ -318,7 +322,7 @@ export default function StockCountPage() {
                                                 <Image src={item.productImage} alt="" fill style={{ objectFit: 'cover' }} />
                                             ) : (
                                                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#999' }}>
-                                                    NO IMG
+                                                        {t.inventory.counts.detail.table.no_img}
                                                 </div>
                                             )}
                                         </div>
@@ -385,7 +389,7 @@ export default function StockCountPage() {
             ) : (
                 <div className="admin-card" style={{ padding: '60px', textAlign: 'center' }}>
                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-                    <div style={{ color: 'var(--admin-text-muted)' }}>No items match your search</div>
+                        <div style={{ color: 'var(--admin-text-muted)' }}>{t.inventory.counts.detail.no_results}</div>
                 </div>
             )}
 
@@ -402,15 +406,15 @@ export default function StockCountPage() {
                 }}>
                     <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)' }}>
                         {allCounted ? (
-                            <span style={{ color: '#166534' }}>✓ All items counted!</span>
+                            <span style={{ color: '#166534' }}>{t.inventory.counts.detail.footer.all_counted}</span>
                         ) : (
-                            <span>{items.length - countedCount} items remaining</span>
+                                <span>{t.inventory.counts.detail.footer.remaining.replace('{count}', (items.length - countedCount).toString())}</span>
                         )}
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <Link href="/admin/inventory/counts" className="admin-btn admin-btn-outline" style={{ padding: '12px 24px' }}>
-                            Save & Exit
+                            {t.inventory.counts.detail.footer.save_exit}
                         </Link>
                         <button 
                             onClick={() => handleComplete(false)} 
@@ -418,7 +422,7 @@ export default function StockCountPage() {
                             disabled={!allCounted || completing}
                             style={{ padding: '12px 24px', opacity: allCounted ? 1 : 0.5 }}
                         >
-                            Complete Only
+                            {t.inventory.counts.detail.footer.complete_only}
                         </button>
                         <button 
                             onClick={() => handleComplete(true)} 
@@ -426,7 +430,7 @@ export default function StockCountPage() {
                             disabled={!allCounted || completing}
                             style={{ padding: '12px 24px', opacity: allCounted ? 1 : 0.5 }}
                         >
-                            {completing ? 'Completing...' : '✓ Complete & Apply'}
+                            {completing ? t.inventory.counts.detail.footer.completing : t.inventory.counts.detail.footer.complete_apply}
                         </button>
                     </div>
                 </div>

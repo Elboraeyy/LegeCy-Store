@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { useAdminPermissions } from '@/hooks/useAdminPermissions';
 import { fetchWarehouseById, WarehouseWithStats } from '@/lib/actions/warehouse-actions';
 import { fetchInventoryPro, InventoryItemPro } from '@/lib/actions/inventory-pro';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 const statusColors: Record<string, { bg: string; text: string }> = {
     IN_STOCK: { bg: '#dcfce7', text: '#166534' },
@@ -15,6 +17,8 @@ const statusColors: Record<string, { bg: string; text: string }> = {
 };
 
 export default function WarehouseStockPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const params = useParams();
     const warehouseId = params.id as string;
     
@@ -56,8 +60,10 @@ export default function WarehouseStockPage() {
         }
     }, [permLoading, hasPermission, loadData]);
 
-    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
-    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>Access Denied</div>;
+    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{t.inventory.loading}</div>;
+    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>{t.inventory.access_denied}</div>;
+
+    const stockT = t.inventory.warehouses.stock;
 
     return (
         <div>
@@ -65,24 +71,24 @@ export default function WarehouseStockPage() {
             <div className="admin-header">
                 <div>
                     <h1 className="admin-title">
-                        {warehouse ? `${warehouse.name} Stock` : 'Warehouse Stock'}
+                        {warehouse ? stockT.title.replace('{name}', warehouse.name) : stockT.default_title}
                     </h1>
                     <p className="admin-subtitle">
-                        {warehouse ? `Manage inventory in ${warehouse.city || warehouse.name}` : 'Manage warehouse inventory'}
+                        {warehouse ? stockT.subtitle.replace('{name}', warehouse.city || warehouse.name) : stockT.default_subtitle}
                     </p>
                 </div>
                 <Link href="/admin/inventory/transfers/new" className="admin-btn admin-btn-primary">
-                    + Create Transfer
+                    + {stockT.create_transfer}
                 </Link>
             </div>
 
             {/* Breadcrumb */}
             <div style={{ marginBottom: '24px', fontSize: '14px', color: 'var(--admin-text-muted)' }}>
-                <Link href="/admin/inventory" style={{ color: 'var(--admin-text-muted)', textDecoration: 'none' }}>Inventory</Link>
+                <Link href="/admin/inventory" style={{ color: 'var(--admin-text-muted)', textDecoration: 'none' }}>{t.inventory.title}</Link>
                 <span style={{ margin: '0 8px' }}>/</span>
-                <Link href="/admin/inventory/warehouses" style={{ color: 'var(--admin-text-muted)', textDecoration: 'none' }}>Warehouses</Link>
+                <Link href="/admin/inventory/warehouses" style={{ color: 'var(--admin-text-muted)', textDecoration: 'none' }}>{t.inventory.warehouses.title}</Link>
                 <span style={{ margin: '0 8px' }}>/</span>
-                <span style={{ color: 'var(--admin-text-on-light)' }}>Stock</span>
+                <span style={{ color: 'var(--admin-text-on-light)' }}>{stockT.breadcrumb}</span>
             </div>
 
             {/* Toolbar */}
@@ -94,7 +100,7 @@ export default function WarehouseStockPage() {
                         <span className="admin-search-icon">🔍</span>
                         <input
                             type="text"
-                            placeholder="Search SKU or Product..."
+                            placeholder={stockT.toolbar.search_placeholder}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && loadData()}
@@ -108,19 +114,19 @@ export default function WarehouseStockPage() {
                             onClick={() => { setLoading(true); setStatusFilter('ALL'); }}
                             className={`admin-tab-pill ${statusFilter === 'ALL' ? 'active' : ''}`}
                         >
-                            All
+                            {stockT.toolbar.all}
                         </button>
                         <button
                             onClick={() => { setLoading(true); setStatusFilter('LOW_STOCK'); }}
                             className={`admin-tab-pill ${statusFilter === 'LOW_STOCK' ? 'active' : ''}`}
                         >
-                            ⚠️ Low Stock
+                            ⚠️ {stockT.toolbar.low}
                         </button>
                         <button
                             onClick={() => { setLoading(true); setStatusFilter('OUT_OF_STOCK'); }}
                             className={`admin-tab-pill ${statusFilter === 'OUT_OF_STOCK' ? 'active' : ''}`}
                         >
-                            🚫 Out of Stock
+                            🚫 {stockT.toolbar.out}
                         </button>
                     </div>
                 </div>
@@ -130,20 +136,20 @@ export default function WarehouseStockPage() {
             <div className="admin-table-container">
                 {loading ? (
                     <div style={{ padding: '60px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                        Loading inventory...
+                        {t.inventory.loading}
                     </div>
                 ) : inventory.length > 0 ? (
                     <table className="admin-table">
                         <thead>
                             <tr>
                                 <th style={{ width: '60px' }}></th>
-                                <th>Product</th>
-                                <th>SKU</th>
-                                <th style={{ textAlign: 'center' }}>Available</th>
-                                <th style={{ textAlign: 'center' }}>Reserved</th>
-                                <th style={{ textAlign: 'center' }}>Min Stock</th>
-                                <th>Status</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                    <th>{stockT.table.product}</th>
+                                    <th>{stockT.table.sku}</th>
+                                    <th style={{ textAlign: 'center' }}>{stockT.table.available}</th>
+                                    <th style={{ textAlign: 'center' }}>{stockT.table.reserved}</th>
+                                    <th style={{ textAlign: 'center' }}>{stockT.table.min}</th>
+                                    <th>{stockT.table.status}</th>
+                                    <th style={{ textAlign: 'right' }}>{stockT.table.actions}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -177,7 +183,7 @@ export default function WarehouseStockPage() {
                                                         fontSize: '10px',
                                                         color: '#999'
                                                     }}>
-                                                        NO IMG
+                                                            {stockT.table.no_img}
                                                     </div>
                                                 )}
                                             </div>
@@ -214,7 +220,7 @@ export default function WarehouseStockPage() {
                                                 background: statusInfo.bg,
                                                 color: statusInfo.text
                                             }}>
-                                                {item.status.replace('_', ' ')}
+                                                {t.inventory.status[item.status.toLowerCase() as keyof typeof t.inventory.status] || item.status.replace('_', ' ')}
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
@@ -223,7 +229,7 @@ export default function WarehouseStockPage() {
                                                 className="admin-btn admin-btn-outline"
                                                 style={{ padding: '6px 12px', fontSize: '12px' }}
                                             >
-                                                Manage
+                                                {stockT.table.manage}
                                             </Link>
                                         </td>
                                     </tr>
@@ -235,12 +241,12 @@ export default function WarehouseStockPage() {
                     <div style={{ padding: '60px', textAlign: 'center' }}>
                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
                         <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', marginBottom: '8px', color: 'var(--admin-text-on-light)' }}>
-                            No products found
+                                    {stockT.empty.no_products}
                         </div>
                         <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)' }}>
                             {statusFilter !== 'ALL' 
-                                ? 'No products matching the selected filter.'
-                                : 'This warehouse has no inventory yet.'
+                                        ? stockT.empty.filter_desc
+                                        : stockT.empty.empty_desc
                             }
                         </div>
                     </div>

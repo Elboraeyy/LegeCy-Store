@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { createTeamMember, type TeamMemberData } from '@/lib/actions/team';
 import ImageUpload from '@/components/admin/ImageUpload';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
+import BackButton from '@/components/admin/BackButton';
 
 interface Props {
     roles: { id: string; name: string; description: string | null }[];
@@ -13,6 +16,8 @@ interface Props {
 
 export default function AddMemberForm({ roles }: Props) {
     const router = useRouter();
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState<TeamMemberData>({
@@ -45,7 +50,7 @@ export default function AddMemberForm({ roles }: Props) {
         if (result.success) {
             router.push('/admin/team');
         } else {
-            setError(result.error || 'Failed to create team member');
+            setError(result.error || t.team.form.error_create);
             setLoading(false);
         }
     };
@@ -56,6 +61,29 @@ export default function AddMemberForm({ roles }: Props) {
 
     return (
         <form onSubmit={handleSubmit}>
+            {/* Header */}
+            <div className="admin-header" style={{ marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <BackButton
+                        fallbackHref="/admin/team"
+                        label={language === 'ar' ? '→' : '←'}
+                        style={{
+                            fontSize: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '8px',
+                            background: '#f3f4f6'
+                        }}
+                    />
+                    <div>
+                        <h1 className="admin-title">{t.team.form.title_add}</h1>
+                        <p className="admin-subtitle">{t.team.form.subtitle_add}</p>
+                    </div>
+                </div>
+            </div>
             {error && (
                 <div style={{
                     padding: '16px',
@@ -72,13 +100,13 @@ export default function AddMemberForm({ roles }: Props) {
             {/* Basic Info Section */}
             <div className="admin-card" style={{ marginBottom: '24px' }}>
                 <h3 style={{ margin: '0 0 20px', fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>👤</span> Basic Information
+                    <span>👤</span> {t.team.form.basic_info}
                 </h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Full Name *
+                            {t.team.form.full_name} *
                         </label>
                         <input
                             type="text"
@@ -86,24 +114,24 @@ export default function AddMemberForm({ roles }: Props) {
                             onChange={(e) => handleChange('name', e.target.value)}
                             required
                             style={inputStyle}
-                            placeholder="Enter full name"
+                            placeholder={t.team.form.placeholders.name}
                         />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Username (Display Name)
+                            {t.team.form.username}
                         </label>
                         <input
                             type="text"
                             value={formData.username}
                             onChange={(e) => handleChange('username', e.target.value)}
                             style={inputStyle}
-                            placeholder="Shown in sidebar"
+                            placeholder={t.team.form.placeholders.username}
                         />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Email Address *
+                            {t.team.form.email} *
                         </label>
                         <input
                             type="email"
@@ -111,12 +139,12 @@ export default function AddMemberForm({ roles }: Props) {
                             onChange={(e) => handleChange('email', e.target.value)}
                             required
                             style={inputStyle}
-                            placeholder="email@example.com"
+                            placeholder={t.team.form.placeholders.email}
                         />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Password *
+                            {t.team.form.password} *
                         </label>
                         <input
                             type="password"
@@ -125,19 +153,19 @@ export default function AddMemberForm({ roles }: Props) {
                             required
                             minLength={8}
                             style={inputStyle}
-                            placeholder="Minimum 8 characters"
+                            placeholder={t.team.form.placeholders.password}
                         />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Phone Number
+                            {t.team.form.phone}
                         </label>
                         <input
                             type="tel"
                             value={formData.phone}
                             onChange={(e) => handleChange('phone', e.target.value)}
                             style={inputStyle}
-                            placeholder="01xxxxxxxxx"
+                            placeholder={t.team.form.placeholders.phone}
                         />
                     </div>
                 </div>
@@ -146,26 +174,26 @@ export default function AddMemberForm({ roles }: Props) {
             {/* Personal Info Section */}
             <div className="admin-card" style={{ marginBottom: '24px' }}>
                 <h3 style={{ margin: '0 0 20px', fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>📋</span> Personal Information
+                    <span>📋</span> {t.team.form.personal_info}
                 </h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            National ID
+                            {t.team.form.national_id}
                         </label>
                         <input
                             type="text"
                             value={formData.nationalId}
                             onChange={(e) => handleChange('nationalId', e.target.value)}
                             style={inputStyle}
-                            placeholder="Enter national ID number"
+                            placeholder={t.team.form.placeholders.national_id}
                             maxLength={14}
                         />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Birth Date
+                            {t.team.form.birth_date}
                         </label>
                         <input
                             type="date"
@@ -176,31 +204,31 @@ export default function AddMemberForm({ roles }: Props) {
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Address
+                            {t.team.form.address}
                         </label>
                         <input
                             type="text"
                             value={formData.address}
                             onChange={(e) => handleChange('address', e.target.value)}
                             style={inputStyle}
-                            placeholder="Full home address"
+                            placeholder={t.team.form.placeholders.address}
                         />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Emergency Contact
+                            {t.team.form.emergency_contact}
                         </label>
                         <input
                             type="text"
                             value={formData.emergencyContact}
                             onChange={(e) => handleChange('emergencyContact', e.target.value)}
                             style={inputStyle}
-                            placeholder="Name - Phone number"
+                            placeholder={t.team.form.placeholders.emergency}
                         />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            ID Card Image
+                            {t.team.form.id_card}
                         </label>
                         <ImageUpload
                             value={formData.idCardImage ? [formData.idCardImage] : []}
@@ -214,32 +242,32 @@ export default function AddMemberForm({ roles }: Props) {
             {/* Work Info Section */}
             <div className="admin-card" style={{ marginBottom: '24px' }}>
                 <h3 style={{ margin: '0 0 20px', fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>💼</span> Work Information
+                    <span>💼</span> {t.team.form.work_info}
                 </h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Position / Job Title
+                            {t.team.form.position}
                         </label>
                         <input
                             type="text"
                             value={formData.position}
                             onChange={(e) => handleChange('position', e.target.value)}
                             style={inputStyle}
-                            placeholder="e.g., Customer Support, Sales Manager"
+                            placeholder={t.team.form.placeholders.position}
                         />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Role / Permissions
+                            {t.team.form.role}
                         </label>
                         <AdminDropdown
                             value={formData.roleId || ''}
                             onChange={(val) => handleChange('roleId', val)}
-                            placeholder="Select a role"
+                            placeholder={t.team.form.placeholders.role}
                             options={[
-                                { value: '', label: 'Select a role' },
+                                { value: '', label: t.team.form.placeholders.role },
                                 ...roles.map(role => ({ 
                                     value: role.id, 
                                     label: role.name + (role.description ? ` - ${role.description}` : '')
@@ -249,7 +277,7 @@ export default function AddMemberForm({ roles }: Props) {
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Monthly Salary (EGP)
+                            {t.team.form.salary}
                         </label>
                         <input
                             type="number"
@@ -262,7 +290,7 @@ export default function AddMemberForm({ roles }: Props) {
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Hire Date
+                            {t.team.form.hire_date}
                         </label>
                         <input
                             type="date"
@@ -273,7 +301,7 @@ export default function AddMemberForm({ roles }: Props) {
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Profile Picture
+                            {t.team.form.avatar}
                         </label>
                         <ImageUpload
                             value={formData.avatar ? [formData.avatar] : []}
@@ -287,7 +315,7 @@ export default function AddMemberForm({ roles }: Props) {
             {/* Notes Section */}
             <div className="admin-card" style={{ marginBottom: '24px' }}>
                 <h3 style={{ margin: '0 0 20px', fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>📝</span> Internal Notes
+                    <span>📝</span> {t.team.form.notes_info}
                 </h3>
                 
                 <div>
@@ -295,7 +323,7 @@ export default function AddMemberForm({ roles }: Props) {
                         value={formData.notes}
                         onChange={(e) => handleChange('notes', e.target.value)}
                         style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }}
-                        placeholder="Any internal notes about this team member..."
+                        placeholder={t.team.form.placeholders.notes}
                     />
                 </div>
             </div>
@@ -304,9 +332,9 @@ export default function AddMemberForm({ roles }: Props) {
             <div className="admin-card" style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                        <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 600 }}>Account Status</h3>
+                        <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 600 }}>{t.team.form.status}</h3>
                         <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
-                            Inactive accounts cannot log in
+                            {t.team.form.inactive_desc}
                         </p>
                     </div>
                     <button
@@ -352,7 +380,7 @@ export default function AddMemberForm({ roles }: Props) {
                         fontWeight: 500
                     }}
                 >
-                    Cancel
+                    {t.team.form.cancel}
                 </Link>
                 <button
                     type="submit"
@@ -368,7 +396,7 @@ export default function AddMemberForm({ roles }: Props) {
                         cursor: loading ? 'not-allowed' : 'pointer'
                     }}
                 >
-                    {loading ? 'Adding...' : 'Add Team Member'}
+                    {loading ? t.team.form.saving : t.team.form.save}
                 </button>
             </div>
         </form>

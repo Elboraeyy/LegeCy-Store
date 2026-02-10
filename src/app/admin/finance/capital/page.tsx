@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 import { getInvestors, recordCapitalTransaction, createInvestor, deleteInvestor } from '@/lib/services/capitalService';
 import { InvestorType, CapitalTxType } from '@prisma/client';
 
@@ -29,6 +31,8 @@ interface InvestorWithTransactions {
 }
 
 export default function CapitalPage() {
+  const { language } = useLanguage();
+  const t = adminDictionary[language];
   const [investors, setInvestors] = useState<InvestorWithTransactions[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -106,7 +110,7 @@ export default function CapitalPage() {
   }
 
   async function handleDeletePartner(investorId: string, investorName: string) {
-    if (!confirm(`Are you sure you want to delete ${investorName}?\n\nNote: You can only delete partners with zero capital balance.`)) {
+    if (!confirm(t.finance.capital_page.modals.delete_confirm.replace('{name}', investorName))) {
       return;
     }
     
@@ -141,14 +145,14 @@ export default function CapitalPage() {
     <>
       {/* Back Link */}
       <a href="/admin/finance" className="back-link">
-        ← Back to Finance
+        ← {t.finance.capital_page.back}
       </a>
 
       {/* Page Header */}
       <div className="page-header">
-        <h1>💰 Capital & Partners</h1>
+        <h1>💰 {t.finance.capital_page.title}</h1>
         <p className="page-description">
-          Manage equity, shareholders, and capital flow
+          {t.finance.capital_page.subtitle}
         </p>
       </div>
 
@@ -158,19 +162,19 @@ export default function CapitalPage() {
           onClick={() => setShowPartnerModal(true)}
           className="admin-btn admin-btn-outline"
         >
-          👤 Add Partner
+          👤 {t.finance.capital_page.add_partner}
         </button>
         <button 
           onClick={() => { setTransactionType('WITHDRAWAL'); setShowModal(true); }}
           className="admin-btn admin-btn-outline danger"
         >
-          📤 Withdraw
+          📤 {t.finance.capital_page.withdraw}
         </button>
         <button 
           onClick={() => { setTransactionType('DEPOSIT'); setShowModal(true); }}
           className="admin-btn admin-btn-primary"
         >
-          📥 Inject Capital
+          📥 {t.finance.capital_page.inject}
         </button>
       </div>
 
@@ -178,7 +182,7 @@ export default function CapitalPage() {
       <div className="admin-grid stats-grid">
         <div className="admin-card stat-card">
           <div className="stat-header">
-            <span className="stat-label">Total Paid-In Capital</span>
+            <span className="stat-label">{t.finance.capital_page.stats.total_paid_in}</span>
             <span className="stat-icon">💰</span>
           </div>
           <div className="stat-value positive">{formatCurrency(totalCapital)}</div>
@@ -186,7 +190,7 @@ export default function CapitalPage() {
         
         <div className="admin-card stat-card">
           <div className="stat-header">
-            <span className="stat-label">Active Investors</span>
+            <span className="stat-label">{t.finance.capital_page.stats.active_investors}</span>
             <span className="stat-icon">👥</span>
           </div>
           <div className="stat-value">{investors.length}</div>
@@ -194,7 +198,7 @@ export default function CapitalPage() {
         
         <div className="admin-card stat-card">
           <div className="stat-header">
-            <span className="stat-label">Largest Holder</span>
+            <span className="stat-label">{t.finance.capital_page.stats.largest_holder}</span>
             <span className="stat-icon">👑</span>
           </div>
           <div className="stat-value accent">
@@ -209,16 +213,16 @@ export default function CapitalPage() {
       {/* Cap Table */}
       <div className="admin-table-container">
         <div className="table-header">
-          <h3>👥 Cap Table</h3>
+          <h3>👥 {t.finance.capital_page.table.title}</h3>
         </div>
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Investor</th>
-              <th>Type</th>
-              <th className="text-right">Net Contributed</th>
-              <th className="text-right">Ownership</th>
-              <th className="text-right">Actions</th>
+              <th>{t.finance.capital_page.table.investor}</th>
+              <th>{t.finance.capital_page.table.type}</th>
+              <th className="text-right">{t.finance.capital_page.table.net_contributed}</th>
+              <th className="text-right">{t.finance.capital_page.table.ownership}</th>
+              <th className="text-right">{t.finance.capital_page.table.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -257,7 +261,7 @@ export default function CapitalPage() {
                       onClick={() => handleDeletePartner(inv.id, inv.name)}
                       disabled={isProcessing || Number(inv.netContributed) !== 0}
                       className="delete-btn"
-                      title={Number(inv.netContributed) !== 0 ? 'Withdraw all funds first' : 'Delete partner'}
+                      title={Number(inv.netContributed) !== 0 ? t.finance.capital_page.modals.delete_title : "Delete"}
                     >
                       🗑️
                     </button>
@@ -269,7 +273,7 @@ export default function CapitalPage() {
               <tr>
                 <td colSpan={5} className="empty-state">
                   <span className="empty-icon">👥</span>
-                  <span>No investors found</span>
+                  <span>{t.finance.capital_page.table.empty}</span>
                 </td>
               </tr>
             )}
@@ -281,11 +285,10 @@ export default function CapitalPage() {
       <div className="info-box">
         <h4>
           <span>ℹ️</span>
-          About Capital Transactions
+          {t.finance.capital_page.info.title}
         </h4>
         <p>
-          Capital injections and withdrawals automatically create balanced journal entries in the ledger, 
-          ensuring accurate financial records for all equity movements.
+          {t.finance.capital_page.info.desc}
         </p>
       </div>
 
@@ -294,23 +297,23 @@ export default function CapitalPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h2 className="modal-title">
-              {transactionType === 'DEPOSIT' ? '📥 Inject Capital' : '📤 Withdraw Capital'}
+              {transactionType === 'DEPOSIT' ? t.finance.capital_page.modals.transaction.inject_title : t.finance.capital_page.modals.transaction.withdraw_title}
             </h2>
             <p className="modal-subtitle">
               {transactionType === 'DEPOSIT' 
-                ? 'Add capital contribution to increase equity.' 
-                : 'Process capital withdrawal for an investor.'}
+                ? t.finance.capital_page.modals.transaction.inject_subtitle
+                : t.finance.capital_page.modals.transaction.withdraw_subtitle}
             </p>
 
             <div className="modal-form">
               <div className="form-group">
-                <label>Investor</label>
+                <label>{t.finance.capital_page.modals.transaction.investor_label}</label>
                 <select 
                   value={selectedInvestor || ''} 
                   onChange={e => setSelectedInvestor(e.target.value)}
                   className="form-input"
                 >
-                  <option value="">Select Investor...</option>
+                  <option value="">{t.finance.capital_page.modals.transaction.select_investor}</option>
                   {investors.map(inv => (
                     <option key={inv.id} value={inv.id}>{inv.name}</option>
                   ))}
@@ -318,10 +321,10 @@ export default function CapitalPage() {
               </div>
               
               <div className="form-group">
-                <label>Amount (EGP)</label>
+                <label>{t.finance.capital_page.modals.transaction.amount_label}</label>
                 <input 
                   type="number" 
-                  placeholder="e.g. 50000" 
+                  placeholder={t.finance.capital_page.modals.transaction.amount_placeholder}
                   value={amount} 
                   onChange={e => setAmount(e.target.value)}
                   className="form-input"
@@ -329,10 +332,10 @@ export default function CapitalPage() {
               </div>
               
               <div className="form-group">
-                <label>Description (Optional)</label>
+                <label>{t.finance.capital_page.modals.transaction.desc_label}</label>
                 <input 
                   type="text" 
-                  placeholder="e.g. Q1 Capital Injection" 
+                  placeholder={t.finance.capital_page.modals.transaction.desc_placeholder} 
                   value={description} 
                   onChange={e => setDescription(e.target.value)}
                   className="form-input"
@@ -344,14 +347,14 @@ export default function CapitalPage() {
                   onClick={() => setShowModal(false)}
                   className="admin-btn admin-btn-outline"
                 >
-                  Cancel
+                  {t.finance.capital_page.modals.transaction.cancel}
                 </button>
                 <button 
                   onClick={handleTransaction}
                   disabled={isProcessing || !amount || !selectedInvestor}
                   className={`admin-btn ${transactionType === 'DEPOSIT' ? 'admin-btn-primary' : 'admin-btn-danger'}`}
                 >
-                  {isProcessing ? 'Processing...' : 'Confirm'}
+                  {isProcessing ? t.finance.capital_page.modals.transaction.process : t.finance.capital_page.modals.transaction.confirm}
                 </button>
               </div>
             </div>
@@ -363,17 +366,17 @@ export default function CapitalPage() {
       {showPartnerModal && (
         <div className="modal-overlay" onClick={() => setShowPartnerModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2 className="modal-title">👤 Add New Partner</h2>
+            <h2 className="modal-title">👤 {t.finance.capital_page.modals.partner.title}</h2>
             <p className="modal-subtitle">
-              Add a new investor, partner, or owner to track equity.
+              {t.finance.capital_page.modals.partner.subtitle}
             </p>
 
             <div className="modal-form">
               <div className="form-group">
-                <label>Partner Name *</label>
+                <label>{t.finance.capital_page.modals.partner.name_label}</label>
                 <input 
                   type="text" 
-                  placeholder="e.g. Ahmed Ibrahim" 
+                  placeholder={t.finance.capital_page.modals.partner.name_placeholder} 
                   value={newPartnerName} 
                   onChange={e => setNewPartnerName(e.target.value)}
                   className="form-input"
@@ -381,28 +384,28 @@ export default function CapitalPage() {
               </div>
               
               <div className="form-group">
-                <label>Type</label>
+                <label>{t.finance.capital_page.modals.partner.type_label}</label>
                 <select 
                   value={newPartnerType} 
                   onChange={e => setNewPartnerType(e.target.value as 'OWNER' | 'PARTNER' | 'INVESTOR')}
                   className="form-input"
                 >
-                  <option value="OWNER">Owner</option>
-                  <option value="PARTNER">Partner</option>
-                  <option value="INVESTOR">Investor</option>
+                  <option value="OWNER">{t.finance.capital_page.modals.partner.types.owner}</option>
+                  <option value="PARTNER">{t.finance.capital_page.modals.partner.types.partner}</option>
+                  <option value="INVESTOR">{t.finance.capital_page.modals.partner.types.investor}</option>
                 </select>
               </div>
               
               <div className="form-group">
-                <label>Initial Capital (Optional)</label>
+                <label>{t.finance.capital_page.modals.partner.capital_label}</label>
                 <input 
                   type="number" 
-                  placeholder="e.g. 100000" 
+                  placeholder={t.finance.capital_page.modals.partner.capital_placeholder} 
                   value={newPartnerCapital} 
                   onChange={e => setNewPartnerCapital(e.target.value)}
                   className="form-input"
                 />
-                <span className="form-hint">Leave empty to add capital later</span>
+                <span className="form-hint">{t.finance.capital_page.modals.partner.capital_hint}</span>
               </div>
               
               <div className="modal-actions">
@@ -410,14 +413,14 @@ export default function CapitalPage() {
                   onClick={() => setShowPartnerModal(false)}
                   className="admin-btn admin-btn-outline"
                 >
-                  Cancel
+                  {t.finance.capital_page.modals.partner.cancel}
                 </button>
                 <button 
                   onClick={handleAddPartner}
                   disabled={isProcessing || !newPartnerName.trim()}
                   className="admin-btn admin-btn-primary"
                 >
-                  {isProcessing ? 'Adding...' : 'Add Partner'}
+                  {isProcessing ? t.finance.capital_page.modals.partner.adding : t.finance.capital_page.modals.partner.add_btn}
                 </button>
               </div>
             </div>

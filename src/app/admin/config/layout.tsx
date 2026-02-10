@@ -3,40 +3,44 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
-
-const settingsSections = [
-    { href: '/admin/config/general', label: 'General', icon: '⚙️', description: 'Basic store information' },
-    { href: '/admin/config/appearance', label: 'Appearance', icon: '🎨', description: 'Theme and styling' },
-    { href: '/admin/config/pages', label: 'Page Builder', icon: '📑', description: 'Customize all pages' },
-    { href: '/admin/config/homepage', label: 'Homepage', icon: '🏠', description: 'Homepage sections' },
-    { href: '/admin/config/products', label: 'Products', icon: '📦', description: 'Catalog settings' },
-    { href: '/admin/config/orders', label: 'Orders', icon: '🛒', description: 'Checkout & returns' },
-    { href: '/admin/config/customers', label: 'Customers', icon: '👥', description: 'Accounts & loyalty' },
-    { href: '/admin/config/coupons', label: 'Coupons', icon: '🎫', description: 'Discounts & gift cards' },
-    { href: '/admin/config/reviews', label: 'Reviews', icon: '⭐', description: 'Ratings & feedback' },
-    { href: '/admin/config/notifications', label: 'Notifications', icon: '📧', description: 'Email and alerts' },
-    { href: '/admin/config/payments', label: 'Payments', icon: '💳', description: 'Payment gateways' },
-    { href: '/admin/config/shipping', label: 'Shipping', icon: '🚚', description: 'Shipping methods' },
-    { href: '/admin/config/seo', label: 'SEO & Social', icon: '🔍', description: 'Search and social' },
-    { href: '/admin/config/security', label: 'Security', icon: '🔒', description: 'Security policies' },
-    { href: '/admin/config/taxes', label: 'Taxes', icon: '💰', description: 'Tax configuration' },
-    { href: '/admin/config/localization', label: 'Localization', icon: '🌍', description: 'Languages and formats' },
-    { href: '/admin/config/integrations', label: 'Integrations', icon: '🔗', description: 'APIs and webhooks' },
-    { href: '/admin/config/performance', label: 'Performance', icon: '⚡', description: 'Speed & caching' },
-    { href: '/admin/config/analytics', label: 'Analytics', icon: '📊', description: 'Tracking & reports' },
-    { href: '/admin/config/backup', label: 'Backup', icon: '💾', description: 'Backup & recovery' },
-    { href: '/admin/config/maintenance', label: 'Maintenance', icon: '🔧', description: 'Maintenance mode' },
-];
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
+
+    const settingsSections = [
+        { href: '/admin/config/general', label: t.config?.general?.title || 'General', icon: '⚙️', description: t.config?.general?.desc || 'Basic store information' },
+        { href: '/admin/config/appearance', label: t.config?.appearance?.title || 'Appearance', icon: '🎨', description: t.config?.appearance?.desc || 'Theme and styling' },
+        { href: '/admin/config/pages', label: t.config?.pages?.title || 'Page Builder', icon: '📑', description: t.config?.pages?.desc || 'Customize all pages' },
+        { href: '/admin/config/homepage', label: t.config?.homepage?.title || 'Homepage', icon: '🏠', description: t.config?.homepage?.desc || 'Homepage sections' },
+        { href: '/admin/config/products', label: t.config?.products?.title || 'Products', icon: '📦', description: t.config?.products?.desc || 'Catalog settings' },
+        { href: '/admin/config/orders', label: t.config?.orders?.title || 'Orders', icon: '🛒', description: t.config?.orders?.desc || 'Checkout & returns' },
+        { href: '/admin/config/customers', label: t.config?.customers?.title || 'Customers', icon: '👥', description: t.config?.customers?.desc || 'Accounts & loyalty' },
+        { href: '/admin/config/coupons', label: t.config?.coupons?.title || 'Coupons', icon: '🎫', description: t.config?.coupons?.desc || 'Discounts & gift cards' },
+        { href: '/admin/config/reviews', label: t.config?.reviews?.title || 'Reviews', icon: '⭐', description: t.config?.reviews?.desc || 'Ratings & feedback' },
+        { href: '/admin/config/notifications', label: t.config?.notifications?.title || 'Notifications', icon: '📧', description: t.config?.notifications?.desc || 'Email and alerts' },
+        { href: '/admin/config/payments', label: t.config?.payments?.title || 'Payments', icon: '💳', description: t.config?.payments?.desc || 'Payment gateways' },
+        { href: '/admin/config/shipping', label: t.config?.shipping?.title || 'Shipping', icon: '🚚', description: t.config?.shipping?.desc || 'Shipping methods' },
+        { href: '/admin/config/seo', label: t.config?.seo?.title || 'SEO & Social', icon: '🔍', description: t.config?.seo?.desc || 'Search and social' },
+        { href: '/admin/config/security', label: t.config?.security?.title || 'Security', icon: '🔒', description: t.config?.security?.desc || 'Security policies' },
+        { href: '/admin/config/taxes', label: t.config?.taxes?.title || 'Taxes', icon: '💰', description: t.config?.taxes?.desc || 'Tax configuration' },
+        { href: '/admin/config/localization', label: t.config?.localization?.title || 'Localization', icon: '🌍', description: t.config?.localization?.desc || 'Languages and formats' },
+        { href: '/admin/config/integrations', label: t.config?.integrations?.title || 'Integrations', icon: '🔗', description: t.config?.integrations?.desc || 'APIs and webhooks' },
+        { href: '/admin/config/performance', label: t.config?.performance?.title || 'Performance', icon: '⚡', description: t.config?.performance?.desc || 'Speed & caching' },
+        { href: '/admin/config/analytics', label: t.config?.analytics?.title || 'Analytics', icon: '📊', description: t.config?.analytics?.desc || 'Tracking & reports' },
+        { href: '/admin/config/backup', label: t.config?.backup?.title || 'Backup', icon: '💾', description: t.config?.backup?.desc || 'Backup & recovery' },
+        { href: '/admin/config/maintenance', label: t.config?.maintenance?.title || 'Maintenance', icon: '🔧', description: t.config?.maintenance?.desc || 'Maintenance mode' },
+    ];
 
     return (
         <div className="settings-layout">
             <aside className="settings-sidebar">
                 <div className="settings-sidebar-header">
-                    <h2 className="settings-sidebar-title">Settings</h2>
-                    <p className="settings-sidebar-subtitle">Manage your store configuration</p>
+                    <h2 className="settings-sidebar-title">{t.config?.settings_title || 'Settings'}</h2>
+                    <p className="settings-sidebar-subtitle">{t.config?.settings_subtitle || 'Manage your store configuration'}</p>
                 </div>
                 <nav className="settings-nav">
                     {settingsSections.map((section) => {
@@ -65,3 +69,4 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
         </div>
     );
 }
+

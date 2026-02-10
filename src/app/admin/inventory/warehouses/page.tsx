@@ -6,15 +6,12 @@ import { fetchWarehouses, deleteWarehouse, WarehouseWithStats } from '@/lib/acti
 import WarehouseFormDialog from '@/components/admin/inventory/WarehouseFormDialog';
 import Link from 'next/link';
 import { toast } from 'sonner';
-
-const warehouseTypes: Record<string, { label: string; color: string }> = {
-    MAIN: { label: 'Main', color: '#166534' },
-    REGIONAL: { label: 'Regional', color: '#1e40af' },
-    DROPSHIP: { label: 'Dropship', color: '#7c3aed' },
-    RETURNS: { label: 'Returns', color: '#b76e00' },
-};
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 export default function WarehousesPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const { hasPermission, isLoading: permLoading } = useAdminPermissions();
     const [warehouses, setWarehouses] = useState<WarehouseWithStats[]>([]);
     const [loading, setLoading] = useState(true);
@@ -37,53 +34,68 @@ export default function WarehousesPage() {
     }, [permLoading, hasPermission, loadWarehouses]);
 
     const handleDelete = async (warehouse: WarehouseWithStats) => {
-        if (!confirm(`Are you sure you want to delete "${warehouse.name}"?`)) return;
+        if (!confirm(t.inventory.warehouses.messages.delete_confirm.replace('{name}', warehouse.name))) return;
         
         const res = await deleteWarehouse(warehouse.id);
         if ('error' in res) {
             toast.error(res.error);
         } else {
-            toast.success('Warehouse deleted successfully');
+            toast.success(t.inventory.warehouses.messages.delete_success);
             setLoading(true);
             loadWarehouses();
         }
     };
 
-    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
-    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>Access Denied</div>;
+    const getTypeLabel = (type: string) => {
+        const key = type.toLowerCase() as keyof typeof t.inventory.warehouses.types;
+        return t.inventory.warehouses.types[key] || type;
+    };
+
+    const getWarehouseTypeColor = (type: string) => {
+        switch (type) {
+            case 'MAIN': return '#166534';
+            case 'REGIONAL': return '#1e40af';
+            case 'DROPSHIP': return '#7c3aed';
+            case 'RETURNS': return '#b76e00';
+            default: return '#166534';
+        }
+    };
+
+    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{t.inventory.loading}</div>;
+    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>{t.inventory.access_denied}</div>;
 
     return (
         <div>
             {/* Header */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Warehouses</h1>
-                    <p className="admin-subtitle">Manage storage locations and their settings</p>
+                    <h1 className="admin-title">{t.inventory.warehouses.title}</h1>
+                    <p className="admin-subtitle">{t.inventory.warehouses.subtitle}</p>
                 </div>
                 <button 
                     onClick={() => { setEditingWarehouse(null); setShowForm(true); }}
                     className="admin-btn admin-btn-primary"
                 >
-                    + Add Warehouse
+                    + {t.inventory.warehouses.add_warehouse}
                 </button>
             </div>
 
             {/* Breadcrumb */}
             <div style={{ marginBottom: '24px', fontSize: '14px', color: 'var(--admin-text-muted)' }}>
-                <Link href="/admin/inventory" style={{ color: 'var(--admin-text-muted)', textDecoration: 'none' }}>Inventory</Link>
+                <Link href="/admin/inventory" style={{ color: 'var(--admin-text-muted)', textDecoration: 'none' }}>{t.inventory.title}</Link>
                 <span style={{ margin: '0 8px' }}>/</span>
-                <span style={{ color: 'var(--admin-text-on-light)' }}>Warehouses</span>
+                <span style={{ color: 'var(--admin-text-on-light)' }}>{t.inventory.warehouses.title}</span>
             </div>
 
             {/* Warehouse Cards */}
             {loading ? (
                 <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                    Loading warehouses...
+                    {t.inventory.loading}
                 </div>
             ) : warehouses.length > 0 ? (
                 <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
                     {warehouses.map((warehouse) => {
-                        const typeInfo = warehouseTypes[warehouse.type] || warehouseTypes.MAIN;
+                        const color = getWarehouseTypeColor(warehouse.type);
                         return (
                             <div key={warehouse.id} className="admin-card" style={{ position: 'relative' }}>
                                 {/* Type Badge */}
@@ -97,11 +109,11 @@ export default function WarehousesPage() {
                                     fontWeight: 600,
                                     textTransform: 'uppercase',
                                     letterSpacing: '0.5px',
-                                    background: `${typeInfo.color}15`,
-                                    color: typeInfo.color,
-                                    border: `1px solid ${typeInfo.color}30`
+                                    background: `${color}15`,
+                                    color: color,
+                                    border: `1px solid ${color}30`
                                 }}>
-                                    {typeInfo.label}
+                                    {getTypeLabel(warehouse.type)}
                                 </div>
 
                                 {/* Header */}
@@ -143,7 +155,7 @@ export default function WarehousesPage() {
                                             {warehouse.totalItems}
                                         </div>
                                         <div style={{ fontSize: '10px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                            SKUs
+                                            {t.inventory.warehouses.card.skus}
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'center' }}>
@@ -151,7 +163,7 @@ export default function WarehousesPage() {
                                             {warehouse.totalQuantity.toLocaleString()}
                                         </div>
                                         <div style={{ fontSize: '10px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                            Units
+                                            {t.inventory.warehouses.card.units}
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'center' }}>
@@ -159,7 +171,7 @@ export default function WarehousesPage() {
                                             {warehouse.lowStockCount}
                                         </div>
                                         <div style={{ fontSize: '10px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                            Low
+                                            {t.inventory.warehouses.card.low}
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'center' }}>
@@ -167,7 +179,7 @@ export default function WarehousesPage() {
                                             {warehouse.outOfStockCount}
                                         </div>
                                         <div style={{ fontSize: '10px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                            Out
+                                            {t.inventory.warehouses.card.out}
                                         </div>
                                     </div>
                                 </div>
@@ -181,7 +193,7 @@ export default function WarehousesPage() {
                                     )}
                                     {warehouse.managerName && (
                                         <div>
-                                            👤 Managed by <strong style={{ color: 'var(--admin-text-on-light)' }}>{warehouse.managerName}</strong>
+                                            👤 {t.inventory.warehouses.card.managed_by} <strong style={{ color: 'var(--admin-text-on-light)' }}>{warehouse.managerName}</strong>
                                         </div>
                                     )}
                                     {warehouse.phone && (
@@ -198,20 +210,20 @@ export default function WarehousesPage() {
                                         className="admin-btn admin-btn-outline"
                                         style={{ flex: 1, padding: '10px', fontSize: '12px' }}
                                     >
-                                        Edit
+                                        {t.inventory.warehouses.card.edit}
                                     </button>
                                     <Link
                                         href={`/admin/inventory/warehouses/${warehouse.id}/stock`}
                                         className="admin-btn admin-btn-outline"
                                         style={{ flex: 1, padding: '10px', fontSize: '12px', textAlign: 'center' }}
                                     >
-                                        View Stock
+                                        {t.inventory.warehouses.card.view_stock}
                                     </Link>
                                     <button
                                         onClick={() => handleDelete(warehouse)}
                                         className="admin-btn admin-btn-outline"
                                         style={{ padding: '10px', fontSize: '12px', color: '#991b1b', borderColor: '#991b1b30' }}
-                                        title="Delete"
+                                        title={t.common.delete}
                                     >
                                         🗑️
                                     </button>
@@ -224,16 +236,16 @@ export default function WarehousesPage() {
                 <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center' }}>
                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏭</div>
                     <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', marginBottom: '8px', color: 'var(--admin-text-on-light)' }}>
-                        No warehouses yet
+                                {t.inventory.warehouses.empty.title}
                     </div>
                     <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)', marginBottom: '24px' }}>
-                        Create your first warehouse to start managing inventory.
+                                {t.inventory.warehouses.empty.desc}
                     </div>
                     <button
                         onClick={() => setShowForm(true)}
                         className="admin-btn admin-btn-primary"
                     >
-                        + Create Warehouse
+                                + {t.inventory.warehouses.empty.create_btn}
                     </button>
                 </div>
             )}

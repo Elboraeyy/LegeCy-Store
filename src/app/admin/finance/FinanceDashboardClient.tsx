@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 interface TreasuryAccount {
   name: string;
@@ -29,45 +31,48 @@ interface FinanceStats {
   treasuryAccounts: TreasuryAccount[];
 }
 
-const navigationSections = [
-  {
-    title: 'Core Operations',
-    items: [
-      { label: 'Capital & Partners', href: '/admin/finance/capital', icon: '💰', description: 'Manage equity and shareholder capital' },
-      { label: 'Expenses', href: '/admin/finance/expenses', icon: '💸', description: 'Track operational costs and outflows' },
-      { label: 'General Ledger', href: '/admin/finance/transactions', icon: '📒', description: 'Journal entries and transactions' },
-      { label: 'Chart of Accounts', href: '/admin/finance/accounts', icon: '🏛️', description: 'Account structure and balances' },
-    ]
-  },
-  {
-    title: 'Assets & Valuation',
-    items: [
-      { label: 'Inventory Value', href: '/admin/finance/inventory', icon: '📦', description: 'Stock valuation at cost' },
-      { label: 'Equity Overview', href: '/admin/finance/equity', icon: '📈', description: 'Net worth and equity breakdown' },
-      { label: 'Partners', href: '/admin/finance/partners', icon: '🤝', description: 'Partner accounts and distributions' },
-    ]
-  },
-  {
-    title: 'Financial Reports',
-    items: [
-      { label: 'Profit & Loss', href: '/admin/finance/reports/pnl', icon: '📊', description: 'Revenue, costs, and profitability' },
-      { label: 'Balance Sheet', href: '/admin/finance/reports/balance', icon: '⚖️', description: 'Assets, liabilities, and equity' },
-      { label: 'Cash Flow', href: '/admin/finance/reports/cashflow', icon: '💵', description: 'Cash movements and liquidity' },
-      { label: 'Board Report', href: '/admin/finance/reports/board', icon: '📋', description: 'Executive summary for stakeholders' },
-    ]
-  },
-  {
-    title: 'Analysis & Planning',
-    items: [
-      { label: 'Cash Forecast', href: '/admin/finance/forecast', icon: '🔮', description: 'Predict future cash position' },
-      { label: 'Break-Even', href: '/admin/finance/break-even', icon: '🎯', description: 'Sales targets to cover costs' },
-      { label: 'Profit Quality', href: '/admin/finance/profit-quality', icon: '✨', description: 'Profit composition analysis' },
-      { label: 'Fiscal Periods', href: '/admin/finance/periods', icon: '📅', description: 'Manage accounting periods' },
-    ]
-  }
-];
-
 export default function FinanceDashboardClient({ stats }: { stats: FinanceStats }) {
+  const { language } = useLanguage();
+  const t = adminDictionary[language as keyof typeof adminDictionary];
+
+  const navigationSections = [
+    {
+      title: t.finance.nav.core_operations,
+      items: [
+        { label: t.finance.nav.capital_partners, href: '/admin/finance/capital', icon: '💰', description: t.finance.nav.capital_desc },
+        { label: t.finance.nav.expenses, href: '/admin/finance/expenses', icon: '💸', description: t.finance.nav.expenses_desc },
+        { label: t.finance.nav.general_ledger, href: '/admin/finance/transactions', icon: '📒', description: t.finance.nav.ledger_desc },
+        { label: t.finance.nav.chart_of_accounts, href: '/admin/finance/accounts', icon: '🏛️', description: t.finance.nav.accounts_desc },
+      ]
+    },
+    {
+      title: t.finance.nav.assets_valuation,
+      items: [
+        { label: t.finance.nav.inventory_value, href: '/admin/finance/inventory', icon: '📦', description: t.finance.nav.inventory_desc },
+        { label: t.finance.nav.equity_overview, href: '/admin/finance/equity', icon: '📈', description: t.finance.nav.equity_desc },
+        { label: t.finance.nav.partners, href: '/admin/finance/partners', icon: '🤝', description: t.finance.nav.partners_desc },
+      ]
+    },
+    {
+      title: t.finance.nav.financial_reports,
+      items: [
+        { label: t.finance.nav.profit_loss, href: '/admin/finance/reports/pnl', icon: '📊', description: t.finance.nav.pnl_desc },
+        { label: t.finance.nav.balance_sheet, href: '/admin/finance/reports/balance', icon: '⚖️', description: t.finance.nav.balance_desc },
+        { label: t.finance.nav.cash_flow, href: '/admin/finance/reports/cashflow', icon: '💵', description: t.finance.nav.cashflow_desc },
+        { label: t.finance.nav.board_report, href: '/admin/finance/reports/board', icon: '📋', description: t.finance.nav.board_desc },
+      ]
+    },
+    {
+      title: t.finance.nav.analysis_planning,
+      items: [
+        { label: t.finance.nav.cash_forecast, href: '/admin/finance/forecast', icon: '🔮', description: t.finance.nav.forecast_desc },
+        { label: t.finance.nav.break_even, href: '/admin/finance/break-even', icon: '🎯', description: t.finance.nav.breakeven_desc },
+        { label: t.finance.nav.profit_quality, href: '/admin/finance/profit-quality', icon: '✨', description: t.finance.nav.quality_desc },
+        { label: t.finance.nav.fiscal_periods, href: '/admin/finance/periods', icon: '📅', description: t.finance.nav.periods_desc },
+      ]
+    }
+  ];
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-EG', { 
       style: 'currency', 
@@ -87,15 +92,15 @@ export default function FinanceDashboardClient({ stats }: { stats: FinanceStats 
       {/* Header */}
       <div className="dashboard-header">
         <div className="header-content">
-          <h1>💼 Finance</h1>
-          <p>Complete financial overview and management</p>
+          <h1>💼 {t.finance.title}</h1>
+          <p>{t.finance.subtitle}</p>
         </div>
         <div className="header-actions">
           <Link href="/admin/finance/expenses" className="admin-btn admin-btn-outline">
-            + Record Expense
+            + {t.finance.record_expense}
           </Link>
           <Link href="/admin/finance/capital" className="admin-btn admin-btn-primary">
-            + Capital Transaction
+            + {t.finance.capital_transaction}
           </Link>
         </div>
       </div>
@@ -105,19 +110,19 @@ export default function FinanceDashboardClient({ stats }: { stats: FinanceStats 
         <div className="metric-card primary">
           <div className="metric-icon">💰</div>
           <div className="metric-content">
-            <span className="metric-label">Cash on Hand</span>
+            <span className="metric-label">{t.finance.stats.cash_on_hand}</span>
             <span className="metric-value">{formatCurrency(stats.cashOnHand)}</span>
-            <span className="metric-detail">{stats.treasuryAccounts.length} accounts</span>
+            <span className="metric-detail">{stats.treasuryAccounts.length} {t.finance.stats.accounts}</span>
           </div>
         </div>
 
         <div className="metric-card">
           <div className="metric-icon">📈</div>
           <div className="metric-content">
-            <span className="metric-label">Monthly Revenue</span>
+            <span className="metric-label">{t.finance.stats.monthly_revenue}</span>
             <span className="metric-value">{formatCurrency(stats.monthlyRevenue)}</span>
             <span className={`metric-trend ${stats.revenueTrend >= 0 ? 'positive' : 'negative'}`}>
-              {formatTrend(stats.revenueTrend)} vs last month
+              {formatTrend(stats.revenueTrend)} {t.finance.stats.vs_last_month}
             </span>
           </div>
         </div>
@@ -125,10 +130,10 @@ export default function FinanceDashboardClient({ stats }: { stats: FinanceStats 
         <div className="metric-card">
           <div className="metric-icon">💸</div>
           <div className="metric-content">
-            <span className="metric-label">Monthly Expenses</span>
+            <span className="metric-label">{t.finance.stats.monthly_expenses}</span>
             <span className="metric-value expense">{formatCurrency(stats.monthlyExpenses)}</span>
             <span className={`metric-trend ${stats.expenseTrend <= 0 ? 'positive' : 'negative'}`}>
-              {formatTrend(stats.expenseTrend)} vs last month
+              {formatTrend(stats.expenseTrend)} {t.finance.stats.vs_last_month}
             </span>
           </div>
         </div>
@@ -136,25 +141,25 @@ export default function FinanceDashboardClient({ stats }: { stats: FinanceStats 
         <div className={`metric-card ${stats.netProfit >= 0 ? 'success' : 'danger'}`}>
           <div className="metric-icon">{stats.netProfit >= 0 ? '✅' : '⚠️'}</div>
           <div className="metric-content">
-            <span className="metric-label">Net Profit</span>
+            <span className="metric-label">{t.finance.stats.net_profit}</span>
             <span className="metric-value">{formatCurrency(stats.netProfit)}</span>
-            <span className="metric-detail">{stats.netMargin.toFixed(1)}% margin</span>
+            <span className="metric-detail">{stats.netMargin.toFixed(1)}% {t.finance.stats.margin}</span>
           </div>
         </div>
 
         <div className="metric-card">
           <div className="metric-icon">📦</div>
           <div className="metric-content">
-            <span className="metric-label">Inventory Value</span>
+            <span className="metric-label">{t.finance.stats.inventory_value}</span>
             <span className="metric-value info">{formatCurrency(stats.inventoryValue)}</span>
-            <span className="metric-detail">{stats.inventoryItems} items at cost</span>
+            <span className="metric-detail">{stats.inventoryItems} {t.finance.stats.items_at_cost}</span>
           </div>
         </div>
 
         <div className="metric-card">
           <div className="metric-icon">⚖️</div>
           <div className="metric-content">
-            <span className="metric-label">Receivables / Payables</span>
+            <span className="metric-label">{t.finance.stats.receivables_payables}</span>
             <div className="metric-dual">
               <span className="positive">{formatCurrency(stats.accountsReceivable)}</span>
               <span className="divider">/</span>
@@ -167,7 +172,7 @@ export default function FinanceDashboardClient({ stats }: { stats: FinanceStats 
       {/* Treasury Accounts */}
       {stats.treasuryAccounts.length > 0 && (
         <div className="treasury-section">
-          <h3>💳 Treasury Accounts</h3>
+          <h3>💳 {t.finance.treasury_accounts}</h3>
           <div className="treasury-grid">
             {stats.treasuryAccounts.map((acc, i) => (
               <div key={i} className="treasury-card">
@@ -185,9 +190,9 @@ export default function FinanceDashboardClient({ stats }: { stats: FinanceStats 
         <div className="alert-banner">
           <span className="alert-icon">⏳</span>
           <span className="alert-text">
-            <strong>{stats.pendingExpenses}</strong> expense{stats.pendingExpenses > 1 ? 's' : ''} pending approval
+            <strong>{stats.pendingExpenses}</strong> {stats.pendingExpenses > 1 ? t.finance.expenses_pending_plural : t.finance.expenses_pending}
           </span>
-          <Link href="/admin/finance/expenses" className="alert-action">Review →</Link>
+          <Link href="/admin/finance/expenses" className="alert-action">{t.finance.review} →</Link>
         </div>
       )}
 

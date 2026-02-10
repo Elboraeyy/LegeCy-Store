@@ -17,25 +17,25 @@ interface AdminHomeClientProps {
     stats: CommandCenterStats;
 }
 
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
+
 export default function AdminHomeClient({ stats }: AdminHomeClientProps) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language];
     const [vaultOpen, setVaultOpen] = useState(false);
     
-    // Time-based greeting
-    const getGreeting = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return 'Good Morning';
-        if (hour < 17) return 'Good Afternoon';
-        return 'Good Evening';
-    };
+    // Time-based greeting REMOVED - using static Welcome for now or we can localize it later
+    // const getGreeting = () => ...
 
     return (
         <>
             {/* Header - Using admin-header class */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">{getGreeting()}, Commander</h1>
+                    <h1 className="admin-title">{t.dashboard.welcome}</h1>
                     <p className="admin-subtitle">
-                        {new Date().toLocaleDateString('en-US', { 
+                        {new Date().toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { 
                             weekday: 'long', 
                             year: 'numeric', 
                             month: 'long', 
@@ -50,7 +50,7 @@ export default function AdminHomeClient({ stats }: AdminHomeClientProps) {
                     style={{ gap: '10px' }}
                 >
                     <span>🔐</span>
-                    <span>The Vault</span>
+                    <span>{t.dashboard.quick_actions}</span>
                 </button>
             </div>
 

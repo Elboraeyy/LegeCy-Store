@@ -5,6 +5,8 @@ import { createExpense, createExpenseCategory } from '@/lib/actions/finance';
 import { getVaults, Vault } from '@/lib/actions/treasury';
 import { formatCurrency } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 interface Category {
   id: string;
@@ -22,6 +24,8 @@ interface Expense {
 }
 
 export default function ExpensesClient({ expenses, categories }: { expenses: Expense[]; categories: Category[] }) {
+  const { language } = useLanguage();
+  const t = adminDictionary[language as keyof typeof adminDictionary];
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showModal, setShowModal] = useState(false);
@@ -71,7 +75,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
         setNewCategoryName('');
         router.refresh();
       } catch (error) {
-        alert('Error recording expense');
+        alert(t.finance.expenses_page.modal.error);
         console.error(error);
       }
     });
@@ -100,14 +104,14 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
     <>
       {/* Back Link */}
       <a href="/admin/finance" className="back-link">
-        ← Back to Finance
+        ← {t.finance.expenses_page.back}
       </a>
 
       {/* Page Header */}
       <div className="page-header">
-        <h1>💸 Expenses</h1>
+        <h1>💸 {t.finance.nav.expenses}</h1>
         <p className="page-description">
-          Track operational costs and outflows
+          {t.finance.nav.expenses_desc}
         </p>
       </div>
 
@@ -117,7 +121,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
           onClick={() => setShowModal(true)}
           className="admin-btn admin-btn-primary"
         >
-          + Record Expense
+          + {t.finance.expenses_page.create}
         </button>
       </div>
 
@@ -125,7 +129,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
       <div className="admin-grid stats-grid">
         <div className="admin-card stat-card">
           <div className="stat-header">
-            <span className="stat-label">Total Expenses</span>
+            <span className="stat-label">{t.finance.expenses_page.total}</span>
             <span className="stat-icon">💸</span>
           </div>
           <div className="stat-value negative">{formatCurrency(totalExpenses)}</div>
@@ -133,7 +137,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
         
         <div className="admin-card stat-card">
           <div className="stat-header">
-            <span className="stat-label">This Month</span>
+            <span className="stat-label">{t.finance.expenses_page.this_month}</span>
             <span className="stat-icon">📅</span>
           </div>
           <div className="stat-value warning">{formatCurrency(thisMonthExpenses)}</div>
@@ -141,7 +145,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
         
         <div className="admin-card stat-card">
           <div className="stat-header">
-            <span className="stat-label">Approved</span>
+            <span className="stat-label">{t.finance.expenses_page.approved}</span>
             <span className="stat-icon">✅</span>
           </div>
           <div className="stat-value positive">{approvedExpenses}</div>
@@ -149,7 +153,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
         
         <div className="admin-card stat-card">
           <div className="stat-header">
-            <span className="stat-label">Pending</span>
+            <span className="stat-label">{t.finance.expenses_page.pending}</span>
             <span className="stat-icon">⏳</span>
           </div>
           <div className="stat-value">{pendingExpenses}</div>
@@ -163,7 +167,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
             onClick={() => setSelectedCategory(null)}
             className={`filter-pill ${selectedCategory === null ? 'active' : ''}`}
           >
-            All ({expenses.length})
+            {t.finance.expenses_page.filter_all} ({expenses.length})
           </button>
           {categoryStats.map(cat => (
             <button
@@ -182,11 +186,11 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Category</th>
-              <th>Status</th>
-              <th className="text-right">Amount</th>
+              <th>{t.finance.expenses_page.table.date}</th>
+              <th>{t.finance.expenses_page.table.description}</th>
+              <th>{t.finance.expenses_page.table.category}</th>
+              <th>{t.finance.expenses_page.table.status}</th>
+              <th className="text-right">{t.finance.expenses_page.table.amount}</th>
             </tr>
           </thead>
           <tbody>
@@ -194,7 +198,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
               <tr key={exp.id}>
                 <td>
                   <span className="date-cell">
-                    {new Date(exp.date).toLocaleDateString('en-US', { 
+                    {new Date(exp.date).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { 
                       month: 'short', 
                       day: 'numeric',
                       year: 'numeric'
@@ -205,13 +209,13 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
                   <div>
                     <span className="description-text">{exp.description}</span>
                     {exp.paidBy && (
-                      <span className="paid-by">Paid by: {exp.paidBy}</span>
+                      <span className="paid-by">{t.finance.expenses_page.table.paid_by}: {exp.paidBy}</span>
                     )}
                   </div>
                 </td>
                 <td>
                   <span className="status-badge status-neutral">
-                    {exp.category?.name || 'Uncategorized'}
+                    {exp.category?.name || t.finance.expenses_page.table.uncategorized}
                   </span>
                 </td>
                 <td>
@@ -228,7 +232,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
               <tr>
                 <td colSpan={5} className="empty-state">
                   <span className="empty-icon">💸</span>
-                  <span>No expenses recorded yet</span>
+                  <span>{t.finance.expenses_page.table.empty}</span>
                 </td>
               </tr>
             )}
@@ -240,33 +244,33 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2 className="modal-title">Record New Expense</h2>
+            <h2 className="modal-title">{t.finance.expenses_page.modal.title}</h2>
             <p className="modal-subtitle">
-              This will deduct from the selected vault
+              {t.finance.expenses_page.modal.subtitle}
             </p>
             
             <form onSubmit={handleCreateExpense} className="modal-form">
               <div className="form-group">
-                <label>Description</label>
+                <label>{t.finance.expenses_page.modal.description}</label>
                 <input 
                   type="text" 
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   className="form-input"
-                  placeholder="e.g. Office Supplies"
+                  placeholder={t.finance.expenses_page.modal.description_placeholder}
                   required
                 />
               </div>
               
               <div className="form-row">
                 <div className="form-group">
-                  <label>Amount (EGP)</label>
+                  <label>{t.finance.expenses_page.modal.amount}</label>
                   <input 
                     type="number" 
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
                     className="form-input"
-                    placeholder="0.00"
+                    placeholder={t.finance.expenses_page.modal.amount_placeholder}
                     required
                     min="1"
                   />
@@ -274,7 +278,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
                 
                 {!isNewCategory ? (
                   <div className="form-group">
-                    <label>Category</label>
+                    <label>{t.finance.expenses_page.modal.category}</label>
                     <select 
                       value={categoryId}
                       onChange={e => {
@@ -284,23 +288,23 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
                       className="form-input"
                       required
                     >
-                      <option value="">Select...</option>
+                      <option value="">{t.finance.expenses_page.modal.select_category}</option>
                       {categories.map(cat => (
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                       ))}
-                      <option value="NEW">+ New Category</option>
+                      <option value="NEW">{t.finance.expenses_page.modal.new_category}</option>
                     </select>
                   </div>
                 ) : (
                   <div className="form-group">
-                    <label>New Category</label>
+                      <label>{t.finance.expenses_page.modal.new_category_label}</label>
                     <div className="input-with-button">
                       <input 
                         type="text" 
                         value={newCategoryName}
                         onChange={e => setNewCategoryName(e.target.value)}
                         className="form-input"
-                        placeholder="e.g. Travel"
+                          placeholder={t.finance.expenses_page.modal.new_category_placeholder}
                         autoFocus
                       />
                       <button 
@@ -317,7 +321,7 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
               
               {/* Vault Selection */}
               <div className="form-group">
-                <label>🏦 Pay From Vault</label>
+                <label>🏦 {t.finance.expenses_page.modal.pay_from}</label>
                 <select
                   value={selectedVaultId}
                   onChange={e => setSelectedVaultId(e.target.value)}
@@ -337,14 +341,14 @@ export default function ExpensesClient({ expenses, categories }: { expenses: Exp
                   onClick={() => setShowModal(false)}
                   className="admin-btn admin-btn-outline"
                 >
-                  Cancel
+                  {t.finance.expenses_page.modal.cancel}
                 </button>
                 <button 
                   type="submit" 
                   disabled={isPending}
                   className="admin-btn admin-btn-primary"
                 >
-                  {isPending ? 'Processing...' : 'Record Expense'}
+                  {isPending ? t.finance.expenses_page.modal.processing : t.finance.expenses_page.modal.submit}
                 </button>
               </div>
             </form>

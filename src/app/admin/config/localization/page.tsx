@@ -7,6 +7,8 @@ import SettingsField from '@/components/admin/settings/SettingsField';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { toast } from 'sonner';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 const defaultSettings: LocalizationSettings = {
     defaultLanguage: 'ar',
@@ -39,6 +41,8 @@ const numberFormats = [
 ];
 
 export default function LocalizationSettingsPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language].settings.localization;
     const [settings, setSettings] = useState<LocalizationSettings>(defaultSettings);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -61,10 +65,10 @@ export default function LocalizationSettingsPage() {
         setSaving(true);
         try {
             await updateStoreConfig('localization_settings', settings);
-            toast.success('Localization settings saved!');
+            toast.success(t.saved);
         } catch (error) {
             console.error('Failed to save settings:', error);
-            toast.error('Failed to save settings');
+            toast.error(t.error);
         } finally {
             setSaving(false);
         }
@@ -82,19 +86,19 @@ export default function LocalizationSettingsPage() {
     return (
         <div>
             <div className="settings-page-header">
-                <h1 className="settings-page-title">Localization</h1>
+                <h1 className="settings-page-title">{t.title}</h1>
                 <p className="settings-page-description">
-                    Configure language, date formats, and regional preferences
+                    {t.description}
                 </p>
             </div>
 
             <SettingsSection
-                title="Language & Direction"
-                description="Default language and text direction"
+                title={t.language_direction}
+                description={t.language_direction_desc}
                 icon="🌍"
             >
                 <SettingsField
-                    label="Default Language"
+                    label={t.default_language}
                     htmlFor="language"
                 >
                     <AdminDropdown
@@ -106,9 +110,9 @@ export default function LocalizationSettingsPage() {
 
                 <div className="settings-toggle-row">
                     <div className="settings-toggle-info">
-                        <div className="settings-toggle-label">Enable RTL (Right-to-Left)</div>
+                        <div className="settings-toggle-label">{t.enable_rtl}</div>
                         <div className="settings-toggle-description">
-                            Use right-to-left text direction for Arabic and similar languages
+                            {t.enable_rtl_desc}
                         </div>
                     </div>
                     <ToggleSwitch
@@ -119,13 +123,13 @@ export default function LocalizationSettingsPage() {
             </SettingsSection>
 
             <SettingsSection
-                title="Date & Time"
-                description="How dates and times are displayed"
+                title={t.date_time}
+                description={t.date_time_desc}
                 icon="📅"
             >
                 <div className="settings-grid">
                     <SettingsField
-                        label="Date Format"
+                        label={t.date_format}
                         htmlFor="dateFormat"
                     >
                         <AdminDropdown
@@ -136,7 +140,7 @@ export default function LocalizationSettingsPage() {
                     </SettingsField>
 
                     <SettingsField
-                        label="Time Format"
+                        label={t.time_format}
                         htmlFor="timeFormat"
                     >
                         <AdminDropdown
@@ -152,12 +156,12 @@ export default function LocalizationSettingsPage() {
             </SettingsSection>
 
             <SettingsSection
-                title="Numbers & Measurements"
-                description="Format for numbers and units"
+                title={t.numbers_measurements}
+                description={t.numbers_measurements_desc}
                 icon="📏"
             >
                 <SettingsField
-                    label="Number Format"
+                    label={t.number_format}
                     htmlFor="numberFormat"
                 >
                     <AdminDropdown
@@ -169,7 +173,7 @@ export default function LocalizationSettingsPage() {
 
                 <div className="settings-grid">
                     <SettingsField
-                        label="Weight Unit"
+                        label={t.weight_unit}
                         htmlFor="weightUnit"
                     >
                         <AdminDropdown
@@ -185,7 +189,7 @@ export default function LocalizationSettingsPage() {
                     </SettingsField>
 
                     <SettingsField
-                        label="Dimension Unit"
+                        label={t.dimension_unit}
                         htmlFor="dimensionUnit"
                     >
                         <AdminDropdown
@@ -207,18 +211,18 @@ export default function LocalizationSettingsPage() {
                     className="admin-btn admin-btn-outline"
                     onClick={() => {
                         setSettings(defaultSettings);
-                        toast.info('Settings reset to default values');
+                        toast.info(t.reset_info);
                     }}
                     type="button"
                 >
-                    Reset to Default
+                    {t.reset_default}
                 </button>
                 <button
                     className="admin-btn admin-btn-primary"
                     onClick={handleSave}
                     disabled={saving}
                 >
-                    {saving ? 'Saving...' : 'Save Changes'}
+                    {saving ? t.saving : t.save_changes}
                 </button>
             </div>
         </div>

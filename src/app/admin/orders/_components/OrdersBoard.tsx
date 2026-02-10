@@ -3,6 +3,8 @@
 import { OrderStatus } from "@/lib/orderStatus";
 import { formatCurrency } from "../../../../lib/utils";
 import React from "react";
+import { useLanguage } from "@/context/LanguageContext";
+import { adminDictionary } from "@/lib/dictionaries/admin";
 
 interface Order {
     id: string;
@@ -17,20 +19,23 @@ interface OrdersBoardProps {
     onOrderClick: (orderId: string) => void;
 }
 
-const COLUMNS: { id: OrderStatus; label: string; color: string }[] = [
-    { id: OrderStatus.Pending, label: 'Pending', color: '#f59e0b' },
-    { id: OrderStatus.PaymentPending, label: 'Payment Pending', color: '#fbbf24' }, // Yellow-400
-    { id: OrderStatus.Paid, label: 'Paid', color: '#3b82f6' },
-    { id: OrderStatus.Shipped, label: 'Shipped', color: '#8b5cf6' },
-    { id: OrderStatus.Delivered, label: 'Delivered', color: '#10b981' },
-    { id: OrderStatus.PaymentFailed, label: 'Payment Failed', color: '#f87171' }, // Red-400
-    { id: OrderStatus.Cancelled, label: 'Cancelled', color: '#ef4444' },
-];
-
 export default function OrdersBoard({ orders, onOrderClick }: OrdersBoardProps) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language];
+
     const getOrdersByStatus = (status: OrderStatus) => {
         return orders.filter(o => o.status === status);
     };
+
+    const COLUMNS: { id: OrderStatus; label: string; color: string }[] = [
+        { id: OrderStatus.Pending, label: t.orders.status.pending, color: '#f59e0b' },
+        { id: OrderStatus.PaymentPending, label: t.orders.status.payment_pending, color: '#fbbf24' },
+        { id: OrderStatus.Paid, label: t.orders.status.paid, color: '#3b82f6' },
+        { id: OrderStatus.Shipped, label: t.orders.status.shipped, color: '#8b5cf6' },
+        { id: OrderStatus.Delivered, label: t.orders.status.delivered, color: '#10b981' },
+        { id: OrderStatus.PaymentFailed, label: t.orders.status.payment_failed, color: '#f87171' },
+        { id: OrderStatus.Cancelled, label: t.orders.status.cancelled, color: '#ef4444' },
+    ];
 
     return (
         <div style={{ 
@@ -110,7 +115,7 @@ export default function OrdersBoard({ orders, onOrderClick }: OrdersBoardProps) 
                                         cursor: 'pointer',
                                         transition: 'all 0.2s ease',
                                     }}
-                                    className="hover:shadow-md hover:border-blue-300" // Tailwind utility usually works, or inline style logic needed
+                                    className="hover:shadow-md hover:border-blue-300"
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                         <span style={{ 
@@ -121,15 +126,15 @@ export default function OrdersBoard({ orders, onOrderClick }: OrdersBoardProps) 
                                             padding: '2px 6px',
                                             borderRadius: '4px'
                                         }}>
-                                            #{order.id.slice(0, 8)}
+                                            #{order.id.slice(-6)}
                                         </span>
                                         <span style={{ fontSize: '11px', color: 'var(--admin-text-muted)' }}>
-                                            {new Date(order.createdAt).toLocaleDateString()}
+                                            {new Date(order.createdAt).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-EG')}
                                         </span>
                                     </div>
 
                                     <div style={{ fontWeight: 600, marginBottom: '4px', color: 'var(--admin-text)' }}>
-                                        {order.user?.name || 'Guest User'}
+                                        {order.user?.name || t.orders.details.guest}
                                     </div>
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
@@ -148,7 +153,7 @@ export default function OrdersBoard({ orders, onOrderClick }: OrdersBoardProps) 
                                     border: '1px dashed #e2e8f0',
                                     borderRadius: '8px'
                                 }}>
-                                    No orders
+                                    {t.orders.details.not_found}
                                 </div>
                             )}
                         </div>

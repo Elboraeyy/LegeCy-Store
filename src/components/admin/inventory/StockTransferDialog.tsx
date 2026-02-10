@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { transferStock, fetchAllWarehouses, InventoryItemPro } from '@/lib/actions/inventory-pro';
 import { toast } from 'sonner';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 interface StockTransferDialogProps {
     item: InventoryItemPro;
@@ -12,6 +14,8 @@ interface StockTransferDialogProps {
 }
 
 export default function StockTransferDialog({ item, onClose, onSuccess }: StockTransferDialogProps) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const [quantity, setQuantity] = useState(1);
     const [targetWarehouseId, setTargetWarehouseId] = useState('');
     const [reason, setReason] = useState('');
@@ -27,19 +31,19 @@ export default function StockTransferDialog({ item, onClose, onSuccess }: StockT
 
     const handleSubmit = async () => {
         if (quantity <= 0) {
-            toast.error('Quantity must be greater than zero');
+            toast.error(t.inventory.transfer.zero_error);
             return;
         }
         if (quantity > item.available) {
-            toast.error('Cannot transfer more than available stock');
+            toast.error(t.inventory.transfer.availability_error);
             return;
         }
         if (!targetWarehouseId) {
-            toast.error('Please select a target warehouse');
+            toast.error(t.inventory.transfer.warehouse_error);
             return;
         }
         if (!reason.trim()) {
-            toast.error('Please provide a reason');
+            toast.error(t.inventory.transfer.reason_error);
             return;
         }
 
@@ -56,12 +60,12 @@ export default function StockTransferDialog({ item, onClose, onSuccess }: StockT
             if ('error' in res) {
                 toast.error(res.error);
             } else {
-                toast.success('Stock transferred successfully');
+                toast.success(t.inventory.transfer.success);
                 onSuccess();
             }
         } catch (error) {
             console.error(error);
-            toast.error('Failed to transfer stock');
+            toast.error(t.inventory.transfer.error);
         } finally {
             setLoading(false);
         }
@@ -71,22 +75,22 @@ export default function StockTransferDialog({ item, onClose, onSuccess }: StockT
         <div className="confirm-dialog-overlay" onClick={onClose}>
             <div className="confirm-dialog" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px', textAlign: 'left' }}>
                 <div className="confirm-dialog-icon">🔄</div>
-                <h2 className="confirm-dialog-title">Transfer Stock</h2>
+                <h2 className="confirm-dialog-title">{t.inventory.transfer.title}</h2>
                 <p className="confirm-dialog-message" style={{ textAlign: 'left', marginBottom: '24px' }}>
                     <strong>{item.productName}</strong><br />
                     <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{item.sku}</span><br />
-                    From: <strong>{item.warehouseName}</strong> • Available: <strong>{item.available}</strong> units
+                    {t.inventory.transfer.from}: <strong>{item.warehouseName}</strong> • {t.inventory.table.available}: <strong>{item.available}</strong> {t.inventory.adjust.units}
                 </p>
 
                 {/* Target Warehouse */}
                 <div className="admin-form-group" style={{ marginBottom: '16px' }}>
-                    <label>Transfer To</label>
+                    <label>{t.inventory.transfer.to}</label>
                     <AdminDropdown
                         value={targetWarehouseId}
                         onChange={setTargetWarehouseId}
-                        placeholder="Select destination warehouse..."
+                        placeholder={t.inventory.transfer.select_dest}
                         options={[
-                            { value: '', label: 'Select destination warehouse...' },
+                            { value: '', label: t.inventory.transfer.select_dest },
                             ...warehouses.map(w => ({ value: w.id, label: w.name }))
                         ]}
                     />
@@ -94,7 +98,7 @@ export default function StockTransferDialog({ item, onClose, onSuccess }: StockT
 
                 {/* Quantity */}
                 <div className="admin-form-group" style={{ marginBottom: '16px' }}>
-                    <label>Quantity to Transfer</label>
+                    <label>{t.inventory.transfer.quantity}</label>
                     <input
                         type="number"
                         className="form-input"
@@ -107,12 +111,12 @@ export default function StockTransferDialog({ item, onClose, onSuccess }: StockT
 
                 {/* Reason */}
                 <div className="admin-form-group" style={{ marginBottom: '24px' }}>
-                    <label>Reason for Transfer</label>
+                    <label>{t.inventory.transfer.reason}</label>
                     <textarea
                         className="form-input"
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
-                        placeholder="e.g., Rebalancing inventory, fulfilling regional demand..."
+                        placeholder={t.inventory.transfer.reason_placeholder}
                         rows={3}
                     />
                 </div>
@@ -120,7 +124,7 @@ export default function StockTransferDialog({ item, onClose, onSuccess }: StockT
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                     <button type="button" onClick={onClose} className="admin-btn admin-btn-outline">
-                        Cancel
+                        {t.inventory.transfer.cancel}
                     </button>
                     <button 
                         type="button" 
@@ -128,7 +132,7 @@ export default function StockTransferDialog({ item, onClose, onSuccess }: StockT
                         className="admin-btn admin-btn-primary"
                         disabled={loading}
                     >
-                        {loading ? 'Transferring...' : 'Confirm Transfer'}
+                        {loading ? t.inventory.transfer.transferring : t.inventory.transfer.confirm}
                     </button>
                 </div>
             </div>

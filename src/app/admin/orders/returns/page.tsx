@@ -5,6 +5,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 import {
     getReturnRequests,
     getReturnStats,
@@ -35,6 +37,8 @@ interface ReturnLineItem {
 // ==========================================
 
 export default function ReturnsPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language];
     const [returns, setReturns] = useState<ReturnWithDetails[]>([]);
     const [stats, setStats] = useState<ReturnStats | null>(null);
     const [loading, setLoading] = useState(true);
@@ -170,11 +174,11 @@ export default function ReturnsPage() {
     };
 
     const tabs = [
-        { id: 'all', label: 'All Returns', icon: '📦', count: stats?.total },
-        { id: 'pending', label: 'Pending', icon: '⏳', count: stats?.pending },
-        { id: 'approved', label: 'Approved', icon: '✅', count: stats?.approved },
-        { id: 'completed', label: 'Completed', icon: '💰', count: stats?.completed },
-        { id: 'rejected', label: 'Rejected', icon: '❌', count: stats?.rejected },
+        { id: 'all', label: t.orders.returns.tabs.all, icon: '📦', count: stats?.total },
+        { id: 'pending', label: t.orders.returns.tabs.pending, icon: '⏳', count: stats?.pending },
+        { id: 'approved', label: t.orders.returns.tabs.approved, icon: '✅', count: stats?.approved },
+        { id: 'completed', label: t.orders.returns.tabs.completed, icon: '💰', count: stats?.completed },
+        { id: 'rejected', label: t.orders.returns.tabs.rejected, icon: '❌', count: stats?.rejected },
     ];
 
     return (
@@ -182,12 +186,12 @@ export default function ReturnsPage() {
             {/* Header */}
             <div className="returns-header">
                 <div>
-                    <h1 className="admin-title">Returns & Refunds</h1>
-                    <p className="admin-subtitle">Manage return requests, process refunds, and track inventory restoration</p>
+                    <h1 className="admin-title">{t.orders.returns.title}</h1>
+                    <p className="admin-subtitle">{t.orders.returns.subtitle}</p>
                 </div>
                 <div className="returns-header-actions">
                     <Link href="/admin/orders/returns/intelligence" className="admin-btn admin-btn-outline">
-                        <span>📊</span> Analytics
+                        <span>📊</span> {t.orders.returns.analytics}
                     </Link>
                 </div>
             </div>
@@ -198,33 +202,33 @@ export default function ReturnsPage() {
                     <div className="admin-card returns-stat-card">
                         <div className="stat-icon">⏳</div>
                         <div className="stat-content">
-                            <div className="stat-label">Pending Review</div>
+                            <div className="stat-label">{t.orders.returns.pending_review}</div>
                             <div className="stat-value">{stats.pending}</div>
-                            <div className="stat-meta">{formatCurrency(stats.pendingRefundAmount)} pending</div>
+                            <div className="stat-meta">{formatCurrency(stats.pendingRefundAmount)} {t.orders.returns.tabs.pending.toLowerCase()}</div>
                         </div>
                     </div>
                     <div className="admin-card returns-stat-card">
                         <div className="stat-icon">💰</div>
                         <div className="stat-content">
-                            <div className="stat-label">Total Refunded</div>
+                            <div className="stat-label">{t.orders.returns.total_refunded}</div>
                             <div className="stat-value">{formatCurrency(stats.totalRefundAmount)}</div>
-                            <div className="stat-meta">{stats.completed} completed</div>
+                            <div className="stat-meta">{stats.completed} {t.orders.returns.tabs.completed.toLowerCase()}</div>
                         </div>
                     </div>
                     <div className="admin-card returns-stat-card">
                         <div className="stat-icon">⏱️</div>
                         <div className="stat-content">
-                            <div className="stat-label">Avg Processing</div>
-                            <div className="stat-value">{stats.avgProcessingDays} days</div>
-                            <div className="stat-meta">from request to refund</div>
+                            <div className="stat-label">{t.orders.returns.avg_processing}</div>
+                            <div className="stat-value">{stats.avgProcessingDays} {t.orders.returns.days}</div>
+                            <div className="stat-meta">{t.orders.returns.from_request}</div>
                         </div>
                     </div>
                     <div className="admin-card returns-stat-card">
                         <div className="stat-icon">📈</div>
                         <div className="stat-content">
-                            <div className="stat-label">Return Rate</div>
+                            <div className="stat-label">{t.orders.returns.return_rate}</div>
                             <div className="stat-value">{stats.returnRate}%</div>
-                            <div className="stat-meta">last 30 days</div>
+                            <div className="stat-meta">{t.orders.returns.last_30_days}</div>
                         </div>
                     </div>
                 </div>
@@ -258,15 +262,15 @@ export default function ReturnsPage() {
             {/* Bulk Actions */}
             {selectedReturns.size > 0 && (
                 <div className="returns-bulk-actions">
-                    <span>{selectedReturns.size} selected</span>
+                    <span>{selectedReturns.size} {t.orders.returns.bulk.selected}</span>
                     <button type="button" className="admin-btn admin-btn-outline" onClick={() => handleBulkAction('approve')}>
-                        Approve All
+                        {t.orders.returns.bulk.approve_all}
                     </button>
                     <button type="button" className="admin-btn admin-btn-outline" onClick={() => handleBulkAction('reject')}>
-                        Reject All
+                        {t.orders.returns.bulk.reject_all}
                     </button>
                     <button type="button" className="admin-btn admin-btn-outline" onClick={() => setSelectedReturns(new Set())}>
-                        Clear
+                        {t.orders.returns.bulk.clear}
                     </button>
                 </div>
             )}
@@ -276,13 +280,13 @@ export default function ReturnsPage() {
                 {loading ? (
                     <div className="returns-loading">
                         <div className="spinner"></div>
-                        <p>Loading returns...</p>
+                        <p>{t.common.loading}</p>
                     </div>
                 ) : returns.length === 0 ? (
                     <div className="returns-empty">
                         <div className="returns-empty-icon">📦</div>
-                        <h3>No Returns Found</h3>
-                        <p>No return requests match your filters</p>
+                            <h3>{t.orders.returns.no_returns}</h3>
+                            <p>{t.orders.returns.no_returns_desc}</p>
                     </div>
                 ) : (
                     <table className="admin-table">
@@ -301,13 +305,13 @@ export default function ReturnsPage() {
                                         }}
                                     />
                                 </th>
-                                <th>Order</th>
-                                <th>Customer</th>
-                                <th>Reason</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                        <th>{t.orders.table.order}</th>
+                                        <th>{t.orders.table.customer}</th>
+                                        <th>{t.orders.returns.table.reason}</th>
+                                        <th>{t.orders.returns.table.amount}</th>
+                                        <th>{t.orders.table.date}</th>
+                                        <th>{t.orders.table.status}</th>
+                                        <th>{t.orders.table.actions}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -331,10 +335,10 @@ export default function ReturnsPage() {
                                         <Link href={`/admin/orders/${returnItem.orderId}`} className="order-link">
                                             #{returnItem.orderId.slice(0, 8)}
                                         </Link>
-                                        <div className="order-meta">{returnItem.order.items.length} items</div>
+                                        <div className="order-meta">{returnItem.order.items.length} {t.orders.details_page.line_items}</div>
                                     </td>
                                     <td>
-                                        <div className="customer-name">{returnItem.order.customerName || 'Guest'}</div>
+                                        <div className="customer-name">{returnItem.order.customerName || t.orders.details.guest}</div>
                                         <div className="customer-email">{returnItem.order.customerEmail}</div>
                                     </td>
                                     <td>
@@ -354,21 +358,21 @@ export default function ReturnsPage() {
                                     </td>
                                     <td>
                                         <div className="return-actions">
-                                            <button type="button" className="action-btn" onClick={() => openModal('view', returnItem)} title="View Details">
+                                            <button type="button" className="action-btn" onClick={() => openModal('view', returnItem)} title={t.common.view}>
                                                 👁️
                                             </button>
                                             {returnItem.status === 'pending' && (
                                                 <>
-                                                    <button type="button" className="action-btn action-btn-success" onClick={() => openModal('approve', returnItem)} title="Approve">
+                                                    <button type="button" className="action-btn action-btn-success" onClick={() => openModal('approve', returnItem)} title={t.orders.returns.modal.approve}>
                                                         ✅
                                                     </button>
-                                                    <button type="button" className="action-btn action-btn-danger" onClick={() => openModal('reject', returnItem)} title="Reject">
+                                                    <button type="button" className="action-btn action-btn-danger" onClick={() => openModal('reject', returnItem)} title={t.orders.returns.modal.reject}>
                                                         ❌
                                                     </button>
                                                 </>
                                             )}
                                             {returnItem.status === 'approved' && (
-                                                <button type="button" className="action-btn action-btn-primary" onClick={() => openModal('complete', returnItem)} title="Complete Refund">
+                                                <button type="button" className="action-btn action-btn-primary" onClick={() => openModal('complete', returnItem)} title={t.orders.returns.modal.complete}>
                                                     💰
                                                 </button>
                                             )}
@@ -390,9 +394,9 @@ export default function ReturnsPage() {
                         disabled={page <= 1}
                         onClick={() => setPage(p => p - 1)}
                     >
-                        ← Previous
+                        ← {t.common.previous}
                     </button>
-                    <span>Page {page} of {totalPages}</span>
+                    <span>{page} / {totalPages}</span>
                     <button
                         type="button"
                         className="admin-btn admin-btn-outline"

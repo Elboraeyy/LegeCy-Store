@@ -15,6 +15,8 @@ import {
 import { deleteProductAction } from '@/lib/actions/product';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { toast } from 'sonner';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 interface ProductWithStock {
     id: string;
@@ -42,6 +44,8 @@ const formatCurrency = (amount: number) => {
 export default function ProductsPage() {
     const router = useRouter();
     const { hasPermission, isLoading: permLoading } = useAdminPermissions();
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     
     const [products, setProducts] = useState<ProductWithStock[]>([]);
     const [stats, setStats] = useState<ProductStats | null>(null);
@@ -90,10 +94,10 @@ export default function ProductsPage() {
             setProducts(transformed);
         } catch (error) {
             console.error('Failed to load products:', error);
-            toast.error('Failed to load products');
+            toast.error(t.products.messages.failed_load);
         }
         setLoading(false);
-    }, []);
+    }, [t.products]);
 
     useEffect(() => {
         if (!permLoading && hasPermission('PRODUCTS_VIEW')) {
@@ -137,24 +141,24 @@ export default function ProductsPage() {
 
     // Actions
     const handleDelete = async (id: string) => {
-        if (!confirm('Delete this product?')) return;
+        if (!confirm(t.products.actions.delete + '?')) return;
         const res = await deleteProductAction(id);
         if (res.success) {
-            toast.success('Product deleted');
+            toast.success(t.products.messages.deleted);
             setLoading(true);
             loadData();
         } else {
-            toast.error(res.error || 'Failed to delete');
+            toast.error(res.error || t.products.messages.failed_delete);
         }
     };
 
     const handleDuplicate = async (id: string) => {
         const res = await duplicateProduct(id);
         if (res.success) {
-            toast.success('Product duplicated');
+            toast.success(t.products.messages.duplicated);
             router.push(`/admin/products/${res.newId}`);
         } else {
-            toast.error(res.error || 'Failed to duplicate');
+            toast.error(res.error || t.products.messages.failed_duplicate);
         }
     };
 
@@ -176,19 +180,19 @@ export default function ProductsPage() {
         loadData();
     };
 
-    if (permLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>Loading...</div>;
-    if (!hasPermission('PRODUCTS_VIEW')) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#991b1b' }}>Access Denied</div>;
+    if (permLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>{t.common.loading}</div>;
+    if (!hasPermission('PRODUCTS_VIEW')) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#991b1b' }}>{t.inventory.access_denied}</div>;
 
     return (
         <div>
             {/* Header */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Products Inventory</h1>
-                    <p className="admin-subtitle">Manage catalog, pricing, and stock availability</p>
+                    <h1 className="admin-title">{t.products.title}</h1>
+                    <p className="admin-subtitle">{t.products.subtitle}</p>
                 </div>
                 <Link href="/admin/products/new" className="admin-btn admin-btn-primary">
-                    + Add Product
+                    + {t.products.add_product}
                 </Link>
             </div>
 
@@ -197,18 +201,18 @@ export default function ProductsPage() {
                 <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '28px' }}>
                     <div className="admin-card" style={{ padding: '22px' }}>
                         <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Total Products
+                            {t.products.stats.total_products}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
                             <span style={{ fontSize: '32px', fontWeight: 700 }}>{stats.totalProducts}</span>
                             <span style={{ fontSize: '13px', color: 'var(--admin-text-muted)' }}>
-                                {stats.activeProducts} active
+                                {stats.activeProducts} {t.products.stats.active}
                             </span>
                         </div>
                     </div>
                     <div className="admin-card" style={{ padding: '22px' }}>
                         <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Stock Value
+                            {t.products.stats.stock_value}
                         </div>
                         <div style={{ fontSize: '32px', fontWeight: 700, color: 'var(--admin-accent)' }}>
                             {formatCurrency(stats.totalStockValue)}
@@ -216,20 +220,20 @@ export default function ProductsPage() {
                     </div>
                     <div className="admin-card" style={{ padding: '22px' }}>
                         <div style={{ fontSize: '12px', color: '#b76e00', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Low Stock
+                            {t.products.stats.low_stock}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                             <span style={{ fontSize: '32px', fontWeight: 700, color: '#b76e00' }}>{stats.lowStockCount}</span>
-                            <span style={{ fontSize: '13px', color: 'var(--admin-text-muted)' }}>products</span>
+                            <span style={{ fontSize: '13px', color: 'var(--admin-text-muted)' }}>{t.products.stats.products}</span>
                         </div>
                     </div>
                     <div className="admin-card" style={{ padding: '22px' }}>
                         <div style={{ fontSize: '12px', color: '#991b1b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Out of Stock
+                            {t.products.stats.out_of_stock}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                             <span style={{ fontSize: '32px', fontWeight: 700, color: '#991b1b' }}>{stats.outOfStockCount}</span>
-                            <span style={{ fontSize: '13px', color: 'var(--admin-text-muted)' }}>products</span>
+                            <span style={{ fontSize: '13px', color: 'var(--admin-text-muted)' }}>{t.products.stats.products}</span>
                         </div>
                     </div>
                 </div>
@@ -241,7 +245,7 @@ export default function ProductsPage() {
                 {selectedIds.length > 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginRight: '16px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--admin-accent)' }}>
-                            {selectedIds.length} selected
+                            {selectedIds.length} {t.products.bulk.selected}
                         </span>
                         <div style={{ position: 'relative' }}>
                             <button 
@@ -249,7 +253,7 @@ export default function ProductsPage() {
                                 className="admin-btn admin-btn-outline"
                                 style={{ padding: '8px 14px', fontSize: '12px' }}
                             >
-                                Actions ▾
+                                {t.products.bulk.actions} ▾
                             </button>
                             {showBulkMenu && (
                                 <div style={{
@@ -269,26 +273,26 @@ export default function ProductsPage() {
                                         onClick={() => handleBulkStatus('active')}
                                         style={{ display: 'block', width: '100%', padding: '10px 16px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px' }}
                                     >
-                                        Set Active
+                                        {t.products.bulk.set_active}
                                     </button>
                                     <button 
                                         onClick={() => handleBulkStatus('draft')}
                                         style={{ display: 'block', width: '100%', padding: '10px 16px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px' }}
                                     >
-                                        Set Draft
+                                        {t.products.bulk.set_draft}
                                     </button>
                                     <button 
                                         onClick={() => handleBulkStatus('archived')}
                                         style={{ display: 'block', width: '100%', padding: '10px 16px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px' }}
                                     >
-                                        Archive
+                                        {t.products.bulk.archive}
                                     </button>
                                     <hr style={{ margin: 0, border: 'none', borderTop: '1px solid var(--admin-border)' }} />
                                     <button 
                                         onClick={handleBulkDelete}
                                         style={{ display: 'block', width: '100%', padding: '10px 16px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', color: '#991b1b' }}
                                     >
-                                        Delete Selected
+                                        {t.products.bulk.delete_selected}
                                     </button>
                                 </div>
                             )}
@@ -298,7 +302,7 @@ export default function ProductsPage() {
                             className="admin-btn admin-btn-outline"
                             style={{ padding: '8px 12px', fontSize: '12px' }}
                         >
-                            Clear
+                            {t.products.bulk.clear}
                         </button>
                     </div>
                 )}
@@ -306,10 +310,10 @@ export default function ProductsPage() {
                 {/* Stock Tabs */}
                 <div className="admin-tabs-container">
                     {[
-                        { value: 'all', label: 'All' },
-                        { value: 'in_stock', label: 'In Stock' },
-                        { value: 'low_stock', label: 'Low Stock' },
-                        { value: 'out_of_stock', label: 'Out of Stock' },
+                        { value: 'all', label: t.products.filters.all },
+                        { value: 'in_stock', label: t.products.filters.in_stock },
+                        { value: 'low_stock', label: t.products.filters.low_stock },
+                        { value: 'out_of_stock', label: t.products.filters.out_of_stock },
                     ].map(f => (
                         <button
                             key={f.value}
@@ -328,10 +332,10 @@ export default function ProductsPage() {
                             <AdminDropdown
                                 value={categoryFilter}
                                 onChange={setCategoryFilter}
-                                placeholder="All Categories"
+                                placeholder={t.products.filters.all_categories}
                                 size="sm"
                                 options={[
-                                    { value: '', label: 'All Categories' },
+                                    { value: '', label: t.products.filters.all_categories },
                                     ...stats.categories.map(c => ({ value: c.id, label: `${c.name} (${c.count})` }))
                                 ]}
                             />
@@ -341,13 +345,13 @@ export default function ProductsPage() {
                         <AdminDropdown
                             value={statusFilter}
                             onChange={setStatusFilter}
-                            placeholder="All Status"
+                            placeholder={t.products.filters.all_status}
                             size="sm"
                             options={[
-                                { value: '', label: 'All Status' },
-                                { value: 'active', label: 'Active' },
-                                { value: 'draft', label: 'Draft' },
-                                { value: 'archived', label: 'Archived' }
+                                { value: '', label: t.products.filters.all_status },
+                                { value: 'active', label: t.products.filters.active },
+                                { value: 'draft', label: t.products.filters.draft },
+                                { value: 'archived', label: t.products.filters.archived }
                             ]}
                         />
                     </div>
@@ -358,7 +362,7 @@ export default function ProductsPage() {
                     <span className="admin-search-icon">🔍</span>
                     <input
                         type="text"
-                        placeholder="Search products..."
+                        placeholder={t.products.search_placeholder}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="admin-search-input"
@@ -370,7 +374,7 @@ export default function ProductsPage() {
             {loading ? (
                 <div className="admin-card" style={{ padding: '60px', textAlign: 'center' }}>
                     <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-                    <div style={{ color: 'var(--admin-text-muted)' }}>Loading products...</div>
+                    <div style={{ color: 'var(--admin-text-muted)' }}>{t.products.loading}</div>
                 </div>
             ) : filteredProducts.length > 0 ? (
                 <div className="admin-table-container">
@@ -386,12 +390,12 @@ export default function ProductsPage() {
                                     />
                                 </th>
                                 <th style={{ width: '60px' }}></th>
-                                <th>Product</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                    <th>{t.products.table.product}</th>
+                                    <th>{t.products.table.category}</th>
+                                    <th>{t.products.table.price}</th>
+                                    <th>{t.products.table.stock}</th>
+                                    <th>{t.products.table.status}</th>
+                                    <th style={{ textAlign: 'right' }}>{t.products.table.actions}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -415,7 +419,7 @@ export default function ProductsPage() {
                                                     <Image src={product.imageUrl} alt="" fill style={{ objectFit: 'cover' }} />
                                                 ) : (
                                                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#999' }}>
-                                                        NO IMG
+                                                            {t.products.table.no_image}
                                                     </div>
                                                 )}
                                             </div>
@@ -423,7 +427,7 @@ export default function ProductsPage() {
                                         <td>
                                             <div style={{ fontWeight: 600, marginBottom: '4px' }}>{product.name}</div>
                                             <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)' }}>
-                                                {product.variants.length} variant{product.variants.length !== 1 ? 's' : ''}
+                                                {product.variants.length} {product.variants.length !== 1 ? t.products.table.variants_plural : t.products.table.variants}
                                                 {mainVariant && <span style={{ marginLeft: '8px', fontFamily: 'monospace' }}>{mainVariant.sku}</span>}
                                             </div>
                                         </td>
@@ -453,7 +457,7 @@ export default function ProductsPage() {
                                                     ? (product.totalStock < 10 ? '#b76e00' : '#166534') 
                                                     : '#991b1b'
                                             }}>
-                                                {product.totalStock > 0 ? `${product.totalStock} in stock` : 'Out of Stock'}
+                                                {product.totalStock > 0 ? `${product.totalStock} ${t.products.table.in_stock}` : t.products.stats.out_of_stock}
                                             </span>
                                         </td>
                                         <td>
@@ -478,7 +482,7 @@ export default function ProductsPage() {
                                                     onClick={() => handleDuplicate(product.id)}
                                                     className="admin-btn admin-btn-outline"
                                                     style={{ padding: '6px 10px', fontSize: '11px' }}
-                                                    title="Duplicate"
+                                                    title={t.products.actions.duplicate}
                                                 >
                                                     📋
                                                 </button>
@@ -487,7 +491,7 @@ export default function ProductsPage() {
                                                     className="admin-btn admin-btn-outline"
                                                     style={{ padding: '6px 12px', fontSize: '11px' }}
                                                 >
-                                                    Edit
+                                                    {t.products.actions.edit}
                                                 </Link>
                                                 <button
                                                     onClick={() => handleDelete(product.id)}
@@ -508,14 +512,14 @@ export default function ProductsPage() {
                 <div className="admin-card" style={{ padding: '80px 40px', textAlign: 'center' }}>
                     <div style={{ fontSize: '64px', marginBottom: '20px' }}>📦</div>
                     <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', marginBottom: '12px' }}>
-                        {search ? 'No products found' : 'No products yet'}
+                                {search ? t.products.empty.no_found : t.products.empty.no_yet}
                     </div>
                     <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)', marginBottom: '24px' }}>
-                        {search ? 'Try adjusting your search or filters' : 'Add your first product to start selling.'}
+                                {search ? t.products.empty.adjust_filters : t.products.empty.add_first}
                     </div>
                     {!search && (
                         <Link href="/admin/products/new" className="admin-btn admin-btn-primary">
-                            + Create Product
+                                    + {t.products.empty.create_product}
                         </Link>
                     )}
                 </div>

@@ -8,6 +8,8 @@ import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
 import ImageUploader from '@/components/admin/settings/ImageUploader';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { toast } from 'sonner';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 type GeneralSettings = {
     // Store Identity
@@ -218,6 +220,8 @@ const businessTypes = [
 const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 export default function GeneralSettingsPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const [settings, setSettings] = useState<GeneralSettings>(defaultSettings);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -241,24 +245,24 @@ export default function GeneralSettingsPage() {
         setSaving(true);
         try {
             await updateStoreConfig('general_settings_v2', settings);
-            toast.success('General settings saved!');
+            toast.success(t.config.general.save_success || 'General settings saved!');
         } catch (error) {
             console.error('Failed to save settings:', error);
-            toast.error('Failed to save settings');
+            toast.error(t.config.general.save_error || 'Failed to save settings');
         } finally {
             setSaving(false);
         }
     };
 
     const tabs = [
-        { id: 'identity', label: 'Store Identity', icon: '🏪' },
-        { id: 'contact', label: 'Contact', icon: '📞' },
-        { id: 'address', label: 'Address', icon: '📍' },
-        { id: 'regional', label: 'Regional', icon: '🌍' },
-        { id: 'legal', label: 'Legal', icon: '📋' },
-        { id: 'hours', label: 'Hours', icon: '🕐' },
-        { id: 'status', label: 'Status', icon: '🚦' },
-        { id: 'display', label: 'Display', icon: '👁️' },
+        { id: 'identity', label: t.config.general.tabs.identity, icon: '🏪' },
+        { id: 'contact', label: t.config.general.tabs.contact, icon: '📞' },
+        { id: 'address', label: t.config.general.tabs.address, icon: '📍' },
+        { id: 'regional', label: t.config.general.tabs.regional, icon: '🌍' },
+        { id: 'legal', label: t.config.general.tabs.legal, icon: '📋' },
+        { id: 'hours', label: t.config.general.tabs.hours, icon: '🕐' },
+        { id: 'status', label: t.config.general.tabs.status, icon: '🚦' },
+        { id: 'display', label: t.config.general.tabs.display, icon: '👁️' },
     ];
 
     if (loading) {
@@ -273,10 +277,18 @@ export default function GeneralSettingsPage() {
     return (
         <div>
             <div className="settings-page-header">
-                <h1 className="settings-page-title">General Settings</h1>
+                <h1 className="settings-page-title">{t.config.general.page_title}</h1>
                 <p className="settings-page-description">
-                    Complete store configuration with 70+ settings
+                    {t.config.general.page_desc}
                 </p>
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="btn-primary"
+                    style={{ marginLeft: 'auto' }}
+                >
+                    {saving ? t.promos.common.saving : t.promos.common.save}
+                </button>
             </div>
 
             {/* Sub-tabs */}
@@ -297,11 +309,11 @@ export default function GeneralSettingsPage() {
             {activeTab === 'identity' && (
                 <>
                     <SettingsSection
-                        title="Store Name & Branding"
-                        description="Your store's identity and branding"
+                        title={t.config.general.identity.title}
+                        description={t.config.general.identity.desc}
                         icon="🏪"
                     >
-                        <SettingsField label="Store Name" htmlFor="storeName" required>
+                        <SettingsField label={t.config.general.identity.store_name} htmlFor="storeName" required>
                             <input
                                 id="storeName"
                                 type="text"
@@ -312,9 +324,9 @@ export default function GeneralSettingsPage() {
                         </SettingsField>
 
                         <SettingsField 
-                            label="Store Tagline" 
+                            label={t.config.general.identity.tagline} 
                             htmlFor="storeTagline"
-                            description="A short slogan or tagline for your store"
+                            description={t.config.general.identity.tagline_desc}
                         >
                             <input
                                 id="storeTagline"
@@ -326,9 +338,9 @@ export default function GeneralSettingsPage() {
                         </SettingsField>
 
                         <SettingsField 
-                            label="Store Description" 
+                            label={t.config.general.identity.description} 
                             htmlFor="storeDescription"
-                            description="A detailed description of your store (for SEO & about pages)"
+                            description={t.config.general.identity.description_desc}
                         >
                             <textarea
                                 id="storeDescription"
@@ -341,14 +353,14 @@ export default function GeneralSettingsPage() {
                     </SettingsSection>
 
                     <SettingsSection
-                        title="Logo & Icons"
-                        description="Upload your store's visual assets"
+                        title={t.config.general.identity.logo_section.title}
+                        description={t.config.general.identity.logo_section.desc}
                         icon="🖼️"
                     >
                         <div className="settings-grid">
                             <SettingsField 
-                                label="Main Logo"
-                                description="Primary logo (light background)"
+                                label={t.config.general.identity.logo_section.main}
+                                description={t.config.general.identity.logo_section.main_desc}
                             >
                                 <ImageUploader
                                     value={settings.storeLogo}
@@ -359,8 +371,8 @@ export default function GeneralSettingsPage() {
                             </SettingsField>
 
                             <SettingsField 
-                                label="Dark Mode Logo"
-                                description="Logo for dark backgrounds"
+                                label={t.config.general.identity.logo_section.dark}
+                                description={t.config.general.identity.logo_section.dark_desc}
                             >
                                 <ImageUploader
                                     value={settings.storeLogoDark}
@@ -373,8 +385,8 @@ export default function GeneralSettingsPage() {
 
                         <div className="settings-grid settings-grid-3">
                             <SettingsField 
-                                label="Small Logo / Icon"
-                                description="For mobile header (100x100px)"
+                                label={t.config.general.identity.logo_section.small}
+                                description={t.config.general.identity.logo_section.small_desc}
                             >
                                 <ImageUploader
                                     value={settings.storeLogoSmall}
@@ -385,8 +397,8 @@ export default function GeneralSettingsPage() {
                             </SettingsField>
 
                             <SettingsField 
-                                label="Favicon"
-                                description="Browser tab icon (32x32px)"
+                                label={t.config.general.identity.logo_section.favicon}
+                                description={t.config.general.identity.logo_section.favicon_desc}
                             >
                                 <ImageUploader
                                     value={settings.storeFavicon}
@@ -397,8 +409,8 @@ export default function GeneralSettingsPage() {
                             </SettingsField>
 
                             <SettingsField 
-                                label="Apple Touch Icon"
-                                description="iOS home screen (180x180px)"
+                                label={t.config.general.identity.logo_section.apple}
+                                description={t.config.general.identity.logo_section.apple_desc}
                             >
                                 <ImageUploader
                                     value={settings.storeAppleTouchIcon}
@@ -415,12 +427,12 @@ export default function GeneralSettingsPage() {
             {/* Contact Tab */}
             {activeTab === 'contact' && (
                 <SettingsSection
-                    title="Contact Information"
-                    description="All ways customers can reach you"
+                    title={t.config.general.contact.title}
+                    description={t.config.general.contact.desc}
                     icon="📞"
                 >
                     <div className="settings-grid">
-                        <SettingsField label="Primary Email" htmlFor="storeEmail" required>
+                        <SettingsField label={t.config.general.contact.primary_email} htmlFor="storeEmail" required>
                             <input
                                 id="storeEmail"
                                 type="email"
@@ -430,7 +442,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="Sales Email" htmlFor="salesEmail">
+                        <SettingsField label={t.config.general.contact.sales_email} htmlFor="salesEmail">
                             <input
                                 id="salesEmail"
                                 type="email"
@@ -442,7 +454,7 @@ export default function GeneralSettingsPage() {
                     </div>
 
                     <div className="settings-grid">
-                        <SettingsField label="Support Email" htmlFor="supportEmail">
+                        <SettingsField label={t.config.general.contact.support_email} htmlFor="supportEmail">
                             <input
                                 id="supportEmail"
                                 type="email"
@@ -452,7 +464,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="Primary Phone" htmlFor="storePhone">
+                        <SettingsField label={t.config.general.contact.primary_phone} htmlFor="storePhone">
                             <input
                                 id="storePhone"
                                 type="tel"
@@ -465,9 +477,9 @@ export default function GeneralSettingsPage() {
 
                     <div className="settings-grid">
                         <SettingsField 
-                            label="WhatsApp Number" 
+                            label={t.config.general.contact.whatsapp} 
                             htmlFor="whatsappNumber"
-                            description="Include country code"
+                            description={t.config.general.contact.whatsapp_desc}
                         >
                             <input
                                 id="whatsappNumber"
@@ -478,7 +490,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="Secondary Phone" htmlFor="secondaryPhone">
+                        <SettingsField label={t.config.general.contact.secondary_phone} htmlFor="secondaryPhone">
                             <input
                                 id="secondaryPhone"
                                 type="tel"
@@ -489,7 +501,7 @@ export default function GeneralSettingsPage() {
                         </SettingsField>
                     </div>
 
-                    <SettingsField label="Fax Number" htmlFor="faxNumber">
+                    <SettingsField label={t.config.general.contact.fax} htmlFor="faxNumber">
                         <input
                             id="faxNumber"
                             type="tel"
@@ -505,11 +517,11 @@ export default function GeneralSettingsPage() {
             {/* Address Tab */}
             {activeTab === 'address' && (
                 <SettingsSection
-                    title="Store Address"
-                    description="Physical location details"
+                    title={t.config.general.address.title}
+                    description={t.config.general.address.desc}
                     icon="📍"
                 >
-                    <SettingsField label="Street Address" htmlFor="streetAddress">
+                    <SettingsField label={t.config.general.address.street} htmlFor="streetAddress">
                         <input
                             id="streetAddress"
                             type="text"
@@ -519,7 +531,7 @@ export default function GeneralSettingsPage() {
                         />
                     </SettingsField>
 
-                    <SettingsField label="Street Address Line 2" htmlFor="streetAddress2">
+                    <SettingsField label={t.config.general.address.street2} htmlFor="streetAddress2">
                         <input
                             id="streetAddress2"
                             type="text"
@@ -530,7 +542,7 @@ export default function GeneralSettingsPage() {
                     </SettingsField>
 
                     <div className="settings-grid">
-                        <SettingsField label="City" htmlFor="city">
+                        <SettingsField label={t.config.general.address.city} htmlFor="city">
                             <input
                                 id="city"
                                 type="text"
@@ -540,7 +552,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="State / Province" htmlFor="state">
+                        <SettingsField label={t.config.general.address.state} htmlFor="state">
                             <input
                                 id="state"
                                 type="text"
@@ -552,7 +564,7 @@ export default function GeneralSettingsPage() {
                     </div>
 
                     <div className="settings-grid">
-                        <SettingsField label="Postal / ZIP Code" htmlFor="postalCode">
+                        <SettingsField label={t.config.general.address.postal} htmlFor="postalCode">
                             <input
                                 id="postalCode"
                                 type="text"
@@ -562,7 +574,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="Country" htmlFor="country">
+                        <SettingsField label={t.config.general.address.country} htmlFor="country">
                             <AdminDropdown
                                 value={settings.country}
                                 onChange={(v) => setSettings({ ...settings, country: v })}
@@ -573,9 +585,9 @@ export default function GeneralSettingsPage() {
 
                     <div className="settings-grid">
                         <SettingsField 
-                            label="Latitude" 
+                            label={t.config.general.address.latitude} 
                             htmlFor="latitude"
-                            description="For Google Maps integration"
+                            description={t.config.general.address.map_desc}
                         >
                             <input
                                 id="latitude"
@@ -587,9 +599,9 @@ export default function GeneralSettingsPage() {
                         </SettingsField>
 
                         <SettingsField 
-                            label="Longitude" 
+                            label={t.config.general.address.longitude} 
                             htmlFor="longitude"
-                            description="For Google Maps integration"
+                            description={t.config.general.address.map_desc}
                         >
                             <input
                                 id="longitude"
@@ -606,12 +618,12 @@ export default function GeneralSettingsPage() {
             {/* Regional Tab */}
             {activeTab === 'regional' && (
                 <SettingsSection
-                    title="Regional & Currency Settings"
-                    description="Timezone and currency configuration"
+                    title={t.config.general.regional.title}
+                    description={t.config.general.regional.desc}
                     icon="🌍"
                 >
                     <div className="settings-grid">
-                        <SettingsField label="Timezone" htmlFor="timezone">
+                        <SettingsField label={t.config.general.regional.timezone} htmlFor="timezone">
                             <AdminDropdown
                                 value={settings.timezone}
                                 onChange={(v) => setSettings({ ...settings, timezone: v })}
@@ -619,7 +631,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="Currency" htmlFor="currency">
+                        <SettingsField label={t.config.general.regional.currency} htmlFor="currency">
                             <AdminDropdown
                                 value={settings.currency}
                                 onChange={(v) => {
@@ -636,7 +648,7 @@ export default function GeneralSettingsPage() {
                     </div>
 
                     <div className="settings-grid">
-                        <SettingsField label="Currency Symbol" htmlFor="currencySymbol">
+                        <SettingsField label={t.config.general.regional.symbol} htmlFor="currencySymbol">
                             <input
                                 id="currencySymbol"
                                 type="text"
@@ -647,7 +659,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="Currency Position" htmlFor="currencyPosition">
+                        <SettingsField label={t.config.general.regional.position} htmlFor="currencyPosition">
                             <AdminDropdown
                                 value={settings.currencyPosition}
                                 onChange={(v) => setSettings({ ...settings, currencyPosition: v as 'before' | 'after' })}
@@ -657,7 +669,7 @@ export default function GeneralSettingsPage() {
                     </div>
 
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Thousands Separator" htmlFor="thousandsSeparator">
+                        <SettingsField label={t.config.general.regional.thousands} htmlFor="thousandsSeparator">
                             <AdminDropdown
                                 value={settings.thousandsSeparator}
                                 onChange={(v) => setSettings({ ...settings, thousandsSeparator: v })}
@@ -665,7 +677,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="Decimal Separator" htmlFor="decimalSeparator">
+                        <SettingsField label={t.config.general.regional.decimal} htmlFor="decimalSeparator">
                             <AdminDropdown
                                 value={settings.decimalSeparator}
                                 onChange={(v) => setSettings({ ...settings, decimalSeparator: v })}
@@ -673,7 +685,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="Decimal Places" htmlFor="decimalPlaces">
+                        <SettingsField label={t.config.general.regional.decimals} htmlFor="decimalPlaces">
                             <AdminDropdown
                                 value={String(settings.decimalPlaces)}
                                 onChange={(v) => setSettings({ ...settings, decimalPlaces: Number(v) })}
@@ -687,12 +699,12 @@ export default function GeneralSettingsPage() {
             {/* Legal Tab */}
             {activeTab === 'legal' && (
                 <SettingsSection
-                    title="Legal & Business Information"
-                    description="Official business registration details"
+                    title={t.config.general.legal.title}
+                    description={t.config.general.legal.desc}
                     icon="📋"
                 >
                     <div className="settings-grid">
-                        <SettingsField label="Registered Business Name" htmlFor="businessName">
+                        <SettingsField label={t.config.general.legal.business_name} htmlFor="businessName">
                             <input
                                 id="businessName"
                                 type="text"
@@ -702,7 +714,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="Business Type" htmlFor="businessType">
+                        <SettingsField label={t.config.general.legal.business_type} htmlFor="businessType">
                             <AdminDropdown
                                 value={settings.businessType}
                                 onChange={(v) => setSettings({ ...settings, businessType: v })}
@@ -712,7 +724,7 @@ export default function GeneralSettingsPage() {
                     </div>
 
                     <div className="settings-grid">
-                        <SettingsField label="Tax ID / TIN" htmlFor="taxId">
+                        <SettingsField label={t.config.general.legal.tax_id} htmlFor="taxId">
                             <input
                                 id="taxId"
                                 type="text"
@@ -722,7 +734,7 @@ export default function GeneralSettingsPage() {
                             />
                         </SettingsField>
 
-                        <SettingsField label="Commercial Register Number" htmlFor="commercialRegister">
+                        <SettingsField label={t.config.general.legal.cr_number} htmlFor="commercialRegister">
                             <input
                                 id="commercialRegister"
                                 type="text"
@@ -733,7 +745,7 @@ export default function GeneralSettingsPage() {
                         </SettingsField>
                     </div>
 
-                    <SettingsField label="VAT Number" htmlFor="vatNumber">
+                    <SettingsField label={t.config.general.legal.vat_number} htmlFor="vatNumber">
                         <input
                             id="vatNumber"
                             type="text"
@@ -749,15 +761,15 @@ export default function GeneralSettingsPage() {
             {/* Business Hours Tab */}
             {activeTab === 'hours' && (
                 <SettingsSection
-                    title="Business Hours"
-                    description="Operating hours for your store"
+                    title={t.config.general.hours.title}
+                    description={t.config.general.hours.desc}
                     icon="🕐"
                 >
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Enable Business Hours</div>
+                            <div className="settings-toggle-label">{t.config.general.hours.enable}</div>
                             <div className="settings-toggle-description">
-                                Display operating hours on your website
+                                {t.config.general.hours.enable_desc}
                             </div>
                         </div>
                         <ToggleSwitch
@@ -779,7 +791,7 @@ export default function GeneralSettingsPage() {
                                     }}>
                                         {day}
                                     </div>
-                                    <SettingsField label="Open">
+                                    <SettingsField label={t.config.general.hours.open}>
                                         <input
                                             type="time"
                                             value={(settings as unknown as Record<string, string>)[`${day}Open`] || '09:00'}
@@ -789,7 +801,7 @@ export default function GeneralSettingsPage() {
                                             } as GeneralSettings)}
                                         />
                                     </SettingsField>
-                                    <SettingsField label="Close">
+                                    <SettingsField label={t.config.general.hours.close}>
                                         <input
                                             type="time"
                                             value={(settings as unknown as Record<string, string>)[`${day}Close`] || '21:00'}
@@ -806,18 +818,19 @@ export default function GeneralSettingsPage() {
                 </SettingsSection>
             )}
 
+
             {/* Store Status Tab */}
             {activeTab === 'status' && (
                 <SettingsSection
-                    title="Store Status"
-                    description="Control store availability"
+                    title={t.config.general.status.title}
+                    description={t.config.general.status.desc}
                     icon="🚦"
                 >
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Store Open</div>
+                            <div className="settings-toggle-label">{t.config.general.status.open}</div>
                             <div className="settings-toggle-description">
-                                When disabled, customers cannot place orders
+                                {t.config.general.status.open_desc}
                             </div>
                         </div>
                         <ToggleSwitch
@@ -829,9 +842,9 @@ export default function GeneralSettingsPage() {
 
                     {!settings.storeOpen && (
                         <SettingsField 
-                            label="Closed Message" 
+                            label={t.config.general.status.closed_message}
                             htmlFor="closedMessage"
-                            description="Message shown when store is closed"
+                            description={t.config.general.status.closed_desc}
                         >
                             <textarea
                                 id="closedMessage"
@@ -844,9 +857,9 @@ export default function GeneralSettingsPage() {
 
                     <div className="settings-toggle-row" style={{ marginTop: '20px' }}>
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Coming Soon Mode</div>
+                            <div className="settings-toggle-label">{t.config.general.status.coming_soon}</div>
                             <div className="settings-toggle-description">
-                                Show a coming soon page instead of the store
+                                {t.config.general.status.coming_soon_desc}
                             </div>
                         </div>
                         <ToggleSwitch
@@ -857,9 +870,9 @@ export default function GeneralSettingsPage() {
 
                     {settings.comingSoonMode && (
                         <SettingsField 
-                            label="Launch Date" 
+                            label={t.config.general.status.launch_date}
                             htmlFor="comingSoonDate"
-                            description="Expected launch date"
+                            description={t.config.general.status.launch_desc}
                         >
                             <input
                                 id="comingSoonDate"
@@ -875,15 +888,15 @@ export default function GeneralSettingsPage() {
             {/* Display Tab */}
             {activeTab === 'display' && (
                 <SettingsSection
-                    title="Display Options"
-                    description="Control what information is shown on your website"
+                    title={t.config.general.display.title}
+                    description={t.config.general.display.desc}
                     icon="👁️"
                 >
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Address in Footer</div>
+                            <div className="settings-toggle-label">{t.config.general.display.address}</div>
                             <div className="settings-toggle-description">
-                                Display your store address
+                                {t.config.general.display.address_desc}
                             </div>
                         </div>
                         <ToggleSwitch
@@ -894,9 +907,9 @@ export default function GeneralSettingsPage() {
 
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Phone Number</div>
+                            <div className="settings-toggle-label">{t.config.general.display.phone}</div>
                             <div className="settings-toggle-description">
-                                Display phone number in header/footer
+                                {t.config.general.display.phone_desc}
                             </div>
                         </div>
                         <ToggleSwitch
@@ -907,9 +920,9 @@ export default function GeneralSettingsPage() {
 
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Email Address</div>
+                            <div className="settings-toggle-label">{t.config.general.display.email}</div>
                             <div className="settings-toggle-description">
-                                Display email in contact section
+                                {t.config.general.display.email_desc}
                             </div>
                         </div>
                         <ToggleSwitch
@@ -920,9 +933,9 @@ export default function GeneralSettingsPage() {
 
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Business Hours</div>
+                            <div className="settings-toggle-label">{t.config.general.display.hours}</div>
                             <div className="settings-toggle-description">
-                                Display operating hours
+                                {t.config.general.display.hours_desc}
                             </div>
                         </div>
                         <ToggleSwitch
@@ -933,9 +946,9 @@ export default function GeneralSettingsPage() {
 
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Social Links</div>
+                            <div className="settings-toggle-label">{t.config.general.display.social}</div>
                             <div className="settings-toggle-description">
-                                Display social media icons
+                                {t.config.general.display.social_desc}
                             </div>
                         </div>
                         <ToggleSwitch
@@ -946,9 +959,9 @@ export default function GeneralSettingsPage() {
 
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show WhatsApp Widget</div>
+                            <div className="settings-toggle-label">{t.config.general.display.whatsapp}</div>
                             <div className="settings-toggle-description">
-                                Floating WhatsApp contact button
+                                {t.config.general.display.whatsapp_desc}
                             </div>
                         </div>
                         <ToggleSwitch
@@ -959,9 +972,9 @@ export default function GeneralSettingsPage() {
 
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Live Chat Widget</div>
+                            <div className="settings-toggle-label">{t.config.general.display.chat}</div>
                             <div className="settings-toggle-description">
-                                Floating live chat button
+                                {t.config.general.display.chat_desc}
                             </div>
                         </div>
                         <ToggleSwitch
@@ -977,18 +990,18 @@ export default function GeneralSettingsPage() {
                     className="admin-btn admin-btn-outline"
                     onClick={() => {
                         setSettings(defaultSettings);
-                        toast.info('Settings reset to default values');
+                        toast.info(t.config.general.reset_confirm);
                     }}
                     type="button"
                 >
-                    Reset to Default
+                    {t.config.general.reset}
                 </button>
                 <button
                     className="admin-btn admin-btn-primary"
                     onClick={handleSave}
                     disabled={saving}
                 >
-                    {saving ? 'Saving...' : 'Save Changes'}
+                    {saving ? t.config.general.saving : t.config.general.save}
                 </button>
             </div>
         </div>

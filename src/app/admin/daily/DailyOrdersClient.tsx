@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 interface Order {
     id: string;
@@ -61,6 +63,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
 
 export default function DailyOrdersClient({ orders, stats, currentDate, dateRange, currentSource }: Props) {
     const router = useRouter();
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const [selectedDate, setSelectedDate] = useState(currentDate);
     const [rangeMode, setRangeMode] = useState(!!dateRange);
     const [fromDate, setFromDate] = useState(dateRange?.from || currentDate);
@@ -119,8 +123,8 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
             {/* Header */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Daily Orders Report</h1>
-                    <p className="admin-subtitle">View and analyze orders by date and source</p>
+                    <h1 className="admin-title">{t.daily?.title || 'Daily Orders Report'}</h1>
+                    <p className="admin-subtitle">{t.daily?.subtitle_orders || 'View and analyze orders by date and source'}</p>
                 </div>
             </div>
 
@@ -133,13 +137,13 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
                             onClick={() => setRangeMode(false)}
                             className={`admin-tab-item ${!rangeMode ? 'active' : ''}`}
                         >
-                            Single Day
+                            {t.daily?.single_day || 'Single Day'}
                         </button>
                         <button
                             onClick={() => setRangeMode(true)}
                             className={`admin-tab-item ${rangeMode ? 'active' : ''}`}
                         >
-                            Date Range
+                            {t.daily?.date_range || 'Date Range'}
                         </button>
                     </div>
 
@@ -159,7 +163,7 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
                                 →
                             </button>
                             <button onClick={handleDateChange} className="admin-btn admin-btn-primary">
-                                Go
+                                {t.daily?.go || 'Go'}
                             </button>
                         </div>
                     ) : (
@@ -171,7 +175,7 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
                                 className="admin-input"
                                 style={{ width: '160px' }}
                             />
-                            <span style={{ color: '#666' }}>to</span>
+                                <span style={{ color: '#666' }}>{t.daily?.to || 'to'}</span>
                             <input
                                 type="date"
                                 value={toDate}
@@ -180,7 +184,7 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
                                 style={{ width: '160px' }}
                             />
                             <button onClick={handleDateChange} className="admin-btn admin-btn-primary">
-                                Apply
+                                    {t.daily?.apply || 'Apply'}
                             </button>
                         </div>
                     )}
@@ -246,7 +250,7 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
                     }}>📦</div>
                     <div>
                         <div style={{ fontSize: '24px', fontWeight: '700', color: '#1a3c34' }}>{stats.totalOrders}</div>
-                        <div style={{ fontSize: '13px', color: '#666' }}>Total Orders</div>
+                        <div style={{ fontSize: '13px', color: '#666' }}>{t.daily?.total_orders || 'Total Orders'}</div>
                     </div>
                 </div>
                 <div style={{
@@ -271,7 +275,7 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
                     }}>💰</div>
                     <div>
                         <div style={{ fontSize: '24px', fontWeight: '700', color: '#1a3c34' }}>{formatPrice(stats.totalRevenue)}</div>
-                        <div style={{ fontSize: '13px', color: '#666' }}>Total Revenue</div>
+                        <div style={{ fontSize: '13px', color: '#666' }}>{t.daily?.total_revenue || 'Total Revenue'}</div>
                     </div>
                 </div>
                 <div style={{
@@ -296,7 +300,7 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
                     }}>📊</div>
                     <div>
                         <div style={{ fontSize: '24px', fontWeight: '700', color: '#1a3c34' }}>{formatPrice(stats.avgOrderValue)}</div>
-                        <div style={{ fontSize: '13px', color: '#666' }}>Avg. Order Value</div>
+                        <div style={{ fontSize: '13px', color: '#666' }}>{t.daily?.avg_order_value || 'Avg. Order Value'}</div>
                     </div>
                 </div>
                 <div style={{
@@ -321,14 +325,14 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
                     }}>⏳</div>
                     <div>
                         <div style={{ fontSize: '24px', fontWeight: '700', color: '#1a3c34' }}>{stats.pendingCount}</div>
-                        <div style={{ fontSize: '13px', color: '#666' }}>Pending</div>
+                        <div style={{ fontSize: '13px', color: '#666' }}>{t.daily?.pending || 'Pending'}</div>
                     </div>
                 </div>
             </div>
 
             {/* Source Breakdown */}
             <div className="admin-card" style={{ marginBottom: '24px', padding: '20px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>Orders by Source</h3>
+                <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>{t.daily?.orders_by_source || 'Orders by Source'}</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' }}>
                     {Object.entries(SOURCE_CONFIG).filter(([k]) => k !== 'all').map(([key, config]) => {
                         const data = stats.sourceCounts[key] || { count: 0, revenue: 0 };
@@ -352,28 +356,28 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
             {/* Orders Table */}
             <div className="admin-card" style={{ padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '600' }}>Orders ({orders.length})</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: '600' }}>{t.daily?.orders_count || 'Orders'} ({orders.length})</h3>
                 </div>
                 
                 {orders.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📭</div>
-                        <p>No orders found for this period</p>
+                        <p>{t.daily?.no_orders || 'No orders found for this period'}</p>
                     </div>
                 ) : (
                     <div className="admin-table-wrapper">
                         <table className="admin-table">
                             <thead>
                                 <tr>
-                                    <th>Time</th>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Source</th>
-                                    <th>Payment</th>
-                                    <th>Items</th>
-                                    <th>Total</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                        <th>{t.daily?.time || 'Time'}</th>
+                                        <th>{t.daily?.order_id || 'Order ID'}</th>
+                                        <th>{t.daily?.customer || 'Customer'}</th>
+                                        <th>{t.daily?.source || 'Source'}</th>
+                                        <th>{t.daily?.payment || 'Payment'}</th>
+                                        <th>{t.daily?.items || 'Items'}</th>
+                                        <th>{t.daily?.total || 'Total'}</th>
+                                        <th>{t.daily?.status || 'Status'}</th>
+                                        <th>{t.daily?.actions || 'Actions'}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -434,7 +438,7 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
                                                     className="admin-btn admin-btn-outline"
                                                     style={{ padding: '4px 10px', fontSize: '12px' }}
                                                 >
-                                                    View
+                                                    {t.daily?.view || 'View'}
                                                 </Link>
                                             </td>
                                         </tr>

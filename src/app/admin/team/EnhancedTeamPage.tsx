@@ -14,6 +14,8 @@ import {
 } from '@/lib/actions/employee-management';
 import { toggleTeamMemberStatus, deleteTeamMember } from '@/lib/actions/team';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 export default function EnhancedTeamPage() {
     const [employees, setEmployees] = useState<EmployeeWithStats[]>([]);
@@ -24,6 +26,8 @@ export default function EnhancedTeamPage() {
     const [ratingModal, setRatingModal] = useState<{ open: boolean; employee: EmployeeWithStats | null }>({ open: false, employee: null });
     const [salaryModal, setSalaryModal] = useState<{ open: boolean; employee: EmployeeWithStats | null }>({ open: false, employee: null });
     const router = useRouter();
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
 
     const loadData = useCallback(async () => {
         setLoading(true);
@@ -36,10 +40,11 @@ export default function EnhancedTeamPage() {
             setStats(statsData);
         } catch (error) {
             console.error('Failed to load data:', error);
-            toast.error('Failed to load team data');
+            toast.error(t.team.messages.failed_load);
         } finally {
             setLoading(false);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -53,14 +58,14 @@ export default function EnhancedTeamPage() {
     };
 
     const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`Are you sure you want to delete ${name}?`)) return;
+        if (!confirm(`${t.team.messages.confirm_delete} ${name}?`)) return;
         await deleteTeamMember(id);
         router.refresh();
         loadData();
     };
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(amount);
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(amount);
     };
 
     const filteredEmployees = employees.filter(e => {
@@ -78,18 +83,18 @@ export default function EnhancedTeamPage() {
             {/* Header */}
             <div className="team-header">
                 <div>
-                    <h1 className="admin-title">Team Management</h1>
-                    <p className="admin-subtitle">Manage employees, performance ratings, and payroll</p>
+                    <h1 className="admin-title">{t.team.title}</h1>
+                    <p className="admin-subtitle">{t.team.subtitle}</p>
                 </div>
                 <div className="team-header-actions">
                     <Link href="/admin/team/rankings" className="admin-btn admin-btn-outline">
-                        🏆 Rankings
+                        🏆 {t.team.rankings}
                     </Link>
                     <Link href="/admin/team/payroll" className="admin-btn admin-btn-outline">
-                        💰 Payroll
+                        💰 {t.team.payroll}
                     </Link>
                     <Link href="/admin/team/add" className="admin-btn admin-btn-primary">
-                        ➕ Add Employee
+                        ➕ {t.team.add_employee}
                     </Link>
                 </div>
             </div>
@@ -100,33 +105,33 @@ export default function EnhancedTeamPage() {
                     <div className="admin-card team-stat-card">
                         <div className="stat-icon">👥</div>
                         <div className="stat-content">
-                            <div className="stat-label">Total Employees</div>
+                            <div className="stat-label">{t.team.stats.total_employees}</div>
                             <div className="stat-value">{stats.totalEmployees}</div>
-                            <div className="stat-meta">{stats.activeEmployees} active</div>
+                            <div className="stat-meta">{stats.activeEmployees} {t.team.stats.active}</div>
                         </div>
                     </div>
                     <div className="admin-card team-stat-card">
                         <div className="stat-icon">💵</div>
                         <div className="stat-content">
-                            <div className="stat-label">Monthly Payroll</div>
+                            <div className="stat-label">{t.team.stats.monthly_payroll}</div>
                             <div className="stat-value">{formatCurrency(stats.totalMonthlySalary)}</div>
-                            <div className="stat-meta">{stats.paidThisMonth} paid this month</div>
+                            <div className="stat-meta">{stats.paidThisMonth} {t.team.stats.paid_this_month}</div>
                         </div>
                     </div>
                     <div className="admin-card team-stat-card">
                         <div className="stat-icon">⭐</div>
                         <div className="stat-content">
-                            <div className="stat-label">Avg Rating (Month)</div>
+                            <div className="stat-label">{t.team.stats.avg_rating}</div>
                             <div className="stat-value">{stats.avgRatingThisMonth}/10</div>
-                            <div className="stat-meta">{stats.topPerformer ? `Top: ${stats.topPerformer.name}` : 'No ratings yet'}</div>
+                            <div className="stat-meta">{stats.topPerformer ? `${t.team.stats.top_performer} ${stats.topPerformer.name}` : t.team.stats.no_ratings}</div>
                         </div>
                     </div>
                     <div className="admin-card team-stat-card">
                         <div className="stat-icon">📅</div>
                         <div className="stat-content">
-                            <div className="stat-label">Pending Leaves</div>
+                            <div className="stat-label">{t.team.stats.pending_leaves}</div>
                             <div className="stat-value">{stats.pendingLeaves}</div>
-                            <div className="stat-meta">awaiting approval</div>
+                            <div className="stat-meta">{t.team.stats.awaiting_approval}</div>
                         </div>
                     </div>
                 </div>
@@ -142,14 +147,14 @@ export default function EnhancedTeamPage() {
                             className={`team-tab ${filter === f ? 'active' : ''}`}
                             onClick={() => setFilter(f)}
                         >
-                            {f === 'all' ? '📋 All' : f === 'active' ? '✅ Active' : '❌ Inactive'}
+                            {f === 'all' ? `📋 ${t.team.filters.all}` : f === 'active' ? `✅ ${t.team.filters.active}` : `❌ ${t.team.filters.inactive}`}
                         </button>
                     ))}
                 </div>
                 <input
                     type="text"
                     className="form-input team-search"
-                    placeholder="Search by name or email..."
+                    placeholder={t.team.search_placeholder}
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                 />
@@ -160,27 +165,27 @@ export default function EnhancedTeamPage() {
                 {loading ? (
                     <div className="team-loading">
                         <div className="spinner"></div>
-                        <p>Loading team...</p>
+                        <p>{t.team.loading}</p>
                     </div>
                 ) : filteredEmployees.length === 0 ? (
                     <div className="team-empty">
                         <div className="team-empty-icon">👥</div>
-                        <h3>No Employees Found</h3>
-                        <p>Add your first team member to get started</p>
+                            <h3>{t.team.empty.title}</h3>
+                            <p>{t.team.empty.description}</p>
                         <Link href="/admin/team/add" className="admin-btn admin-btn-primary" style={{ marginTop: '16px' }}>
-                            Add First Employee
+                                {t.team.empty.add_first}
                         </Link>
                     </div>
                 ) : (
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th>Employee</th>
-                                <th>Position</th>
-                                <th>Salary</th>
-                                <th>Rating (Month)</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                        <th>{t.team.table.employee}</th>
+                                        <th>{t.team.table.position}</th>
+                                        <th>{t.team.table.salary}</th>
+                                        <th>{t.team.table.rating}</th>
+                                        <th>{t.team.table.status}</th>
+                                        <th>{t.team.table.actions}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -203,7 +208,7 @@ export default function EnhancedTeamPage() {
                                     </td>
                                     <td>
                                         <div className="employee-position">{emp.position || '-'}</div>
-                                        <div className="employee-role">{emp.role?.name || 'No Role'}</div>
+                                        <div className="employee-role">{emp.role?.name || t.team.table.no_role}</div>
                                     </td>
                                     <td>
                                         <div className="employee-salary">
@@ -219,7 +224,7 @@ export default function EnhancedTeamPage() {
                                                     </span>
                                                 ))}
                                             </div>
-                                            <div className="rating-value">{emp.monthlyRating}/10 ({emp.totalRatings} days)</div>
+                                            <div className="rating-value">{emp.monthlyRating}/10 ({emp.totalRatings} {t.team.table.days})</div>
                                         </div>
                                     </td>
                                     <td>
@@ -228,7 +233,7 @@ export default function EnhancedTeamPage() {
                                             onClick={() => handleToggleStatus(emp.id)}
                                             className={`status-badge ${emp.isActive ? 'status-active' : 'status-inactive'}`}
                                         >
-                                            {emp.isActive ? '● Active' : '○ Inactive'}
+                                            {emp.isActive ? `● ${t.team.status.active}` : `○ ${t.team.status.inactive}`}
                                         </button>
                                     </td>
                                     <td>
@@ -237,7 +242,7 @@ export default function EnhancedTeamPage() {
                                                 type="button"
                                                 className="action-btn"
                                                 onClick={() => setRatingModal({ open: true, employee: emp })}
-                                                title="Rate Today"
+                                                title={t.team.actions.rate_today}
                                             >
                                                 ⭐
                                             </button>
@@ -245,21 +250,21 @@ export default function EnhancedTeamPage() {
                                                 type="button"
                                                 className="action-btn"
                                                 onClick={() => setSalaryModal({ open: true, employee: emp })}
-                                                title="Pay Salary"
+                                                title={t.team.actions.pay_salary}
                                             >
                                                 💰
                                             </button>
-                                            <Link href={`/admin/team/${emp.id}`} className="action-btn" title="View Profile">
+                                            <Link href={`/admin/team/${emp.id}`} className="action-btn" title={t.team.actions.view_profile}>
                                                 👁️
                                             </Link>
-                                            <Link href={`/admin/team/${emp.id}/edit`} className="action-btn" title="Edit">
+                                            <Link href={`/admin/team/${emp.id}/edit`} className="action-btn" title={t.team.actions.edit}>
                                                 ✏️
                                             </Link>
                                             <button
                                                 type="button"
                                                 className="action-btn action-btn-danger"
                                                 onClick={() => handleDelete(emp.id, emp.name)}
-                                                title="Delete"
+                                                title={t.team.actions.delete}
                                             >
                                                 🗑️
                                             </button>
@@ -571,6 +576,8 @@ function RatingModal({
     const [notes, setNotes] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [processing, setProcessing] = useState(false);
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
 
     const handleSubmit = async () => {
         setProcessing(true);
@@ -578,10 +585,10 @@ function RatingModal({
         setProcessing(false);
 
         if (result.success) {
-            toast.success('Rating saved successfully');
+            toast.success(t.team.rating_modal.success);
             onSuccess();
         } else {
-            toast.error(result.error || 'Failed to save rating');
+            toast.error(result.error || t.team.rating_modal.error);
         }
     };
 
@@ -589,7 +596,7 @@ function RatingModal({
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Rate Employee</h2>
+                    <h2>{t.team.rating_modal.title}</h2>
                     <button onClick={onClose} className="modal-close">×</button>
                 </div>
 
@@ -609,7 +616,7 @@ function RatingModal({
                     </div>
 
                     <div className="form-group">
-                        <label>Date</label>
+                        <label>{t.team.rating_modal.date}</label>
                         <input
                             type="date"
                             value={date}
@@ -619,7 +626,7 @@ function RatingModal({
                     </div>
 
                     <div className="form-group">
-                        <label>Score (0-10)</label>
+                        <label>{t.team.rating_modal.score}</label>
                         <div className="score-slider">
                             <input
                                 type="range"
@@ -632,18 +639,18 @@ function RatingModal({
                             <div className="score-display">{score}</div>
                         </div>
                         <div className="score-labels">
-                            <span>Poor</span>
-                            <span>Average</span>
-                            <span>Excellent</span>
+                            <span>{t.team.rating_modal.poor}</span>
+                            <span>{t.team.rating_modal.average}</span>
+                            <span>{t.team.rating_modal.excellent}</span>
                         </div>
                     </div>
 
                     <div className="form-group">
-                        <label>Notes (Optional)</label>
+                        <label>{t.team.rating_modal.notes}</label>
                         <textarea
                             value={notes}
                             onChange={e => setNotes(e.target.value)}
-                            placeholder="Add notes about today's performance..."
+                            placeholder={t.team.rating_modal.notes_placeholder}
                             className="form-input"
                             rows={3}
                         />
@@ -652,7 +659,7 @@ function RatingModal({
 
                 <div className="modal-footer">
                     <button type="button" className="admin-btn admin-btn-outline" onClick={onClose}>
-                        Cancel
+                        {t.team.rating_modal.cancel}
                     </button>
                     <button
                         type="button"
@@ -660,7 +667,7 @@ function RatingModal({
                         onClick={handleSubmit}
                         disabled={processing}
                     >
-                        {processing ? 'Saving...' : 'Save Rating'}
+                        {processing ? t.team.rating_modal.saving : t.team.rating_modal.save}
                     </button>
                 </div>
             </div>
@@ -835,12 +842,14 @@ function SalaryModal({
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [notes, setNotes] = useState('');
     const [processing, setProcessing] = useState(false);
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
 
     const netAmount = baseSalary + bonus - deductions;
 
     const handleSubmit = async () => {
         if (netAmount <= 0) {
-            toast.error('Net amount must be positive');
+            toast.error(t.team.salary_modal.net_positive_error);
             return;
         }
 
@@ -858,27 +867,26 @@ function SalaryModal({
         setProcessing(false);
 
         if (result.success) {
-            toast.success('Salary paid successfully');
+            toast.success(t.team.salary_modal.success);
             onSuccess();
         } else {
-            toast.error(result.error || 'Failed to process payment');
+            toast.error(result.error || t.team.salary_modal.error);
         }
     };
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(amount);
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(amount);
     };
 
-    const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
+    const months = Array.from({ length: 12 }, (_, i) => {
+        return new Date(2000, i, 1).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US', { month: 'long' });
+    });
 
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Pay Salary</h2>
+                    <h2>{t.team.salary_modal.title}</h2>
                     <button onClick={onClose} className="modal-close">×</button>
                 </div>
 
@@ -899,7 +907,7 @@ function SalaryModal({
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Month</label>
+                            <label>{t.team.salary_modal.month}</label>
                             <select value={month} onChange={e => setMonth(Number(e.target.value))} className="form-input">
                                 {months.map((m, i) => (
                                     <option key={i} value={i + 1}>{m}</option>
@@ -907,7 +915,7 @@ function SalaryModal({
                             </select>
                         </div>
                         <div className="form-group">
-                            <label>Year</label>
+                            <label>{t.team.salary_modal.year}</label>
                             <select value={year} onChange={e => setYear(Number(e.target.value))} className="form-input">
                                 {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
                                     <option key={y} value={y}>{y}</option>
@@ -917,7 +925,7 @@ function SalaryModal({
                     </div>
 
                     <div className="form-group">
-                        <label>Base Salary (EGP)</label>
+                        <label>{t.team.salary_modal.base_salary}</label>
                         <input
                             type="number"
                             value={baseSalary}
@@ -928,7 +936,7 @@ function SalaryModal({
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Bonus (EGP)</label>
+                            <label>{t.team.salary_modal.bonus}</label>
                             <input
                                 type="number"
                                 value={bonus}
@@ -937,7 +945,7 @@ function SalaryModal({
                             />
                         </div>
                         <div className="form-group">
-                            <label>Deductions (EGP)</label>
+                            <label>{t.team.salary_modal.deductions}</label>
                             <input
                                 type="number"
                                 value={deductions}
@@ -948,26 +956,26 @@ function SalaryModal({
                     </div>
 
                     <div className="net-amount">
-                        <span>Net Amount:</span>
+                        <span>{t.team.salary_modal.net_pay}:</span>
                         <span className="net-value">{formatCurrency(netAmount)}</span>
                     </div>
 
                     <div className="form-group">
-                        <label>Payment Method</label>
+                        <label>{t.team.salary_modal.payment_method}</label>
                         <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="form-input">
-                            <option value="cash">Cash</option>
-                            <option value="bank_transfer">Bank Transfer</option>
-                            <option value="vodafone_cash">Vodafone Cash</option>
-                            <option value="instapay">InstaPay</option>
+                            <option value="cash">{t.team.salary_modal.methods.cash}</option>
+                            <option value="bank_transfer">{t.team.salary_modal.methods.bank_transfer}</option>
+                            <option value="vodafone_cash">{t.team.salary_modal.methods.vodafone_cash}</option>
+                            <option value="instapay">{t.team.salary_modal.methods.instapay}</option>
                         </select>
                     </div>
 
                     <div className="form-group">
-                        <label>Notes (Optional)</label>
+                        <label>{t.team.salary_modal.notes}</label>
                         <textarea
                             value={notes}
                             onChange={e => setNotes(e.target.value)}
-                            placeholder="Add payment notes..."
+                            placeholder={t.team.salary_modal.notes_placeholder}
                             className="form-input"
                             rows={2}
                         />
@@ -976,7 +984,7 @@ function SalaryModal({
 
                 <div className="modal-footer">
                     <button type="button" className="admin-btn admin-btn-outline" onClick={onClose}>
-                        Cancel
+                        {t.team.salary_modal.cancel}
                     </button>
                     <button
                         type="button"
@@ -984,7 +992,7 @@ function SalaryModal({
                         onClick={handleSubmit}
                         disabled={processing || netAmount <= 0}
                     >
-                        {processing ? 'Processing...' : `Pay ${formatCurrency(netAmount)}`}
+                        {processing ? t.team.salary_modal.processing : `${t.team.salary_modal.confirm} ${formatCurrency(netAmount)}`}
                     </button>
                 </div>
             </div>

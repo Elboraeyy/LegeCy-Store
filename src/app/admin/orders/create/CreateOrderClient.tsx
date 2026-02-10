@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createManualOrder } from '@/lib/actions/order';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 interface Product {
     id: string;
@@ -50,6 +52,8 @@ interface CreateOrderClientProps {
 }
 
 export default function CreateOrderClient({ products, customers }: CreateOrderClientProps) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language];
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     
@@ -78,7 +82,7 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
 
     // Helpers
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-EG', {
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
             style: 'currency',
             currency: 'EGP',
             maximumFractionDigits: 0,
@@ -115,7 +119,7 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
         setSelectedProductId('');
         setSelectedVariantId('');
         setQuantity(1);
-        toast.success('Added to cart');
+        toast.success(t.orders.create.added_to_cart);
     };
 
     // Remove from cart
@@ -143,15 +147,15 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
     // Submit order
     const handleSubmit = async () => {
         if (cart.length === 0) {
-            toast.error('Please add at least one item to the cart');
+            toast.error(t.orders.create.error_items);
             return;
         }
         if (!customerName || !customerPhone) {
-            toast.error('Customer name and phone are required');
+            toast.error(t.orders.create.error_customer);
             return;
         }
         if (!street || !city || !governorate) {
-            toast.error('Shipping address is required');
+            toast.error(t.orders.create.error_address);
             return;
         }
 
@@ -171,13 +175,13 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
             });
 
             if (result.success) {
-                toast.success('Order created successfully!');
+                toast.success(t.orders.create.success);
                 router.push(`/admin/orders/${result.orderId}`);
             } else {
-                toast.error(result.error || 'Failed to create order');
+                toast.error(result.error || t.common.error || 'Failed to create order');
             }
         } catch {
-            toast.error('An error occurred');
+            toast.error(t.common.error);
         } finally {
             setLoading(false);
         }
@@ -196,15 +200,15 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
             {/* Header */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Create Manual Order</h1>
-                    <p className="admin-subtitle">Create an order for customers who ordered via social media</p>
+                    <h1 className="admin-title">{t.orders.create.title}</h1>
+                    <p className="admin-subtitle">{t.orders.create.subtitle}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
                     <button 
                         onClick={() => router.back()} 
                         className="admin-btn admin-btn-outline"
                     >
-                        ← Back
+                        ← {t.common.back || t.orders.details_page.back}
                     </button>
                 </div>
             </div>
@@ -216,7 +220,7 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                     {/* Customer Section */}
                     <div className="admin-card">
                         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', marginBottom: '20px' }}>
-                            👤 Customer Information
+                            👤 {t.orders.create.customer_info}
                         </h2>
 
                         {/* Customer Mode Toggle */}
@@ -225,41 +229,41 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                                 className={`admin-tab-item ${customerMode === 'new' ? 'active' : ''}`}
                                 onClick={() => setCustomerMode('new')}
                             >
-                                New Customer
+                                {t.orders.create.new_customer}
                             </button>
                             <button 
                                 className={`admin-tab-item ${customerMode === 'existing' ? 'active' : ''}`}
                                 onClick={() => setCustomerMode('existing')}
                             >
-                                Existing Customer
+                                {t.orders.create.existing_customer}
                             </button>
                         </div>
 
                         {customerMode === 'existing' && (
                             <div className="admin-form-group" style={{ marginBottom: '16px' }}>
-                                <label>Select Customer</label>
+                                <label>{t.orders.create.select_customer}</label>
                                 <AdminDropdown
-                                    options={[{ value: '', label: 'Choose a customer...' }, ...customers.map(c => ({ value: c.id, label: `${c.name || 'Unnamed'} - ${c.email || c.phone}` }))]}
+                                    options={[{ value: '', label: t.orders.create.choose_customer }, ...customers.map(c => ({ value: c.id, label: `${c.name || 'Unnamed'} - ${c.email || c.phone}` }))]}
                                     value={selectedCustomerId}
                                     onChange={handleCustomerSelect}
-                                    placeholder="Choose a customer..."
+                                    placeholder={t.orders.create.choose_customer}
                                 />
                             </div>
                         )}
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                             <div className="admin-form-group">
-                                <label>Name *</label>
+                                <label>{t.orders.create.name} *</label>
                                 <input 
                                     type="text" 
                                     className="form-input"
                                     value={customerName}
                                     onChange={(e) => setCustomerName(e.target.value)}
-                                    placeholder="Customer name"
+                                    placeholder={t.orders.create.name}
                                 />
                             </div>
                             <div className="admin-form-group">
-                                <label>Phone *</label>
+                                <label>{t.orders.create.phone} *</label>
                                 <input 
                                     type="tel" 
                                     className="form-input"
@@ -269,7 +273,7 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                                 />
                             </div>
                             <div className="admin-form-group" style={{ gridColumn: 'span 2' }}>
-                                <label>Email</label>
+                                <label>{t.orders.create.email}</label>
                                 <input 
                                     type="email" 
                                     className="form-input"
@@ -284,47 +288,53 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                     {/* Shipping Address */}
                     <div className="admin-card">
                         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', marginBottom: '20px' }}>
-                            📍 Shipping Address
+                            📍 {t.orders.create.shipping_address}
                         </h2>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                             <div className="admin-form-group" style={{ gridColumn: 'span 2' }}>
-                                <label>Street Address *</label>
+                                <label>{t.orders.create.street} *</label>
                                 <input 
                                     type="text" 
                                     className="form-input"
                                     value={street}
                                     onChange={(e) => setStreet(e.target.value)}
-                                    placeholder="Street, building, apartment..."
+                                    placeholder={t.orders.create.street}
                                 />
                             </div>
                             <div className="admin-form-group">
-                                <label>City *</label>
+                                <label>{t.orders.create.city} *</label>
                                 <input 
                                     type="text" 
                                     className="form-input"
                                     value={city}
                                     onChange={(e) => setCity(e.target.value)}
-                                    placeholder="City"
+                                    placeholder={t.orders.create.city}
                                 />
                             </div>
                             <div className="admin-form-group">
-                                <label>Governorate *</label>
+                                <label>{t.orders.create.governorate} *</label>
                                 <AdminDropdown
-                                    options={[{ value: '', label: 'Select governorate...' }, ...egyptGovernorates.map(gov => ({ value: gov, label: gov }))]}
+                                    options={[
+                                        { value: '', label: t.orders.create.governorate + '...' },
+                                        ...egyptGovernorates.map(gov => ({
+                                            value: gov,
+                                            label: (t as any).governorates?.[gov] || gov
+                                        }))
+                                    ]}
                                     value={governorate}
                                     onChange={setGovernorate}
-                                    placeholder="Select governorate..."
+                                    placeholder={t.orders.create.governorate + '...'}
                                 />
                             </div>
                             <div className="admin-form-group">
-                                <label>Postal Code</label>
+                                <label>{t.orders.create.postal_code}</label>
                                 <input 
                                     type="text" 
                                     className="form-input"
                                     value={postalCode}
                                     onChange={(e) => setPostalCode(e.target.value)}
-                                    placeholder="Optional"
+                                    placeholder={t.orders.create.optional}
                                 />
                             </div>
                         </div>
@@ -333,40 +343,40 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                     {/* Add Products */}
                     <div className="admin-card">
                         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', marginBottom: '20px' }}>
-                            🛒 Add Products
+                            🛒 {t.orders.create.add_products}
                         </h2>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr auto', gap: '12px', alignItems: 'end' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: language === 'ar' ? '2fr 2fr 1fr auto' : '2fr 2fr 1fr auto', gap: '12px', alignItems: 'end' }}>
                             <div className="admin-form-group">
-                                <label>Product</label>
+                                <label>{t.orders.create.product}</label>
                                 <AdminDropdown
-                                    options={[{ value: '', label: 'Select product...' }, ...products.map(p => ({ value: p.id, label: `${p.name}${p.category ? ` (${p.category.name})` : ''}` }))]}
+                                    options={[{ value: '', label: t.orders.create.select_product }, ...products.map(p => ({ value: p.id, label: `${p.name}${p.category ? ` (${p.category.name})` : ''}` }))]}
                                     value={selectedProductId}
                                     onChange={(val) => {
                                         setSelectedProductId(val);
                                         setSelectedVariantId('');
                                     }}
-                                    placeholder="Select product..."
+                                    placeholder={t.orders.create.select_product}
                                 />
                             </div>
                             <div className="admin-form-group">
-                                <label>Variant</label>
+                                <label>{t.orders.create.variant}</label>
                                 <AdminDropdown
                                     options={[
-                                        { value: '', label: 'Select variant...' },
+                                        { value: '', label: t.orders.create.select_variant },
                                         ...(selectedProduct?.variants.map(v => {
                                             const stock = v.warehouseStock.reduce((sum, ws) => sum + ws.available, 0);
-                                            return { value: v.id, label: `${v.name} - ${formatCurrency(v.price)} (${stock} in stock)` };
+                                            return { value: v.id, label: `${v.name} - ${formatCurrency(v.price)} (${stock} ${t.orders.create.in_stock})` };
                                         }) || [])
                                     ]}
                                     value={selectedVariantId}
                                     onChange={setSelectedVariantId}
-                                    placeholder="Select variant..."
+                                    placeholder={t.orders.create.select_variant}
                                     disabled={!selectedProduct}
                                 />
                             </div>
                             <div className="admin-form-group">
-                                <label>Qty</label>
+                                <label>{t.orders.create.qty}</label>
                                 <input 
                                     type="number" 
                                     className="form-input"
@@ -382,7 +392,7 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                                 disabled={!selectedVariantId}
                                 style={{ marginBottom: '8px' }}
                             >
-                                Add
+                                {t.orders.create.add}
                             </button>
                         </div>
                     </div>
@@ -390,18 +400,18 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                     {/* Order Notes */}
                     <div className="admin-card">
                         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', marginBottom: '20px' }}>
-                            📝 Order Details
+                            📝 {t.orders.create.order_details}
                         </h2>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                             <div className="admin-form-group">
-                                <label>Order Source</label>
+                                <label>{t.orders.create.order_source}</label>
                                 <AdminDropdown
                                     options={[
                                         { value: 'instagram', label: 'Instagram' },
                                         { value: 'facebook', label: 'Facebook' },
                                         { value: 'whatsapp', label: 'WhatsApp' },
-                                        { value: 'phone', label: 'Phone Call' },
+                                        { value: 'phone', label: t.common.phone || 'Phone' },
                                         { value: 'in_store', label: 'In Store' },
                                         { value: 'other', label: 'Other' }
                                     ]}
@@ -410,12 +420,12 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                                 />
                             </div>
                             <div className="admin-form-group" style={{ gridColumn: 'span 2' }}>
-                                <label>Notes</label>
+                                <label>{t.orders.create.notes}</label>
                                 <textarea 
                                     className="form-input"
                                     value={orderNotes}
                                     onChange={(e) => setOrderNotes(e.target.value)}
-                                    placeholder="Any special instructions or notes..."
+                                    placeholder={t.orders.create.instructions_placeholder}
                                     rows={3}
                                 />
                             </div>
@@ -427,12 +437,12 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                 <div>
                     <div className="admin-card" style={{ position: 'sticky', top: '24px' }}>
                         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', marginBottom: '20px' }}>
-                            🧾 Order Summary
+                            🧾 {t.orders.create.order_summary}
                         </h2>
 
                         {cart.length === 0 ? (
                             <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                                No items added yet
+                                {t.orders.create.no_items}
                             </div>
                         ) : (
                             <div>
@@ -485,7 +495,7 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                                     justifyContent: 'space-between',
                                     alignItems: 'center'
                                 }}>
-                                    <span style={{ fontSize: '16px', fontWeight: 600 }}>Total</span>
+                                        <span style={{ fontSize: '16px', fontWeight: 600 }}>{t.orders.details.total}</span>
                                     <span className="stat-value" style={{ fontSize: '28px' }}>
                                         {formatCurrency(cartTotal)}
                                     </span>
@@ -500,7 +510,7 @@ export default function CreateOrderClient({ products, customers }: CreateOrderCl
                             disabled={loading || cart.length === 0}
                             style={{ width: '100%', marginTop: '24px', padding: '16px' }}
                         >
-                            {loading ? 'Creating Order...' : 'Create Order'}
+                            {loading ? t.orders.create.creating : t.orders.create.create_order}
                         </button>
                     </div>
                 </div>

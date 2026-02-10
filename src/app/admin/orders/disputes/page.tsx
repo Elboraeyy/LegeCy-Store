@@ -42,20 +42,6 @@ export default async function DisputesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Dispute Management</h1>
-          <p className="text-gray-500 mt-1">
-            Handle disputed orders and chargebacks
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">
-            {disputedOrders.length} Active Disputes
-          </span>
-        </div>
-      </div>
-
       <DisputesClient disputes={disputedOrders} chargebacks={recentChargebacks} />
     </div>
   );

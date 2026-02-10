@@ -8,6 +8,8 @@ import CategoryActions from '@/components/admin/CategoryActions';
 import EmptyState from '@/components/admin/EmptyState';
 import BrandListClient from '@/components/admin/BrandListClient';
 import MaterialListClient from '@/components/admin/MaterialListClient';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 import '@/app/admin/admin.css';
 
 interface Category {
@@ -48,6 +50,8 @@ interface CategoryListClientProps {
 }
 
 export default function CategoryListClient({ initialCategories, initialBrands = [], initialMaterials = [] }: CategoryListClientProps) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const [categories, setCategories] = useState(initialCategories);
     const [isReordering, setIsReordering] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -68,14 +72,14 @@ export default function CategoryListClient({ initialCategories, initialBrands = 
             const result = await reorderCategoriesAction(updates);
             
             if (result.success) {
-                toast.success('Category order updated');
+                toast.success(t.categories.messages?.order_updated || 'Category order updated');
                 setIsReordering(false);
             } else {
-                toast.error(result.error || 'Failed to reorder');
+                toast.error(result.error || t.categories.messages?.failed_reorder || 'Failed to reorder');
             }
         } catch (error) {
             console.error(error);
-            toast.error('An error occurred');
+            toast.error(t.categories.messages?.error || 'An error occurred');
         } finally {
             setLoading(false);
         }
@@ -108,26 +112,26 @@ export default function CategoryListClient({ initialCategories, initialBrands = 
             {/* Header / Toolbar */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Categories</h1>
-                    <p className="admin-subtitle">Organize your products into categories</p>
+                    <h1 className="admin-title">{t.categories.title}</h1>
+                    <p className="admin-subtitle">{t.categories.subtitle}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     {isReordering ? (
                         <>
-                             <div className="text-sm text-gray-500 mr-2">Drag or use arrows to reorder</div>
+                            <div className="text-sm text-gray-500 mr-2">{t.categories.reorder_hint || 'Drag or use arrows to reorder'}</div>
                              <button
                                 onClick={toggleReorder}
                                 className="admin-btn admin-btn-outline"
                                 disabled={loading}
                              >
-                                Cancel
+                                {t.categories.cancel || 'Cancel'}
                              </button>
                              <button
                                 onClick={saveOrder}
                                 className="admin-btn admin-btn-primary"
                                 disabled={loading}
                              >
-                                {loading ? 'Saving...' : 'Save Sorting'}
+                                {loading ? (t.categories.saving || 'Saving...') : (t.categories.save_sorting || 'Save Sorting')}
                              </button>
                         </>
                     ) : (
@@ -137,10 +141,10 @@ export default function CategoryListClient({ initialCategories, initialBrands = 
                                 className="admin-btn admin-btn-outline"
                                 disabled={categories.length === 0}
                              >
-                                ⇅ Reorder
+                                    ⇅ {t.categories.reorder || 'Reorder'}
                              </button>
                              <Link href="/admin/categories/new" className="admin-btn admin-btn-primary">
-                                + Add Category
+                                    + {t.categories.add_category}
                              </Link>
                         </>
                     )}
@@ -151,9 +155,9 @@ export default function CategoryListClient({ initialCategories, initialBrands = 
             {categories.length === 0 ? (
                  <EmptyState
                     icon="📁"
-                    title="No categories yet"
-                    description="Create categories to organize your products"
-                    actionLabel="Create Category"
+                    title={t.categories.empty.title}
+                    description={t.categories.empty.description}
+                    actionLabel={t.categories.add_category}
                     actionHref="/admin/categories/new"
                 />
             ) : (
@@ -161,12 +165,12 @@ export default function CategoryListClient({ initialCategories, initialBrands = 
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Slug</th>
-                                <th>Parent</th>
-                                <th>Products</th>
-                                <th>Order</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                    <th>{t.categories.fields.name}</th>
+                                    <th>{t.categories.fields.slug}</th>
+                                    <th>{t.categories.fields.parent}</th>
+                                    <th>{t.categories.fields.products_count}</th>
+                                    <th>{t.categories.order || 'Order'}</th>
+                                    <th style={{ textAlign: 'right' }}>{t.categories.actions || 'Actions'}</th>
                             </tr>
                         </thead>
                         <tbody>

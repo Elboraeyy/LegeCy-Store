@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from 'react';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
+import BackButton from '@/components/admin/BackButton';
 
 interface FailedOrder {
     id: string;
@@ -20,38 +23,67 @@ interface Props {
 }
 
 export default function FailedPaymentsClient({ orders }: Props) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language];
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
     const failedCount = orders.filter(o => o.status === 'payment_failed').length;
     const pendingCount = orders.filter(o => o.status === 'payment_pending').length;
 
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
+            style: 'currency',
+            currency: 'EGP',
+            maximumFractionDigits: 0,
+        }).format(amount);
+    };
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    };
+
     return (
         <div>
+            {/* Header - Moved from Page Component for Localization */}
+            <div className="admin-header">
+                <div>
+                    <h1 className="admin-title">{t.orders.failed_payments.title}</h1>
+                    <p className="admin-subtitle">{t.orders.failed_payments.subtitle}</p>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <BackButton fallbackHref="/admin/orders" label={`← ${t.common.back}`} />
+                </div>
+            </div>
+
             {/* Stats Row */}
             <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
                 <div className="admin-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span className="stat-label">Payment Failed</span>
+                        <span className="stat-label">{t.orders.failed_payments.failed_stat}</span>
                         <span style={{ fontSize: '20px' }}>❌</span>
                     </div>
                     <div style={{ fontSize: '28px', fontWeight: 700, color: '#ef4444' }}>{failedCount}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>Failed transactions</div>
+                    <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>{t.orders.failed_payments.failed_desc}</div>
                 </div>
                 <div className="admin-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span className="stat-label">Awaiting Payment</span>
+                        <span className="stat-label">{t.orders.failed_payments.pending_stat}</span>
                         <span style={{ fontSize: '20px' }}>⏳</span>
                     </div>
                     <div style={{ fontSize: '28px', fontWeight: 700, color: '#f59e0b' }}>{pendingCount}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>Pending confirmation</div>
+                    <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>{t.orders.failed_payments.pending_desc}</div>
                 </div>
                 <div className="admin-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span className="stat-label">Total</span>
+                        <span className="stat-label">{t.orders.failed_payments.total_stat}</span>
                         <span style={{ fontSize: '20px' }}>📊</span>
                     </div>
                     <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--admin-text)' }}>{orders.length}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>Need attention</div>
+                    <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>{t.orders.failed_payments.attention_desc}</div>
                 </div>
             </div>
 
@@ -59,8 +91,8 @@ export default function FailedPaymentsClient({ orders }: Props) {
             {orders.length === 0 ? (
                 <div className="admin-card" style={{ padding: '60px', textAlign: 'center' }}>
                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
-                    <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No Failed Payments</h3>
-                    <p style={{ color: 'var(--admin-text-muted)' }}>All payment attempts were successful</p>
+                    <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>{t.orders.failed_payments.no_failed}</h3>
+                    <p style={{ color: 'var(--admin-text-muted)' }}>{t.orders.failed_payments.all_clear}</p>
                 </div>
             ) : (
                 /* Orders Table */
@@ -68,13 +100,13 @@ export default function FailedPaymentsClient({ orders }: Props) {
                     <table className="admin-table" style={{ width: '100%' }}>
                         <thead>
                             <tr>
-                                <th style={{ padding: '16px', textAlign: 'left', borderBottom: '1px solid var(--admin-border)' }}>Order ID</th>
-                                <th style={{ padding: '16px', textAlign: 'left', borderBottom: '1px solid var(--admin-border)' }}>Status</th>
-                                <th style={{ padding: '16px', textAlign: 'left', borderBottom: '1px solid var(--admin-border)' }}>Customer</th>
-                                <th style={{ padding: '16px', textAlign: 'left', borderBottom: '1px solid var(--admin-border)' }}>Phone</th>
-                                <th style={{ padding: '16px', textAlign: 'left', borderBottom: '1px solid var(--admin-border)' }}>Amount</th>
-                                <th style={{ padding: '16px', textAlign: 'left', borderBottom: '1px solid var(--admin-border)' }}>Date</th>
-                                <th style={{ padding: '16px', textAlign: 'center', borderBottom: '1px solid var(--admin-border)' }}>Actions</th>
+                                    <th style={{ padding: '16px', textAlign: 'start', borderBottom: '1px solid var(--admin-border)' }}>{t.orders.table.id}</th>
+                                    <th style={{ padding: '16px', textAlign: 'start', borderBottom: '1px solid var(--admin-border)' }}>{t.orders.table.status}</th>
+                                    <th style={{ padding: '16px', textAlign: 'start', borderBottom: '1px solid var(--admin-border)' }}>{t.orders.table.customer}</th>
+                                    <th style={{ padding: '16px', textAlign: 'start', borderBottom: '1px solid var(--admin-border)' }}>{t.common.phone}</th>
+                                    <th style={{ padding: '16px', textAlign: 'start', borderBottom: '1px solid var(--admin-border)' }}>{t.orders.table.total}</th>
+                                    <th style={{ padding: '16px', textAlign: 'start', borderBottom: '1px solid var(--admin-border)' }}>{t.orders.table.date}</th>
+                                    <th style={{ padding: '16px', textAlign: 'center', borderBottom: '1px solid var(--admin-border)' }}>{t.orders.table.actions}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -91,11 +123,13 @@ export default function FailedPaymentsClient({ orders }: Props) {
                                                 background: order.status === 'payment_failed' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)',
                                                 color: order.status === 'payment_failed' ? '#ef4444' : '#f59e0b'
                                             }}>
-                                                {order.status === 'payment_failed' ? 'Failed' : 'Pending'}
+                                                {order.status === 'payment_failed'
+                                                    ? (t.orders.status.payment_failed || 'Failed')
+                                                    : (t.orders.status.payment_pending || 'Pending')}
                                             </span>
                                         </td>
                                         <td style={{ padding: '16px' }}>
-                                            <div style={{ fontWeight: 500 }}>{order.customerName || order.user?.name || 'Unknown'}</div>
+                                            <div style={{ fontWeight: 500 }}>{order.customerName || order.user?.name || (t.orders.details.guest || 'Unknown')}</div>
                                             <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>{order.customerEmail || order.user?.email}</div>
                                         </td>
                                         <td style={{ padding: '16px' }}>
@@ -105,9 +139,9 @@ export default function FailedPaymentsClient({ orders }: Props) {
                                                 </a>
                                             ) : '-'}
                                         </td>
-                                        <td style={{ padding: '16px', fontWeight: 600 }}>{order.totalPrice.toFixed(2)} EGP</td>
+                                        <td style={{ padding: '16px', fontWeight: 600 }}>{formatCurrency(order.totalPrice)}</td>
                                         <td style={{ padding: '16px', fontSize: '13px', color: 'var(--admin-text-muted)' }}>
-                                            {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            {formatDate(order.createdAt)}
                                         </td>
                                         <td style={{ padding: '16px', textAlign: 'center' }}>
                                             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
@@ -129,7 +163,7 @@ export default function FailedPaymentsClient({ orders }: Props) {
                                                             gap: '4px'
                                                         }}
                                                     >
-                                                        💬 WhatsApp
+                                                        {t.orders.failed_payments.whatsapp}
                                                     </a>
                                                 )}
                                                 <button
@@ -144,7 +178,7 @@ export default function FailedPaymentsClient({ orders }: Props) {
                                                         cursor: 'pointer'
                                                     }}
                                                 >
-                                                    {expandedId === order.id ? 'Hide' : 'Details'}
+                                                    {expandedId === order.id ? t.orders.failed_payments.hide : t.orders.failed_payments.details}
                                                 </button>
                                             </div>
                                         </td>
@@ -154,17 +188,17 @@ export default function FailedPaymentsClient({ orders }: Props) {
                                             <td colSpan={7} style={{ padding: '20px', background: 'var(--admin-bg-hover)' }}>
                                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                                                     <div>
-                                                        <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Products</h4>
+                                                        <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>{t.orders.failed_payments.products}</h4>
                                                         <ul style={{ margin: 0, paddingLeft: '20px' }}>
                                                             {order.items.map((item, i) => (
                                                                 <li key={i} style={{ marginBottom: '4px', fontSize: '13px' }}>
-                                                                    {item.name} × {item.quantity} = {(item.price * item.quantity).toFixed(2)} EGP
+                                                                    {item.name} × {item.quantity} = {formatCurrency(item.price * item.quantity)}
                                                                 </li>
                                                             ))}
                                                         </ul>
                                                     </div>
                                                     <div>
-                                                        <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Contact Customer</h4>
+                                                        <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>{t.orders.failed_payments.contact_customer}</h4>
                                                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                                             {order.customerPhone && (
                                                                 <a
@@ -178,7 +212,7 @@ export default function FailedPaymentsClient({ orders }: Props) {
                                                                         textDecoration: 'none'
                                                                     }}
                                                                 >
-                                                                    📞 Call
+                                                                    📞 {t.orders.failed_payments.call}
                                                                 </a>
                                                             )}
                                                             {order.customerEmail && (
@@ -194,7 +228,7 @@ export default function FailedPaymentsClient({ orders }: Props) {
                                                                         textDecoration: 'none'
                                                                     }}
                                                                 >
-                                                                    ✉️ Email
+                                                                    ✉️ {t.orders.failed_payments.email}
                                                                 </a>
                                                             )}
                                                         </div>

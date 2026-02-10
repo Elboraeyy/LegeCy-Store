@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { deleteBrandAction } from '@/lib/actions/brand';
 import EmptyState from '@/components/admin/EmptyState';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 import '@/app/admin/admin.css';
 
 interface Brand {
@@ -19,26 +21,28 @@ interface Brand {
 }
 
 export default function BrandListClient({ initialBrands }: { initialBrands: Brand[] }) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const [brands, setBrands] = useState(initialBrands);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`Are you sure you want to delete brand "${name}"?`)) return;
+        if (!confirm(`${t.brands.confirm_delete || 'Are you sure you want to delete brand'} "${name}"?`)) return;
 
         setLoading(true);
         try {
             const result = await deleteBrandAction(id);
             if (result.success) {
-                toast.success('Brand deleted successfully');
+                toast.success(t.brands.deleted || 'Brand deleted successfully');
                 setBrands(prev => prev.filter(b => b.id !== id));
                 router.refresh();
             } else {
-                toast.error(result.error || 'Failed to delete brand');
+                toast.error(result.error || t.brands.failed_delete || 'Failed to delete brand');
             }
         } catch (error) {
             console.error(error);
-            toast.error('An error occurred');
+            toast.error(t.brands.error || 'An error occurred');
         } finally {
             setLoading(false);
         }
@@ -48,9 +52,9 @@ export default function BrandListClient({ initialBrands }: { initialBrands: Bran
         return (
             <EmptyState
                 icon="🏷️"
-                title="No brands yet"
-                description="Create brands to organize your products"
-                actionLabel="Create Brand"
+                title={t.brands.no_brands}
+                description={t.brands.empty_desc || 'Create brands to organize your products'}
+                actionLabel={t.brands.add_brand}
                 actionHref="/admin/brands/new"
             />
         );
@@ -61,12 +65,12 @@ export default function BrandListClient({ initialBrands }: { initialBrands: Bran
             {/* Header / Toolbar */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Brands</h1>
-                    <p className="admin-subtitle">Manage product brands</p>
+                    <h1 className="admin-title">{t.brands.title}</h1>
+                    <p className="admin-subtitle">{t.brands.subtitle}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     <Link href="/admin/brands/new" className="admin-btn admin-btn-primary">
-                        + Add Brand
+                        + {t.brands.add_brand}
                     </Link>
                 </div>
             </div>
@@ -76,11 +80,11 @@ export default function BrandListClient({ initialBrands }: { initialBrands: Bran
                 <table className="admin-table">
                     <thead>
                         <tr>
-                            <th style={{ width: '60px' }}>Image</th>
-                            <th>Name</th>
-                            <th>Slug</th>
-                            <th>Products</th>
-                            <th style={{ textAlign: 'right' }}>Actions</th>
+                            <th style={{ width: '60px' }}>{t.brands.image || 'Image'}</th>
+                            <th>{t.brands.name || 'Name'}</th>
+                            <th>{t.brands.slug || 'Slug'}</th>
+                            <th>{t.brands.products || 'Products'}</th>
+                            <th style={{ textAlign: 'right' }}>{t.brands.actions || 'Actions'}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -129,7 +133,7 @@ export default function BrandListClient({ initialBrands }: { initialBrands: Bran
                                             className="admin-btn admin-btn-outline"
                                             style={{ padding: '8px 16px', fontSize: '11px' }}
                                         >
-                                            Edit
+                                            {t.brands.edit || 'Edit'}
                                         </Link>
                                         <button 
                                             onClick={() => handleDelete(brand.id, brand.name)}
@@ -141,9 +145,9 @@ export default function BrandListClient({ initialBrands }: { initialBrands: Bran
                                                 borderColor: brand._count.products > 0 ? '#ddd' : '#fecaca'
                                             }}
                                             disabled={loading || brand._count.products > 0}
-                                            title={brand._count.products > 0 ? 'Remove products first' : 'Delete brand'}
+                                            title={brand._count.products > 0 ? (t.brands.remove_products_first || 'Remove products first') : (t.brands.delete_brand || 'Delete brand')}
                                         >
-                                            Delete
+                                            {t.brands.delete || 'Delete'}
                                         </button>
                                     </div>
                                 </td>

@@ -6,8 +6,12 @@ import { toast } from 'sonner';
 import { getPayrollSummary, paySalary } from '@/lib/actions/employee-management';
 import { getVaults, Vault } from '@/lib/actions/treasury';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 export default function PayrollPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const now = new Date();
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [year, setYear] = useState(now.getFullYear());
@@ -62,52 +66,56 @@ export default function PayrollPage() {
 
     const handlePayNow = async (emp: { id: string; name: string; salary: number }) => {
         const selectedVault = vaults.find(v => v.id === selectedVaultId);
-        const vaultName = selectedVault?.name || 'Cash';
+        const vaultName = selectedVault?.name || t.team.salary_modal.methods.cash;
         
-        if (!confirm(`Pay ${emp.name} their salary of ${formatCurrency(emp.salary)} from ${vaultName}?`)) return;
+        const confirmMessage = t.team.payroll_page.confirm_pay
+            .replace('{name}', emp.name)
+            .replace('{amount}', formatCurrency(emp.salary))
+            .replace('{vault}', vaultName);
+
+        if (!confirm(confirmMessage)) return;
 
         setProcessing(emp.id);
         const result = await paySalary(emp.id, emp.salary, 0, 0, month, year, 'cash', undefined, selectedVaultId);
         setProcessing(null);
 
         if (result.success) {
-            toast.success(`Salary paid to ${emp.name} from ${vaultName}`);
+            toast.success(t.team.payroll_page.success_pay.replace('{name}', emp.name).replace('{vault}', vaultName));
             loadSummary();
         } else {
-            toast.error(result.error || 'Failed to process payment');
+            toast.error(result.error || t.team.payroll_page.error_pay);
         }
     };
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(amount);
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-US', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(amount);
     };
 
     const formatDate = (date: Date) => {
-        return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return new Date(date).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric' });
     };
 
-    const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
+    const months = Array.from({ length: 12 }, (_, i) => {
+        return new Date(2000, i, 1).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US', { month: 'long' });
+    });
 
     return (
         <div className="payroll-page">
             {/* Header */}
             <div className="payroll-header">
                 <div>
-                    <h1 className="admin-title">💰 Payroll Management</h1>
-                    <p className="admin-subtitle">Process and track employee salary payments</p>
+                    <h1 className="admin-title">💰 {t.team.payroll_page.title}</h1>
+                    <p className="admin-subtitle">{t.team.payroll_page.subtitle}</p>
                 </div>
                 <Link href="/admin/team" className="admin-btn admin-btn-outline">
-                    ← Back to Team
+                    {language === 'ar' ? '→' : '←'} {t.team.payroll_page.back}
                 </Link>
             </div>
 
             {/* Month/Year/Vault Selector */}
             <div className="payroll-filters">
                 <div className="filter-group">
-                    <label>Month</label>
+                    <label>{t.team.payroll_page.month}</label>
                     <select value={month} onChange={e => setMonth(Number(e.target.value))} className="form-input">
                         {months.map((m, i) => (
                             <option key={i} value={i + 1}>{m}</option>
@@ -115,7 +123,7 @@ export default function PayrollPage() {
                     </select>
                 </div>
                 <div className="filter-group">
-                    <label>Year</label>
+                    <label>{t.team.payroll_page.year}</label>
                     <select value={year} onChange={e => setYear(Number(e.target.value))} className="form-input">
                         {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
                             <option key={y} value={y}>{y}</option>
@@ -123,7 +131,7 @@ export default function PayrollPage() {
                     </select>
                 </div>
                 <div className="filter-group">
-                    <label>🏦 Pay From Vault</label>
+                    <label>🏦 {t.team.payroll_page.vault}</label>
                     <select 
                         value={selectedVaultId} 
                         onChange={e => setSelectedVaultId(e.target.value)} 
@@ -141,7 +149,7 @@ export default function PayrollPage() {
             {loading ? (
                 <div className="payroll-loading">
                     <div className="spinner"></div>
-                    <p>Loading payroll...</p>
+                    <p>{t.team.payroll_page.loading}</p>
                 </div>
             ) : summary && (
                 <>
@@ -150,28 +158,28 @@ export default function PayrollPage() {
                         <div className="admin-card summary-card">
                             <div className="summary-icon">💵</div>
                             <div>
-                                <div className="summary-label">Total Paid ({months[month - 1]})</div>
+                                    <div className="summary-label">{t.team.payroll_page.total_paid} ({months[month - 1]})</div>
                                 <div className="summary-value">{formatCurrency(summary.totalPaid)}</div>
                             </div>
                         </div>
                         <div className="admin-card summary-card">
                             <div className="summary-icon">✅</div>
                             <div>
-                                <div className="summary-label">Employees Paid</div>
+                                    <div className="summary-label">{t.team.payroll_page.employees_paid}</div>
                                 <div className="summary-value">{summary.totalEmployees}</div>
                             </div>
                         </div>
                         <div className="admin-card summary-card pending">
                             <div className="summary-icon">⏳</div>
                             <div>
-                                <div className="summary-label">Pending Payments</div>
+                                    <div className="summary-label">{t.team.payroll_page.pending_payments}</div>
                                 <div className="summary-value">{summary.unpaidEmployees.length}</div>
                             </div>
                         </div>
                         <div className="admin-card summary-card">
                             <div className="summary-icon">💰</div>
                             <div>
-                                <div className="summary-label">Pending Amount</div>
+                                    <div className="summary-label">{t.team.payroll_page.pending_amount}</div>
                                 <div className="summary-value">
                                     {formatCurrency(summary.unpaidEmployees.reduce((sum, e) => sum + e.salary, 0))}
                                 </div>
@@ -182,13 +190,13 @@ export default function PayrollPage() {
                     {/* Unpaid Employees */}
                     {summary.unpaidEmployees.length > 0 && (
                         <div className="admin-card payroll-section">
-                            <h3 className="section-title">⏳ Pending Payments</h3>
+                                <h3 className="section-title">⏳ {t.team.payroll_page.pending_payments}</h3>
                             <table className="admin-table">
                                 <thead>
                                     <tr>
-                                        <th>Employee</th>
-                                        <th>Salary Amount</th>
-                                        <th>Action</th>
+                                            <th>{t.team.payroll_page.table.employee}</th>
+                                            <th>{t.team.payroll_page.table.salary}</th>
+                                            <th>{t.team.payroll_page.table.action}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -206,7 +214,7 @@ export default function PayrollPage() {
                                                     onClick={() => handlePayNow(emp)}
                                                     disabled={processing === emp.id}
                                                 >
-                                                    {processing === emp.id ? 'Processing...' : 'Pay Now'}
+                                                    {processing === emp.id ? t.team.payroll_page.processing : t.team.payroll_page.pay_now}
                                                 </button>
                                             </td>
                                         </tr>
@@ -218,18 +226,18 @@ export default function PayrollPage() {
 
                     {/* Paid Employees */}
                     <div className="admin-card payroll-section">
-                        <h3 className="section-title">✅ Completed Payments</h3>
+                            <h3 className="section-title">✅ {t.team.payroll_page.completed_payments}</h3>
                         {summary.payments.length === 0 ? (
                             <div className="no-payments">
-                                <p>No payments processed for {months[month - 1]} {year}</p>
+                                    <p>{t.team.payroll_page.no_payments} {months[month - 1]} {year}</p>
                             </div>
                         ) : (
                             <table className="admin-table">
                                 <thead>
                                     <tr>
-                                        <th>Employee</th>
-                                        <th>Amount</th>
-                                        <th>Payment Date</th>
+                                                <th>{t.team.payroll_page.table.employee}</th>
+                                                <th>{t.team.payroll_page.table.amount}</th>
+                                                <th>{t.team.payroll_page.table.payment_date}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

@@ -6,11 +6,15 @@ import { fetchInventoryPro, fetchAllWarehouses, InventoryItemPro } from '@/lib/a
 import InventoryTablePro from '@/components/admin/inventory/InventoryTablePro';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 export default function InventoryPage() {
     const { hasPermission, isLoading: permLoading } = useAdminPermissions();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
 
     // State
     const [data, setData] = useState<InventoryItemPro[]>([]);
@@ -88,48 +92,48 @@ export default function InventoryPage() {
 
     // Status filter tabs
     const stockFilters = [
-        { value: 'ALL', label: 'All Stock', count: stats.totalItems },
-        { value: 'IN_STOCK', label: 'In Stock', count: stats.totalItems - stats.lowStockCount - stats.outOfStockCount },
-        { value: 'LOW_STOCK', label: 'Low Stock', count: stats.lowStockCount },
-        { value: 'OUT_OF_STOCK', label: 'Out of Stock', count: stats.outOfStockCount },
+        { value: 'ALL', label: t.inventory.filters.all_stock, count: stats.totalItems },
+        { value: 'IN_STOCK', label: t.inventory.filters.in_stock, count: stats.totalItems - stats.lowStockCount - stats.outOfStockCount },
+        { value: 'LOW_STOCK', label: t.inventory.filters.low_stock, count: stats.lowStockCount },
+        { value: 'OUT_OF_STOCK', label: t.inventory.filters.out_of_stock, count: stats.outOfStockCount },
     ];
 
-    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
-    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>Access Denied</div>;
+    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{t.common.loading}</div>;
+    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>{t.inventory.access_denied}</div>;
 
     return (
         <div>
             {/* Header */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Stock Inventory</h1>
-                    <p className="admin-subtitle">Manage stock levels across all warehouses</p>
+                    <h1 className="admin-title">{t.inventory.title}</h1>
+                    <p className="admin-subtitle">{t.inventory.subtitle}</p>
                 </div>
                 <button 
                     onClick={refreshData} 
                     className="admin-btn admin-btn-primary"
                     disabled={loading}
                 >
-                    {loading ? 'Refreshing...' : '↻ Refresh'}
+                    {loading ? t.inventory.refreshing : `↻ ${t.inventory.refresh}`}
                 </button>
             </div>
 
             {/* Stats Cards */}
             <div className="admin-grid" style={{ marginBottom: '32px' }}>
                 <div className="admin-card">
-                    <div className="stat-label">Total SKUs</div>
+                    <div className="stat-label">{t.inventory.stats.total_skus}</div>
                     <div className="stat-value">{stats.totalItems}</div>
                 </div>
                 <div className="admin-card">
-                    <div className="stat-label">Total Units</div>
+                    <div className="stat-label">{t.inventory.stats.total_units}</div>
                     <div className="stat-value">{stats.totalQuantity.toLocaleString()}</div>
                 </div>
                 <div className="admin-card">
-                    <div className="stat-label">Low Stock</div>
+                    <div className="stat-label">{t.inventory.stats.low_stock}</div>
                     <div className="stat-value" style={{ color: stats.lowStockCount > 0 ? '#b76e00' : 'inherit' }}>{stats.lowStockCount}</div>
                 </div>
                 <div className="admin-card">
-                    <div className="stat-label">Out of Stock</div>
+                    <div className="stat-label">{t.inventory.stats.out_of_stock}</div>
                     <div className="stat-value" style={{ color: stats.outOfStockCount > 0 ? '#991b1b' : 'inherit' }}>{stats.outOfStockCount}</div>
                 </div>
             </div>
@@ -162,7 +166,7 @@ export default function InventoryPage() {
                         onChange={(val) => { setSelectedWarehouse(val); updateFilters('warehouse', val); }}
                         variant="pill"
                         options={[
-                            { value: 'ALL', label: 'All Warehouses' },
+                            { value: 'ALL', label: t.inventory.filters.all_warehouses },
                             ...warehouses.map(w => ({ value: w.id, label: w.name }))
                         ]}
                     />
@@ -171,7 +175,7 @@ export default function InventoryPage() {
                         <span className="admin-search-icon">🔍</span>
                         <input
                             type="text"
-                            placeholder="Search SKU or Product..."
+                            placeholder={t.inventory.search_placeholder}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && updateFilters('q', searchQuery)}
@@ -184,15 +188,15 @@ export default function InventoryPage() {
             {/* Table */}
             {loading ? (
                 <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                    Loading inventory data...
+                    {t.inventory.loading}
                 </div>
             ) : data.length > 0 ? (
                 <InventoryTablePro data={data} onRefresh={refreshData} />
             ) : (
                 <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center' }}>
                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', marginBottom: '8px', color: 'var(--admin-text-on-light)' }}>No inventory found</div>
-                    <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)' }}>Try adjusting your filters or add products to your inventory.</div>
+                            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', marginBottom: '8px', color: 'var(--admin-text-on-light)' }}>{t.inventory.no_inventory}</div>
+                            <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)' }}>{t.inventory.no_inventory_desc}</div>
                 </div>
             )}
 
@@ -205,10 +209,10 @@ export default function InventoryPage() {
                         disabled={meta.page <= 1}
                         style={{ opacity: meta.page <= 1 ? 0.5 : 1 }}
                     >
-                        Previous
+                        {t.inventory.pagination.previous}
                     </button>
                     <span style={{ padding: '10px 16px', fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                        Page {meta.page} of {meta.totalPages}
+                        {t.inventory.pagination.page_of.replace('{page}', meta.page.toString()).replace('{total}', meta.totalPages.toString())}
                     </span>
                     <button
                         onClick={() => updateFilters('page', (meta.page + 1).toString())}
@@ -216,7 +220,7 @@ export default function InventoryPage() {
                         disabled={meta.page >= meta.totalPages}
                         style={{ opacity: meta.page >= meta.totalPages ? 0.5 : 1 }}
                     >
-                        Next
+                        {t.inventory.pagination.next}
                     </button>
                 </div>
             )}

@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function SecurityPage() {
   const switches = await getKillSwitches();
-  
+
   return (
     <div className="admin-page">
       <div className="page-header">
@@ -32,7 +32,7 @@ export default async function SecurityPage() {
           <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
             Emergency controls to disable critical system features. Use with caution.
           </p>
-          
+
           <KillSwitchPanel initialSwitches={switches} />
         </div>
 
@@ -75,13 +75,13 @@ function HealthItem({ label, status }: { label: string; status: 'healthy' | 'deg
     degraded: '#f59e0b',
     critical: '#ef4444'
   };
-  
+
   const statusLabels = {
     healthy: 'Healthy',
     degraded: 'Degraded',
     critical: 'Critical'
   };
-  
+
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border-color)' }}>
       <span>{label}</span>

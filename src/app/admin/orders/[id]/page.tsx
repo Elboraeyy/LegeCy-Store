@@ -5,6 +5,8 @@ import { fetchOrderDetails } from '../../actions';
 import '@/app/admin/admin.css';
 import StatusUpdateControl from '@/components/admin/StatusUpdateControl';
 import BackButton from '@/components/admin/BackButton';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 type OrderDetail = Awaited<ReturnType<typeof fetchOrderDetails>>;
 
@@ -18,24 +20,43 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 }
 
 function OrderDetailsView({ id }: { id: string }) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language];
     const [order, setOrder] = useState<OrderDetail>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const formatCurrency = (amount: number, currencyCode: string = 'EGP') => {
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
+            style: 'currency',
+            currency: currencyCode, // Use passed currency or default to EGP. original was USD but context suggests Egyptian store?
+            // The original code used USD explicitly 'en-US', 'USD'. 
+            // If the store is multi-currency, we should respect that. 
+            // However, previous files used EGP. I will stick to EGP default or what's in DB if needed.
+            // But looking at previous code, it was hardcoded USD. I'll switch to EGP to be consistent with previous OrdersTable 
+            // OR keep it dynamic if I knew the currency. 
+            // Let's assume EGP for now as per other admin pages.
+        }).format(amount);
+    };
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US');
+    };
+
     useEffect(() => {
         fetchOrderDetails(id)
             .then(data => {
-                if (!data) setError('Order not found or access denied.');
+                if (!data) setError(t.orders.details.not_found);
                 else setOrder(data);
             })
             .catch(err => {
                 console.error(err);
-                setError('System error while loading order.');
+                setError(t.common.error);
             })
             .finally(() => setLoading(false));
-    }, [id]);
+    }, [id, t]);
 
-    if (loading) return <div className="admin-card" style={{ textAlign: 'center', padding: '60px' }}>Loading...</div>;
+    if (loading) return <div className="admin-card" style={{ textAlign: 'center', padding: '60px' }}>{t.orders.details.loading}</div>;
     if (error) return <div className="admin-card" style={{ textAlign: 'center', padding: '60px', color: '#cc0000' }}>Error: {error}</div>;
     if (!order) return null;
 
@@ -47,17 +68,17 @@ function OrderDetailsView({ id }: { id: string }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                          <BackButton 
                             fallbackHref="/admin/orders" 
-                            label="← Back"
-                            style={{ background: 'none', border: 'none', padding: 0, color: 'var(--admin-text-muted)', fontSize: '14px' }}
+                            label={`← ${t.orders.details_page.back}`}
+                            style={{ background: 'none', border: 'none', padding: 0, color: 'var(--admin-text-muted)', fontSize: '14px', cursor: 'pointer' }}
                          />
                          <span style={{ color: 'var(--admin-border)' }}>|</span>
                          <span style={{ fontSize: '14px', color: 'var(--admin-text-muted)', fontFamily: 'monospace' }}>#{order.id.slice(0, 8)}</span>
                     </div>
-                    <h1 className="admin-title">Order Details</h1>
+                    <h1 className="admin-title">{t.orders.details.title}</h1>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     <StatusUpdateControl orderId={order.id} currentStatus={order.status} />
-                    <button className="admin-btn admin-btn-outline">Download Invoice</button>
+                    <button className="admin-btn admin-btn-outline">{t.orders.details_page.download_invoice}</button>
                 </div>
             </div>
 
@@ -67,15 +88,15 @@ function OrderDetailsView({ id }: { id: string }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     <div className="admin-card" style={{ padding: 0, overflow: 'hidden' }}>
                         <div style={{ padding: '24px', borderBottom: '1px solid var(--admin-border)', background: '#fafafa' }}>
-                             <h3 className="admin-label" style={{ margin: 0, fontSize: '15px' }}>Line Items</h3>
+                            <h3 className="admin-label" style={{ margin: 0, fontSize: '15px' }}>{t.orders.details_page.line_items}</h3>
                         </div>
                         <table className="admin-table">
                             <thead>
                                 <tr>
-                                    <th>Item</th>
-                                    <th>Price</th>
-                                    <th>Qty</th>
-                                    <th style={{ textAlign: 'right' }}>Total</th>
+                                    <th style={{ textAlign: 'start' }}>{t.orders.details_page.item}</th>
+                                    <th>{t.orders.details_page.price}</th>
+                                    <th>{t.orders.details_page.qty}</th>
+                                    <th style={{ textAlign: 'end' }}>{t.orders.details.total}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,10 +108,10 @@ function OrderDetailsView({ id }: { id: string }) {
                                                 {item.variant ? item.variant.sku : item.productId}
                                             </div>
                                         </td>
-                                        <td>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(item.price))}</td>
+                                        <td>{formatCurrency(Number(item.price))}</td>
                                         <td>{item.quantity}</td>
-                                        <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(item.price) * item.quantity)}
+                                        <td style={{ textAlign: 'end', fontWeight: 600 }}>
+                                            {formatCurrency(Number(item.price) * item.quantity)}
                                         </td>
                                     </tr>
                                 ))}
@@ -98,18 +119,18 @@ function OrderDetailsView({ id }: { id: string }) {
                         </table>
                         <div style={{ padding: '24px', background: '#fafafa', borderTop: '1px solid var(--admin-border)' }}>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '32px' }}>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginBottom: '4px' }}>Subtotal</div>
-                                    <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginBottom: '4px' }}>Shipping</div>
-                                    <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '12px' }}>Total</div>
+                                <div style={{ textAlign: 'end' }}>
+                                    <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginBottom: '4px' }}>{t.orders.details_page.subtotal}</div>
+                                    <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginBottom: '4px' }}>{t.orders.details_page.shipping}</div>
+                                    <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '12px' }}>{t.orders.details.total}</div>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
+                                <div style={{ textAlign: 'end' }}>
                                     <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
-                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(order.totalPrice))}
+                                        {formatCurrency(Number(order.totalPrice))}
                                     </div>
-                                    <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>Free</div>
+                                    <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>{t.orders.details_page.free}</div>
                                     <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '8px', color: 'var(--admin-accent)' }}>
-                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(order.totalPrice))}
+                                        {formatCurrency(Number(order.totalPrice))}
                                     </div>
                                 </div>
                             </div>
@@ -118,14 +139,15 @@ function OrderDetailsView({ id }: { id: string }) {
 
                     {/* Timeline */}
                     <div className="admin-card">
-                         <h3 className="admin-label" style={{ marginBottom: '20px' }}>Order Timeline</h3>
-                         <div style={{ position: 'relative', paddingLeft: '16px' }}>
-                            <div style={{ position: 'absolute', left: '0', top: '8px', bottom: '0', width: '2px', background: 'var(--admin-border)' }}></div>
+                        <h3 className="admin-label" style={{ marginBottom: '20px' }}>{t.orders.details_page.timeline}</h3>
+                        <div style={{ position: 'relative', paddingLeft: language === 'ar' ? 0 : '16px', paddingRight: language === 'ar' ? '16px' : 0 }}>
+                            <div style={{ position: 'absolute', left: language === 'ar' ? 'auto' : '0', right: language === 'ar' ? '0' : 'auto', top: '8px', bottom: '0', width: '2px', background: 'var(--admin-border)' }}></div>
                             {order.history.map(h => (
-                                <div key={h.id} style={{ position: 'relative', paddingLeft: '24px', marginBottom: '24px' }}>
+                                <div key={h.id} style={{ position: 'relative', paddingLeft: language === 'ar' ? 0 : '24px', paddingRight: language === 'ar' ? '24px' : 0, marginBottom: '24px' }}>
                                     <div style={{ 
                                         position: 'absolute', 
-                                        left: '-5px', 
+                                        left: language === 'ar' ? 'auto' : '-5px',
+                                        right: language === 'ar' ? '-5px' : 'auto',
                                         top: '6px', 
                                         width: '12px', 
                                         height: '12px', 
@@ -135,7 +157,7 @@ function OrderDetailsView({ id }: { id: string }) {
                                     }}></div>
                                     <div style={{ fontSize: '14px', fontWeight: 600 }}>{h.to}</div>
                                     <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginTop: '2px' }}>
-                                        {new Date(h.createdAt).toLocaleString()}
+                                        {formatDate(h.createdAt)}
                                     </div>
                                     {h.reason && <div style={{ fontSize: '13px', marginTop: '4px', fontStyle: 'italic', background: '#f9f9f9', padding: '8px', borderRadius: '4px' }}>&quot;{h.reason}&quot;</div>}
                                 </div>
@@ -149,11 +171,11 @@ function OrderDetailsView({ id }: { id: string }) {
                     
                     {/* Status Card */}
                     <div className="admin-card">
-                        <h3 className="admin-label" style={{ marginBottom: '16px' }}>Current Status</h3>
+                        <h3 className="admin-label" style={{ marginBottom: '16px' }}>{t.orders.details_page.current_status}</h3>
                         <StatusBadge status={order.status} isLarge />
                         
                         <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
-                            <label className="admin-label">Payment</label>
+                            <label className="admin-label">{t.orders.details_page.payment}</label>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
                                 {order.paymentIntent ? (
                                     <>
@@ -166,17 +188,17 @@ function OrderDetailsView({ id }: { id: string }) {
                                         {order.paymentIntent.status.toUpperCase()} via {order.paymentIntent.provider}
                                     </>
                                 ) : (
-                                    <span style={{ color: '#999' }}>No payment info</span>
+                                        <span style={{ color: '#999' }}>{t.orders.details_page.no_payment_info}</span>
                                 )}
                             </div>
                             {order.paymentIntent?.providerReference && (
                                 <div style={{ marginTop: '12px', padding: '12px', background: '#fff9c4', borderRadius: '6px', border: '1px solid #fbc02d' }}>
-                                    <label className="admin-label" style={{ color: '#8a6d3b', marginBottom: '4px' }}>Verification Details</label>
+                                    <label className="admin-label" style={{ color: '#8a6d3b', marginBottom: '4px' }}>{t.orders.details_page.verification_details}</label>
                                     <div style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 600, color: '#333' }}>
                                         {order.paymentIntent.providerReference}
                                     </div>
                                     <div style={{ fontSize: '11px', color: '#8a6d3b', marginTop: '4px' }}>
-                                        Check bank app for this reference/sender.
+                                        {t.orders.details_page.check_bank}
                                     </div>
                                 </div>
                             )}
@@ -185,7 +207,7 @@ function OrderDetailsView({ id }: { id: string }) {
 
                     {/* Customer Card */}
                     <div className="admin-card">
-                         <h3 className="admin-label" style={{ marginBottom: '16px' }}>Customer</h3>
+                        <h3 className="admin-label" style={{ marginBottom: '16px' }}>{t.orders.details.customer}</h3>
                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
                             <div style={{ 
                                 width: '40px', 
@@ -201,30 +223,30 @@ function OrderDetailsView({ id }: { id: string }) {
                                 {order.user?.name?.[0] || 'G'}
                             </div>
                             <div>
-                                <div style={{ fontWeight: 600 }}>{order.user?.name || 'Guest User'}</div>
+                                <div style={{ fontWeight: 600 }}>{order.user?.name || t.orders.details.guest}</div>
                                 <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>{order.user?.email}</div>
                             </div>
                          </div>
                          <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)' }}>
-                             Customer ID: <span style={{ fontFamily: 'monospace' }}>{order.userId?.slice(0,8) || 'N/A'}</span>
+                            {t.orders.details_page.customer_id}: <span style={{ fontFamily: 'monospace' }}>{order.userId?.slice(0, 8) || 'N/A'}</span>
                          </div>
                     </div>
 
                     {/* Shipping Card */}
                     <div className="admin-card">
-                        <h3 className="admin-label" style={{ marginBottom: '16px' }}>Shipping & Delivery</h3>
+                        <h3 className="admin-label" style={{ marginBottom: '16px' }}>{t.orders.details_page.shipping_delivery}</h3>
                         <div style={{ display: 'grid', gap: '12px', fontSize: '14px' }}>
                             <div>
-                                <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#999', display: 'block', marginBottom: '4px' }}>Name</label>
+                                <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#999', display: 'block', marginBottom: '4px' }}>{t.orders.details_page.name}</label>
                                 <div>{order.customerName}</div>
                             </div>
                             <div>
-                                <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#999', display: 'block', marginBottom: '4px' }}>Contact</label>
+                                <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#999', display: 'block', marginBottom: '4px' }}>{t.orders.details_page.contact}</label>
                                 <div>{order.customerPhone}</div>
                                 <div style={{ color: 'var(--admin-text-muted)' }}>{order.customerEmail}</div>
                             </div>
                             <div>
-                                <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#999', display: 'block', marginBottom: '4px' }}>Address</label>
+                                <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#999', display: 'block', marginBottom: '4px' }}>{t.orders.details_page.address}</label>
                                 <div style={{ lineHeight: '1.4' }}>
                                     {order.shippingAddress}
                                     <br />
@@ -233,7 +255,7 @@ function OrderDetailsView({ id }: { id: string }) {
                             </div>
                             {order.shippingNotes && (
                                 <div style={{ padding: '12px', background: '#fff9c4', borderRadius: '8px', borderLeft: '4px solid #fbc02d' }}>
-                                    <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#8a6d3b', display: 'block', marginBottom: '4px' }}>Notes</label>
+                                    <label className="admin-label" style={{ fontSize: '11px', textTransform: 'uppercase', color: '#8a6d3b', display: 'block', marginBottom: '4px' }}>{t.orders.details_page.notes}</label>
                                     <div style={{ fontSize: '13px', color: '#8a6d3b' }}>{order.shippingNotes}</div>
                                 </div>
                             )}

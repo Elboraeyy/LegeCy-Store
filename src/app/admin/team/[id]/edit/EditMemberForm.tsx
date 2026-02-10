@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { updateTeamMember, type TeamMember, type TeamMemberData } from '@/lib/actions/team';
 import ImageUpload from '@/components/admin/ImageUpload';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
+import BackButton from '@/components/admin/BackButton';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 interface Props {
     member: TeamMember;
@@ -13,6 +16,8 @@ interface Props {
 }
 
 export default function EditMemberForm({ member, roles }: Props) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -45,7 +50,7 @@ export default function EditMemberForm({ member, roles }: Props) {
         if (result.success) {
             router.push(`/admin/team/${member.id}`);
         } else {
-            setError(result.error || 'Failed to update team member');
+            setError(result.error || t.team.form.error_create);
             setLoading(false);
         }
     };
@@ -55,6 +60,31 @@ export default function EditMemberForm({ member, roles }: Props) {
     };
 
     return (
+        <div>
+            {/* Header */}
+            <div className="admin-header" style={{ marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <BackButton
+                        fallbackHref={`/admin/team/${member.id}`}
+                        label={language === 'ar' ? '→' : '←'}
+                        style={{
+                            fontSize: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '8px',
+                            background: '#f3f4f6'
+                        }}
+                    />
+                    <div>
+                        <h1 className="admin-title">{t.team.form.title_edit}</h1>
+                        <p className="admin-subtitle">{t.team.form.subtitle_edit.replace('{name}', member.name)}</p>
+                    </div>
+                </div>
+            </div>
+
         <form onSubmit={handleSubmit}>
             {error && (
                 <div style={{
@@ -72,13 +102,13 @@ export default function EditMemberForm({ member, roles }: Props) {
             {/* Basic Info Section */}
             <div className="admin-card" style={{ marginBottom: '24px' }}>
                 <h3 style={{ margin: '0 0 20px', fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>👤</span> Basic Information
+                        <span>👤</span> {t.team.form.basic_info}
                 </h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Full Name *
+                                {t.team.form.full_name} *
                         </label>
                         <input
                             type="text"
@@ -90,19 +120,19 @@ export default function EditMemberForm({ member, roles }: Props) {
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Username (Display Name)
+                                {t.team.form.username}
                         </label>
                         <input
                             type="text"
                             value={formData.username || ''}
                             onChange={(e) => handleChange('username', e.target.value)}
                             style={inputStyle}
-                            placeholder="Shown in sidebar"
+                                placeholder={t.team.form.placeholders.username}
                         />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Email Address *
+                                {t.team.form.email} *
                         </label>
                         <input
                             type="email"
@@ -114,19 +144,19 @@ export default function EditMemberForm({ member, roles }: Props) {
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            New Password (leave blank to keep current)
+                                {t.team.form.password_new}
                         </label>
                         <input
                             type="password"
                             value={formData.password || ''}
                             onChange={(e) => handleChange('password', e.target.value)}
                             style={inputStyle}
-                            placeholder="Enter new password..."
+                                placeholder={t.team.form.placeholders.password}
                         />
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Phone Number
+                                {t.team.form.phone}
                         </label>
                         <input
                             type="tel"
@@ -141,13 +171,13 @@ export default function EditMemberForm({ member, roles }: Props) {
             {/* Personal Info Section */}
             <div className="admin-card" style={{ marginBottom: '24px' }}>
                 <h3 style={{ margin: '0 0 20px', fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>📋</span> Personal Information
+                        <span>📋</span> {t.team.form.personal_info}
                 </h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            National ID
+                                {t.team.form.national_id}
                         </label>
                         <input
                             type="text"
@@ -159,7 +189,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Birth Date
+                                {t.team.form.birth_date}
                         </label>
                         <input
                             type="date"
@@ -170,7 +200,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Address
+                                {t.team.form.address}
                         </label>
                         <input
                             type="text"
@@ -181,7 +211,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Emergency Contact
+                                {t.team.form.emergency_contact}
                         </label>
                         <input
                             type="text"
@@ -192,7 +222,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            ID Card Image
+                                {t.team.form.id_card}
                         </label>
                         <ImageUpload
                             value={formData.idCardImage ? [formData.idCardImage] : []}
@@ -206,13 +236,13 @@ export default function EditMemberForm({ member, roles }: Props) {
             {/* Work Info Section */}
             <div className="admin-card" style={{ marginBottom: '24px' }}>
                 <h3 style={{ margin: '0 0 20px', fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>💼</span> Work Information
+                        <span>💼</span> {t.team.form.work_info}
                 </h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Position / Job Title
+                                {t.team.form.position}
                         </label>
                         <input
                             type="text"
@@ -223,14 +253,14 @@ export default function EditMemberForm({ member, roles }: Props) {
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Role / Permissions
+                                {t.team.form.role}
                         </label>
                         <AdminDropdown
                             value={formData.roleId || ''}
                             onChange={(val) => handleChange('roleId', val)}
-                            placeholder="No Role"
+                                placeholder={t.team.form.placeholders.role}
                             options={[
-                                { value: '', label: 'No Role' },
+                                { value: '', label: t.team.view.no_role },
                                 ...roles.map(role => ({ 
                                     value: role.id, 
                                     label: role.name + (role.description ? ` - ${role.description}` : '')
@@ -240,7 +270,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Monthly Salary (EGP)
+                                {t.team.form.salary}
                         </label>
                         <input
                             type="number"
@@ -252,7 +282,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Hire Date
+                                {t.team.form.hire_date}
                         </label>
                         <input
                             type="date"
@@ -263,7 +293,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
-                            Profile Picture
+                                {t.team.form.avatar}
                         </label>
                         <ImageUpload
                             value={formData.avatar ? [formData.avatar] : []}
@@ -277,7 +307,7 @@ export default function EditMemberForm({ member, roles }: Props) {
             {/* Notes Section */}
             <div className="admin-card" style={{ marginBottom: '24px' }}>
                 <h3 style={{ margin: '0 0 20px', fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>📝</span> Internal Notes
+                        <span>📝</span> {t.team.form.notes_info}
                 </h3>
                 <textarea
                     value={formData.notes}
@@ -290,9 +320,9 @@ export default function EditMemberForm({ member, roles }: Props) {
             <div className="admin-card" style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                        <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 600 }}>Account Status</h3>
+                            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 600 }}>{t.team.form.status}</h3>
                         <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
-                            Inactive accounts cannot log in
+                                {t.team.form.inactive_desc}
                         </p>
                     </div>
                     <button
@@ -338,7 +368,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                         fontWeight: 500
                     }}
                 >
-                    Cancel
+                        {t.team.form.cancel}
                 </Link>
                 <button
                     type="submit"
@@ -354,10 +384,12 @@ export default function EditMemberForm({ member, roles }: Props) {
                         cursor: loading ? 'not-allowed' : 'pointer'
                     }}
                 >
-                    {loading ? 'Saving...' : 'Save Changes'}
+
+                        {loading ? t.team.form.saving_changes : t.team.form.save_changes}
                 </button>
             </div>
         </form>
+        </div>
     );
 }
 

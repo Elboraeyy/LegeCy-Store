@@ -7,20 +7,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
-
-const alertTypeConfig: Record<string, { label: string; color: string; bgColor: string; icon: string }> = {
-    OUT_OF_STOCK: { label: 'Out of Stock', color: '#991b1b', bgColor: 'rgba(153, 27, 27, 0.1)', icon: '🚨' },
-    LOW_STOCK: { label: 'Low Stock', color: '#b76e00', bgColor: 'rgba(183, 110, 0, 0.1)', icon: '⚠️' },
-    OVERSTOCK: { label: 'Overstock', color: '#1e40af', bgColor: 'rgba(30, 64, 175, 0.1)', icon: '📦' },
-};
-
-const statusConfig: Record<string, { label: string; color: string }> = {
-    NEW: { label: 'New', color: '#991b1b' },
-    ACKNOWLEDGED: { label: 'Acknowledged', color: '#b76e00' },
-    RESOLVED: { label: 'Resolved', color: '#166534' },
-};
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 export default function AlertsPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const { hasPermission, isLoading: permLoading } = useAdminPermissions();
     const [alerts, setAlerts] = useState<AlertWithDetails[]>([]);
     const [loading, setLoading] = useState(true);
@@ -28,6 +20,18 @@ export default function AlertsPage() {
     const [typeFilter, setTypeFilter] = useState('ALL');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 });
+
+    const alertTypeConfig: Record<string, { label: string; color: string; bgColor: string; icon: string }> = {
+        OUT_OF_STOCK: { label: t.inventory.alerts.type.out_of_stock, color: '#991b1b', bgColor: 'rgba(153, 27, 27, 0.1)', icon: '🚨' },
+        LOW_STOCK: { label: t.inventory.alerts.type.low_stock, color: '#b76e00', bgColor: 'rgba(183, 110, 0, 0.1)', icon: '⚠️' },
+        OVERSTOCK: { label: t.inventory.alerts.type.overstock, color: '#1e40af', bgColor: 'rgba(30, 64, 175, 0.1)', icon: '📦' },
+    };
+
+    const statusConfig: Record<string, { label: string; color: string }> = {
+        NEW: { label: t.inventory.alerts.status.new, color: '#991b1b' },
+        ACKNOWLEDGED: { label: t.inventory.alerts.status.acknowledged, color: '#b76e00' },
+        RESOLVED: { label: t.inventory.alerts.status.resolved, color: '#166534' },
+    };
 
     const loadAlerts = useCallback(async (page: number, status: string, type: string) => {
         const res = await fetchAlerts({ 
@@ -99,35 +103,35 @@ export default function AlertsPage() {
     };
 
     const formatDate = (date: Date) => {
-        return new Date(date).toLocaleDateString('en-GB', { 
+        return new Date(date).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', { 
             day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' 
         });
     };
 
-    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
-    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>Access Denied</div>;
+    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{t.inventory.loading}</div>;
+    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>{t.inventory.access_denied}</div>;
 
     return (
         <div>
             {/* Header */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Stock Alerts</h1>
-                    <p className="admin-subtitle">Monitor low stock and out of stock items</p>
+                    <h1 className="admin-title">{t.inventory.alerts.title}</h1>
+                    <p className="admin-subtitle">{t.inventory.alerts.subtitle}</p>
                 </div>
                 <button 
                     onClick={handleGenerateAlerts}
                     className="admin-btn admin-btn-primary"
                 >
-                    🔄 Scan for Alerts
+                    🔄 {t.inventory.alerts.scan}
                 </button>
             </div>
 
             {/* Breadcrumb */}
             <div style={{ marginBottom: '24px', fontSize: '14px', color: 'var(--admin-text-muted)' }}>
-                <Link href="/admin/inventory" style={{ color: 'var(--admin-text-muted)', textDecoration: 'none' }}>Inventory</Link>
+                <Link href="/admin/inventory" style={{ color: 'var(--admin-text-muted)', textDecoration: 'none' }}>{t.inventory.title}</Link>
                 <span style={{ margin: '0 8px' }}>/</span>
-                <span style={{ color: 'var(--admin-text-on-light)' }}>Alerts</span>
+                <span style={{ color: 'var(--admin-text-on-light)' }}>{t.inventory.alerts.title}</span>
             </div>
 
             {/* Toolbar */}
@@ -152,19 +156,19 @@ export default function AlertsPage() {
                         size="sm"
                         options={[
                             { value: 'ALL', label: 'All Types' },
-                            { value: 'OUT_OF_STOCK', label: 'Out of Stock' },
-                            { value: 'LOW_STOCK', label: 'Low Stock' },
-                            { value: 'OVERSTOCK', label: 'Overstock' },
+                            { value: 'OUT_OF_STOCK', label: t.inventory.alerts.type.out_of_stock },
+                            { value: 'LOW_STOCK', label: t.inventory.alerts.type.low_stock },
+                            { value: 'OVERSTOCK', label: t.inventory.alerts.type.overstock },
                         ]}
                     />
 
                     {selectedIds.length > 0 && (
                         <>
                             <button onClick={handleBulkAcknowledge} className="admin-btn admin-btn-outline" style={{ padding: '8px 16px', fontSize: '12px' }}>
-                                Acknowledge ({selectedIds.length})
+                                {t.inventory.alerts.actions.bulk_acknowledge.replace('{count}', selectedIds.length.toString())}
                             </button>
                             <button onClick={handleBulkResolve} className="admin-btn admin-btn-outline" style={{ padding: '8px 16px', fontSize: '12px' }}>
-                                Resolve ({selectedIds.length})
+                                {t.inventory.alerts.actions.bulk_resolve.replace('{count}', selectedIds.length.toString())}
                             </button>
                         </>
                     )}
@@ -174,7 +178,7 @@ export default function AlertsPage() {
             {/* Table */}
             {loading ? (
                 <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                    Loading alerts...
+                    {t.inventory.loading}
                 </div>
             ) : alerts.length > 0 ? (
                 <div className="admin-table-container">
@@ -188,14 +192,14 @@ export default function AlertsPage() {
                                         onChange={toggleSelectAll}
                                     />
                                 </th>
-                                <th style={{ width: '50px' }}>Type</th>
-                                <th>Product</th>
-                                <th>Warehouse</th>
-                                <th style={{ textAlign: 'center' }}>Stock</th>
-                                <th style={{ textAlign: 'center' }}>Threshold</th>
-                                <th style={{ textAlign: 'center' }}>Status</th>
-                                <th>Created</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                    <th style={{ width: '50px' }}>{t.inventory.alerts.table.type}</th>
+                                    <th>{t.inventory.alerts.table.product}</th>
+                                    <th>{t.inventory.alerts.table.warehouse}</th>
+                                    <th style={{ textAlign: 'center' }}>{t.inventory.alerts.table.stock}</th>
+                                    <th style={{ textAlign: 'center' }}>{t.inventory.alerts.table.threshold}</th>
+                                    <th style={{ textAlign: 'center' }}>{t.inventory.alerts.table.status}</th>
+                                    <th>{t.inventory.alerts.table.created}</th>
+                                    <th style={{ textAlign: 'right' }}>{t.inventory.alerts.table.actions}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -269,7 +273,7 @@ export default function AlertsPage() {
                                                         className="admin-btn admin-btn-outline"
                                                         style={{ padding: '6px 12px', fontSize: '11px' }}
                                                     >
-                                                        Acknowledge
+                                                        {t.inventory.alerts.actions.acknowledge}
                                                     </button>
                                                 )}
                                                 {alert.status !== 'RESOLVED' && (
@@ -278,7 +282,7 @@ export default function AlertsPage() {
                                                         className="admin-btn admin-btn-outline"
                                                         style={{ padding: '6px 12px', fontSize: '11px' }}
                                                     >
-                                                        Resolve
+                                                        {t.inventory.alerts.actions.resolve}
                                                     </button>
                                                 )}
                                                 <Link
@@ -286,7 +290,7 @@ export default function AlertsPage() {
                                                     className="admin-btn admin-btn-outline"
                                                     style={{ padding: '6px 12px', fontSize: '11px' }}
                                                 >
-                                                    View Stock
+                                                    {t.inventory.alerts.actions.view_stock}
                                                 </Link>
                                             </div>
                                         </td>
@@ -300,12 +304,12 @@ export default function AlertsPage() {
                 <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center' }}>
                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
                     <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', marginBottom: '8px', color: 'var(--admin-text-on-light)' }}>
-                        No alerts found
+                                {t.inventory.alerts.empty.title}
                     </div>
                     <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)', marginBottom: '24px' }}>
                         {statusFilter !== 'ALL' 
-                            ? 'Try changing the filter to see other alerts.' 
-                            : 'All stock levels are healthy! Click "Scan for Alerts" to check again.'}
+                                    ? t.inventory.alerts.empty.desc_filter
+                                    : t.inventory.alerts.empty.desc_all}
                     </div>
                 </div>
             )}
@@ -319,10 +323,10 @@ export default function AlertsPage() {
                         disabled={meta.page <= 1}
                         style={{ opacity: meta.page <= 1 ? 0.5 : 1 }}
                     >
-                        Previous
+                        {t.inventory.pagination.previous}
                     </button>
                     <span style={{ padding: '10px 16px', fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                        Page {meta.page} of {meta.totalPages}
+                        {t.inventory.pagination.page_of.replace('{page}', meta.page.toString()).replace('{total}', meta.totalPages.toString())}
                     </span>
                     <button
                         onClick={() => loadAlerts(meta.page + 1, statusFilter, typeFilter)}
@@ -330,7 +334,7 @@ export default function AlertsPage() {
                         disabled={meta.page >= meta.totalPages}
                         style={{ opacity: meta.page >= meta.totalPages ? 0.5 : 1 }}
                     >
-                        Next
+                        {t.inventory.pagination.next}
                     </button>
                 </div>
             )}

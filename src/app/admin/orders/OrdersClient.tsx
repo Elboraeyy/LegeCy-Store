@@ -29,7 +29,12 @@ interface OrdersClientProps {
     };
 }
 
+import { useLanguage } from "@/context/LanguageContext";
+import { adminDictionary } from "@/lib/dictionaries/admin";
+
 export default function OrdersClient({ initialOrders, stats }: OrdersClientProps) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language];
     const router = useRouter();
     const searchParams = useSearchParams();
     
@@ -57,15 +62,15 @@ export default function OrdersClient({ initialOrders, stats }: OrdersClientProps
     };
 
     const statusFilters = [
-        { value: '', label: 'All' },
-        { value: 'partially_refunded', label: 'All' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'payment_pending', label: 'Payment Pending' },
-        { value: 'paid', label: 'Paid' },
-        { value: 'shipped', label: 'Shipped' },
-        { value: 'delivered', label: 'Delivered' },
-        { value: 'cancelled', label: 'Cancelled' },
-        { value: 'payment_failed', label: 'Payment Failed' },
+        { value: '', label: t.orders.status.all },
+        { value: 'pending', label: t.orders.status.pending },
+        { value: 'payment_pending', label: t.orders.status.payment_pending },
+        { value: 'paid', label: t.orders.status.paid },
+        { value: 'shipped', label: t.orders.status.shipped },
+        { value: 'delivered', label: t.orders.status.delivered },
+        { value: 'cancelled', label: t.orders.status.cancelled },
+        { value: 'payment_failed', label: t.orders.status.payment_failed },
+        { value: 'partially_refunded', label: t.orders.status.partially_refunded },
     ];
 
     return (
@@ -73,8 +78,8 @@ export default function OrdersClient({ initialOrders, stats }: OrdersClientProps
             {/* Header */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Orders Management</h1>
-                    <p className="admin-subtitle">Track and fulfill customer orders</p>
+                    <h1 className="admin-title">{t.orders.title}</h1>
+                    <p className="admin-subtitle">{t.orders.subtitle}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     <div className="admin-tabs">
@@ -82,17 +87,17 @@ export default function OrdersClient({ initialOrders, stats }: OrdersClientProps
                             onClick={() => setViewMode('list')}
                             className={`admin-tab-item ${viewMode === 'list' ? 'active' : ''}`}
                         >
-                            List View
+                            {t.orders.list_view}
                         </button>
                         <button 
                             onClick={() => setViewMode('board')}
                             className={`admin-tab-item ${viewMode === 'board' ? 'active' : ''}`}
                         >
-                            Board View
+                            {t.orders.board_view}
                         </button>
                     </div>
                     <Link href="/admin/orders/export" className="admin-btn admin-btn-outline">
-                        <span>⬇️</span> Export CSV
+                        <span>⬇️</span> {t.orders.export_csv}
                     </Link>
                 </div>
             </div>
@@ -122,7 +127,7 @@ export default function OrdersClient({ initialOrders, stats }: OrdersClientProps
                     <input
                         type="text"
                         name="search"
-                        placeholder="Search IDs or Customers..."
+                        placeholder={t.orders.search_placeholder}
                         defaultValue={currentSearch}
                         className="admin-search-input"
                         autoComplete="off"

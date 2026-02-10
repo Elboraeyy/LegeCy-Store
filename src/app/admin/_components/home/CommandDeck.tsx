@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 interface CommandDeckProps {
     pendingOrders: number;
@@ -9,8 +11,11 @@ interface CommandDeckProps {
 }
 
 export default function CommandDeck({ pendingOrders, todayRevenue, lowStockCount }: CommandDeckProps) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language];
+
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-EG', {
+        return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
             style: 'currency',
             currency: 'EGP',
             maximumFractionDigits: 0,
@@ -20,7 +25,7 @@ export default function CommandDeck({ pendingOrders, todayRevenue, lowStockCount
     const tiles = [
         {
             href: '/admin/orders',
-            title: 'Orders',
+            title: t.sidebar.orders,
             icon: '📦',
             stat: pendingOrders,
             statLabel: 'Pending',
@@ -28,7 +33,7 @@ export default function CommandDeck({ pendingOrders, todayRevenue, lowStockCount
         },
         {
             href: '/admin/products',
-            title: 'Products',
+            title: t.sidebar.products,
             icon: '🏷️',
             stat: lowStockCount,
             statLabel: 'Low Stock',
@@ -36,18 +41,18 @@ export default function CommandDeck({ pendingOrders, todayRevenue, lowStockCount
         },
         {
             href: '/admin/customers',
-            title: 'Customers',
+            title: t.sidebar.customers,
             icon: '👥',
             stat: null,
-            statLabel: 'View All',
+            statLabel: t.common.view,
             highlight: false
         },
         {
             href: '/admin/inventory',
-            title: 'Inventory',
+            title: t.sidebar.inventory,
             icon: '🏭',
             stat: null,
-            statLabel: 'Manage Stock',
+            statLabel: t.common.actions,
             highlight: false
         }
     ];
@@ -55,9 +60,10 @@ export default function CommandDeck({ pendingOrders, todayRevenue, lowStockCount
     return (
         <div>
             {/* Section Header */}
+            {/* Section Header */}
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '24px' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', fontWeight: 600, margin: 0, color: 'var(--admin-text-on-light)' }}>
-                    Command Deck
+                    {t.dashboard.quick_actions}
                 </h2>
                 <span style={{ fontSize: '14px', color: 'var(--admin-text-muted)' }}>Quick Navigation</span>
             </div>

@@ -4,6 +4,8 @@ import { useActionState } from 'react';
 import { adminLogin, verifyAdminTwoFactor } from '@/lib/actions/admin-auth';
 import '../admin.css';
 import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 function SubmitButton({ text = 'AUTHENTICATE' }: { text?: string }) {
     return (
@@ -42,6 +44,8 @@ function SubmitButton({ text = 'AUTHENTICATE' }: { text?: string }) {
 }
 
 export default function AdminLoginPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const [loginState, loginAction] = useActionState(adminLogin, null);
     const [otpState, otpAction] = useActionState(verifyAdminTwoFactor, null);
     const { containerRef } = useUncontrolledFormPersistence('admin_login_form');
@@ -196,7 +200,7 @@ export default function AdminLoginPage() {
                         marginBottom: '24px',
                         color: '#d4af37'
                     }}>
-                        Legacy<br/>Admin
+                        {t.login?.brand_title || 'Legacy Admin'}
                     </div>
                     <p className="brand-desc fade-in delay-1" style={{ 
                         fontSize: '16px', 
@@ -204,7 +208,7 @@ export default function AdminLoginPage() {
                         color: '#a3b8b0',
                         marginBottom: '48px'
                     }}>
-                        Orchestrate excellence. Manage your inventory, orders, and customer relationships from one central command center.
+                        {t.login?.brand_desc || 'Orchestrate excellence. Manage your inventory, orders, and customer relationships from one central command center.'}
                     </p>
                     
                     <div className="brand-footer fade-in delay-2" style={{ 
@@ -218,11 +222,11 @@ export default function AdminLoginPage() {
                         borderTop: '1px solid rgba(255,255,255,0.1)',
                         paddingTop: '24px'
                     }}>
-                        <span>🔐 Secure</span>
+                        <span>🔐 {t.login?.secure || 'Secure'}</span>
                         <div style={{width: 4, height: 4, background: '#d4af37', borderRadius: '50%'}} />
-                        <span>⚡ Fast</span>
+                        <span>⚡ {t.login?.fast || 'Fast'}</span>
                         <div style={{width: 4, height: 4, background: '#d4af37', borderRadius: '50%'}} />
-                        <span>✓ Reliable</span>
+                        <span>✓ {t.login?.reliable || 'Reliable'}</span>
                     </div>
                 </div>
             </div>
@@ -243,12 +247,12 @@ export default function AdminLoginPage() {
                             marginBottom: '8px', 
                             fontFamily: "'Playfair Display', serif" 
                         }}>
-                            {requiresTwoFactor ? 'Verification' : 'Welcome Back'}
+                            {requiresTwoFactor ? (t.login?.verification || 'Verification') : (t.login?.welcome_back || 'Welcome Back')}
                         </h2>
                         <p className="form-subtitle" style={{ color: '#5c6b66', fontSize: '15px' }}>
                             {requiresTwoFactor
-                                ? 'Enter the 6-digit code sent to your email.'
-                                : 'Enter your credentials to access the dashboard.'}
+                                ? (t.login?.enter_code || 'Enter the 6-digit code sent to your email.')
+                                : (t.login?.enter_credentials || 'Enter your credentials to access the dashboard.')}
                         </p>
                     </div>
 
@@ -257,7 +261,7 @@ export default function AdminLoginPage() {
                         <form ref={containerRef} action={loginAction} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                    Email Address
+                                    {t.login?.email_label || 'Email Address'}
                                 </label>
                                 <input
                                     name="email"
@@ -283,7 +287,7 @@ export default function AdminLoginPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                        Password
+                                        {t.login?.password_label || 'Password'}
                                     </label>
                                 </div>
                                 <input
@@ -307,7 +311,7 @@ export default function AdminLoginPage() {
                                 />
                             </div>
 
-                            <SubmitButton text="AUTHENTICATE" />
+                            <SubmitButton text={t.login?.authenticate || 'AUTHENTICATE'} />
                         </form>
                     ) : (
                         /* OTP FORM */
@@ -316,7 +320,7 @@ export default function AdminLoginPage() {
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                    Verification Code
+                                        {t.login?.verification_code || 'Verification Code'}
                                 </label>
                                 <input
                                     name="otp"
@@ -356,7 +360,7 @@ export default function AdminLoginPage() {
                                 </div>
                             )}
 
-                            <SubmitButton text="VERIFY & LOGIN" />
+                                <SubmitButton text={t.login?.verify_login || 'VERIFY & LOGIN'} />
 
                             <button
                                 type="button"
@@ -370,7 +374,7 @@ export default function AdminLoginPage() {
                                     textDecoration: 'underline'
                                 }}
                             >
-                                Cancel and return to login
+                                    {t.login?.cancel_return || 'Cancel and return to login'}
                             </button>
                         </form>
                     )}
@@ -392,7 +396,7 @@ export default function AdminLoginPage() {
                     )}
 
                     <p style={{ textAlign: 'center', marginTop: '40px', fontSize: '12px', color: '#a3b8b0' }}>
-                        🔒 Protected by Legacy Security Systems
+                        🔒 {t.login?.protected || 'Protected by Legacy Security Systems'}
                     </p>
                 </div>
             </div>

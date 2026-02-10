@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 interface MissionBriefingProps {
     pendingOrders: number;
@@ -15,6 +17,8 @@ export default function MissionBriefing({
     lowStockCount,
     systemStatus 
 }: MissionBriefingProps) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language];
     const [stickyNote, setStickyNote] = useState('');
     const [isEditing, setIsEditing] = useState(false);
 
@@ -36,11 +40,11 @@ export default function MissionBriefing({
     // Generate dynamic focus message
     const getFocusMessage = () => {
         const messages: string[] = [];
-        if (pendingOrders > 0) messages.push(`${pendingOrders} orders awaiting action`);
-        if (activeAlerts > 0) messages.push(`${activeAlerts} alerts need review`);
-        if (lowStockCount > 0) messages.push(`${lowStockCount} items running low`);
+        if (pendingOrders > 0) messages.push(t.dashboard.pending_orders_action.replace('{count}', pendingOrders.toString()));
+        if (activeAlerts > 0) messages.push(t.dashboard.alerts_action.replace('{count}', activeAlerts.toString()));
+        if (lowStockCount > 0) messages.push(t.dashboard.low_stock_action.replace('{count}', lowStockCount.toString()));
         
-        if (messages.length === 0) return "All systems clear. Great work!";
+        if (messages.length === 0) return t.dashboard.all_clear;
         return messages.join(' • ');
     };
 
@@ -59,11 +63,11 @@ export default function MissionBriefing({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '24px' }}>📋</span>
                     <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '24px', fontWeight: 600, margin: 0, color: 'var(--admin-text-on-light)' }}>
-                        Mission Briefing
+                        {t.dashboard.daily_focus}
                     </h2>
                 </div>
                 <span className={`status-badge ${status.className}`}>
-                    SYSTEM {status.label}
+                    {t.dashboard.system_status.replace('{status}', status.label)}
                 </span>
             </div>
 
@@ -89,14 +93,14 @@ export default function MissionBriefing({
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                     <span style={{ fontSize: '14px' }}>📌</span>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--admin-text-muted)' }}>Command Notes</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--admin-text-muted)' }}>{t.dashboard.command_notes}</span>
                     {!isEditing && (
                         <button 
                             className="admin-btn admin-btn-outline"
                             style={{ marginLeft: 'auto', padding: '6px 14px', fontSize: '11px' }}
                             onClick={() => setIsEditing(true)}
                         >
-                            Edit
+                            {t.dashboard.edit}
                         </button>
                     )}
                 </div>
@@ -106,7 +110,7 @@ export default function MissionBriefing({
                             className="form-input"
                             value={stickyNote}
                             onChange={(e) => setStickyNote(e.target.value)}
-                            placeholder="Leave notes for yourself or your team..."
+                            placeholder={t.dashboard.no_notes}
                             rows={3}
                             style={{ marginBottom: '12px' }}
                         />
@@ -115,19 +119,19 @@ export default function MissionBriefing({
                                 className="admin-btn admin-btn-outline"
                                 onClick={() => setIsEditing(false)}
                             >
-                                Cancel
+                                {t.dashboard.cancel}
                             </button>
                             <button 
                                 className="admin-btn admin-btn-primary"
                                 onClick={handleSaveNote}
                             >
-                                Save Note
+                                {t.dashboard.save_note}
                             </button>
                         </div>
                     </div>
                 ) : (
                     <div style={{ fontSize: '14px', color: 'var(--admin-text-on-light)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                        {stickyNote || <span style={{ color: 'var(--admin-text-muted)', fontStyle: 'italic' }}>No notes yet. Click Edit to add one.</span>}
+                            {stickyNote || <span style={{ color: 'var(--admin-text-muted)', fontStyle: 'italic' }}>{t.dashboard.no_notes}</span>}
                     </div>
                 )}
             </div>

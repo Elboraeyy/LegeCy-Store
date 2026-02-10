@@ -4,8 +4,12 @@ import '@/app/admin/admin.css';
 import { useState, useEffect } from 'react';
 import { getMonthlyRankings, MonthlyRanking } from '@/lib/actions/employee-management';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 export default function RankingsPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const now = new Date();
     const [rankings, setRankings] = useState<MonthlyRanking[]>([]);
     const [loading, setLoading] = useState(true);
@@ -29,10 +33,9 @@ export default function RankingsPage() {
         return () => { cancelled = true; };
     }, [month, year]);
 
-    const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
+    const months = Array.from({ length: 12 }, (_, i) => {
+        return new Date(2000, i, 1).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US', { month: 'long' });
+    });
 
     const getRankBadge = (rank: number) => {
         if (rank === 1) return { emoji: '🥇', class: 'rank-gold' };
@@ -46,18 +49,18 @@ export default function RankingsPage() {
             {/* Header */}
             <div className="rankings-header">
                 <div>
-                    <h1 className="admin-title">🏆 Monthly Rankings</h1>
-                    <p className="admin-subtitle">Employee performance leaderboard based on daily ratings</p>
+                    <h1 className="admin-title">🏆 {t.team.rankings_page.title}</h1>
+                    <p className="admin-subtitle">{t.team.rankings_page.subtitle}</p>
                 </div>
                 <Link href="/admin/team" className="admin-btn admin-btn-outline">
-                    ← Back to Team
+                    {language === 'ar' ? '→' : '←'} {t.team.rankings_page.back}
                 </Link>
             </div>
 
             {/* Month/Year Selector */}
             <div className="rankings-filters">
                 <div className="filter-group">
-                    <label>Month</label>
+                    <label>{t.team.rankings_page.month}</label>
                     <select value={month} onChange={e => setMonth(Number(e.target.value))} className="form-input">
                         {months.map((m, i) => (
                             <option key={i} value={i + 1}>{m}</option>
@@ -65,7 +68,7 @@ export default function RankingsPage() {
                     </select>
                 </div>
                 <div className="filter-group">
-                    <label>Year</label>
+                    <label>{t.team.rankings_page.year}</label>
                     <select value={year} onChange={e => setYear(Number(e.target.value))} className="form-input">
                         {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
                             <option key={y} value={y}>{y}</option>
@@ -79,13 +82,13 @@ export default function RankingsPage() {
                 {loading ? (
                     <div className="rankings-loading">
                         <div className="spinner"></div>
-                        <p>Loading rankings...</p>
+                        <p>{t.team.rankings_page.loading}</p>
                     </div>
                 ) : rankings.length === 0 ? (
                     <div className="rankings-empty">
                         <div className="empty-icon">📊</div>
-                        <h3>No Ratings Yet</h3>
-                        <p>No employee ratings for {months[month - 1]} {year}</p>
+                            <h3>{t.team.rankings_page.empty_title}</h3>
+                            <p>{t.team.rankings_page.empty_desc} {months[month - 1]} {year}</p>
                     </div>
                 ) : (
                     <div className="rankings-list">
@@ -108,7 +111,7 @@ export default function RankingsPage() {
                                     <div className="score-info">
                                         <div className="avg-score">{emp.avgScore}/10</div>
                                         <div className="score-details">
-                                            Total: {emp.totalScore} pts • {emp.ratingCount} days
+                                            {t.team.rankings_page.total} {emp.totalScore} {t.team.rankings_page.pts} • {emp.ratingCount} {t.team.rankings_page.days}
                                         </div>
                                     </div>
                                     <div className="rating-bar">

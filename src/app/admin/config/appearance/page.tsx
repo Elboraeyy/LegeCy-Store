@@ -8,6 +8,8 @@ import ColorPicker from '@/components/admin/settings/ColorPicker';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { toast } from 'sonner';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 type AppearanceSettings = {
     // Theme Colors
@@ -294,6 +296,8 @@ const fontOptions = [
 ];
 
 export default function AppearanceSettingsPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const [settings, setSettings] = useState<AppearanceSettings>(defaultSettings);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -317,28 +321,28 @@ export default function AppearanceSettingsPage() {
         setSaving(true);
         try {
             await updateStoreConfig('appearance_settings_v2', settings);
-            toast.success('Appearance settings saved!');
+            toast.success(t.config.appearance.save_success || 'Appearance settings saved!');
         } catch (error) {
             console.error('Failed to save settings:', error);
-            toast.error('Failed to save settings');
+            toast.error(t.config.appearance.save_error || 'Failed to save settings');
         } finally {
             setSaving(false);
         }
     };
 
     const tabs = [
-        { id: 'colors', label: 'Colors', icon: '🎨' },
-        { id: 'typography', label: 'Typography', icon: '✍️' },
-        { id: 'layout', label: 'Layout', icon: '📐' },
-        { id: 'effects', label: 'Effects', icon: '✨' },
-        { id: 'darkmode', label: 'Dark Mode', icon: '🌙' },
-        { id: 'header', label: 'Header', icon: '🔝' },
-        { id: 'footer', label: 'Footer', icon: '🔻' },
-        { id: 'buttons', label: 'Buttons', icon: '🔘' },
-        { id: 'forms', label: 'Forms', icon: '📝' },
-        { id: 'cards', label: 'Cards', icon: '🃏' },
-        { id: 'products', label: 'Products', icon: '🛍️' },
-        { id: 'custom', label: 'Custom Code', icon: '💻' },
+        { id: 'colors', label: t.config.appearance.tabs.colors, icon: '🎨' },
+        { id: 'typography', label: t.config.appearance.tabs.typography, icon: '✍️' },
+        { id: 'layout', label: t.config.appearance.tabs.layout, icon: '📐' },
+        { id: 'effects', label: t.config.appearance.tabs.effects, icon: '✨' },
+        { id: 'darkmode', label: t.config.appearance.tabs.darkmode, icon: '🌙' },
+        { id: 'header', label: t.config.appearance.tabs.header, icon: '🔝' },
+        { id: 'footer', label: t.config.appearance.tabs.footer, icon: '🔻' },
+        { id: 'buttons', label: t.config.appearance.tabs.buttons, icon: '🔘' },
+        { id: 'forms', label: t.config.appearance.tabs.forms, icon: '📝' },
+        { id: 'cards', label: t.config.appearance.tabs.cards, icon: '🃏' },
+        { id: 'products', label: t.config.appearance.tabs.products, icon: '🛍️' },
+        { id: 'custom', label: t.config.appearance.tabs.custom, icon: '💻' },
     ];
 
     if (loading) {
@@ -353,9 +357,9 @@ export default function AppearanceSettingsPage() {
     return (
         <div>
             <div className="settings-page-header">
-                <h1 className="settings-page-title">Appearance</h1>
+                <h1 className="settings-page-title">{t.config.appearance.page_title}</h1>
                 <p className="settings-page-description">
-                    Complete visual customization with 120+ design options
+                    {t.config.appearance.page_desc}
                 </p>
             </div>
 
@@ -375,21 +379,21 @@ export default function AppearanceSettingsPage() {
             {/* Colors Tab */}
             {activeTab === 'colors' && (
                 <>
-                    <SettingsSection title="Theme Colors" description="Primary brand colors" icon="🎨">
+                    <SettingsSection title={t.config.appearance.colors.title} description={t.config.appearance.colors.desc} icon="🎨">
                         <div className="settings-grid settings-grid-3">
-                            <SettingsField label="Primary Color">
+                            <SettingsField label={t.config.appearance.colors.primary}>
                                 <ColorPicker
                                     value={settings.primaryColor}
                                     onChange={(color) => setSettings({ ...settings, primaryColor: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Primary Light">
+                            <SettingsField label={t.config.appearance.colors.primary_light}>
                                 <ColorPicker
                                     value={settings.primaryColorLight}
                                     onChange={(color) => setSettings({ ...settings, primaryColorLight: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Primary Dark">
+                            <SettingsField label={t.config.appearance.colors.primary_dark}>
                                 <ColorPicker
                                     value={settings.primaryColorDark}
                                     onChange={(color) => setSettings({ ...settings, primaryColorDark: color })}
@@ -397,19 +401,19 @@ export default function AppearanceSettingsPage() {
                             </SettingsField>
                         </div>
                         <div className="settings-grid settings-grid-3">
-                            <SettingsField label="Secondary Color">
+                            <SettingsField label={t.config.appearance.colors.secondary}>
                                 <ColorPicker
                                     value={settings.secondaryColor}
                                     onChange={(color) => setSettings({ ...settings, secondaryColor: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Accent Color">
+                            <SettingsField label={t.config.appearance.colors.accent}>
                                 <ColorPicker
                                     value={settings.accentColor}
                                     onChange={(color) => setSettings({ ...settings, accentColor: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Accent Hover">
+                            <SettingsField label={t.config.appearance.colors.accent_hover}>
                                 <ColorPicker
                                     value={settings.accentColorHover}
                                     onChange={(color) => setSettings({ ...settings, accentColorHover: color })}
@@ -418,21 +422,21 @@ export default function AppearanceSettingsPage() {
                         </div>
                     </SettingsSection>
 
-                    <SettingsSection title="Background & Surface" description="Page and component backgrounds" icon="📄">
+                    <SettingsSection title={t.config.appearance.colors.background.title} description={t.config.appearance.colors.background.desc} icon="📄">
                         <div className="settings-grid settings-grid-3">
-                            <SettingsField label="Background Color">
+                            <SettingsField label={t.config.appearance.colors.background.bg}>
                                 <ColorPicker
                                     value={settings.backgroundColor}
                                     onChange={(color) => setSettings({ ...settings, backgroundColor: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Surface Color">
+                            <SettingsField label={t.config.appearance.colors.background.surface}>
                                 <ColorPicker
                                     value={settings.surfaceColor}
                                     onChange={(color) => setSettings({ ...settings, surfaceColor: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Border Color">
+                            <SettingsField label={t.config.appearance.colors.background.border}>
                                 <ColorPicker
                                     value={settings.borderColor}
                                     onChange={(color) => setSettings({ ...settings, borderColor: color })}
@@ -441,21 +445,21 @@ export default function AppearanceSettingsPage() {
                         </div>
                     </SettingsSection>
 
-                    <SettingsSection title="Text Colors" description="Typography colors" icon="🔤">
+                    <SettingsSection title={t.config.appearance.colors.text.title} description={t.config.appearance.colors.text.desc} icon="🔤">
                         <div className="settings-grid settings-grid-3">
-                            <SettingsField label="Text Primary">
+                            <SettingsField label={t.config.appearance.colors.text.primary}>
                                 <ColorPicker
                                     value={settings.textPrimary}
                                     onChange={(color) => setSettings({ ...settings, textPrimary: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Text Secondary">
+                            <SettingsField label={t.config.appearance.colors.text.secondary}>
                                 <ColorPicker
                                     value={settings.textSecondary}
                                     onChange={(color) => setSettings({ ...settings, textSecondary: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Text Muted">
+                            <SettingsField label={t.config.appearance.colors.text.muted}>
                                 <ColorPicker
                                     value={settings.textMuted}
                                     onChange={(color) => setSettings({ ...settings, textMuted: color })}
@@ -463,13 +467,13 @@ export default function AppearanceSettingsPage() {
                             </SettingsField>
                         </div>
                         <div className="settings-grid">
-                            <SettingsField label="Link Color">
+                            <SettingsField label={t.config.appearance.colors.text.link}>
                                 <ColorPicker
                                     value={settings.linkColor}
                                     onChange={(color) => setSettings({ ...settings, linkColor: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Link Hover Color">
+                            <SettingsField label={t.config.appearance.colors.text.link_hover}>
                                 <ColorPicker
                                     value={settings.linkHoverColor}
                                     onChange={(color) => setSettings({ ...settings, linkHoverColor: color })}
@@ -478,21 +482,21 @@ export default function AppearanceSettingsPage() {
                         </div>
                     </SettingsSection>
 
-                    <SettingsSection title="Status Colors" description="Feedback and status indicators" icon="🚦">
+                    <SettingsSection title={t.config.appearance.colors.status.title} description={t.config.appearance.colors.status.desc} icon="🚦">
                         <div className="settings-grid settings-grid-3">
-                            <SettingsField label="Success">
+                            <SettingsField label={t.config.appearance.colors.status.success}>
                                 <ColorPicker
                                     value={settings.successColor}
                                     onChange={(color) => setSettings({ ...settings, successColor: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Warning">
+                            <SettingsField label={t.config.appearance.colors.status.warning}>
                                 <ColorPicker
                                     value={settings.warningColor}
                                     onChange={(color) => setSettings({ ...settings, warningColor: color })}
                                 />
                             </SettingsField>
-                            <SettingsField label="Error">
+                            <SettingsField label={t.config.appearance.colors.status.error}>
                                 <ColorPicker
                                     value={settings.errorColor}
                                     onChange={(color) => setSettings({ ...settings, errorColor: color })}
@@ -505,23 +509,23 @@ export default function AppearanceSettingsPage() {
 
             {/* Typography Tab */}
             {activeTab === 'typography' && (
-                <SettingsSection title="Typography Settings" description="Fonts and text styling" icon="✍️">
+                <SettingsSection title={t.config.appearance.typography.title} description={t.config.appearance.typography.desc} icon="✍️">
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Heading Font">
+                        <SettingsField label={t.config.appearance.typography.heading_font}>
                             <AdminDropdown
                                 value={settings.fontFamilyHeading}
                                 onChange={(v) => setSettings({ ...settings, fontFamilyHeading: v })}
                                 options={fontOptions}
                             />
                         </SettingsField>
-                        <SettingsField label="Body Font">
+                        <SettingsField label={t.config.appearance.typography.body_font}>
                             <AdminDropdown
                                 value={settings.fontFamilyBody}
                                 onChange={(v) => setSettings({ ...settings, fontFamilyBody: v })}
                                 options={fontOptions}
                             />
                         </SettingsField>
-                        <SettingsField label="Monospace Font">
+                        <SettingsField label={t.config.appearance.typography.mono_font}>
                             <AdminDropdown
                                 value={settings.fontFamilyMono}
                                 onChange={(v) => setSettings({ ...settings, fontFamilyMono: v })}
@@ -535,7 +539,7 @@ export default function AppearanceSettingsPage() {
                         </SettingsField>
                     </div>
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Base Font Size (px)">
+                        <SettingsField label={t.config.appearance.typography.base_size}>
                             <input
                                 type="number"
                                 value={settings.baseFontSize}
@@ -544,7 +548,7 @@ export default function AppearanceSettingsPage() {
                                 max={24}
                             />
                         </SettingsField>
-                        <SettingsField label="Heading Weight">
+                        <SettingsField label={t.config.appearance.typography.heading_weight}>
                             <AdminDropdown
                                 value={settings.headingFontWeight.toString()}
                                 onChange={(v) => setSettings({ ...settings, headingFontWeight: Number(v) })}
@@ -557,7 +561,7 @@ export default function AppearanceSettingsPage() {
                                 ]}
                             />
                         </SettingsField>
-                        <SettingsField label="Body Weight">
+                        <SettingsField label={t.config.appearance.typography.body_weight}>
                             <AdminDropdown
                                 value={settings.bodyFontWeight.toString()}
                                 onChange={(v) => setSettings({ ...settings, bodyFontWeight: Number(v) })}
@@ -570,7 +574,7 @@ export default function AppearanceSettingsPage() {
                         </SettingsField>
                     </div>
                     <div className="settings-grid">
-                        <SettingsField label="Line Height">
+                        <SettingsField label={t.config.appearance.typography.line_height}>
                             <AdminDropdown
                                 value={settings.lineHeightBase.toString()}
                                 onChange={(v) => setSettings({ ...settings, lineHeightBase: Number(v) })}
@@ -582,7 +586,7 @@ export default function AppearanceSettingsPage() {
                                 ]}
                             />
                         </SettingsField>
-                        <SettingsField label="Letter Spacing">
+                        <SettingsField label={t.config.appearance.typography.letter_spacing}>
                             <AdminDropdown
                                 value={settings.letterSpacing}
                                 onChange={(v) => setSettings({ ...settings, letterSpacing: v })}
@@ -601,9 +605,9 @@ export default function AppearanceSettingsPage() {
             {/* Layout Tab */}
             {activeTab === 'layout' && (
                 <>
-                    <SettingsSection title="Spacing" description="Margins and paddings" icon="📐">
+                    <SettingsSection title={t.config.appearance.layout.spacing.title} description={t.config.appearance.layout.spacing.desc} icon="📐">
                         <div className="settings-grid settings-grid-3">
-                            <SettingsField label="Spacing Unit (px)">
+                            <SettingsField label={t.config.appearance.layout.spacing.unit}>
                                 <input
                                     type="number"
                                     value={settings.spacingUnit}
@@ -612,7 +616,7 @@ export default function AppearanceSettingsPage() {
                                     max={16}
                                 />
                             </SettingsField>
-                            <SettingsField label="Container Max Width (px)">
+                            <SettingsField label={t.config.appearance.layout.spacing.container}>
                                 <input
                                     type="number"
                                     value={settings.containerMaxWidth}
@@ -621,7 +625,7 @@ export default function AppearanceSettingsPage() {
                                     max={2000}
                                 />
                             </SettingsField>
-                            <SettingsField label="Section Padding Y (px)">
+                            <SettingsField label={t.config.appearance.layout.spacing.section_padding}>
                                 <input
                                     type="number"
                                     value={settings.sectionPaddingY}
@@ -633,9 +637,9 @@ export default function AppearanceSettingsPage() {
                         </div>
                     </SettingsSection>
 
-                    <SettingsSection title="Borders & Corners" description="Shape and borders" icon="⬡">
+                    <SettingsSection title={t.config.appearance.layout.borders.title} description={t.config.appearance.layout.borders.desc} icon="⬡">
                         <div className="settings-grid settings-grid-3">
-                            <SettingsField label="Border Radius (px)">
+                            <SettingsField label={t.config.appearance.layout.borders.radius}>
                                 <input
                                     type="number"
                                     value={settings.borderRadius}
@@ -644,7 +648,7 @@ export default function AppearanceSettingsPage() {
                                     max={50}
                                 />
                             </SettingsField>
-                            <SettingsField label="Small Radius (px)">
+                            <SettingsField label={t.config.appearance.layout.borders.small_radius}>
                                 <input
                                     type="number"
                                     value={settings.borderRadiusSmall}
@@ -653,7 +657,7 @@ export default function AppearanceSettingsPage() {
                                     max={30}
                                 />
                             </SettingsField>
-                            <SettingsField label="Large Radius (px)">
+                            <SettingsField label={t.config.appearance.layout.borders.large_radius}>
                                 <input
                                     type="number"
                                     value={settings.borderRadiusLarge}
@@ -664,7 +668,7 @@ export default function AppearanceSettingsPage() {
                             </SettingsField>
                         </div>
                         <div className="settings-grid">
-                            <SettingsField label="Border Width (px)">
+                            <SettingsField label={t.config.appearance.layout.borders.width}>
                                 <input
                                     type="number"
                                     value={settings.borderWidth}
@@ -676,8 +680,8 @@ export default function AppearanceSettingsPage() {
                         </div>
                         <div className="settings-toggle-row">
                             <div className="settings-toggle-info">
-                                <div className="settings-toggle-label">Pill Buttons</div>
-                                <div className="settings-toggle-description">Use fully rounded (pill) buttons</div>
+                                <div className="settings-toggle-label">{t.config.appearance.layout.borders.pills}</div>
+                                <div className="settings-toggle-description">{t.config.appearance.layout.borders.pills_desc}</div>
                             </div>
                             <ToggleSwitch
                                 checked={settings.borderRadiusPill}
@@ -691,11 +695,11 @@ export default function AppearanceSettingsPage() {
             {/* Effects Tab */}
             {activeTab === 'effects' && (
                 <>
-                    <SettingsSection title="Shadows" description="Box shadows for depth" icon="🌑">
+                    <SettingsSection title={t.config.appearance.effects.shadows.title} description={t.config.appearance.effects.shadows.desc} icon="🌑">
                         <div className="settings-toggle-row">
                             <div className="settings-toggle-info">
-                                <div className="settings-toggle-label">Enable Shadows</div>
-                                <div className="settings-toggle-description">Add depth with box shadows</div>
+                                <div className="settings-toggle-label">{t.config.appearance.effects.shadows.enable}</div>
+                                <div className="settings-toggle-description">{t.config.appearance.effects.shadows.enable_desc}</div>
                             </div>
                             <ToggleSwitch
                                 checked={settings.shadowsEnabled}
@@ -704,21 +708,21 @@ export default function AppearanceSettingsPage() {
                         </div>
                         {settings.shadowsEnabled && (
                             <>
-                                <SettingsField label="Small Shadow">
+                                <SettingsField label={t.config.appearance.effects.shadows.small}>
                                     <input
                                         type="text"
                                         value={settings.shadowSmall}
                                         onChange={(e) => setSettings({ ...settings, shadowSmall: e.target.value })}
                                     />
                                 </SettingsField>
-                                <SettingsField label="Medium Shadow">
+                                <SettingsField label={t.config.appearance.effects.shadows.medium}>
                                     <input
                                         type="text"
                                         value={settings.shadowMedium}
                                         onChange={(e) => setSettings({ ...settings, shadowMedium: e.target.value })}
                                     />
                                 </SettingsField>
-                                <SettingsField label="Large Shadow">
+                                <SettingsField label={t.config.appearance.effects.shadows.large}>
                                     <input
                                         type="text"
                                         value={settings.shadowLarge}
@@ -729,11 +733,11 @@ export default function AppearanceSettingsPage() {
                         )}
                     </SettingsSection>
 
-                    <SettingsSection title="Animations" description="Motion and transitions" icon="✨">
+                    <SettingsSection title={t.config.appearance.effects.animations.title} description={t.config.appearance.effects.animations.desc} icon="✨">
                         <div className="settings-toggle-row">
                             <div className="settings-toggle-info">
-                                <div className="settings-toggle-label">Enable Animations</div>
-                                <div className="settings-toggle-description">Smooth transitions and motion</div>
+                                <div className="settings-toggle-label">{t.config.appearance.effects.animations.enable}</div>
+                                <div className="settings-toggle-description">{t.config.appearance.effects.animations.enable_desc}</div>
                             </div>
                             <ToggleSwitch
                                 checked={settings.animationsEnabled}
@@ -743,7 +747,7 @@ export default function AppearanceSettingsPage() {
                         {settings.animationsEnabled && (
                             <>
                                 <div className="settings-grid">
-                                    <SettingsField label="Duration (ms)">
+                                    <SettingsField label={t.config.appearance.effects.animations.duration}>
                                         <input
                                             type="number"
                                             value={settings.animationDuration}
@@ -752,7 +756,7 @@ export default function AppearanceSettingsPage() {
                                             max={1000}
                                         />
                                     </SettingsField>
-                                    <SettingsField label="Easing">
+                                    <SettingsField label={t.config.appearance.effects.animations.easing}>
                                         <AdminDropdown
                                             value={settings.animationEasing}
                                             onChange={(v) => setSettings({ ...settings, animationEasing: v })}
@@ -768,8 +772,8 @@ export default function AppearanceSettingsPage() {
                                 </div>
                                 <div className="settings-toggle-row">
                                     <div className="settings-toggle-info">
-                                        <div className="settings-toggle-label">Hover Effects</div>
-                                        <div className="settings-toggle-description">Scale and lift effects on hover</div>
+                                        <div className="settings-toggle-label">{t.config.appearance.effects.animations.hover}</div>
+                                        <div className="settings-toggle-description">{t.config.appearance.effects.animations.hover_desc}</div>
                                     </div>
                                     <ToggleSwitch
                                         checked={settings.hoverEffects}
@@ -799,8 +803,8 @@ export default function AppearanceSettingsPage() {
                         <>
                             <div className="settings-toggle-row">
                                 <div className="settings-toggle-info">
-                                    <div className="settings-toggle-label">Dark Mode by Default</div>
-                                    <div className="settings-toggle-description">Start with dark theme enabled</div>
+                                    <div className="settings-toggle-label">{t.config.appearance.darkmode.default}</div>
+                                    <div className="settings-toggle-description">{t.config.appearance.darkmode.default_desc}</div>
                                 </div>
                                 <ToggleSwitch
                                     checked={settings.darkModeDefault}
@@ -809,8 +813,8 @@ export default function AppearanceSettingsPage() {
                             </div>
                             <div className="settings-toggle-row">
                                 <div className="settings-toggle-info">
-                                    <div className="settings-toggle-label">Scheduled Dark Mode</div>
-                                    <div className="settings-toggle-description">Auto-enable based on time</div>
+                                    <div className="settings-toggle-label">{t.config.appearance.darkmode.scheduled}</div>
+                                    <div className="settings-toggle-description">{t.config.appearance.darkmode.scheduled_desc}</div>
                                 </div>
                                 <ToggleSwitch
                                     checked={settings.darkModeScheduled}
@@ -819,14 +823,14 @@ export default function AppearanceSettingsPage() {
                             </div>
                             {settings.darkModeScheduled && (
                                 <div className="settings-grid">
-                                    <SettingsField label="Start Time">
+                                    <SettingsField label={t.config.appearance.darkmode.start_time}>
                                         <input
                                             type="time"
                                             value={settings.darkModeStartTime}
                                             onChange={(e) => setSettings({ ...settings, darkModeStartTime: e.target.value })}
                                         />
                                     </SettingsField>
-                                    <SettingsField label="End Time">
+                                    <SettingsField label={t.config.appearance.darkmode.end_time}>
                                         <input
                                             type="time"
                                             value={settings.darkModeEndTime}
@@ -836,21 +840,21 @@ export default function AppearanceSettingsPage() {
                                 </div>
                             )}
                             <div style={{ marginTop: '20px' }}>
-                                <h4 style={{ marginBottom: '16px', fontWeight: 600 }}>Dark Theme Colors</h4>
+                                <h4 style={{ marginBottom: '16px', fontWeight: 600 }}>{t.config.appearance.darkmode.colors_title}</h4>
                                 <div className="settings-grid settings-grid-3">
-                                    <SettingsField label="Background">
+                                    <SettingsField label={t.config.appearance.darkmode.bg}>
                                         <ColorPicker
                                             value={settings.darkBackgroundColor}
                                             onChange={(color) => setSettings({ ...settings, darkBackgroundColor: color })}
                                         />
                                     </SettingsField>
-                                    <SettingsField label="Surface">
+                                    <SettingsField label={t.config.appearance.darkmode.surface}>
                                         <ColorPicker
                                             value={settings.darkSurfaceColor}
                                             onChange={(color) => setSettings({ ...settings, darkSurfaceColor: color })}
                                         />
                                     </SettingsField>
-                                    <SettingsField label="Border">
+                                    <SettingsField label={t.config.appearance.darkmode.border}>
                                         <ColorPicker
                                             value={settings.darkBorderColor}
                                             onChange={(color) => setSettings({ ...settings, darkBorderColor: color })}
@@ -858,13 +862,13 @@ export default function AppearanceSettingsPage() {
                                     </SettingsField>
                                 </div>
                                 <div className="settings-grid">
-                                    <SettingsField label="Text Primary">
+                                    <SettingsField label={t.config.appearance.darkmode.text_primary}>
                                         <ColorPicker
                                             value={settings.darkTextPrimary}
                                             onChange={(color) => setSettings({ ...settings, darkTextPrimary: color })}
                                         />
                                     </SettingsField>
-                                    <SettingsField label="Text Secondary">
+                                    <SettingsField label={t.config.appearance.darkmode.text_secondary}>
                                         <ColorPicker
                                             value={settings.darkTextSecondary}
                                             onChange={(color) => setSettings({ ...settings, darkTextSecondary: color })}
@@ -879,9 +883,9 @@ export default function AppearanceSettingsPage() {
 
             {/* Header Tab */}
             {activeTab === 'header' && (
-                <SettingsSection title="Header Settings" description="Site header configuration" icon="🔝">
+                <SettingsSection title={t.config.appearance.header.title} description={t.config.appearance.header.desc} icon="🔝">
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Header Height (px)">
+                        <SettingsField label={t.config.appearance.header.height}>
                             <input
                                 type="number"
                                 value={settings.headerHeight}
@@ -890,7 +894,7 @@ export default function AppearanceSettingsPage() {
                                 max={150}
                             />
                         </SettingsField>
-                        <SettingsField label="Logo Max Height (px)">
+                        <SettingsField label={t.config.appearance.header.logo_height}>
                             <input
                                 type="number"
                                 value={settings.headerLogoMaxHeight}
@@ -899,14 +903,14 @@ export default function AppearanceSettingsPage() {
                                 max={100}
                             />
                         </SettingsField>
-                        <SettingsField label="Header Background">
+                        <SettingsField label={t.config.appearance.header.bg}>
                             <ColorPicker
                                 value={settings.headerBackground}
                                 onChange={(color) => setSettings({ ...settings, headerBackground: color })}
                             />
                         </SettingsField>
                     </div>
-                    <SettingsField label="Header Text Color">
+                    <SettingsField label={t.config.appearance.header.text}>
                         <ColorPicker
                             value={settings.headerTextColor}
                             onChange={(color) => setSettings({ ...settings, headerTextColor: color })}
@@ -914,8 +918,8 @@ export default function AppearanceSettingsPage() {
                     </SettingsField>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Sticky Header</div>
-                            <div className="settings-toggle-description">Keep header visible on scroll</div>
+                            <div className="settings-toggle-label">{t.config.appearance.header.sticky}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.header.sticky_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.headerSticky}
@@ -924,8 +928,8 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Header Shadow</div>
-                            <div className="settings-toggle-description">Add shadow below header</div>
+                            <div className="settings-toggle-label">{t.config.appearance.header.shadow}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.header.shadow_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.headerShadow}
@@ -937,28 +941,28 @@ export default function AppearanceSettingsPage() {
 
             {/* Footer Tab */}
             {activeTab === 'footer' && (
-                <SettingsSection title="Footer Settings" description="Site footer configuration" icon="🔻">
+                <SettingsSection title={t.config.appearance.footer.title} description={t.config.appearance.footer.desc} icon="🔻">
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Footer Background">
+                        <SettingsField label={t.config.appearance.footer.bg}>
                             <ColorPicker
                                 value={settings.footerBackground}
                                 onChange={(color) => setSettings({ ...settings, footerBackground: color })}
                             />
                         </SettingsField>
-                        <SettingsField label="Footer Text Color">
+                        <SettingsField label={t.config.appearance.footer.text}>
                             <ColorPicker
                                 value={settings.footerTextColor}
                                 onChange={(color) => setSettings({ ...settings, footerTextColor: color })}
                             />
                         </SettingsField>
-                        <SettingsField label="Link Color">
+                        <SettingsField label={t.config.appearance.footer.link}>
                             <ColorPicker
                                 value={settings.footerLinkColor}
                                 onChange={(color) => setSettings({ ...settings, footerLinkColor: color })}
                             />
                         </SettingsField>
                     </div>
-                    <SettingsField label="Footer Columns">
+                    <SettingsField label={t.config.appearance.footer.columns}>
                         <AdminDropdown
                             value={settings.footerColumns.toString()}
                             onChange={(v) => setSettings({ ...settings, footerColumns: Number(v) })}
@@ -972,8 +976,8 @@ export default function AppearanceSettingsPage() {
                     </SettingsField>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Newsletter</div>
-                            <div className="settings-toggle-description">Email subscription form in footer</div>
+                            <div className="settings-toggle-label">{t.config.appearance.footer.newsletter}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.footer.newsletter_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.footerShowNewsletter}
@@ -982,8 +986,8 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Social Icons</div>
-                            <div className="settings-toggle-description">Social media icons in footer</div>
+                            <div className="settings-toggle-label">{t.config.appearance.footer.social}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.footer.social_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.footerShowSocial}
@@ -992,15 +996,15 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Payment Icons</div>
-                            <div className="settings-toggle-description">Payment method icons</div>
+                            <div className="settings-toggle-label">{t.config.appearance.footer.payment}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.footer.payment_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.footerShowPaymentIcons}
                             onChange={(checked) => setSettings({ ...settings, footerShowPaymentIcons: checked })}
                         />
                     </div>
-                    <SettingsField label="Copyright Text">
+                    <SettingsField label={t.config.appearance.footer.copyright}>
                         <input
                             type="text"
                             value={settings.footerCopyrightText}
@@ -1012,23 +1016,23 @@ export default function AppearanceSettingsPage() {
 
             {/* Buttons Tab */}
             {activeTab === 'buttons' && (
-                <SettingsSection title="Button Styles" description="Button appearance" icon="🔘">
+                <SettingsSection title={t.config.appearance.buttons.title} description={t.config.appearance.buttons.desc} icon="🔘">
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Padding X (px)">
+                        <SettingsField label={t.config.appearance.buttons.padding_x}>
                             <input
                                 type="number"
                                 value={settings.buttonPaddingX}
                                 onChange={(e) => setSettings({ ...settings, buttonPaddingX: Number(e.target.value) })}
                             />
                         </SettingsField>
-                        <SettingsField label="Padding Y (px)">
+                        <SettingsField label={t.config.appearance.buttons.padding_y}>
                             <input
                                 type="number"
                                 value={settings.buttonPaddingY}
                                 onChange={(e) => setSettings({ ...settings, buttonPaddingY: Number(e.target.value) })}
                             />
                         </SettingsField>
-                        <SettingsField label="Border Radius (px)">
+                        <SettingsField label={t.config.appearance.buttons.radius}>
                             <input
                                 type="number"
                                 value={settings.buttonBorderRadius}
@@ -1037,14 +1041,14 @@ export default function AppearanceSettingsPage() {
                         </SettingsField>
                     </div>
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Font Size (px)">
+                        <SettingsField label={t.config.appearance.buttons.font_size}>
                             <input
                                 type="number"
                                 value={settings.buttonFontSize}
                                 onChange={(e) => setSettings({ ...settings, buttonFontSize: Number(e.target.value) })}
                             />
                         </SettingsField>
-                        <SettingsField label="Font Weight">
+                        <SettingsField label={t.config.appearance.buttons.font_weight}>
                             <AdminDropdown
                                 value={settings.buttonFontWeight.toString()}
                                 onChange={(v) => setSettings({ ...settings, buttonFontWeight: Number(v) })}
@@ -1056,7 +1060,7 @@ export default function AppearanceSettingsPage() {
                                 ]}
                             />
                         </SettingsField>
-                        <SettingsField label="Text Transform">
+                        <SettingsField label={t.config.appearance.buttons.transform}>
                             <AdminDropdown
                                 value={settings.buttonTextTransform}
                                 onChange={(v) => setSettings({ ...settings, buttonTextTransform: v })}
@@ -1069,19 +1073,19 @@ export default function AppearanceSettingsPage() {
                         </SettingsField>
                     </div>
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Primary BG">
+                        <SettingsField label={t.config.appearance.buttons.primary_bg}>
                             <ColorPicker
                                 value={settings.primaryButtonBg}
                                 onChange={(color) => setSettings({ ...settings, primaryButtonBg: color })}
                             />
                         </SettingsField>
-                        <SettingsField label="Primary Text">
+                        <SettingsField label={t.config.appearance.buttons.primary_text}>
                             <ColorPicker
                                 value={settings.primaryButtonText}
                                 onChange={(color) => setSettings({ ...settings, primaryButtonText: color })}
                             />
                         </SettingsField>
-                        <SettingsField label="Primary Hover">
+                        <SettingsField label={t.config.appearance.buttons.primary_hover}>
                             <ColorPicker
                                 value={settings.primaryButtonHoverBg}
                                 onChange={(color) => setSettings({ ...settings, primaryButtonHoverBg: color })}
@@ -1093,23 +1097,23 @@ export default function AppearanceSettingsPage() {
 
             {/* Forms Tab */}
             {activeTab === 'forms' && (
-                <SettingsSection title="Form Styles" description="Input and form appearance" icon="📝">
+                <SettingsSection title={t.config.appearance.forms.title} description={t.config.appearance.forms.desc} icon="📝">
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Input Height (px)">
+                        <SettingsField label={t.config.appearance.forms.input_height}>
                             <input
                                 type="number"
                                 value={settings.inputHeight}
                                 onChange={(e) => setSettings({ ...settings, inputHeight: Number(e.target.value) })}
                             />
                         </SettingsField>
-                        <SettingsField label="Padding X (px)">
+                        <SettingsField label={t.config.appearance.forms.padding_x}>
                             <input
                                 type="number"
                                 value={settings.inputPaddingX}
                                 onChange={(e) => setSettings({ ...settings, inputPaddingX: Number(e.target.value) })}
                             />
                         </SettingsField>
-                        <SettingsField label="Border Radius (px)">
+                        <SettingsField label={t.config.appearance.forms.radius}>
                             <input
                                 type="number"
                                 value={settings.inputBorderRadius}
@@ -1118,19 +1122,19 @@ export default function AppearanceSettingsPage() {
                         </SettingsField>
                     </div>
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Background">
+                        <SettingsField label={t.config.appearance.forms.bg}>
                             <ColorPicker
                                 value={settings.inputBackground}
                                 onChange={(color) => setSettings({ ...settings, inputBackground: color })}
                             />
                         </SettingsField>
-                        <SettingsField label="Border Color">
+                        <SettingsField label={t.config.appearance.forms.border}>
                             <ColorPicker
                                 value={settings.inputBorderColor}
                                 onChange={(color) => setSettings({ ...settings, inputBorderColor: color })}
                             />
                         </SettingsField>
-                        <SettingsField label="Focus Border">
+                        <SettingsField label={t.config.appearance.forms.focus_border}>
                             <ColorPicker
                                 value={settings.inputFocusBorderColor}
                                 onChange={(color) => setSettings({ ...settings, inputFocusBorderColor: color })}
@@ -1139,8 +1143,8 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Focus Shadow</div>
-                            <div className="settings-toggle-description">Glow effect on focus</div>
+                            <div className="settings-toggle-label">{t.config.appearance.forms.focus_shadow}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.forms.focus_shadow_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.inputFocusShadow}
@@ -1152,21 +1156,21 @@ export default function AppearanceSettingsPage() {
 
             {/* Cards Tab */}
             {activeTab === 'cards' && (
-                <SettingsSection title="Card Styles" description="Card component appearance" icon="🃏">
+                <SettingsSection title={t.config.appearance.cards.title} description={t.config.appearance.cards.desc} icon="🃏">
                     <div className="settings-grid settings-grid-3">
-                        <SettingsField label="Background">
+                        <SettingsField label={t.config.appearance.cards.bg}>
                             <ColorPicker
                                 value={settings.cardBackground}
                                 onChange={(color) => setSettings({ ...settings, cardBackground: color })}
                             />
                         </SettingsField>
-                        <SettingsField label="Border Color">
+                        <SettingsField label={t.config.appearance.cards.border}>
                             <ColorPicker
                                 value={settings.cardBorderColor}
                                 onChange={(color) => setSettings({ ...settings, cardBorderColor: color })}
                             />
                         </SettingsField>
-                        <SettingsField label="Border Radius (px)">
+                        <SettingsField label={t.config.appearance.cards.radius}>
                             <input
                                 type="number"
                                 value={settings.cardBorderRadius}
@@ -1176,8 +1180,8 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Card Shadow</div>
-                            <div className="settings-toggle-description">Default shadow on cards</div>
+                            <div className="settings-toggle-label">{t.config.appearance.cards.shadow}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.cards.shadow_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.cardShadow}
@@ -1186,8 +1190,8 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Hover Shadow</div>
-                            <div className="settings-toggle-description">Enhanced shadow on hover</div>
+                            <div className="settings-toggle-label">{t.config.appearance.cards.hover_shadow}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.cards.hover_shadow_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.cardHoverShadow}
@@ -1196,8 +1200,8 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Hover Transform</div>
-                            <div className="settings-toggle-description">Lift effect on hover</div>
+                            <div className="settings-toggle-label">{t.config.appearance.cards.hover_transform}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.cards.hover_transform_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.cardHoverTransform}
@@ -1209,8 +1213,8 @@ export default function AppearanceSettingsPage() {
 
             {/* Products Tab */}
             {activeTab === 'products' && (
-                <SettingsSection title="Product Card Settings" description="How products appear" icon="🛍️">
-                    <SettingsField label="Image Aspect Ratio">
+                <SettingsSection title={t.config.appearance.products.title} description={t.config.appearance.products.desc} icon="🛍️">
+                    <SettingsField label={t.config.appearance.products.ratio}>
                         <AdminDropdown
                             value={settings.productCardImageRatio}
                             onChange={(v) => setSettings({ ...settings, productCardImageRatio: v })}
@@ -1223,14 +1227,14 @@ export default function AppearanceSettingsPage() {
                         />
                     </SettingsField>
                     <div className="settings-grid">
-                        <SettingsField label="Price Font Size (px)">
+                        <SettingsField label={t.config.appearance.products.price_size}>
                             <input
                                 type="number"
                                 value={settings.productCardPriceSize}
                                 onChange={(e) => setSettings({ ...settings, productCardPriceSize: Number(e.target.value) })}
                             />
                         </SettingsField>
-                        <SettingsField label="Title Max Lines">
+                        <SettingsField label={t.config.appearance.products.title_lines}>
                             <AdminDropdown
                                 value={settings.productCardTitleLines.toString()}
                                 onChange={(v) => setSettings({ ...settings, productCardTitleLines: Number(v) })}
@@ -1244,8 +1248,8 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Quick View</div>
-                            <div className="settings-toggle-description">Quick view button on hover</div>
+                            <div className="settings-toggle-label">{t.config.appearance.products.quick_view}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.products.quick_view_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.productCardShowQuickView}
@@ -1254,8 +1258,8 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Wishlist</div>
-                            <div className="settings-toggle-description">Wishlist heart icon</div>
+                            <div className="settings-toggle-label">{t.config.appearance.products.wishlist}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.products.wishlist_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.productCardShowWishlist}
@@ -1264,8 +1268,8 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Rating</div>
-                            <div className="settings-toggle-description">Star rating display</div>
+                            <div className="settings-toggle-label">{t.config.appearance.products.rating}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.products.rating_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.productCardShowRating}
@@ -1274,8 +1278,8 @@ export default function AppearanceSettingsPage() {
                     </div>
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Show Badges</div>
-                            <div className="settings-toggle-description">Sale, New, etc. badges</div>
+                            <div className="settings-toggle-label">{t.config.appearance.products.badges}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.products.badges_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.productCardShowBadges}
@@ -1287,11 +1291,11 @@ export default function AppearanceSettingsPage() {
 
             {/* Custom Code Tab */}
             {activeTab === 'custom' && (
-                <SettingsSection title="Custom Code" description="Add custom CSS and JavaScript" icon="💻">
+                <SettingsSection title={t.config.appearance.custom.title} description={t.config.appearance.custom.desc} icon="💻">
                     <div className="settings-toggle-row">
                         <div className="settings-toggle-info">
-                            <div className="settings-toggle-label">Enable Custom Code</div>
-                            <div className="settings-toggle-description">Inject custom CSS and JS</div>
+                            <div className="settings-toggle-label">{t.config.appearance.custom.enable}</div>
+                            <div className="settings-toggle-description">{t.config.appearance.custom.enable_desc}</div>
                         </div>
                         <ToggleSwitch
                             checked={settings.customCSSEnabled}
@@ -1300,7 +1304,7 @@ export default function AppearanceSettingsPage() {
                     </div>
                     {settings.customCSSEnabled && (
                         <>
-                            <SettingsField label="Custom CSS (Head)" description="Injected in <head>">
+                            <SettingsField label={t.config.appearance.custom.css_head} description="Injected in <head>">
                                 <textarea
                                     value={settings.customCSSHead}
                                     onChange={(e) => setSettings({ ...settings, customCSSHead: e.target.value })}
@@ -1308,7 +1312,7 @@ export default function AppearanceSettingsPage() {
                                     placeholder="/* Your custom CSS */"
                                 />
                             </SettingsField>
-                            <SettingsField label="Custom CSS (Body)" description="Injected before </body>">
+                            <SettingsField label={t.config.appearance.custom.css_body} description="Injected before </body>">
                                 <textarea
                                     value={settings.customCSSBody}
                                     onChange={(e) => setSettings({ ...settings, customCSSBody: e.target.value })}
@@ -1316,7 +1320,7 @@ export default function AppearanceSettingsPage() {
                                     placeholder="/* Additional CSS */"
                                 />
                             </SettingsField>
-                            <SettingsField label="Custom JavaScript (Head)" description="Injected in <head>">
+                            <SettingsField label={t.config.appearance.custom.js_head} description="Injected in <head>">
                                 <textarea
                                     value={settings.customJSHead}
                                     onChange={(e) => setSettings({ ...settings, customJSHead: e.target.value })}
@@ -1324,7 +1328,7 @@ export default function AppearanceSettingsPage() {
                                     placeholder="// Your custom JavaScript"
                                 />
                             </SettingsField>
-                            <SettingsField label="Custom JavaScript (Body)" description="Before </body>">
+                            <SettingsField label={t.config.appearance.custom.js_body} description="Before </body>">
                                 <textarea
                                     value={settings.customJSBody}
                                     onChange={(e) => setSettings({ ...settings, customJSBody: e.target.value })}
@@ -1342,18 +1346,18 @@ export default function AppearanceSettingsPage() {
                     className="admin-btn admin-btn-outline"
                     onClick={() => {
                         setSettings(defaultSettings);
-                        toast.info('Settings reset to default values');
+                        toast.info(t.config.appearance.reset_confirm || 'Settings reset to default values');
                     }}
                     type="button"
                 >
-                    Reset to Default
+                    {t.config.appearance.reset}
                 </button>
                 <button
                     className="admin-btn admin-btn-primary"
                     onClick={handleSave}
                     disabled={saving}
                 >
-                    {saving ? 'Saving...' : 'Save Changes'}
+                    {saving ? t.config.appearance.saving : t.config.appearance.save}
                 </button>
             </div>
         </div>

@@ -14,9 +14,11 @@ import {
     WarehouseComparison
 } from '@/lib/actions/inventory-reports';
 import Link from 'next/link';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
-const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-EG', {
+const formatCurrency = (amount: number, locale: string = 'en-EG') => {
+    return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: 'EGP',
         maximumFractionDigits: 0,
@@ -24,6 +26,8 @@ const formatCurrency = (amount: number) => {
 };
 
 export default function ReportsPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const { hasPermission, isLoading: permLoading } = useAdminPermissions();
     const [loading, setLoading] = useState(true);
     const [valuation, setValuation] = useState<InventoryValuation | null>(null);
@@ -58,59 +62,61 @@ export default function ReportsPage() {
     }, [permLoading, hasPermission, loadReports]);
 
 
-    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
-    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>Access Denied</div>;
+    if (permLoading) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{t.inventory.reports.loading}</div>;
+    if (!hasPermission('INVENTORY_MANAGE')) return <div className="admin-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#991b1b' }}>{t.inventory.access_denied}</div>;
+
+    const locale = language === 'ar' ? 'ar-EG' : 'en-EG';
 
     return (
         <div>
             {/* Header */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Inventory Reports</h1>
-                    <p className="admin-subtitle">Deep dive into your inventory health and value</p>
+                    <h1 className="admin-title">{t.inventory.reports.title}</h1>
+                    <p className="admin-subtitle">{t.inventory.reports.subtitle}</p>
                 </div>
                 <button 
                     onClick={() => { setLoading(true); loadReports(); }}
                     className="admin-btn admin-btn-primary"
                     disabled={loading}
                 >
-                    {loading ? 'Loading...' : '↻ Refresh'}
+                    {loading ? t.inventory.reports.loading : `↻ ${t.inventory.reports.refresh}`}
                 </button>
             </div>
 
             {/* Breadcrumb */}
             <div style={{ marginBottom: '24px', fontSize: '14px', color: 'var(--admin-text-muted)' }}>
-                <Link href="/admin/inventory" style={{ color: 'var(--admin-text-muted)', textDecoration: 'none' }}>Inventory</Link>
+                <Link href="/admin/inventory" style={{ color: 'var(--admin-text-muted)', textDecoration: 'none' }}>{t.inventory.title}</Link>
                 <span style={{ margin: '0 8px' }}>/</span>
-                <span style={{ color: 'var(--admin-text-on-light)' }}>Reports</span>
+                <span style={{ color: 'var(--admin-text-on-light)' }}>{t.inventory.reports.title}</span>
             </div>
 
             {loading ? (
                 <div className="admin-table-container" style={{ padding: '60px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                    Loading reports...
+                    {t.inventory.reports.loading}
                 </div>
             ) : (
                 <>
                     {/* Quick Activity Stats */}
                     <div className="admin-grid" style={{ marginBottom: '32px' }}>
                         <div className="admin-card">
-                            <div className="stat-label">Recent Adjustments (24h)</div>
+                                <div className="stat-label">{t.inventory.reports.stats.recent_adjustments}</div>
                             <div className="stat-value">{activity.recentAdjustments}</div>
                         </div>
                         <div className="admin-card">
-                            <div className="stat-label">Pending Transfers</div>
+                                <div className="stat-label">{t.inventory.reports.stats.pending_transfers}</div>
                             <div className="stat-value" style={{ color: activity.pendingTransfers > 0 ? '#b76e00' : 'inherit' }}>
                                 {activity.pendingTransfers}
                             </div>
                         </div>
                         <div className="admin-card">
-                            <div className="stat-label">Active Alerts</div>
+                                <div className="stat-label">{t.inventory.reports.stats.active_alerts}</div>
                             <div className="stat-value" style={{ color: activity.activeAlerts > 0 ? '#991b1b' : 'inherit' }}>
                                 {activity.activeAlerts}
                             </div>
                         </div>
                         <div className="admin-card">
-                            <div className="stat-label">Active Counts</div>
+                                <div className="stat-label">{t.inventory.reports.stats.active_counts}</div>
                             <div className="stat-value">{activity.activeCounts}</div>
                         </div>
                     </div>
@@ -119,7 +125,7 @@ export default function ReportsPage() {
                     {valuation && (
                         <div className="admin-card" style={{ marginBottom: '32px' }}>
                             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', marginBottom: '24px' }}>
-                                📊 Inventory Valuation
+                                    📊 {t.inventory.reports.valuation.title}
                             </h2>
                             
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '24px' }}>
@@ -128,7 +134,7 @@ export default function ReportsPage() {
                                         {valuation.totalSKUs}
                                     </div>
                                     <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        Total SKUs
+                                            {t.inventory.reports.valuation.total_skus}
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'center', padding: '20px', background: 'var(--admin-surface-light)', borderRadius: '12px' }}>
@@ -136,23 +142,23 @@ export default function ReportsPage() {
                                         {valuation.totalUnits.toLocaleString()}
                                     </div>
                                     <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        Total Units
+                                            {t.inventory.reports.valuation.total_units}
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'center', padding: '20px', background: 'var(--admin-surface-light)', borderRadius: '12px' }}>
                                     <div style={{ fontSize: '28px', fontWeight: 700, color: '#166534' }}>
-                                        {formatCurrency(valuation.totalValue)}
+                                            {formatCurrency(valuation.totalValue, locale)}
                                     </div>
                                     <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        Total Value
+                                            {t.inventory.reports.valuation.total_value}
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'center', padding: '20px', background: 'var(--admin-surface-light)', borderRadius: '12px' }}>
                                     <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--admin-text-on-light)' }}>
-                                        {formatCurrency(valuation.averageValue)}
+                                            {formatCurrency(valuation.averageValue, locale)}
                                     </div>
                                     <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        Avg. Value/Unit
+                                            {t.inventory.reports.valuation.avg_value}
                                     </div>
                                 </div>
                             </div>
@@ -161,7 +167,7 @@ export default function ReportsPage() {
                             {valuation.byWarehouse.length > 0 && (
                                 <div>
                                     <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--admin-text-muted)', marginBottom: '12px' }}>
-                                        Value by Warehouse
+                                            {t.inventory.reports.valuation.by_warehouse}
                                     </h3>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                         {valuation.byWarehouse.map(wh => {
@@ -185,7 +191,7 @@ export default function ReportsPage() {
                                                         </div>
                                                     </div>
                                                     <div style={{ width: '120px', textAlign: 'right', fontSize: '13px' }}>
-                                                        {formatCurrency(wh.value)}
+                                                        {formatCurrency(wh.value, locale)}
                                                     </div>
                                                 </div>
                                             );
@@ -201,7 +207,7 @@ export default function ReportsPage() {
                         {/* Low Stock Items */}
                         <div className="admin-card">
                             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                ⚠️ Low Stock Items
+                                    ⚠️ {t.inventory.reports.low_stock.title}
                                 {lowStock.length > 0 && (
                                     <span style={{ fontSize: '12px', background: '#991b1b', color: '#fff', padding: '2px 8px', borderRadius: '99px' }}>
                                         {lowStock.length}
@@ -238,7 +244,7 @@ export default function ReportsPage() {
                                 </div>
                             ) : (
                                 <div style={{ padding: '40px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                                    ✅ All items are adequately stocked
+                                            ✅ {t.inventory.reports.low_stock.all_good}
                                 </div>
                             )}
                         </div>
@@ -246,7 +252,7 @@ export default function ReportsPage() {
                         {/* Warehouse Comparison */}
                         <div className="admin-card">
                             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', marginBottom: '16px' }}>
-                                🏭 Warehouse Health
+                                    🏭 {t.inventory.reports.warehouse_health.title}
                             </h2>
                             
                             {comparison.length > 0 ? (
@@ -268,21 +274,21 @@ export default function ReportsPage() {
                                                     color: wh.utilizationScore >= 80 ? '#166534' : 
                                                            wh.utilizationScore >= 50 ? '#b76e00' : '#991b1b'
                                                 }}>
-                                                    {wh.utilizationScore}% Healthy
+                                                    {t.inventory.reports.warehouse_health.healthy.replace('{score}', wh.utilizationScore.toString())}
                                                 </span>
                                             </div>
                                             <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--admin-text-muted)' }}>
-                                                <span>{wh.totalSKUs} SKUs</span>
-                                                <span>{wh.totalUnits.toLocaleString()} units</span>
-                                                {wh.lowStockCount > 0 && <span style={{ color: '#b76e00' }}>{wh.lowStockCount} low</span>}
-                                                {wh.outOfStockCount > 0 && <span style={{ color: '#991b1b' }}>{wh.outOfStockCount} out</span>}
+                                                <span>{t.inventory.reports.warehouse_health.stats_skus.replace('{count}', wh.totalSKUs.toString())}</span>
+                                                <span>{t.inventory.reports.warehouse_health.stats_units.replace('{count}', wh.totalUnits.toLocaleString())}</span>
+                                                {wh.lowStockCount > 0 && <span style={{ color: '#b76e00' }}>{t.inventory.reports.warehouse_health.stats_low.replace('{count}', wh.lowStockCount.toString())}</span>}
+                                                {wh.outOfStockCount > 0 && <span style={{ color: '#991b1b' }}>{t.inventory.reports.warehouse_health.stats_out.replace('{count}', wh.outOfStockCount.toString())}</span>}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
                                 <div style={{ padding: '40px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                                    No warehouses to compare
+                                            {t.inventory.reports.warehouse_health.no_data}
                                 </div>
                             )}
                         </div>
@@ -291,7 +297,7 @@ export default function ReportsPage() {
                     {/* Stock Movement (Last 7 Days) */}
                     <div className="admin-card">
                         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', marginBottom: '16px' }}>
-                            📈 Stock Movement (Last 7 Days)
+                                📈 {t.inventory.reports.movements.title}
                         </h2>
                         
                         {movements.length > 0 ? (
@@ -299,19 +305,19 @@ export default function ReportsPage() {
                                 <table className="admin-table">
                                     <thead>
                                         <tr>
-                                            <th>Date</th>
-                                            <th style={{ textAlign: 'center' }}>Adjustments</th>
-                                            <th style={{ textAlign: 'center' }}>Transfers In</th>
-                                            <th style={{ textAlign: 'center' }}>Transfers Out</th>
-                                            <th style={{ textAlign: 'center' }}>Orders</th>
-                                            <th style={{ textAlign: 'center' }}>Returns</th>
-                                            <th style={{ textAlign: 'right' }}>Net Change</th>
+                                                <th>{t.inventory.reports.movements.table.date}</th>
+                                                <th style={{ textAlign: 'center' }}>{t.inventory.reports.movements.table.adjustments}</th>
+                                                <th style={{ textAlign: 'center' }}>{t.inventory.reports.movements.table.transfers_in}</th>
+                                                <th style={{ textAlign: 'center' }}>{t.inventory.reports.movements.table.transfers_out}</th>
+                                                <th style={{ textAlign: 'center' }}>{t.inventory.reports.movements.table.orders}</th>
+                                                <th style={{ textAlign: 'center' }}>{t.inventory.reports.movements.table.returns}</th>
+                                                <th style={{ textAlign: 'right' }}>{t.inventory.reports.movements.table.net_change}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {movements.map(day => (
                                             <tr key={day.period}>
-                                                <td style={{ fontWeight: 500 }}>{new Date(day.period).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' })}</td>
+                                                <td style={{ fontWeight: 500 }}>{new Date(day.period).toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: 'short' })}</td>
                                                 <td style={{ textAlign: 'center' }}>{day.adjustments !== 0 ? (day.adjustments > 0 ? '+' : '') + day.adjustments : '-'}</td>
                                                 <td style={{ textAlign: 'center', color: day.transfersIn > 0 ? '#166534' : 'inherit' }}>{day.transfersIn > 0 ? '+' + day.transfersIn : '-'}</td>
                                                 <td style={{ textAlign: 'center', color: day.transfersOut > 0 ? '#991b1b' : 'inherit' }}>{day.transfersOut > 0 ? '-' + day.transfersOut : '-'}</td>
@@ -327,7 +333,7 @@ export default function ReportsPage() {
                             </div>
                         ) : (
                             <div style={{ padding: '40px', textAlign: 'center', color: 'var(--admin-text-muted)' }}>
-                                No stock movements in the last 7 days
+                                        {t.inventory.reports.movements.no_data}
                             </div>
                         )}
                     </div>

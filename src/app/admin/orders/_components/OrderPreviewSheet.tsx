@@ -39,7 +39,12 @@ interface OrderPreviewProps {
 }
 
 // Using a custom Drawer implementation since I don't see a UI library in file list
+import { useLanguage } from "@/context/LanguageContext";
+import { adminDictionary } from "@/lib/dictionaries/admin";
+
 export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderPreviewProps) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language];
     const [order, setOrder] = useState<OrderDetails | null>(null);
     const [loading, setLoading] = useState(false);
     const [updating, setUpdating] = useState(false);
@@ -67,14 +72,14 @@ export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderP
         try {
             const res = await updateOrderStatusAction(orderId, newStatus as OrderStatus);
             if (res.success) {
-                toast.success("Order status updated");
+                toast.success(t.orders.details.status_updated);
                 setOrder((prev) => prev ? ({ ...prev, status: newStatus as OrderStatus }) : null);
                 if (onUpdate) onUpdate();
             } else {
-                toast.error(res.error || "Failed to update status");
+                toast.error(res.error || t.orders.details.status_error);
             }
         } catch {
-            toast.error("Something went wrong");
+            toast.error(t.common.error);
         } finally {
             setUpdating(false);
         }
@@ -139,7 +144,7 @@ export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderP
                 {/* Content */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--admin-text-muted)' }}>Loading details...</div>
+                        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--admin-text-muted)' }}>{t.orders.details.loading}</div>
                     ) : order ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             
@@ -162,20 +167,20 @@ export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderP
 
                             {/* Customer Info */}
                             <div>
-                                <h3 className="stat-label" style={{ marginBottom: '12px', borderBottom: '1px solid var(--admin-border)', paddingBottom: '8px' }}>Customer</h3>
+                                    <h3 className="stat-label" style={{ marginBottom: '12px', borderBottom: '1px solid var(--admin-border)', paddingBottom: '8px' }}>{t.orders.details.customer}</h3>
                                 <div style={{ display: 'grid', gap: '8px', fontSize: '14px' }}>
-                                    <div style={{ fontWeight: 500 }}>{order.user?.name || order.customerName || 'Guest'}</div>
-                                    <div style={{ color: 'var(--admin-text-muted)' }}>{order.user?.email || order.customerEmail}</div>
-                                    <div style={{ color: 'var(--admin-text-muted)' }}>{order.customerPhone || 'No phone'}</div>
+                                        <div style={{ fontWeight: 500 }}>{order.user?.name || order.customerName || t.orders.details.guest}</div>
+                                        <div style={{ color: 'var(--admin-text-muted)' }}>{order.user?.email || order.customerEmail || t.orders.details.no_email}</div>
+                                        <div style={{ color: 'var(--admin-text-muted)' }}>{order.customerPhone || t.orders.details.no_phone}</div>
                                     <div style={{ marginTop: '8px', lineHeight: '1.4' }}>
                                             {order.shippingAddress}, {order.shippingCity}{order.shippingGovernorate && `, ${order.shippingGovernorate}`}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Items */}
+
                             <div>
-                                <h3 className="stat-label" style={{ marginBottom: '12px', borderBottom: '1px solid var(--admin-border)', paddingBottom: '8px' }}>Items ({order.items.length})</h3>
+                                    <h3 className="stat-label" style={{ marginBottom: '12px', borderBottom: '1px solid var(--admin-border)', paddingBottom: '8px' }}>{t.orders.details.items} ({order.items.length})</h3>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {order.items.map((item: OrderLineItem) => (
                                         <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px' }}>
@@ -195,7 +200,7 @@ export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderP
                                     ))}
                                 </div>
                                 <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--admin-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontWeight: 600 }}>Total</span>
+                                        <span style={{ fontWeight: 600 }}>{t.orders.details.total}</span>
                                     <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--admin-primary)' }}>
                                         {formatCurrency(order.totalPrice)}
                                     </span>
@@ -211,7 +216,7 @@ export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderP
                 {/* Footer Actions */}
                 <div style={{ padding: '20px', borderTop: '1px solid var(--admin-border)', display: 'flex', gap: '12px' }}>
                     <Link href={`/admin/orders/${orderId}`} style={{ flex: 1, textAlign: 'center' }} className="admin-btn admin-btn-primary">
-                        View Full Details
+                        {t.orders.details.view_full}
                     </Link>
                 </div>
             </div>

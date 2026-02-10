@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { deleteMaterialAction } from '@/lib/actions/material';
 import EmptyState from '@/components/admin/EmptyState';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 import '@/app/admin/admin.css';
 
 interface Material {
@@ -18,26 +20,28 @@ interface Material {
 }
 
 export default function MaterialListClient({ initialMaterials }: { initialMaterials: Material[] }) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const [materials, setMaterials] = useState(initialMaterials);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`Are you sure you want to delete material "${name}"?`)) return;
+        if (!confirm(`${t.materials.confirm_delete} "${name}"?`)) return;
 
         setLoading(true);
         try {
             const result = await deleteMaterialAction(id);
             if (result.success) {
-                toast.success('Material deleted successfully');
+                toast.success(t.materials.deleted);
                 setMaterials(prev => prev.filter(m => m.id !== id));
                 router.refresh();
             } else {
-                toast.error(result.error || 'Failed to delete material');
+                toast.error(result.error || t.materials.failed_delete);
             }
         } catch (error) {
             console.error(error);
-            toast.error('An error occurred');
+            toast.error(t.materials.error);
         } finally {
             setLoading(false);
         }
@@ -47,9 +51,9 @@ export default function MaterialListClient({ initialMaterials }: { initialMateri
         return (
             <EmptyState
                 icon="🧱"
-                title="No materials yet"
-                description="Define materials (e.g. Leather, Steel) for your products"
-                actionLabel="Create Material"
+                title={t.materials.no_materials}
+                description={t.materials.empty_desc}
+                actionLabel={t.materials.add_material}
                 actionHref="/admin/materials/new"
             />
         );
@@ -60,12 +64,12 @@ export default function MaterialListClient({ initialMaterials }: { initialMateri
             {/* Header / Toolbar */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Strap Materials</h1>
-                    <p className="admin-subtitle">Manage product materials</p>
+                    <h1 className="admin-title">{t.materials.title}</h1>
+                    <p className="admin-subtitle">{t.materials.subtitle}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     <Link href="/admin/materials/new" className="admin-btn admin-btn-primary">
-                        + Add Material
+                        + {t.materials.add_material}
                     </Link>
                 </div>
             </div>
@@ -75,10 +79,10 @@ export default function MaterialListClient({ initialMaterials }: { initialMateri
                 <table className="admin-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Slug</th>
-                            <th>Products</th>
-                            <th style={{ textAlign: 'right' }}>Actions</th>
+                            <th>{t.materials.name}</th>
+                            <th>{t.materials.slug}</th>
+                            <th>{t.materials.products}</th>
+                            <th style={{ textAlign: 'right' }}>{t.materials.actions}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -113,7 +117,7 @@ export default function MaterialListClient({ initialMaterials }: { initialMateri
                                             className="admin-btn admin-btn-outline"
                                             style={{ padding: '8px 16px', fontSize: '11px' }}
                                         >
-                                            Edit
+                                            {t.materials.edit}
                                         </Link>
                                         <button 
                                             onClick={() => handleDelete(material.id, material.name)}
@@ -125,9 +129,9 @@ export default function MaterialListClient({ initialMaterials }: { initialMateri
                                                 borderColor: material._count.products > 0 ? '#ddd' : '#fecaca'
                                             }}
                                             disabled={loading || material._count.products > 0}
-                                            title={material._count.products > 0 ? 'Remove products first' : 'Delete material'}
+                                            title={material._count.products > 0 ? t.materials.remove_products_first : t.materials.delete_material}
                                         >
-                                            Delete
+                                            {t.materials.delete}
                                         </button>
                                     </div>
                                 </td>

@@ -4,6 +4,8 @@ import '@/app/admin/admin.css';
 import { useState, useEffect } from 'react';
 import { getPartners, createPartner, processPayoutAction } from '@/lib/actions/partners';
 import { toast } from 'sonner';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 
 interface Partner {
     id: string;
@@ -17,6 +19,8 @@ interface Partner {
 }
 
 export default function PartnersPage() {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
     const [partners, setPartners] = useState<Partner[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
@@ -42,7 +46,7 @@ export default function PartnersPage() {
             const data = await getPartners();
             setPartners(data);
         } catch {
-            toast.error('Failed to load partners');
+            toast.error(t.partners?.failed_load || 'Failed to load partners');
         } finally {
             setLoading(false);
         }
@@ -58,13 +62,13 @@ export default function PartnersPage() {
 
         try {
             await createPartner(formData);
-            toast.success('Partner created');
+            toast.success(t.partners?.partner_created || 'Partner created');
             setShowCreate(false);
             loadPartners();
             // Reset form
             setNewName(''); setNewCode(''); setNewEmail('');
         } catch {
-            toast.error('Failed to create partner');
+            toast.error(t.partners?.failed_create || 'Failed to create partner');
         }
     };
 
@@ -74,11 +78,11 @@ export default function PartnersPage() {
         
         try {
             await processPayoutAction(payoutPartner.id, Number(payoutAmount), payoutRef);
-            toast.success('Payout processed');
+            toast.success(t.partners?.payout_processed || 'Payout processed');
             setPayoutPartner(null);
             loadPartners();
         } catch {
-            toast.error('Payout failed (check balance)');
+            toast.error(t.partners?.payout_failed || 'Payout failed (check balance)');
         }
     };
 
@@ -86,11 +90,11 @@ export default function PartnersPage() {
         <div className="admin-page">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="admin-title">Partner Program</h1>
-                    <p className="admin-subtitle">Manage affiliates, influencers, and commissions</p>
+                    <h1 className="admin-title">{t.partners?.title || 'Partner Program'}</h1>
+                    <p className="admin-subtitle">{t.partners?.subtitle || 'Manage affiliates, influencers, and commissions'}</p>
                 </div>
                 <button className="admin-btn admin-btn-primary" onClick={() => setShowCreate(true)}>
-                    + New Partner
+                    + {t.partners?.new_partner || 'New Partner'}
                 </button>
             </div>
 
@@ -99,18 +103,18 @@ export default function PartnersPage() {
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 border-b">
                         <tr>
-                            <th className="px-6 py-4 font-medium text-gray-500">Partner</th>
-                            <th className="px-6 py-4 font-medium text-gray-500">Code</th>
-                            <th className="px-6 py-4 font-medium text-gray-500 text-right">Rate</th>
-                            <th className="px-6 py-4 font-medium text-gray-500 text-right">Wallet Balance</th>
-                            <th className="px-6 py-4 font-medium text-gray-500 text-right">Actions</th>
+                            <th className="px-6 py-4 font-medium text-gray-500">{t.partners?.partner || 'Partner'}</th>
+                            <th className="px-6 py-4 font-medium text-gray-500">{t.partners?.code || 'Code'}</th>
+                            <th className="px-6 py-4 font-medium text-gray-500 text-right">{t.partners?.rate || 'Rate'}</th>
+                            <th className="px-6 py-4 font-medium text-gray-500 text-right">{t.partners?.wallet_balance || 'Wallet Balance'}</th>
+                            <th className="px-6 py-4 font-medium text-gray-500 text-right">{t.partners?.actions || 'Actions'}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
-                            <tr><td colSpan={5} className="p-8 text-center text-gray-500">Loading...</td></tr>
+                            <tr><td colSpan={5} className="p-8 text-center text-gray-500">{t.partners?.loading || 'Loading...'}</td></tr>
                         ) : partners.length === 0 ? (
-                            <tr><td colSpan={5} className="p-8 text-center text-gray-500">No partners yet.</td></tr>
+                                <tr><td colSpan={5} className="p-8 text-center text-gray-500">{t.partners?.no_partners || 'No partners yet.'}</td></tr>
                         ) : partners.map(p => (
                             <tr key={p.id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4">
@@ -139,7 +143,7 @@ export default function PartnersPage() {
                                                 setPayoutAmount(p.walletBalance.toString());
                                             }}
                                         >
-                                            Payout
+                                            {t.partners?.payout || 'Payout'}
                                         </button>
                                     )}
                                 </td>
@@ -153,10 +157,10 @@ export default function PartnersPage() {
             {showCreate && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-                        <h2 className="text-xl font-bold mb-4">Add New Partner</h2>
+                        <h2 className="text-xl font-bold mb-4">{t.partners?.add_partner || 'Add New Partner'}</h2>
                         <form onSubmit={handleCreate} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Partner Name</label>
+                                <label className="block text-sm font-medium mb-1">{t.partners?.partner_name || 'Partner Name'}</label>
                                 <input 
                                     className="w-full border rounded px-3 py-2" 
                                     value={newName} onChange={e => setNewName(e.target.value)}
@@ -164,7 +168,7 @@ export default function PartnersPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Promo Code</label>
+                                <label className="block text-sm font-medium mb-1">{t.partners?.promo_code || 'Promo Code'}</label>
                                 <input 
                                     className="w-full border rounded px-3 py-2 uppercase" 
                                     value={newCode} onChange={e => setNewCode(e.target.value.toUpperCase())}
@@ -173,7 +177,7 @@ export default function PartnersPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Email (Optional)</label>
+                                <label className="block text-sm font-medium mb-1">{t.partners?.email_optional || 'Email (Optional)'}</label>
                                 <input 
                                     className="w-full border rounded px-3 py-2" 
                                     type="email"
@@ -181,18 +185,18 @@ export default function PartnersPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Commission Rate (Decimal)</label>
+                                <label className="block text-sm font-medium mb-1">{t.partners?.commission_rate || 'Commission Rate (Decimal)'}</label>
                                 <input 
                                     className="w-full border rounded px-3 py-2" 
                                     type="number" step="0.01" min="0" max="1"
                                     value={newRate} onChange={e => setNewRate(Number(e.target.value))}
                                     required
                                 />
-                                <p className="text-xs text-gray-500 mt-1">0.10 = 10% commission</p>
+                                <p className="text-xs text-gray-500 mt-1">{t.partners?.rate_hint || '0.10 = 10% commission'}</p>
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
-                                <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
-                                <button type="submit" className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800">Create Partner</button>
+                                <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">{t.partners?.cancel || 'Cancel'}</button>
+                                <button type="submit" className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800">{t.partners?.create_partner || 'Create Partner'}</button>
                             </div>
                         </form>
                     </div>
@@ -203,13 +207,13 @@ export default function PartnersPage() {
             {payoutPartner && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-                        <h2 className="text-xl font-bold mb-4">Process Payout</h2>
+                        <h2 className="text-xl font-bold mb-4">{t.partners?.process_payout || 'Process Payout'}</h2>
                         <p className="text-sm text-gray-600 mb-4">
-                            Payout to <strong>{payoutPartner.name}</strong>. Current Balance: <strong>{Number(payoutPartner.walletBalance).toFixed(2)} EGP</strong>
+                            {t.partners?.payout_to || 'Payout to'} <strong>{payoutPartner.name}</strong>. {t.partners?.current_balance || 'Current Balance'}: <strong>{Number(payoutPartner.walletBalance).toFixed(2)} EGP</strong>
                         </p>
                         <form onSubmit={handlePayout} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Amount to Pay</label>
+                                <label className="block text-sm font-medium mb-1">{t.partners?.amount_to_pay || 'Amount to Pay'}</label>
                                 <input 
                                     className="w-full border rounded px-3 py-2" 
                                     type="number" step="0.01" max={payoutPartner.walletBalance}
@@ -218,17 +222,17 @@ export default function PartnersPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Reference (Tx ID / Check #)</label>
+                                <label className="block text-sm font-medium mb-1">{t.partners?.reference || 'Reference (Tx ID / Check #)'}</label>
                                 <input 
                                     className="w-full border rounded px-3 py-2" 
                                     value={payoutRef} onChange={e => setPayoutRef(e.target.value)}
-                                    placeholder="Bank Transfer Ref..."
+                                    placeholder={t.partners?.reference_placeholder || 'Bank Transfer Ref...'}
                                     required
                                 />
                             </div>
                             <div className="flex justify-end gap-3 mt-6">
-                                <button type="button" onClick={() => setPayoutPartner(null)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
-                                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Confirm Payout</button>
+                                <button type="button" onClick={() => setPayoutPartner(null)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">{t.partners?.cancel || 'Cancel'}</button>
+                                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">{t.partners?.confirm_payout || 'Confirm Payout'}</button>
                             </div>
                         </form>
                     </div>

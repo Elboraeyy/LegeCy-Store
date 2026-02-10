@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { InventoryItemPro } from '@/lib/actions/inventory-pro';
+import { useLanguage } from '@/context/LanguageContext';
+import { adminDictionary } from '@/lib/dictionaries/admin';
 import StockAdjustmentDialog from './StockAdjustmentDialog';
 import StockTransferDialog from './StockTransferDialog';
 
@@ -12,6 +14,9 @@ interface InventoryTableProProps {
 }
 
 export default function InventoryTablePro({ data, onRefresh }: InventoryTableProProps) {
+    const { language } = useLanguage();
+    const t = adminDictionary[language as keyof typeof adminDictionary];
+
     const [adjustItem, setAdjustItem] = useState<InventoryItemPro | null>(null);
     const [transferItem, setTransferItem] = useState<InventoryItemPro | null>(null);
 
@@ -26,9 +31,9 @@ export default function InventoryTablePro({ data, onRefresh }: InventoryTablePro
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'IN_STOCK': return 'In Stock';
-            case 'LOW_STOCK': return 'Low Stock';
-            case 'OUT_OF_STOCK': return 'Out of Stock';
+            case 'IN_STOCK': return t.inventory.filters.in_stock;
+            case 'LOW_STOCK': return t.inventory.filters.low_stock;
+            case 'OUT_OF_STOCK': return t.inventory.filters.out_of_stock;
             default: return status;
         }
     };
@@ -39,13 +44,13 @@ export default function InventoryTablePro({ data, onRefresh }: InventoryTablePro
                 <table className="admin-table">
                     <thead>
                         <tr>
-                            <th style={{ width: '80px' }}>Image</th>
-                            <th>Product Details</th>
-                            <th>Warehouse</th>
-                            <th style={{ textAlign: 'right' }}>Available</th>
-                            <th style={{ textAlign: 'right' }}>Reserved</th>
-                            <th style={{ textAlign: 'center' }}>Status</th>
-                            <th style={{ textAlign: 'right' }}>Actions</th>
+                            <th style={{ width: '80px' }}>{t.inventory.table.image}</th>
+                            <th>{t.inventory.table.product_details}</th>
+                            <th>{t.inventory.table.warehouse}</th>
+                            <th style={{ textAlign: 'right' }}>{t.inventory.table.available}</th>
+                            <th style={{ textAlign: 'right' }}>{t.inventory.table.reserved}</th>
+                            <th style={{ textAlign: 'center' }}>{t.inventory.table.status}</th>
+                            <th style={{ textAlign: 'right' }}>{t.inventory.table.actions}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -79,7 +84,7 @@ export default function InventoryTablePro({ data, onRefresh }: InventoryTablePro
                                                 color: '#999', 
                                                 background: '#f8f8f8' 
                                             }}>
-                                                NO IMG
+                                                    {t.inventory.table.no_img}
                                             </div>
                                         )}
                                     </div>
@@ -115,7 +120,7 @@ export default function InventoryTablePro({ data, onRefresh }: InventoryTablePro
                                         {item.available}
                                     </div>
                                     <div style={{ fontSize: '10px', color: 'var(--admin-text-muted)' }}>
-                                        Min: {item.minStock}
+                                        {t.inventory.table.min}: {item.minStock}
                                     </div>
                                 </td>
                                 <td style={{ textAlign: 'right', color: 'var(--admin-text-muted)' }}>
@@ -133,14 +138,14 @@ export default function InventoryTablePro({ data, onRefresh }: InventoryTablePro
                                             className="admin-btn admin-btn-outline"
                                             style={{ padding: '8px 16px', fontSize: '11px' }}
                                         >
-                                            Adjust
+                                            {t.inventory.table.adjust}
                                         </button>
                                         <button
                                             onClick={() => setTransferItem(item)}
                                             className="admin-btn admin-btn-outline"
                                             style={{ padding: '8px 16px', fontSize: '11px' }}
                                         >
-                                            Transfer
+                                            {t.inventory.table.transfer}
                                         </button>
                                     </div>
                                 </td>

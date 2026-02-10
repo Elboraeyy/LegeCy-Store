@@ -272,9 +272,79 @@ export async function getActivitySummary(): Promise<{
             prisma.inventoryCount.count({ where: { status: { in: ['DRAFT', 'IN_PROGRESS'] } } })
         ]);
 
-        return { recentAdjustments, pendingTransfers, activeAlerts, activeCounts };
+        return {
+            recentAdjustments,
+            pendingTransfers,
+            activeAlerts,
+            activeCounts
+        };
     } catch (error) {
         console.error('Failed to get activity summary:', error);
         return { recentAdjustments: 0, pendingTransfers: 0, activeAlerts: 0, activeCounts: 0 };
+    }
+}
+
+export type ExpiryBatch = {
+    id: string;
+    productName: string;
+    variantName: string; // Added variant name if needed, but UI currently only shows product
+    sku: string;
+    warehouseName: string;
+    remainingQuantity: number;
+    expiryDate: Date | null;
+    daysLeft: number;
+    status: 'EXPIRED' | 'URGENT' | 'WARNING' | 'OK';
+};
+
+export async function getExpiryReport(): Promise<ExpiryBatch[]> {
+    try {
+        await validateAdminSession();
+
+        const warningDate30 = new Date();
+        warningDate30.setDate(warningDate30.getDate() + 30);
+
+        const expiringBatches = await prisma.inventoryBatch.findMany({
+            where: {
+                expiryDate: { lte: warningDate30 },
+                remainingQuantity: { gt: 0 }
+            },
+            include: {
+                variant: {
+                    include: {
+                        product: { select: { name: true } }
+                    }
+                },
+                stockIn: { select: { warehouse: { select: { name: true } } } }
+            },
+            orderBy: { expiryDate: 'asc' }
+        });
+
+        const now = new Date();
+
+        return expiringBatches.map(batch => {
+            const daysLeft = batch.expiryDate
+                ? Math.ceil((batch.expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                : 0;
+
+            let status: ExpiryBatch['status'] = 'OK';
+            if (daysLeft <= 0) status = 'EXPIRED';
+            else if (daysLeft <= 7) status = 'URGENT';
+            else if (daysLeft <= 30) status = 'WARNING';
+
+            return {
+                id: batch.id,
+                productName: batch.variant.product.name,
+                variantName: '', // batch.variant.name if available
+                sku: batch.variant.sku,
+                warehouseName: batch.stockIn?.warehouse?.name || 'Unknown',
+                remainingQuantity: batch.remainingQuantity,
+                expiryDate: batch.expiryDate,
+                daysLeft,
+                status
+            };
+        });
+    } catch (error) {
+        console.error('Failed to get expiry report:', error);
+        return [];
     }
 }
