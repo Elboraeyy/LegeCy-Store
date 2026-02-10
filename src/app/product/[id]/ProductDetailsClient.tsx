@@ -36,6 +36,7 @@ interface ProductData {
   category: string | null;
   categoryAr?: string | null;
   categoryId: string | null;
+  categorySlug?: string;
   brand: { id: string; name: string; nameAr?: string; slug: string } | null;
   material: { id: string; name: string; nameAr?: string } | null;
   totalStock: number;
@@ -46,6 +47,8 @@ interface ProductData {
     waterResistance?: string;
     glass?: string;
   };
+  detailTags?: string[];
+  similarProducts?: Product[];
 }
 
 interface ProductDetailsClientProps {
@@ -482,6 +485,17 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               </Link>
             )}
 
+            {/* Detail Tags */}
+            {product.detailTags && product.detailTags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {product.detailTags.map((tag, idx) => (
+                  <span key={idx} className="px-2 py-1 bg-accent/10 text-accent text-xs rounded-full font-medium">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
             {/* Title */}
             <h1 className="detail-title-large">{getLocalized(product, language, 'name')}</h1>
 
@@ -816,13 +830,23 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <ul className="shipping-info-list">
-                        {showFreeShipping && <li>{t.product.shipping_list.free_shipping.replace('{amount}', Number(shippingThreshold).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US'))}</li>}
-                        <li>{t.product.shipping_list.delivery}</li>
-                        <li>{t.product.shipping_list.packaging}</li>
-                        <li>{t.product.shipping_list.returns}</li>
-                        <li>{t.product.shipping_list.exchange}</li>
-                      </ul>
+                      <div className="prose prose-sm max-w-none text-muted-foreground">
+                        <p>{t.product.shipping_desc}</p>
+                        {showFreeShipping && (
+                          <div className="mt-2 p-3 bg-secondary/50 rounded-lg flex items-start gap-3">
+                            <svg className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="1" y="3" width="15" height="13"></rect>
+                              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
+                            <div>
+                              <span className="font-semibold block text-foreground">{t.common.free_shipping}</span>
+                              <span className="text-xs">{t.common.free_shipping_orders_over} {formatPrice(Number(shippingThreshold))}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -830,6 +854,32 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
             </div>
           </div>
         </div>
+
+        {/* Similar Products */}
+        {product.similarProducts && product.similarProducts.length > 0 && (
+          <div className="mt-16">
+            <ModernProductCarousel
+              products={product.similarProducts}
+              title={t.product.similar_products || (language === 'ar' ? 'منتجات مشابهة' : 'Similar Products')}
+              subtitle={language === 'ar' ? 'قد يعجبك أيضاً' : 'You might also like'}
+              viewAllLink={`/shop?category=${product.categorySlug || product.categoryId}`}
+            />
+          </div>
+        )}
+
+        {/* Related Products (Category based) - Only show if similar products are few or to supplement */}
+        {relatedProducts.length > 0 && (!product.similarProducts || product.similarProducts.length < 4) && (
+          <div className="mt-16">
+            <ModernProductCarousel
+              products={relatedProducts}
+              title={t.product.related_products}
+              subtitle={t.product.complete_look}
+              viewAllLink={`/shop?category=${product.categorySlug || product.categoryId}`}
+            />
+          </div>
+        )}
+
+
 
         {/* Reviews Section */}
         <section className="product-reviews-section">

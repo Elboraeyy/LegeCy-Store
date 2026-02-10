@@ -15,8 +15,8 @@ import { useLanguage } from "@/context/LanguageContext";
 type Props = {
   homepage: HomepageSettings;
   storeName: string;
-  featuredProducts: Product[];
   newArrivals: Product[];
+  forYouProducts?: Product[];
   flashSales?: FlashSale[];
   bundles?: Bundle[];
   bogos?: BOGODeal[];
@@ -25,8 +25,8 @@ type Props = {
 export function HomeContentClient({ 
   homepage, 
   storeName, 
-  featuredProducts, 
   newArrivals,
+  forYouProducts,
   flashSales,
   bundles,
   bogos
@@ -76,10 +76,10 @@ export function HomeContentClient({
           bundles={bundles || []} 
       />
 
-      {/* Featured Products Carousel */}
-      {featuredProducts && featuredProducts.length > 0 && (
+      {/* Featured Products Carousel (Admin-controlled via showInForYou) */}
+      {forYouProducts && forYouProducts.length > 0 && (
         <ModernProductCarousel
-          products={featuredProducts}
+          products={forYouProducts}
           title={t.home.featured_collection}
           subtitle={t.home.handpicked}
           viewAllLink="/shop"

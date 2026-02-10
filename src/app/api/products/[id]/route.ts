@@ -25,6 +25,21 @@ export async function GET(_: NextRequest, { params }: Params) {
         material: { select: { id: true, name: true } },
         categoryRel: { select: { id: true, name: true, slug: true } },
         images: { select: { url: true } },
+        similarProducts: {
+          select: {
+            id: true,
+            name: true,
+            imageUrl: true,
+            compareAtPrice: true,
+            category: true,
+            detailTags: true,
+            brand: { select: { name: true, slug: true } },
+            variants: {
+              take: 1,
+              select: { price: true }
+            }
+          }
+        }
       },
     });
 
@@ -57,6 +72,17 @@ export async function GET(_: NextRequest, { params }: Params) {
       sku: firstVariant?.sku || null,
       inStock: totalStock > 0,
       createdAt: product.createdAt.toISOString(),
+      detailTags: product.detailTags,
+      similarProducts: product.similarProducts.map(p => ({
+        id: p.id,
+        name: p.name,
+        imageUrl: p.imageUrl,
+        price: p.variants?.[0]?.price ? Number(p.variants[0].price) : 0,
+        compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+        category: p.category,
+        brand: p.brand?.name,
+        detailTags: p.detailTags
+      })),
     };
 
     return NextResponse.json(transformedProduct);

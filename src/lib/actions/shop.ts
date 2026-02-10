@@ -265,7 +265,9 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
 
     const products = await prisma.product.findMany({
         where: {
-            createdAt: { gte: thirtyDaysAgo }
+            createdAt: { gte: thirtyDaysAgo },
+            status: 'active',
+            showInNewArrivals: true
         },
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -302,7 +304,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             variantCount: product.variants.length,
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
-            isNew: true,
+            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -312,3 +314,57 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
         };
     });
 }
+
+// Fetch "For You" products (Curated list)
+export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduct[]> {
+    const products = await prisma.product.findMany({
+        where: {
+            status: 'active',
+            showInForYou: true
+        },
+        take: limit,
+        orderBy: { updatedAt: 'desc' }, // Show recently updated/curated items
+        include: {
+            variants: {
+                include: {
+                    inventory: true
+                }
+            },
+            images: true,
+            brand: true,
+            material: true
+        }
+    });
+
+    return products.map(product => {
+        const mainVariant = product.variants[0];
+        const totalStock = product.variants.reduce((acc, v) =>
+            acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0
+        );
+
+        return {
+            id: product.id,
+            name: product.name,
+            price: mainVariant ? Number(mainVariant.price) : 0,
+            compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+            category: product.category,
+            imageUrl: product.imageUrl,
+            images: product.images.map(img => img.url),
+            brand: product.brand?.slug || null,
+            material: product.material?.slug || null,
+            strap: product.material?.name || null,
+            status: 'active',
+            variantCount: product.variants.length,
+            inStock: totalStock > 0,
+            defaultVariantId: mainVariant?.id || null,
+            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
+            variants: product.variants.map(v => ({
+                id: v.id,
+                sku: v.sku,
+                price: Number(v.price),
+                stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
+            }))
+        };
+    });
+}
+

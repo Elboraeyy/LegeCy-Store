@@ -389,6 +389,15 @@ model Product {
   bundles       BundleProduct[]
   bundleOptions BundleItemProduct[]
 
+  // Merchandising & Visibility
+  showInNewArrivals Boolean @default(true)
+  showInForYou      Boolean @default(true)
+  detailTags        String[] @default([]) // e.g. ["Best Seller", "Limited Edition"]
+
+  // Similar Products Support
+  similarProducts   Product[] @relation("SimilarProducts")
+  similarTo         Product[] @relation("SimilarProducts")
+
   @@index([name])
   @@index([category])
   @@index([status])
@@ -396,6 +405,8 @@ model Product {
   @@index([brandId])
   @@index([materialId])
   @@index([supplierId])
+  @@index([showInNewArrivals])
+  @@index([showInForYou])
 }
 
 // ==========================================

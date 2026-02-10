@@ -34,6 +34,8 @@ export const dictionary = {
       no_results: "No results for \"{query}\"",
       try_searching: "Try searching for:",
       browse_all_products: "Browse All Products",
+      free_shipping: "Free Shipping",
+      free_shipping_orders_over: "Free shipping on orders over",
     },
     nav: {
       home: "Home",
@@ -195,6 +197,9 @@ export const dictionary = {
       no_products_found: "No Products Found",
       no_products_desc: "We couldn't find any products matching your selection.",
       view_details: "View Details",
+      shipping_desc: "Fast and reliable shipping options available.",
+      similar_products: "Similar Products",
+      complete_look: "Complete The Look",
     },
     checkout: {
       checkout: "Checkout",
@@ -1148,6 +1153,8 @@ export const dictionary = {
       no_results: "مفيش نتايج لـ \"{query}\"",
       try_searching: "جرب تدور عن:",
       browse_all_products: "تصفح كل المنتجات",
+      free_shipping: "شحن مجاني",
+      free_shipping_orders_over: "شحن مجاني للطلبات فوق",
     },
     nav: {
       home: "الرئيسية",
@@ -1482,6 +1489,9 @@ export const dictionary = {
       no_products_found: "مفيش منتجات",
       no_products_desc: "ملقيناش أي منتجات تطابق اختيارك.",
       view_details: "التفاصيل",
+      shipping_desc: "خيارات شحن سريعة وموثوقة.",
+      similar_products: "منتجات مشابهة",
+      complete_look: "كمل الطقم",
     },
     shop: {
       title: "اكتشف مجموعتنا",

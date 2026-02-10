@@ -26,6 +26,12 @@ export interface ProductInput {
     brandId?: string;
     materialId?: string;
     warehouseId?: string;
+
+    // New Fields
+    showInNewArrivals?: boolean;
+    showInForYou?: boolean;
+    detailTags?: string[];
+    similarProductIds?: string[];
 }
 
 // Fetch categories for dropdown
@@ -59,6 +65,17 @@ export async function createProductAction(data: ProductInput) {
                 categoryId: data.categoryId || null,
                 brandId: data.brandId || null,
                 materialId: data.materialId || null,
+
+                // New Fields
+                showInNewArrivals: data.showInNewArrivals ?? true,
+                showInForYou: data.showInForYou ?? true,
+                detailTags: data.detailTags || [],
+
+                // Similar Products
+                similarProducts: data.similarProductIds ? {
+                    connect: data.similarProductIds.map(id => ({ id }))
+                } : undefined,
+
                 images: {
                     create: data.gallery?.map(url => ({ url })) || []
                 }
@@ -117,6 +134,17 @@ export async function updateProductAction(id: string, data: ProductInput) {
             detailedDescription: data.detailedDescription,
             detailedDescriptionAr: data.detailedDescriptionAr,
             imageUrl: data.imageUrl,
+
+            // New Fields
+            showInNewArrivals: data.showInNewArrivals,
+            showInForYou: data.showInForYou,
+            detailTags: data.detailTags,
+
+            // Similar Products logic: reset and connect new list
+            similarProducts: data.similarProductIds ? {
+                set: data.similarProductIds.map(sid => ({ id: sid }))
+            } : undefined,
+
             images: {
                 deleteMany: {},
                 create: data.gallery?.map(url => ({ url })) || []
