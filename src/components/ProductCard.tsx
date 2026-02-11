@@ -41,7 +41,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
   return (
     <div 
-      className="group relative w-full min-w-0 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+      className={`group relative w-full min-w-0 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${isOutOfStock ? 'opacity-60 grayscale-[20%]' : ''}`}
       style={{ touchAction: 'manipulation' }}
     >
       {/* 1. Image Area - Aspect 3:4 */}
@@ -60,20 +60,23 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
         {/* Badges */}
         <div className="absolute top-3 inset-inline-start-3 flex flex-col gap-1.5 z-10">
-          {isOnSale && (
-            <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-[#d4af37] rounded-sm tracking-wider uppercase">
-              -{salePercent}%
-            </span>
-          )}
-          {isNew && !isOnSale && !isOutOfStock && (
-            <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-[#12403C] rounded-sm tracking-wider uppercase">
-              {t.product.new_arrival}
-            </span>
-          )}
-          {isOutOfStock && (
+          {isOutOfStock ? (
             <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-slate-500 rounded-sm tracking-wider uppercase">
               {t.product.sold_out}
             </span>
+          ) : (
+            <>
+                {isOnSale && (
+                  <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-[#d4af37] rounded-sm tracking-wider uppercase">
+                    -{salePercent}%
+                  </span>
+                )}
+                {isNew && !isOnSale && (
+                  <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-[#12403C] rounded-sm tracking-wider uppercase">
+                    {t.product.new_arrival}
+                  </span>
+                )}
+              </>
           )}
         </div>
 

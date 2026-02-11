@@ -803,6 +803,35 @@ export const adminDictionary = {
           desc_all: "All stock levels are healthy! Click \"Scan for Alerts\" to check again."
         }
       },
+      requests: {
+        title: "Restock Requests",
+        subtitle: "Customers waiting for out-of-stock items",
+        filter_status: "Status",
+        table: {
+          product: "Product",
+          customer: "Customer",
+          channel: "Channel",
+          date: "Date",
+          status: "Status",
+          actions: "Actions",
+          variant: "Variant"
+        },
+        actions: {
+          whatsapp: "WhatsApp",
+          mark_sent: "Mark Sent",
+          delete: "Delete",
+          view_product: "View Product"
+        },
+        status: {
+          pending: "Pending",
+          sent: "Sent"
+        },
+        empty: {
+          title: "No requests found",
+          desc: "No customers are currently waiting for stock."
+        },
+        whatsapp_message: "Hello! Good news - {product} is back in stock at LegaCy Store. Order now: {link}"
+      },
       counts: {
         title: "Stock Counts",
         subtitle: "Physical inventory audits and reconciliation",
@@ -2443,6 +2472,15 @@ export const adminDictionary = {
           title: "Taxes",
           desc: "Tax configuration"
         },
+        inventory: {
+          title: "Inventory",
+          desc: "Stock management & alerts",
+          empty: {
+            title: "No alerts found",
+            desc: "Great job! Inventory is healthy."
+          },
+
+        },
         localization: {
           title: "Localization",
           desc: "Languages and formats"
@@ -3857,6 +3895,35 @@ export const adminDictionary = {
           desc_filter: "جرب تغيير الفلتر لرؤية تنبيهات أخرى.",
           desc_all: "جميع مستويات المخزون جيدة! اضغط \"فحص التنبيهات\" للتحقق مجدداً."
         }
+      },
+      requests: {
+        title: "طلبات إعادة التوفر",
+        subtitle: "العملاء في انتظار المنتجات النافذة",
+        filter_status: "الحالة",
+        table: {
+          product: "المنتج",
+          customer: "العميل",
+          channel: "القناة",
+          date: "التاريخ",
+          status: "الحالة",
+          actions: "إجراءات",
+          variant: "النوع"
+        },
+        actions: {
+          whatsapp: "واتساب",
+          mark_sent: "تم الإرسال",
+          delete: "حذف",
+          view_product: "عرض المنتج"
+        },
+        status: {
+          pending: "معلق",
+          sent: "تم الإرسال"
+        },
+        empty: {
+          title: "لا توجد طلبات",
+          desc: "لا يوجد عملاء في الانتظار حالياً."
+        },
+        whatsapp_message: "مرحباً! أخبار سارة - {product} توفر مجدداً في متجر ليجاسي. اطلب الآن: {link}"
       },
       counts: {
         title: "جرد المخزون",

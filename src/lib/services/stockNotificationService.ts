@@ -59,6 +59,7 @@ export const stockNotificationService = {
     for (const sub of subs) {
       try {
         if (!sub.product) continue;
+        if (!sub.email) continue; // Skip non-email subscriptions
         const productName = sub.product.name;
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://legecy.store';
 

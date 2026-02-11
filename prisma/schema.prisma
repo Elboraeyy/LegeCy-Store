@@ -879,7 +879,9 @@ model ProductPriceHistory {
 
 model StockNotification {
   id        String  @id @default(uuid())
-  email     String
+  email     String?
+  whatsapp  String?
+  channel   String  @default("email") // email, whatsapp
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -890,7 +892,9 @@ model StockNotification {
   createdAt DateTime @default(now())
 
   @@unique([email, variantId]) // Prevent duplicate subs for same variant
+  @@unique([whatsapp, productId]) // Prevent duplicate whatsapp subs
   @@index([email])
+  @@index([whatsapp])
   @@index([variantId])
   @@index([productId])
 }
