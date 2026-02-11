@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { toast } from 'sonner';
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
-import Link from 'next/link';
 
 interface StockRequest {
     id: string;
@@ -65,26 +64,40 @@ export default function RestockRequestsPage() {
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('pending');
 
-    const loadRequests = useCallback(async () => {
-        setLoading(true);
-        const res = await getStockRequests();
-        if (res.success && res.data) {
-            setRequests(res.data as any);
-        } else {
-            toast.error('Failed to load requests');
+    const fetchRequests = useCallback(async () => {
+        try {
+            const res = await getStockRequests();
+            if (res.success && res.data) {
+                setRequests(res.data as unknown as StockRequest[]);
+            } else {
+                toast.error('Failed to load requests');
+            }
+        } catch {
+            toast.error('Error loading requests');
         }
-        setLoading(false);
     }, []);
 
+    const loadRequests = useCallback(async (showLoading = true) => {
+        if (showLoading) setLoading(true);
+        await fetchRequests();
+        setLoading(false);
+    }, [fetchRequests]);
+
     useEffect(() => {
-        loadRequests();
-    }, [loadRequests]);
+        let mounted = true;
+        const init = async () => {
+            await fetchRequests();
+            if (mounted) setLoading(false);
+        };
+        init();
+        return () => { mounted = false; };
+    }, [fetchRequests]);
 
     const handleMarkSent = async (id: string) => {
         const res = await updateRequestStatus(id, 'sent');
         if (res.success) {
             toast.success('Marked as sent');
-            loadRequests();
+            loadRequests(false); // Background update
         } else {
             toast.error('Failed to update status');
         }
@@ -95,7 +108,7 @@ export default function RestockRequestsPage() {
         const res = await deleteRequest(id);
         if (res.success) {
             toast.success('Request deleted');
-            loadRequests();
+            loadRequests(false); // Background update
         } else {
             toast.error('Failed to delete');
         }
@@ -113,7 +126,7 @@ export default function RestockRequestsPage() {
 
         const productUrl = `${window.location.origin}/product/${req.product.id}`;
         // Replace placeholders in message
-        let message = requestsT.whatsapp_message
+        const message = requestsT.whatsapp_message
             .replace('{product}', req.product.name)
             .replace('{link}', productUrl);
 
@@ -138,7 +151,7 @@ export default function RestockRequestsPage() {
                     <h1 className="admin-title">{requestsT.title}</h1>
                     <p className="admin-subtitle">{requestsT.subtitle}</p>
                 </div>
-                <button onClick={loadRequests} className="admin-btn admin-btn-outline">
+                <button onClick={() => loadRequests(true)} className="admin-btn admin-btn-outline">
                     🔄 Refresh
                 </button>
             </div>
