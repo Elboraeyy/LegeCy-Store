@@ -883,7 +883,17 @@ export const dictionary = {
         returns_intel: "Returns Intel",
         customers: "Customers",
         reviews: "Reviews",
-        coupons: "Coupons",
+        coupons: "Promos & Discounts", // Updated label
+        messages: "Messages",
+        restock_requests: "Restock Requests",
+        analytics: "Analytics",
+        rankings: "Rankings",
+        payroll: "Payroll",
+        alerts: "Alerts",
+        stock_counts: "Stock Counts",
+        store: "Store", // Section
+        customers_marketing: "Customers & Marketing", // Section
+        system: "System", // Section
         products: "Products",
         categories: "Categories",
         brands: "Brands",
@@ -1637,6 +1647,17 @@ export const dictionary = {
         kill_switches: "مفاتيح الطوارئ",
         settings: "الإعدادات",
         logout: "تسجيل الخروج",
+        messages: "الرسائل",
+        restock_requests: "طلبات التوفر",
+        analytics: "التحليلات",
+        rankings: "التصنيفات",
+        payroll: "الرواتب",
+        alerts: "التنبيهات",
+        stock_counts: "جرد المخزون",
+        store: "المتجر",
+        customers_marketing: "العملاء والتسويق",
+        system: "النظام",
+        promos_discounts: "العروض والخصومات",
       },
       header: {
         search_placeholder: "ابحث في الطلبات، المنتجات...",

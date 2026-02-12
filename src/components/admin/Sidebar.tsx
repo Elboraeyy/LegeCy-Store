@@ -47,101 +47,74 @@ export function AdminSidebar() {
     const pathname = usePathname();
     const { t } = useLanguage();
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-        'Sales': true,
-        'Catalog': true,
-        'Operations': true,
-        'Finance': true,
-        'Management': true
+        'Dashboard': true,
+        'Store': true,
+        'CustomersMarketing': true,
+        'System': true,
     });
 
     const getNavStructure = () => ({
-        'Sales': {
-            label: t.admin.sidebar.sales,
-            icon: 'sales' as keyof typeof icons,
+        'Dashboard': {
+            label: t.admin.sidebar.dashboard,
+            icon: 'finance' as keyof typeof icons, // Reusing finance icon for dashboard for now
             items: [
-                { label: t.admin.sidebar.orders, href: '/admin/orders' },
-                { label: t.admin.sidebar.order_risk, href: '/admin/orders/risk' },
-                { label: t.admin.sidebar.returns_intel, href: '/admin/orders/returns/intelligence' },
-                { label: t.admin.sidebar.customers, href: '/admin/customers' },
-                { label: t.admin.sidebar.reviews, href: '/admin/reviews' },
-                { label: t.admin.sidebar.coupons, href: '/admin/coupons' }
+                { label: t.admin.sidebar.sales, href: '/admin' }, // Main Dashboard
+                { label: t.admin.sidebar.daily_brief, href: '/admin/daily/ceo-brief' },
             ]
         },
-        'Catalog': {
-            label: t.admin.sidebar.catalog,
+        'Store': {
+            label: t.admin.sidebar.store,
             icon: 'products' as keyof typeof icons,
             items: [
+                { label: t.admin.sidebar.orders, href: '/admin/orders' },
                 { label: t.admin.sidebar.products, href: '/admin/products' },
                 { label: t.admin.sidebar.categories, href: '/admin/categories' },
-                { label: t.admin.sidebar.brands, href: '/admin/brands' },
-                { label: t.admin.sidebar.materials, href: '/admin/materials' }
-            ]
-        },
-        'Operations': {
-            label: t.admin.sidebar.operations,
-            icon: 'operations' as keyof typeof icons,
-            items: [
-                { label: t.admin.sidebar.inventory, href: '/admin/inventory' },
-                { label: t.admin.sidebar.procurement, href: '/admin/procurement' },
-                { label: t.admin.sidebar.supplier_perf, href: '/admin/procurement/performance' },
-                { label: t.admin.sidebar.warehouses, href: '/admin/inventory/warehouses' },
-                { label: t.admin.sidebar.transfers, href: '/admin/inventory/transfers' },
-            ]
-        },
-        'Finance': {
-            label: t.admin.sidebar.finance,
-            icon: 'finance' as keyof typeof icons,
-            items: [
-                { label: t.admin.sidebar.dashboard, href: '/admin/finance' },
                 {
-                    label: t.admin.sidebar.treasury,
+                    label: t.admin.sidebar.inventory,
                     children: [
-                        { label: t.admin.sidebar.cash_forecast, href: '/admin/finance/forecast' },
-                        { label: t.admin.sidebar.break_even, href: '/admin/finance/break-even' },
-                        { label: t.admin.sidebar.profit_quality, href: '/admin/finance/profit-quality' },
-                    ]
-                },
-                {
-                    label: t.admin.sidebar.accounting,
-                    children: [
-                        { label: t.admin.sidebar.accounts, href: '/admin/finance/accounts' },
-                        { label: t.admin.sidebar.journal, href: '/admin/finance/transactions' },
-                        { label: t.admin.sidebar.expenses, href: '/admin/finance/expenses' },
-                        { label: t.admin.sidebar.inventory_value, href: '/admin/finance/inventory' },
-                    ]
-                },
-                {
-                    label: t.admin.sidebar.capital,
-                    children: [
-                        { label: t.admin.sidebar.partners, href: '/admin/finance/partners' },
-                        { label: t.admin.sidebar.equity, href: '/admin/finance/equity' },
-                        { label: t.admin.sidebar.periods, href: '/admin/finance/periods' },
-                    ]
-                },
-                {
-                    label: t.admin.sidebar.reports,
-                    children: [
-                        { label: t.admin.sidebar.pnl, href: '/admin/finance/reports/pnl' },
-                        { label: t.admin.sidebar.balance_sheet, href: '/admin/finance/reports/balance' },
-                        { label: t.admin.sidebar.cash_flow, href: '/admin/finance/reports/cashflow' },
-                        { label: t.admin.sidebar.board_report, href: '/admin/finance/reports/board' },
+                        { label: t.admin.sidebar.procurement, href: '/admin/procurement' },
+                        { label: t.admin.sidebar.warehouses, href: '/admin/inventory/warehouses' },
+                        { label: t.admin.sidebar.transfers, href: '/admin/inventory/transfers' },
+                        { label: t.admin.sidebar.alerts, href: '/admin/inventory/alerts' },
+                        { label: t.admin.sidebar.stock_counts, href: '/admin/inventory/counts' },
+                        { label: t.admin.sidebar.reports, href: '/admin/inventory/reports' },
                     ]
                 }
             ]
         },
-        'Management': {
-            label: t.admin.sidebar.management,
+        'CustomersMarketing': {
+            label: t.admin.sidebar.customers_marketing,
+            icon: 'sales' as keyof typeof icons,
+            items: [
+                {
+                    label: t.admin.sidebar.customers,
+                    children: [
+                        { label: t.admin.sidebar.customers, href: '/admin/customers' }, // List
+                        { label: t.admin.sidebar.reviews, href: '/admin/reviews' },
+                        { label: t.admin.sidebar.messages, href: '/admin/messages' },
+                        { label: t.admin.sidebar.restock_requests, href: '/admin/restock-requests' },
+                    ]
+                },
+                { label: t.admin.sidebar.coupons, href: '/admin/coupons' }, // Promos & Discounts
+            ]
+        },
+        'System': {
+            label: t.admin.sidebar.system,
             icon: 'management' as keyof typeof icons,
             items: [
-                { label: t.admin.sidebar.daily_brief, href: '/admin/daily/ceo-brief' },
-                { label: t.admin.sidebar.team, href: '/admin/team' },
-                { label: t.admin.sidebar.decisions, href: '/admin/team/decisions' },
-                { label: t.admin.sidebar.roles, href: '/admin/team/roles' },
-                { label: t.admin.sidebar.approvals, href: '/admin/team/approvals' },
+                { label: t.admin.sidebar.finance, href: '/admin/finance' },
+                {
+                    label: t.admin.sidebar.team,
+                    children: [
+                        { label: t.admin.sidebar.team, href: '/admin/team' }, // List
+                        { label: t.admin.sidebar.rankings, href: '/admin/team/rankings' },
+                        { label: t.admin.sidebar.payroll, href: '/admin/team/payroll' },
+                        { label: t.admin.sidebar.approvals, href: '/admin/team/approvals' },
+                    ]
+                },
+                { label: t.admin.sidebar.analytics, href: '/admin/analytics' },
                 { label: t.admin.sidebar.activity, href: '/admin/activity' },
-                { label: t.admin.sidebar.audit_trail, href: '/admin/activity/audit-timeline' },
-                { label: t.admin.sidebar.kill_switches, href: '/admin/config/security/kill-switches' },
-                { label: t.admin.sidebar.settings, href: '/admin/config' }
+                { label: t.admin.sidebar.settings, href: '/admin/config' },
             ]
         }
     });
