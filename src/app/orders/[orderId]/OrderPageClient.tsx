@@ -6,9 +6,11 @@ import { useLanguage } from '@/context/LanguageContext';
 interface OrderPageProps {
     order: {
         id: string;
+        orderNumber: number | null;
         status: string;
         createdAt: string;
         totalPrice: number;
+        shippingCost: number;
         customerName: string | null;
         customerPhone: string | null;
         customerEmail: string | null;
@@ -94,7 +96,7 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                             <span className="text-2xl">{status.emoji}</span>
                             <div>
                                 <p className="font-bold" style={{ color: status.color }}>{status.label}</p>
-                                <p className="text-sm text-gray-600">#{order.id.slice(0, 8).toUpperCase()}</p>
+                                <p className="text-sm text-gray-600">#{order.orderNumber || order.id.slice(0, 8).toUpperCase()}</p>
                             </div>
                         </div>
                         <p className="text-sm text-gray-500">{formatDate(order.createdAt)}</p>
@@ -119,6 +121,16 @@ export default function OrderPageClient({ order, orderId }: OrderPageProps) {
                                     </p>
                                 </div>
                             ))}
+                        </div>
+
+                        {/* Shipping Cost Line Item */}
+                        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center px-4">
+                            <span className="text-gray-600">{t.orders.details.shipping}</span>
+                            <span className="font-bold">
+                                {order.shippingCost === 0
+                                    ? <span className="text-green-600">{t.orders.details.free}</span>
+                                    : `EGP ${Number(order.shippingCost).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US')}`}
+                            </span>
                         </div>
                     </div>
 

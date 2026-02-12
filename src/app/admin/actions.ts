@@ -58,25 +58,33 @@ export async function fetchOrderDetails(orderId: string) {
         ...order,
         status: order.status as OrderStatus,
         createdAt: order.createdAt.toISOString(),
-        totalPrice: Number(order.totalPrice), // Convert Decimal to number
-        shippingCost: Number(order.shippingCost || 0), // Convert Decimal to number
+        totalPrice: Number(order.totalPrice),
+        subtotal: order.subtotal ? Number(order.subtotal) : null,
+        discountAmount: order.discountAmount ? Number(order.discountAmount) : null,
+        shippingCost: Number(order.shippingCost || 0),
+        firstName: (order as any).firstName,
+        lastName: (order as any).lastName,
+        alternativePhone: (order as any).alternativePhone,
+        paymentPhoneNumber: (order as any).paymentPhoneNumber,
+        paymentRef: (order as any).paymentRef,
+        shippingNotes: order.shippingNotes,
         paymentIntent: order.paymentIntent ? {
             ...order.paymentIntent,
-            amount: Number(order.paymentIntent.amount), // Convert Decimal to number
+            amount: Number(order.paymentIntent.amount),
             expiresAt: order.paymentIntent.expiresAt.toISOString(),
             createdAt: order.paymentIntent.createdAt.toISOString(),
         } : null,
         items: order.items.map(item => ({
             ...item,
-            price: Number(item.price), // Convert Decimal to number
-            discountedPrice: item.discountedPrice ? Number(item.discountedPrice) : null, // Convert Decimal to number
+            price: Number(item.price),
+            discountedPrice: item.discountedPrice ? Number(item.discountedPrice) : null,
+            costAtPurchase: item.costAtPurchase ? Number(item.costAtPurchase) : null,
             variant: item.variant ? {
                 id: item.variant.id,
                 sku: item.variant.sku,
-                price: Number(item.variant.price), // Convert Decimal to number
+                price: Number(item.variant.price),
                 productId: item.variant.productId,
-                productName: item.variant.product.name, // Convenience
-                // Do NOT include full product object as it contains Decimals (compareAtPrice)
+                productName: item.variant.product.name,
             } : null
         })),
         history: order.history.map(h => ({

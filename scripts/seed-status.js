@@ -9,12 +9,14 @@ const STATUSES = [
   'payment_pending',
   'confirmed',
   'paid',
+  'preparing',
   'shipped',
   'delivered',
   'cash_received',
   'cancelled',
   'refunded',
   'returned',
+  'payment_failed',
   'processing' // Just in case
 ];
 

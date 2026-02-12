@@ -161,7 +161,7 @@ export async function getOrders({
      where.OR = [
        ...(where.OR || []),
        { id: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
-       { customerName: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
+       { customerName: { contains: search, mode: 'insensitive' as Prisma.QueryMode } }, // Use customerName for backward compatibility
        { customerPhone: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
        { user: { email: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
        { user: { name: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } }
@@ -211,8 +211,17 @@ export async function getOrders({
 // Strict Type Mapping
 type PrismaOrderWithRelations = PrismaOrder & {
   orderNumber: number;
-    items: PrismaOrderItem[];
-    user?: Partial<PrismaUser> | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  alternativePhone?: string | null;
+  customerPhone?: string | null;
+  customerEmail?: string | null;
+  shippingAddress?: string | null;
+  shippingGovernorate?: string | null;
+  shippingCity?: string | null;
+  shippingNotes?: string | null;
+  items: PrismaOrderItem[];
+  user?: Partial<PrismaUser> | null;
 };
 
 function mapToOrderType(prismaOrder: PrismaOrderWithRelations): Order {
@@ -223,6 +232,15 @@ function mapToOrderType(prismaOrder: PrismaOrderWithRelations): Order {
         status: prismaOrder.status as OrderStatus,
         createdAt: prismaOrder.createdAt instanceof Date ? prismaOrder.createdAt.toISOString() : String(prismaOrder.createdAt),
       paymentMethod: prismaOrder.paymentMethod,
+      firstName: prismaOrder.firstName ?? null,
+      lastName: prismaOrder.lastName ?? null,
+      alternativePhone: prismaOrder.alternativePhone ?? null,
+      customerPhone: prismaOrder.customerPhone ?? null,
+      customerEmail: prismaOrder.customerEmail ?? null,
+      shippingAddress: prismaOrder.shippingAddress ?? null,
+      shippingGovernorate: prismaOrder.shippingGovernorate ?? null,
+      shippingCity: prismaOrder.shippingCity ?? null,
+      shippingNotes: prismaOrder.shippingNotes ?? null,
         items: prismaOrder.items.map(mapToOrderItem),
         // userId property does not exist in our Order type definition
         user: prismaOrder.user ? {

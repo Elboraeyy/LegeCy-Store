@@ -686,6 +686,7 @@ export const dictionary = {
         success_title: "Order Confirmed!",
         success_desc: "Thanks for shopping with us! Here's your order summary",
         items: "Your Items",
+        free: "Free",
         shipping: "Shipping Details",
         payment: "Payment Method",
         summary: {

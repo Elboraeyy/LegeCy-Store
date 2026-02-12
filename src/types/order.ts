@@ -43,6 +43,15 @@ export interface Order {
   hasDispute?: boolean;
   items: OrderItem[];
 
+  firstName?: string | null;
+  lastName?: string | null;
+  alternativePhone?: string | null;
+  customerPhone?: string | null;
+  customerEmail?: string | null;
+  shippingAddress?: string | null;
+  shippingGovernorate?: string | null;
+  shippingCity?: string | null;
+  shippingNotes?: string | null;
   history?: OrderHistoryItem[];
   user?: {
     name: string | null;

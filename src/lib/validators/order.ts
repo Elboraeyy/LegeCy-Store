@@ -10,8 +10,15 @@ export const createOrderSchema = z.object({
     quantity: z.number().int().positive(),
   })).min(1, 'Order must have at least one item'),
   totalPrice: z.number().nonnegative(),
-  shippingCost: z.number().nonnegative().optional(), // Added for flexibility, though calculated on backend usually
-  userId: z.string().optional(), // Link order to user
+  shippingCost: z.number().nonnegative().optional(),
+  userId: z.string().optional(),
+  firstName: z.string().optional(), // New
+  lastName: z.string().optional(),  // New
+  alternativePhone: z.string().optional().nullable(), // New
+  shippingAddress: z.string().optional(), // New
+  shippingGovernorate: z.string().optional(), // New
+  shippingCity: z.string().optional(), // New
+  shippingNotes: z.string().optional().nullable(), // New
   paymentMethod: z.enum(['cod', 'wallet', 'instapay']).optional(),
   options: z.object({
     skipReservation: z.boolean().optional(),

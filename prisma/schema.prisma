@@ -221,13 +221,20 @@ model Order {
 
   // Shipping Information
   customerName    String?
+  firstName       String?
+  lastName        String?
   customerEmail   String?
   customerPhone   String?
+  alternativePhone String?
   shippingAddress     String?
   shippingGovernorate String?
   shippingCity        String?
   shippingNotes       String?
   paymentMethod   String  @default("cod") // cod, paymob, fawry
+
+  // Manual Payment Details
+  paymentPhoneNumber String? // Sender phone for Wallet/InstaPay
+  paymentRef        String? // Transaction ID/Ref code
 
   // Shipping
   shippingProvider String? // e.g. Bosta, Mylerz

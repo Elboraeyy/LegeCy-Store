@@ -39,7 +39,10 @@ export const orderStateService = {
     }) {
         const { orderId, newStatus, actor, actorId, reason, metadata } = params;
 
-        return await prisma.$transaction(async (tx) => {
+        let postCommitActions: (() => Promise<void>)[] = [];
+
+        try {
+            return await prisma.$transaction(async (tx) => {
             // 1. Fetch Order
             const order = await tx.order.findUnique({
                 where: { id: orderId },
@@ -90,8 +93,23 @@ export const orderStateService = {
                 }
             }
 
+                // 6. Queue Post-Commit Notifications
+                if (newStatus === OrderStatus.Shipped) {
+                    postCommitActions.push(() => orderNotificationService.notifyShipped(orderId, metadata));
+                } else if (newStatus === OrderStatus.Delivered) {
+                    postCommitActions.push(() => orderNotificationService.notifyDelivered(orderId));
+                }
+
             return { success: true };
+            }, {
+                timeout: 30000 // 30 seconds
         });
+        } finally {
+            // Run side effects outside the transaction
+            for (const action of postCommitActions) {
+                await action().catch(e => logger.error(`[PostCommit] Action failed`, e));
+            }
+        }
     },
 
     /**
@@ -116,13 +134,9 @@ export const orderStateService = {
         switch (eventType) {
             case 'PAID':
                 // For Online payments, record payment source entry (xazna)
-                // Trigger if moving to Pending (from PaymentPending) OR explicitly Paid
                 if (toStatus === OrderStatus.Pending || toStatus === OrderStatus.Paid) {
-                    // Check if it's actually an online order validation
                     const order = await db.order.findUnique({ where: { id: orderId } });
                     if (order && order.paymentMethod !== 'cod') {
-                        // Only record if we haven't already (idempotency check inside service?)
-                        // or if transitioning from PaymentPending
                         if (fromStatus === OrderStatus.PaymentPending || toStatus === OrderStatus.Paid) {
                             await orderFinancialService.recordPaymentReceipt(orderId);
                         }
@@ -130,7 +144,10 @@ export const orderStateService = {
                 }
                 break;
             case 'SHIPPED':
-                await orderNotificationService.notifyShipped(orderId, metadata);
+                // Move notification outside or trigger if NOT in transaction
+                if (!txClient) {
+                    await orderNotificationService.notifyShipped(orderId, metadata);
+                }
                 break;
             case 'DELIVERED':
                 // For COD orders, record payment source entry (xazna) upon delivery
@@ -140,7 +157,11 @@ export const orderStateService = {
                 }
 
                 await orderFinancialService.recognizeRevenue(orderId, triggeredBy);
-                await orderNotificationService.notifyDelivered(orderId);
+
+                // Move notification outside or trigger if NOT in transaction
+                if (!txClient) {
+                    await orderNotificationService.notifyDelivered(orderId);
+                }
                 break;
         }
 

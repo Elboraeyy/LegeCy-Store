@@ -23,9 +23,11 @@ export default async function OrderTrackingPage({ params }: Props) {
     // Serialize the order data for client component
     const serializedOrder = {
         id: order.id,
+        orderNumber: order.orderNumber,
         status: order.status,
         createdAt: order.createdAt.toISOString(),
         totalPrice: Number(order.totalPrice),
+        shippingCost: Number(order.shippingCost),
         customerName: order.customerName,
         customerPhone: order.customerPhone,
         customerEmail: order.customerEmail,

@@ -19,7 +19,8 @@ import ManualPaymentInstructions from "@/components/shop/ManualPaymentInstructio
 import styles from "./Checkout.module.css";
 
 interface ShippingForm {
-  customerName: string;
+  firstName: string;
+  lastName: string;
   customerEmail: string;
   customerPhone: string;
   customerAltPhone: string;
@@ -48,7 +49,8 @@ export default function CheckoutClient() {
 
   // Form State
   const [form, setForm] = useFormPersistence<ShippingForm>("checkout-form", {
-    customerName: "",
+    firstName: "",
+    lastName: "",
     customerEmail: "",
     customerPhone: "",
     customerAltPhone: "",
@@ -82,9 +84,14 @@ export default function CheckoutClient() {
       try {
         const profile = await getCheckoutProfile();
         if (profile) {
+          const nameParts = (profile.contact.name || "").split(' ');
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(' ') || "";
+
           setForm(prev => ({
             ...prev,
-            customerName: prev.customerName || profile.contact.name || "",
+            firstName: prev.firstName || firstName,
+            lastName: prev.lastName || lastName,
             customerEmail: prev.customerEmail || profile.contact.email || "",
             customerPhone: prev.customerPhone || profile.contact.phone || "",
             shippingAddress: prev.shippingAddress || profile.address?.street || "",
@@ -188,7 +195,8 @@ export default function CheckoutClient() {
 
   const clearFormStorage = () => {
     setForm({
-      customerName: "",
+      firstName: "",
+      lastName: "",
       customerEmail: "",
       customerPhone: "",
       customerAltPhone: "",
@@ -238,8 +246,11 @@ export default function CheckoutClient() {
   // Form validation
   const validateForm = (): boolean => {
     const newErrors: Partial<ShippingForm> = {};
+    const nameAr = language === 'ar';
 
-    if (!form.customerName.trim()) newErrors.customerName = t.checkout.errors.name_required;
+    if (!form.firstName.trim()) newErrors.firstName = nameAr ? "الاسم الأول مطلوب" : "First name is required";
+    if (!form.lastName.trim()) newErrors.lastName = nameAr ? "اسم العائلة مطلوب" : "Last name is required";
+
     if (!form.customerEmail.trim()) {
       newErrors.customerEmail = t.checkout.errors.email_required;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customerEmail)) {
@@ -250,9 +261,7 @@ export default function CheckoutClient() {
     } else if (!/^01[0125][0-9]{8}$/.test(form.customerPhone.replace(/\s/g, ""))) {
       newErrors.customerPhone = t.checkout.errors.phone_invalid;
     }
-    if (form.customerName.trim().length < 3) {
-      newErrors.customerName = t.checkout.errors.name_min;
-    }
+
     if (!form.shippingAddress.trim()) newErrors.shippingAddress = t.checkout.errors.address_required;
     if (!form.shippingGovernorate) newErrors.shippingGovernorate = t.checkout.errors.governorate_required;
     if (!form.shippingCity) newErrors.shippingCity = t.checkout.errors.city_required;
@@ -286,8 +295,12 @@ export default function CheckoutClient() {
 
     try {
       if (saveInfo) {
-        // Fire and forget save profile to not block order placement
-        saveCheckoutProfile(form).catch(e => console.error("Failed to save profile", e));
+        // Fire and forget save profile
+        const profileData = {
+          ...form,
+          customerName: `${form.firstName} ${form.lastName}`.trim()
+        };
+        saveCheckoutProfile(profileData as any).catch(e => console.error("Failed to save profile", e));
       }
 
       const cartItems = cart.map((item) => ({
@@ -471,19 +484,35 @@ export default function CheckoutClient() {
               </div>
 
               <div className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    {t.checkout.full_name} <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="customerName"
-                    value={form.customerName}
-                    onChange={handleChange}
-                    placeholder={t.checkout.full_name}
-                    className={`${styles.formInput} ${errors.customerName ? styles.formInputError : ""}`}
-                  />
-                  {errors.customerName && <span className={styles.errorMessage}>{errors.customerName}</span>}
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      {language === 'ar' ? "الاسم الأول" : "First Name"} <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={form.firstName}
+                      onChange={handleChange}
+                      placeholder={language === 'ar' ? "الاسم الأول" : "First Name"}
+                      className={`${styles.formInput} ${errors.firstName ? styles.formInputError : ""}`}
+                    />
+                    {errors.firstName && <span className={styles.errorMessage}>{errors.firstName}</span>}
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>
+                      {language === 'ar' ? "الاسم الأخير" : "Last Name"} <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={form.lastName}
+                      onChange={handleChange}
+                      placeholder={language === 'ar' ? "اسم العائلة" : "Last Name"}
+                      className={`${styles.formInput} ${errors.lastName ? styles.formInputError : ""}`}
+                    />
+                    {errors.lastName && <span className={styles.errorMessage}>{errors.lastName}</span>}
+                  </div>
                 </div>
 
                 <div className={styles.formRow}>

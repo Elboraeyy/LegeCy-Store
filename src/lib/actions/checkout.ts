@@ -16,9 +16,11 @@ interface CartItemInput {
 }
 
 interface CheckoutInput {
-  customerName: string;
+  firstName: string;
+  lastName: string;
   customerEmail: string;
   customerPhone: string;
+  customerAltPhone?: string;
   shippingAddress: string;
   shippingGovernorate: string;
   shippingCity: string;
@@ -80,7 +82,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     // ========================================
     // INPUT VALIDATION
     // ========================================
-    if (!input.customerName || !input.customerEmail || !input.customerPhone) {
+    if (!input.firstName || !input.lastName || !input.customerEmail || !input.customerPhone) {
       return { success: false, error: 'Customer information is incomplete' };
     }
 
@@ -365,14 +367,19 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
           totalPrice: new Prisma.Decimal(finalTotal).add(shippingCost), // Add shipping to total
           status: initialStatus,
           userId: user?.id, // Link to user if logged in
-          customerName: input.customerName,
+          customerName: `${input.firstName} ${input.lastName}`.trim(),
+          firstName: input.firstName,
+          lastName: input.lastName,
           customerEmail: input.customerEmail,
           customerPhone: input.customerPhone,
+          alternativePhone: input.customerAltPhone || null,
           shippingAddress: input.shippingAddress,
           shippingGovernorate: input.shippingGovernorate,
           shippingCity: input.shippingCity,
           shippingNotes: input.shippingNotes || null,
           paymentMethod: input.paymentMethod,
+          paymentPhoneNumber: input.walletNumber || null,
+          paymentRef: input.walletReference || null,
           couponId: couponId,
           pointsEarned: pointsEarned,
           idempotencyKey: input.idempotencyKey || null, // Prevent duplicate orders
@@ -415,7 +422,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         include: {
           items: true
         }
-      });
+      } as any);
 
       // Record coupon usage for per-user tracking
       if (couponId) {
@@ -542,7 +549,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       sendOrderConfirmationEmail({
       orderId: order.id,
         orderNumber: order.orderNumber,
-      customerName: input.customerName,
+        customerName: `${input.firstName} ${input.lastName}`.trim(),
       customerEmail: input.customerEmail,
       items: input.cartItems.map(item => ({
         name: item.name,
