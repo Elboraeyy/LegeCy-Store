@@ -26,13 +26,10 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
         { href: '/admin/config/shipping', label: t.config?.shipping?.title || 'Shipping', icon: '🚚', description: t.config?.shipping?.desc || 'Shipping methods' },
         { href: '/admin/config/seo', label: t.config?.seo?.title || 'SEO & Social', icon: '🔍', description: t.config?.seo?.desc || 'Search and social' },
         { href: '/admin/config/security', label: t.config?.security?.title || 'Security', icon: '🔒', description: t.config?.security?.desc || 'Security policies' },
-        { href: '/admin/config/taxes', label: t.config?.taxes?.title || 'Taxes', icon: '💰', description: t.config?.taxes?.desc || 'Tax configuration' },
         { href: '/admin/config/localization', label: t.config?.localization?.title || 'Localization', icon: '🌍', description: t.config?.localization?.desc || 'Languages and formats' },
-        { href: '/admin/config/integrations', label: t.config?.integrations?.title || 'Integrations', icon: '🔗', description: t.config?.integrations?.desc || 'APIs and webhooks' },
+
         { href: '/admin/config/performance', label: t.config?.performance?.title || 'Performance', icon: '⚡', description: t.config?.performance?.desc || 'Speed & caching' },
-        { href: '/admin/config/analytics', label: t.config?.analytics?.title || 'Analytics', icon: '📊', description: t.config?.analytics?.desc || 'Tracking & reports' },
-        { href: '/admin/config/backup', label: t.config?.backup?.title || 'Backup', icon: '💾', description: t.config?.backup?.desc || 'Backup & recovery' },
-        { href: '/admin/config/maintenance', label: t.config?.maintenance?.title || 'Maintenance', icon: '🔧', description: t.config?.maintenance?.desc || 'Maintenance mode' },
+
     ];
 
     return (

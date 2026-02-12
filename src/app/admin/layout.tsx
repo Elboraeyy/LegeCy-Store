@@ -122,15 +122,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         
                         {/* Store Section */}
                         <div className="nav-label">{t.sidebar.store}</div>
-                        <NavLink href="/admin/orders" icon="🛍️" label={t.sidebar.orders} active={pathname?.startsWith('/admin/orders')} onClick={closeSidebar} />
-                        <NavLink href="/admin/products" icon="📦" label={t.sidebar.products} active={pathname?.startsWith('/admin/products')} onClick={closeSidebar} />
-                        <NavLink href="/admin/categories" icon="📁" label={t.sidebar.categories} active={pathname?.startsWith('/admin/categories')} onClick={closeSidebar} />
 
+                        {/* Orders Group */}
+                        <NavLink href="/admin/orders" icon="🛍️" label={t.sidebar.orders} active={pathname?.startsWith('/admin/orders')} onClick={closeSidebar} />
+                        {pathname?.startsWith('/admin/orders') && (
+                            <div style={{ marginInlineStart: '24px', marginBottom: '8px' }}>
+                                <NavLink href="/admin/orders/returns" icon="↩️" label={t.sidebar.returns} active={pathname === '/admin/orders/returns'} onClick={closeSidebar} />
+                                <NavLink href="/admin/orders/returns/intelligence" icon="📊" label={t.sidebar.returns_analytics} active={pathname === '/admin/orders/returns/intelligence'} onClick={closeSidebar} />
+                            </div>
+                        )}
+
+                        {/* Products Group */}
+                        <NavLink href="/admin/products" icon="📦" label={t.sidebar.products} active={pathname?.startsWith('/admin/products') || pathname?.startsWith('/admin/categories')} onClick={closeSidebar} />
+                        {(pathname?.startsWith('/admin/products') || pathname?.startsWith('/admin/categories')) && (
+                            <div style={{ marginInlineStart: '24px', marginBottom: '8px' }}>
+                                <NavLink href="/admin/categories" icon="📁" label={t.sidebar.categories} active={pathname?.startsWith('/admin/categories')} onClick={closeSidebar} />
+                            </div>
+                        )}
+
+                        {/* Inventory Group */}
                         <NavLink href="/admin/inventory" icon="📊" label={t.sidebar.inventory} active={pathname?.startsWith('/admin/inventory') || pathname?.startsWith('/admin/procurement')} onClick={closeSidebar} />
                         {(pathname?.startsWith('/admin/inventory') || pathname?.startsWith('/admin/procurement')) && (
                             <div style={{ marginInlineStart: '24px', marginBottom: '8px' }}>
                                 <NavLink href="/admin/procurement" icon="🚛" label={t.sidebar.procurement} active={pathname?.startsWith('/admin/procurement')} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/warehouses" icon="🏭" label={t.sidebar.warehouses} active={pathname === '/admin/inventory/warehouses'} onClick={closeSidebar} />
+                                <NavLink href="/admin/inventory/transfers" icon="🔄" label={t.sidebar.transfers} active={pathname === '/admin/inventory/transfers'} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/alerts" icon="⚠️" label={t.sidebar.alerts} active={pathname === '/admin/inventory/alerts'} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/counts" icon="🔢" label={t.sidebar.stock_counts} active={pathname === '/admin/inventory/counts'} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/reports" icon="📈" label={t.sidebar.reports} active={pathname === '/admin/inventory/reports'} onClick={closeSidebar} />

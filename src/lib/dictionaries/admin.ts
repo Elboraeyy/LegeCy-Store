@@ -19,7 +19,7 @@ export const adminDictionary = {
       operations: "Operations",
       inventory: "Inventory",
       warehouses: "Warehouses",
-
+      transfers: "Transfers",
       alerts: "Alerts",
       stock_counts: "Stock Counts",
       reports: "Reports",
@@ -750,7 +750,24 @@ export const adminDictionary = {
         zero_error: "Quantity cannot be zero",
         reason_error: "Please provide a reason"
       },
-
+      transfer: {
+        title: "Transfer Stock",
+        from: "From",
+        to: "Transfer To",
+        select_dest: "Select destination warehouse...",
+        quantity: "Quantity to Transfer",
+        reason: "Reason for Transfer",
+        reason_placeholder: "e.g., Rebalancing inventory...",
+        cancel: "Cancel",
+        confirm: "Confirm Transfer",
+        transferring: "Transferring...",
+        success: "Stock transferred successfully",
+        error: "Failed to transfer stock",
+        zero_error: "Quantity must be greater than zero",
+        availability_error: "Cannot transfer more than available stock",
+        warehouse_error: "Please select a target warehouse",
+        reason_error: "Please provide a reason"
+      },
       alerts: {
         title: "Stock Alerts",
         subtitle: "Monitor low stock and out of stock items",
