@@ -408,6 +408,9 @@ model Product {
   metaTitleAr       String?
   metaDescriptionAr String?
 
+  // Specifications
+  specs             Json?     // Structured specs: { dialSize, dialColor, movementType, ... }
+
   // Similar Products Support
   similarProducts   Product[] @relation("SimilarProducts")
   similarTo         Product[] @relation("SimilarProducts")

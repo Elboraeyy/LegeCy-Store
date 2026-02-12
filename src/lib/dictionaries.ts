@@ -164,6 +164,18 @@ export const dictionary = {
       water_resistance: "Water Resistance",
       glass: "Glass",
       shipping_returns: "Shipping & Returns",
+
+      // Detailed Specs
+      dial_size: "Dial Size",
+      dial_color: "Dial Color",
+      case_color: "Case Color",
+      strap_color: "Strap Color",
+      strap_material: "Strap Material",
+      strap_width: "Strap Width",
+      movement_type: "Movement Type",
+      glass_type: "Glass Type",
+      case_material: "Case Material",
+      hour_markers: "Hour Markers",
       shipping_info: "Free shipping on orders over {amount}. Returns accepted within 14 days.",
       share: "Share",
       share_options: {
@@ -1472,11 +1484,19 @@ export const dictionary = {
       brand: "البراند",
       material: "الخامة",
       category: "القسم",
-      movement: "الماكينة",
-      case: "العلبة",
-      water_resistance: "مقاومة الماء",
-      glass: "الزجاج",
       shipping_returns: "الشحن والاسترجاع",
+
+      // Detailed Specs
+      dial_size: "مقاس القرص",
+      dial_color: "لون القرص",
+      case_color: "لون الإطار",
+      strap_color: "لون السوار",
+      strap_material: "مادة السوار",
+      strap_width: "عرض السوار",
+      movement_type: "نوع الماكينة",
+      glass_type: "نوع الزجاج",
+      case_material: "مادة الإطار",
+      hour_markers: "علامات الساعة",
       shipping_info: "شحن مجاني للطلبات فوق {amount}. الاسترجاع متاح خلال ١٤ يوم.",
       share: "مشاركة",
       share_options: {

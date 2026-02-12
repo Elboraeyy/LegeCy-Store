@@ -16,9 +16,11 @@ import { getStoreSettings } from "@/lib/actions/settings";
 // import ProductCard from "@/components/ProductCard";
 // import ModernProductCard from "@/components/ModernProductCard";
 import ModernProductCarousel from "@/components/ModernProductCarousel";
+
 import { CartIcon } from "@/components/icons/CartIcon";
 import { CompareIcon } from "@/components/icons/CompareIcon";
 import { Product, getLocalized } from "@/types/product";
+import { Truck, RefreshCw, Package } from "lucide-react";
 
 // Types
 interface ProductData {
@@ -42,10 +44,17 @@ interface ProductData {
   totalStock: number;
   sku: string | null;
   specs?: {
+    dialSize?: string;
+    dialColor?: string;
+    caseColor?: string;
+    strapColor?: string;
+    strapMaterial?: string;
+    strapWidth?: string;
     movement?: string;
-    case?: string;
-    waterResistance?: string;
     glass?: string;
+    waterResistance?: string;
+    case?: string;
+    hourMarkers?: string;
   };
   detailTags?: string[];
   similarProducts?: Product[];
@@ -541,6 +550,88 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               </p>
             )}
 
+            {/* Specifications */}
+            {product.specs && (
+              <div className="product-specs-section mt-8 border-t border-border pt-6">
+                <h3 className="font-heading text-lg mb-4">{t.product.specs}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                  {/* Dial */}
+                  {product.specs.dialSize && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.dial_size}</span>
+                      <span className="font-medium">{product.specs.dialSize}</span>
+                    </div>
+                  )}
+                  {product.specs.dialColor && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.dial_color}</span>
+                      <span className="font-medium">{product.specs.dialColor}</span>
+                    </div>
+                  )}
+
+                  {/* Case */}
+                  {product.specs.case && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.case}</span>
+                      <span className="font-medium">{product.specs.case}</span>
+                    </div>
+                  )}
+                  {product.specs.caseColor && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.case_color}</span>
+                      <span className="font-medium">{product.specs.caseColor}</span>
+                    </div>
+                  )}
+
+                  {/* Strap */}
+                  {product.specs.strapMaterial && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.strap_material}</span>
+                      <span className="font-medium">{product.specs.strapMaterial}</span>
+                    </div>
+                  )}
+                  {product.specs.strapColor && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.strap_color}</span>
+                      <span className="font-medium">{product.specs.strapColor}</span>
+                    </div>
+                  )}
+                  {product.specs.strapWidth && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.strap_width}</span>
+                      <span className="font-medium">{product.specs.strapWidth}</span>
+                    </div>
+                  )}
+
+                  {/* Technical */}
+                  {product.specs.movement && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.movement}</span>
+                      <span className="font-medium">{product.specs.movement}</span>
+                    </div>
+                  )}
+                  {product.specs.glass && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.glass}</span>
+                      <span className="font-medium">{product.specs.glass}</span>
+                    </div>
+                  )}
+                  {product.specs.waterResistance && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.water_resistance}</span>
+                      <span className="font-medium">{product.specs.waterResistance}</span>
+                    </div>
+                  )}
+                  {product.specs.hourMarkers && (
+                    <div className="flex justify-between py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">{t.product.hour_markers}</span>
+                      <span className="font-medium">{product.specs.hourMarkers}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Actions - Row 1: Quantity + Add to Cart */}
             <div className="actions-large" id="main-add-to-cart">
               {/* Quantity Selector */}
@@ -873,16 +964,11 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                       transition={{ duration: 0.2 }}
                     >
                       <div className="specs-grid">
+                        {/* Basic Info */}
                         {product.brand && (
                           <>
                             <span className="spec-label">{t.product.brand}</span>
                             <span className="spec-value">{getLocalized(product.brand, language, 'name')}</span>
-                          </>
-                        )}
-                        {product.material && (
-                          <>
-                            <span className="spec-label">{t.product.material}</span>
-                            <span className="spec-value">{getLocalized(product.material, language, 'name')}</span>
                           </>
                         )}
                         {product.category && (
@@ -891,6 +977,10 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                             <span className="spec-value">{getLocalized(product, language, 'category')}</span>
                           </>
                         )}
+                        <span className="spec-label">Status</span>
+                        <span className="spec-value">{product.sku ? 'Available' : 'Unavailable'}</span>
+
+                        {/* Technical Specs */}
                         {product.specs?.movement && (
                           <>
                             <span className="spec-label">{t.product.movement}</span>
@@ -915,6 +1005,11 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                             <span className="spec-value">{product.specs.glass}</span>
                           </>
                         )}
+                        {/* Fallback for missing specs to ensure grid isn't empty if some are missing but others exist */}
+                        {!product.specs?.movement && <><span className="spec-label">{t.product.movement}</span><span className="spec-value">-</span></>}
+                        {!product.specs?.case && <><span className="spec-label">{t.product.case}</span><span className="spec-value">-</span></>}
+                        {!product.specs?.waterResistance && <><span className="spec-label">{t.product.water_resistance}</span><span className="spec-value">-</span></>}
+                        {!product.specs?.glass && <><span className="spec-label">{t.product.glass}</span><span className="spec-value">-</span></>}
                       </div>
                     </motion.div>
                   )}
@@ -942,21 +1037,41 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                       transition={{ duration: 0.2 }}
                     >
                       <div className="prose prose-sm max-w-none text-muted-foreground">
-                        <p>{t.product.shipping_desc}</p>
-                        {showFreeShipping && (
-                          <div className="mt-2 p-3 bg-secondary/50 rounded-lg flex items-start gap-3">
-                            <svg className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="1" y="3" width="15" height="13"></rect>
-                              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
-                              <circle cx="5.5" cy="18.5" r="2.5"></circle>
-                              <circle cx="18.5" cy="18.5" r="2.5"></circle>
-                            </svg>
-                            <div>
-                              <span className="font-semibold block text-foreground">{t.common.free_shipping}</span>
-                              <span className="text-xs">{t.common.free_shipping_orders_over} {formatPrice(Number(shippingThreshold))}</span>
-                            </div>
-                          </div>
-                        )}
+                        <ul className="space-y-3 mt-2 list-none p-0">
+                          {/* Free Shipping */}
+                          {showFreeShipping && (
+                            <li className="flex items-start gap-3">
+                              <Truck className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-semibold block text-foreground">{t.product.shipping_list.free_shipping.replace('{amount}', formatPrice(Number(shippingThreshold)))}</span>
+                              </div>
+                            </li>
+                          )}
+
+                          {/* Delivery */}
+                          <li className="flex items-start gap-3">
+                            <Truck className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                            <span>{t.product.shipping_list.delivery}</span>
+                          </li>
+
+                          {/* Packaging */}
+                          <li className="flex items-start gap-3">
+                            <Package className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                            <span>{t.product.shipping_list.packaging}</span>
+                          </li>
+
+                          {/* Returns */}
+                          <li className="flex items-start gap-3">
+                            <RefreshCw className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                            <span>{t.product.shipping_list.returns}</span>
+                          </li>
+
+                          {/* Exchange */}
+                          <li className="flex items-start gap-3">
+                            <RefreshCw className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                            <span>{t.product.shipping_list.exchange}</span>
+                          </li>
+                        </ul>
                       </div>
                     </motion.div>
                   )}

@@ -73,6 +73,8 @@ export async function GET(_: NextRequest, { params }: Params) {
       inStock: totalStock > 0,
       createdAt: product.createdAt.toISOString(),
       detailTags: product.detailTags,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      specs: (product as any).specs as any, // Cast to any to avoid strict type checks on Json type
       similarProducts: product.similarProducts.map(p => ({
         id: p.id,
         name: p.name,

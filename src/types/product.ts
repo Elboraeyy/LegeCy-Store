@@ -25,10 +25,17 @@ export interface Product {
     createdAt?: string; // For sorting by newest
     cat?: string; // Legacy field
     specs?: {
-        movement?: string;
-        case?: string;
+        dialSize?: string;
+        dialColor?: string;
+        caseColor?: string;
+        strapColor?: string;
+        strapMaterial?: string;
+        strapWidth?: string;
         waterResistance?: string;
+        movement?: string;
         glass?: string;
+        case?: string; // Legacy/Basic case material
+        hourMarkers?: string;
     };
     gallery?: string[];
     // Filter fields

@@ -87,11 +87,17 @@ export default function DesktopComparisonView({
             title: t.compare.specifications,
             id: "Specifications",
             rows: [
-                { label: t.compare.labels.movement, specKey: "movement", default: "Quartz" },
-                { label: t.compare.labels.case_material, specKey: "case", default: "Stainless Steel" },
-                { label: t.compare.labels.water_resistance, specKey: "waterResistance", default: "3 ATM" },
-                { label: t.compare.labels.glass_type, specKey: "glass", default: "Mineral" },
-                { label: t.compare.labels.strap_material, key: "strap" },
+                { label: t.product.dial_size, specKey: "dialSize" },
+                { label: t.product.dial_color, specKey: "dialColor" },
+                { label: t.product.case_color, specKey: "caseColor" },
+                { label: t.product.strap_color, specKey: "strapColor" },
+                { label: t.product.strap_material, specKey: "strapMaterial" },
+                { label: t.product.strap_width, specKey: "strapWidth" },
+                { label: t.product.movement, specKey: "movement", default: "Quartz" },
+                { label: t.product.glass, specKey: "glass", default: "Mineral" },
+                { label: t.product.water_resistance, specKey: "waterResistance", default: "3 ATM" },
+                { label: t.product.case, specKey: "case", default: "Stainless Steel" },
+                { label: t.product.hour_markers, specKey: "hourMarkers" },
             ]
         }
     ];

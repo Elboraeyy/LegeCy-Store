@@ -49,6 +49,20 @@ interface ProductFormProps {
         metaDescription?: string | null;
         metaTitleAr?: string | null;
         metaDescriptionAr?: string | null;
+
+        specs?: {
+            dialSize?: string;
+            dialColor?: string;
+            caseColor?: string;
+            strapColor?: string;
+            strapMaterial?: string;
+            strapWidth?: string;
+            movement?: string;
+            glass?: string;
+            waterResistance?: string;
+            case?: string;
+            hourMarkers?: string;
+        };
     } | null;
 }
 
@@ -121,6 +135,21 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const [metaTitleAr, setMetaTitleAr] = useState(initialData?.metaTitleAr || "");
     const [metaDescriptionAr, setMetaDescriptionAr] = useState(initialData?.metaDescriptionAr || "");
 
+    // --- Specifications ---
+    const [specs, setSpecs] = useState({
+        dialSize: initialData?.specs?.dialSize || "",
+        dialColor: initialData?.specs?.dialColor || "",
+        caseColor: initialData?.specs?.caseColor || "",
+        strapColor: initialData?.specs?.strapColor || "",
+        strapMaterial: initialData?.specs?.strapMaterial || "",
+        strapWidth: initialData?.specs?.strapWidth || "",
+        movement: initialData?.specs?.movement || "",
+        glass: initialData?.specs?.glass || "",
+        waterResistance: initialData?.specs?.waterResistance || "",
+        case: initialData?.specs?.case || "",
+        hourMarkers: initialData?.specs?.hourMarkers || ""
+    });
+
     // --- Sourcing & Inventory (New Mode) ---
     // Mode: 'create_new' (standard) or 'add_stock' (for existing) - usually for NEW page.
     // But here we are in ProductForm which handles Edit too.
@@ -180,7 +209,24 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 metaTitle: metaTitle || undefined,
                 metaDescription: metaDescription || undefined,
                 metaTitleAr: metaTitleAr || undefined,
-                metaDescriptionAr: metaDescriptionAr || undefined
+                metaDescriptionAr: metaDescriptionAr || undefined,
+
+                // Specs
+                specs: {
+                    ...specs,
+                    // Filter out empty strings
+                    dialSize: specs.dialSize || undefined,
+                    dialColor: specs.dialColor || undefined,
+                    caseColor: specs.caseColor || undefined,
+                    strapColor: specs.strapColor || undefined,
+                    strapMaterial: specs.strapMaterial || undefined,
+                    strapWidth: specs.strapWidth || undefined,
+                    movement: specs.movement || undefined,
+                    glass: specs.glass || undefined,
+                    waterResistance: specs.waterResistance || undefined,
+                    case: specs.case || undefined,
+                    hourMarkers: specs.hourMarkers || undefined
+                }
             };
 
             if (initialData) {
@@ -343,6 +389,64 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                             <label className="stat-label" style={{ fontSize: '11px' }}>Material</label>
                              <AdminDropdown value={materialId} onChange={setMaterialId} options={[{ value: '', label: 'None' }, ...materials.map(m => ({ value: m.id, label: m.name }))]} />
                          </div>
+                    </div>
+
+                    <div className="admin-card">
+                        <h3 className="stat-label" style={{ marginBottom: '20px' }}>Specifications</h3>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            {/* Dial Specs */}
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Dial Size (mm)</label>
+                                <input className="form-input" placeholder="e.g. 40mm" value={specs.dialSize} onChange={e => setSpecs({ ...specs, dialSize: e.target.value })} />
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Dial Color</label>
+                                <input className="form-input" placeholder="e.g. Blue" value={specs.dialColor} onChange={e => setSpecs({ ...specs, dialColor: e.target.value })} />
+                            </div>
+
+                            {/* Case Specs */}
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Case Material (Detail)</label>
+                                <input className="form-input" placeholder="e.g. 316L Stainless Steel" value={specs.case} onChange={e => setSpecs({ ...specs, case: e.target.value })} />
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Case Color</label>
+                                <input className="form-input" placeholder="e.g. Silver" value={specs.caseColor} onChange={e => setSpecs({ ...specs, caseColor: e.target.value })} />
+                            </div>
+
+                            {/* Strap Specs */}
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Strap Material</label>
+                                <input className="form-input" placeholder="e.g. Genuine Leather" value={specs.strapMaterial} onChange={e => setSpecs({ ...specs, strapMaterial: e.target.value })} />
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Strap Color</label>
+                                <input className="form-input" placeholder="e.g. Brown" value={specs.strapColor} onChange={e => setSpecs({ ...specs, strapColor: e.target.value })} />
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Strap Width</label>
+                                <input className="form-input" placeholder="e.g. 20mm" value={specs.strapWidth} onChange={e => setSpecs({ ...specs, strapWidth: e.target.value })} />
+                            </div>
+
+                            {/* Technical Specs */}
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Movement</label>
+                                <input className="form-input" placeholder="e.g. Quartz" value={specs.movement} onChange={e => setSpecs({ ...specs, movement: e.target.value })} />
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Glass Type</label>
+                                <input className="form-input" placeholder="e.g. Sapphire Crystal" value={specs.glass} onChange={e => setSpecs({ ...specs, glass: e.target.value })} />
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Water Resistance</label>
+                                <input className="form-input" placeholder="e.g. 5 ATM" value={specs.waterResistance} onChange={e => setSpecs({ ...specs, waterResistance: e.target.value })} />
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Hour Markers</label>
+                                <input className="form-input" placeholder="e.g. Roman Numerals" value={specs.hourMarkers} onChange={e => setSpecs({ ...specs, hourMarkers: e.target.value })} />
+                            </div>
+                        </div>
                     </div>
                  </div>
             </div>

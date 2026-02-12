@@ -39,6 +39,21 @@ export interface ProductInput {
     metaDescription?: string;
     metaTitleAr?: string;
     metaDescriptionAr?: string;
+
+    // Specs
+    specs?: {
+        dialSize?: string;
+        dialColor?: string;
+        caseColor?: string;
+        strapColor?: string;
+        strapMaterial?: string;
+        strapWidth?: string;
+        movement?: string;
+        glass?: string;
+        waterResistance?: string;
+        case?: string;
+        hourMarkers?: string;
+    };
 }
 
 // Fetch categories for dropdown
@@ -84,6 +99,10 @@ export async function createProductAction(data: ProductInput) {
                 metaDescription: data.metaDescription,
                 metaTitleAr: data.metaTitleAr,
                 metaDescriptionAr: data.metaDescriptionAr,
+
+                // Specs
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                specs: (data.specs || undefined) as any,
 
                 // Similar Products
                 similarProducts: data.similarProductIds ? {
@@ -162,7 +181,11 @@ export async function updateProductAction(id: string, data: ProductInput) {
             metaTitleAr: data.metaTitleAr,
             metaDescriptionAr: data.metaDescriptionAr,
 
-            // Similar Products logic: reset and connect new list
+            // Specs
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            specs: (data.specs || undefined) as any,
+
+            // Similar Products logic: reset and connected new list
             similarProducts: data.similarProductIds ? {
                 set: data.similarProductIds.map(sid => ({ id: sid }))
             } : undefined,
