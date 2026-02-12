@@ -48,7 +48,7 @@ export function ComparisonProvider({ children }: { children: ReactNode }) {
         setSelectedProducts(validProducts);
       }
     }
-  }, [products]); // Re-run only when global products load
+  }, [products, selectedProducts]); // Re-run only when global products load
 
   // Save to localStorage whenever selectedProducts changes
   React.useEffect(() => {

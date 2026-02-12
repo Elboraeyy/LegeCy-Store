@@ -3,7 +3,7 @@
 import React from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
-import { OrderStatus } from '@/lib/orderStatus';
+
 import StatusUpdateControl from '@/components/admin/StatusUpdateControl';
 import BackButton from '@/components/admin/BackButton';
 import {
@@ -11,21 +11,19 @@ import {
     Truck,
     CheckCircle2,
     Clock,
-    AlertCircle,
+    ChevronRight,
+    Printer,
+    Download,
+    CreditCard,
     User,
     Mail,
     Phone,
     MapPin,
-    CreditCard,
-    Download,
-    Printer,
-    ArrowLeft,
-    ChevronRight,
-    Search
 } from 'lucide-react';
 import styles from '../OrderDetails.module.css';
 
 interface OrderDetailClientProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     order: any; // Using any for now to match the fetchOrderDetails return type precisely
 }
 
@@ -61,6 +59,7 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
     const getStatusDate = (targetStatus: string) => {
         // Find the most recent transition TO this status
         // History is sorted by createdAt desc in fetchOrderDetails, so finding the first one is the most recent
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const entry = order.history.find((h: any) => h.to.toLowerCase() === targetStatus.toLowerCase());
         return entry ? formatDate(entry.createdAt) : undefined;
     };
@@ -184,6 +183,7 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                     {order.items.map((item: any) => (
                                         <tr key={item.id}>
                                             <td className={styles.itemCell}>
@@ -227,7 +227,8 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
                             <h2 className={styles.cardTitle}>{t.orders.details_page.timeline}</h2>
                         </div>
                         <div className={styles.historyList}>
-                            {order.history.map((h: any, idx: number) => (
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {order.history.map((h: any) => (
                                 <div key={h.id} className={styles.historyItem}>
                                     <div className={styles.historyDot}></div>
                                     <div className={styles.historyContent}>
@@ -258,7 +259,7 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
                             </div>
                             <div className={styles.customerDetails}>
                                 <div className={styles.customerName}>
-                                    {(order as any).firstName ? `${(order as any).firstName} ${(order as any).lastName || ''}` : (order.customerName || order.user?.name || t.orders.details.guest)}
+                                    {order.firstName ? `${order.firstName} ${order.lastName || ''}` : (order.customerName || order.user?.name || t.orders.details.guest)}
                                 </div>
                                 <div className={styles.customerSince}>
                                     {isRtl ? 'عميل منذ ' : 'Customer since '}
@@ -364,6 +365,7 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function TimelineItem({ icon, label, completed, active, date }: any) {
     return (
         <div className={`${styles.timelineItem} ${completed ? styles.completed : ''} ${active ? styles.active : ''}`}>

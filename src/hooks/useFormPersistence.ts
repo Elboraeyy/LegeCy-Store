@@ -84,7 +84,7 @@ export function useInputPersistence(
     try {
       const saved = sessionStorage.getItem(storageKey);
       if (saved !== null) {
-        setValue(saved);
+        setTimeout(() => setValue(saved), 0);
       }
     } catch {
       // Ignore

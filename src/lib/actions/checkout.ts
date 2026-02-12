@@ -424,6 +424,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         include: {
           items: true
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       // Record coupon usage for per-user tracking

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { OrderStatus, Order } from "@/types/order";
+import { Order } from "@/types/order";
 import OrdersStats from "./_components/OrdersStats";
 import OrdersTable from "./_components/OrdersTable";
 import OrdersBoard from "./_components/OrdersBoard";

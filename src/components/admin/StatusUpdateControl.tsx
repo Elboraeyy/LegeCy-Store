@@ -40,6 +40,8 @@ export default function StatusUpdateControl({ orderId, currentStatus, paymentMet
   const [selectedStatus, setSelectedStatus] = useState<string>(currentStatus);
   const [isPending, startTransition] = useTransition();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const { language } = useLanguage();
+  const t = adminDictionary[language];
 
   const isTerminalState = TERMINAL_STATES.includes(currentStatus as OrderStatus);
 
@@ -59,7 +61,8 @@ export default function StatusUpdateControl({ orderId, currentStatus, paymentMet
           toast.error(result.error || 'Failed to update status');
           setSelectedStatus(currentStatus);
         }
-      } catch (err) {
+      } catch (error) {
+        console.error("Failed to update status:", error);
         toast.error('An unexpected error occurred');
         setSelectedStatus(currentStatus);
       }
@@ -84,8 +87,8 @@ export default function StatusUpdateControl({ orderId, currentStatus, paymentMet
     );
   }
 
-  const { language } = useLanguage();
-  const t = adminDictionary[language];
+  // const { language } = useLanguage();
+  // const t = adminDictionary[language];
 
   const availableOptions = ALL_STATUSES.filter(opt => {
     // COD Rules

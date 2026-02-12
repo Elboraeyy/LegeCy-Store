@@ -9,8 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { AlertTriangle, Info, CheckCircle2, XCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle } from 'lucide-react';
 
 export interface AdminConfirmDialogProps {
     isOpen: boolean;
@@ -36,22 +35,7 @@ export default function AdminConfirmDialog({
     isPending = false,
 }: AdminConfirmDialogProps) {
 
-    const getIcon = () => {
-        switch (type) {
-            case 'warning': return <AlertTriangle className="h-6 w-6 text-amber-500" />;
-            case 'danger': return <XCircle className="h-6 w-6 text-red-500" />;
-            case 'success': return <CheckCircle2 className="h-6 w-6 text-emerald-500" />;
-            default: return <Info className="h-6 w-6 text-blue-500" />;
-        }
-    };
 
-    const getButtonClass = () => {
-        switch (type) {
-            case 'danger': return 'admin-btn-danger';
-            case 'success': return 'admin-btn-primary'; // Using primary for success as well
-            default: return 'admin-btn-primary';
-        }
-    };
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

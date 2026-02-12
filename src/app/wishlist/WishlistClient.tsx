@@ -33,7 +33,7 @@ export default function WishlistClient({ initialProducts }: WishlistClientProps)
   const router = useRouter();
   const { fav, products, addToCart, toggleFav, isLoading: storeLoading } = useStore();
   const isClient = useIsClient();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [showShareMenu, setShowShareMenu] = React.useState(false);
   const shareMenuRef = React.useRef<HTMLDivElement>(null);
 
@@ -83,7 +83,7 @@ export default function WishlistClient({ initialProducts }: WishlistClientProps)
       return;
     }
 
-    const title = t.wishlist.title || "My Wishlist";
+    // const title = t.wishlist.title || "My Wishlist";
     const text = t.wishlist.share_text?.replace('{count}', fav.length.toString()) || `Check out my wishlist with ${fav.length} items!`;
 
     switch (platform) {

@@ -39,7 +39,7 @@ export const orderStateService = {
     }) {
         const { orderId, newStatus, actor, actorId, reason, metadata } = params;
 
-        let postCommitActions: (() => Promise<void>)[] = [];
+        const postCommitActions: (() => Promise<void>)[] = [];
 
         try {
             return await prisma.$transaction(async (tx) => {

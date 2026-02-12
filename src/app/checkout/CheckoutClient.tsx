@@ -302,6 +302,7 @@ export default function CheckoutClient() {
           ...form,
           customerName: `${form.firstName} ${form.lastName}`.trim()
         };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         saveCheckoutProfile(profileData as any).catch(e => console.error("Failed to save profile", e));
       }
 
