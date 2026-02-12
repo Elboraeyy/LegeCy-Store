@@ -3074,6 +3074,26 @@ export const adminDictionary = {
       error: "Failed to save settings"
     },
 
+    abandoned_carts: {
+      title: "Abandoned Carts",
+      subtitle: "Manage incomplete purchase sessions",
+      table: {
+        user: "User",
+        items: "Items",
+        total: "Total",
+        last_active: "Last Active",
+        status: "Status",
+        actions: "Actions"
+      },
+      status: {
+        pending: "Pending",
+        sent: "Sent"
+      },
+      send_recovery: "Send Reminder",
+      view_cart: "View Cart",
+      success_sent: "Recovery email sent successfully",
+      error_sending: "Failed to send email"
+    },
     login: {
       brand_title: "Legacy Admin",
       brand_desc: "Orchestrate excellence. Manage your inventory, orders, and customer relationships from one central command center.",
@@ -3454,6 +3474,26 @@ export const adminDictionary = {
       Qena: "قنا",
       "North Sinai": "شمال سيناء",
       Sohag: "سوهج"
+    },
+    abandoned_carts: {
+      title: "السلات المتروكة",
+      subtitle: "إدارة السلات التي لم يتم إتمام الشراء منها",
+      table: {
+        user: "المستخدم",
+        items: "المنتجات",
+        total: "الإجمالي",
+        last_active: "آخر نشاط",
+        status: "الحالة",
+        actions: "إجراءات"
+      },
+      status: {
+        pending: "معلق",
+        sent: "تم الإرسال"
+      },
+      send_recovery: "إرسال تذكير",
+      view_cart: "عرض السلة",
+      success_sent: "تم إرسال التذكير بنجاح",
+      error_sending: "فشل في الإرسال"
     },
     settings: {
       localization: {

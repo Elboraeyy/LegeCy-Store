@@ -1,4 +1,4 @@
-import React from 'react';
+import Image from 'next/image';
 import RatingStars from './RatingStars';
 
 interface ReviewCardProps {
@@ -6,9 +6,10 @@ interface ReviewCardProps {
   rating: number;
   text: string;
   date?: string;
+  images?: string[];
 }
 
-export default function ReviewCard({ name, rating, text, date }: ReviewCardProps) {
+export default function ReviewCard({ name, rating, text, date, images }: ReviewCardProps) {
   return (
     <div className="review-card" style={{
       background: 'var(--surface)',
@@ -33,6 +34,29 @@ export default function ReviewCard({ name, rating, text, date }: ReviewCardProps
       }}>
         &quot;{text}&quot;
       </p>
+
+      {images && images.length > 0 && (
+        <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+          {images.map((url, idx) => (
+            <div key={idx} style={{
+              position: 'relative',
+              width: '48px',
+              height: '48px',
+              borderRadius: '4px',
+              overflow: 'hidden',
+              border: '1px solid var(--border)'
+            }}>
+              <Image
+                src={url}
+                alt={`Review by ${name}`}
+                fill
+                style={{ objectFit: 'cover' }}
+                sizes="48px"
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

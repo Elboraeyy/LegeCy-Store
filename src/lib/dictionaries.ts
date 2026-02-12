@@ -1578,6 +1578,7 @@ export const dictionary = {
         customers: "العملاء",
         reviews: "التقييمات",
         coupons: "الكوبونات",
+
         products: "المنتجات",
         categories: "الأقسام",
         brands: "البراندات",

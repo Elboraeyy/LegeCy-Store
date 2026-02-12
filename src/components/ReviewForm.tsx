@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { submitReview } from "@/lib/actions/reviews";
+import { CldUploadWidget } from "next-cloudinary";
+import Image from "next/image";
 
 interface ReviewFormProps {
   productId: string;
@@ -14,6 +16,7 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
   const [name, setName] = useState("");
   const [text, setText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +39,7 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
         name: name.trim(),
         text: text.trim(),
         rating,
+        images
       });
 
       if (result.success) {
@@ -43,6 +47,7 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
         setName("");
         setText("");
         setRating(5);
+        setImages([]);
         onSuccess?.();
       } else {
         toast.error(result.error || "Failed to submit review");
@@ -65,7 +70,7 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
       <h3 style={{ 
         fontFamily: 'var(--font-heading)', 
         fontSize: '24px', 
-        marginBottom: '24px',
+        marginBottom: '24px', 
         color: '#12403C'
       }}>
         Write a Review
@@ -165,6 +170,87 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
               transition: 'border-color 0.2s'
             }}
           />
+        </div>
+
+        {/* Image Upload */}
+        <div style={{ marginBottom: '24px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            fontWeight: 600,
+            fontSize: '14px',
+            color: '#12403C'
+          }}>
+            Add Photos
+          </label>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+            {images.map((url, idx) => (
+              <div key={idx} style={{ position: 'relative', aspectRatio: '1/1', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ddd' }}>
+                <Image
+                  src={url}
+                  alt="Review upload"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setImages(prev => prev.filter((_, i) => i !== idx))}
+                  style={{
+                    position: 'absolute',
+                    top: '4px',
+                    right: '4px',
+                    background: 'rgba(0,0,0,0.5)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '20px',
+                    height: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+
+            <CldUploadWidget
+              onSuccess={(result) => {
+                if (result.info && typeof result.info === 'object' && 'secure_url' in result.info) {
+                  setImages(prev => [...prev, (result.info as { secure_url: string }).secure_url]);
+                }
+              }}
+              uploadPreset="nsigned_preset"
+            >
+              {({ open }) => (
+                <button
+                  type="button"
+                  onClick={() => open()}
+                  style={{
+                    aspectRatio: '1/1',
+                    border: '2px dashed #ddd',
+                    borderRadius: '8px',
+                    background: '#f9f9f9',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#666',
+                    fontSize: '12px',
+                    gap: '4px'
+                  }}
+                >
+                  <span style={{ fontSize: '20px' }}>+</span>
+                  <span>Add</span>
+                </button>
+              )}
+            </CldUploadWidget>
+          </div>
         </div>
 
         {/* Submit Button */}

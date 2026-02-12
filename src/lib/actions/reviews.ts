@@ -11,6 +11,7 @@ export interface ReviewDTO {
     name: string;
     rating: number;
     text: string;
+    images?: string[];
     productId: string | null;
     productName?: string;
     featured: boolean;
@@ -35,6 +36,7 @@ export async function fetchFeaturedReviews(): Promise<ReviewDTO[]> {
         name: r.name,
         rating: r.rating,
         text: r.text,
+        images: r.images,
         productId: r.productId,
         productName: r.product?.name,
         featured: r.featured,
@@ -56,6 +58,7 @@ export async function fetchProductReviews(productId: string): Promise<ReviewDTO[
         name: r.name,
         rating: r.rating,
         text: r.text,
+        images: r.images,
         productId: r.productId,
         featured: r.featured,
         createdAt: r.createdAt
@@ -78,6 +81,7 @@ export async function fetchAllReviews(): Promise<ReviewDTO[]> {
         name: r.name,
         rating: r.rating,
         text: r.text,
+        images: r.images,
         productId: r.productId,
         productName: r.product?.name,
         featured: r.featured,
@@ -91,6 +95,7 @@ export interface CreateReviewInput {
     text: string;
     productId?: string;
     featured?: boolean;
+    images?: string[];
 }
 
 /**
@@ -104,6 +109,7 @@ export async function createReviewAction(data: CreateReviewInput) {
             name: data.name,
             rating: Math.min(5, Math.max(1, data.rating)),
             text: data.text,
+            images: data.images || [],
             productId: data.productId || null,
             featured: data.featured ?? false
         }
@@ -125,6 +131,7 @@ export async function updateReviewAction(id: string, data: Partial<CreateReviewI
             name: data.name,
             rating: data.rating ? Math.min(5, Math.max(1, data.rating)) : undefined,
             text: data.text,
+            images: data.images,
             productId: data.productId,
             featured: data.featured
         }
@@ -176,6 +183,7 @@ export interface SubmitReviewInput {
     name: string;
     rating: number;
     text: string;
+    images?: string[];
 }
 
 export async function submitReview(data: SubmitReviewInput): Promise<{ success: boolean; error?: string }> {
@@ -208,6 +216,7 @@ export async function submitReview(data: SubmitReviewInput): Promise<{ success: 
             data: {
                 name: data.name.trim(),
                 text: data.text.trim(),
+                images: data.images || [],
                 rating: Math.min(5, Math.max(1, data.rating)),
                 productId: data.productId,
                 featured: false
