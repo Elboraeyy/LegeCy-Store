@@ -72,6 +72,7 @@ async function getOrder(orderId: string) {
     createdAt: order.createdAt.toISOString(),
     deliveredAt: order.deliveredAt?.toISOString() || null,
     totalPrice: Number(order.totalPrice),
+    shippingCost: Number(order.shippingCost || 0),
     subtotal,
     discountAmount,
     customerName: order.customerName,

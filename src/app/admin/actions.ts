@@ -15,6 +15,7 @@ export async function fetchAdminOrders(params: {
     limit?: number;
     status?: OrderStatus;
     search?: string;
+    view?: 'all' | 'issues' | 'returns';
     dateRange?: { from: Date; to: Date };
 }) {
     // Authorization Check
@@ -58,6 +59,7 @@ export async function fetchOrderDetails(orderId: string) {
         status: order.status as OrderStatus,
         createdAt: order.createdAt.toISOString(),
         totalPrice: Number(order.totalPrice), // Convert Decimal to number
+        shippingCost: Number(order.shippingCost || 0), // Convert Decimal to number
         paymentIntent: order.paymentIntent ? {
             ...order.paymentIntent,
             amount: Number(order.paymentIntent.amount), // Convert Decimal to number
@@ -96,28 +98,23 @@ export async function fetchOrderStats() {
     const [
         totalOrders,
         pendingOrders,
-        failedPayments,
+        deliveredOrders,
         monthlyRevenue,
         recentOrders
     ] = await Promise.all([
-        prisma.order.count({
-            where: { status: { notIn: ['payment_pending', 'payment_failed'] } }
-        }),
+        prisma.order.count({ where: { status: { not: 'cancelled' } } }),
         prisma.order.count({ where: { status: 'pending' } }),
-        prisma.order.count({ 
-            where: { status: { in: ['payment_pending', 'payment_failed'] } } 
-        }),
+        prisma.order.count({ where: { status: 'delivered' } }),
         prisma.order.aggregate({
-            _sum: { totalPrice: true },
+            _sum: { totalPrice: true, shippingCost: true },
             where: {
                 createdAt: { gte: firstDayOfMonth },
-                status: { notIn: ['cancelled', 'payment_pending', 'payment_failed'] }
+                status: { notIn: ['cancelled'] }
             }
         }),
         prisma.order.findMany({
             take: 5,
             orderBy: { createdAt: 'desc' },
-            where: { status: { notIn: ['payment_pending', 'payment_failed'] } },
             select: { id: true, createdAt: true, status: true, totalPrice: true, user: { select: { name: true } } }
         })
     ]);
@@ -125,8 +122,8 @@ export async function fetchOrderStats() {
     return {
         totalOrders,
         pendingOrders,
-        failedPayments,
-        monthlyRevenue: Number(monthlyRevenue._sum.totalPrice || 0),
+        deliveredOrders,
+        monthlyRevenue: Number(monthlyRevenue._sum.totalPrice || 0) - Number(monthlyRevenue._sum.shippingCost || 0),
         recentOrders: recentOrders.map(o => ({
             ...o,
             totalPrice: Number(o.totalPrice),

@@ -54,9 +54,12 @@ export async function getInvoiceData(orderId: string): Promise<InvoiceData | nul
     0
   );
 
-  const discount = order.coupon
-    ? subtotal - Number(order.totalPrice)
-    : 0;
+  const shipping = Number(order.shippingCost || 0);
+  const total = Number(order.totalPrice);
+
+  // total = subtotal + shipping - discount
+  // discount = subtotal + shipping - total
+  const discount = subtotal + shipping - total;
 
   return {
     orderId: order.id,
@@ -77,9 +80,9 @@ export async function getInvoiceData(orderId: string): Promise<InvoiceData | nul
       total: Number(item.price) * item.quantity,
     })),
     subtotal,
-    discount: discount > 0 ? discount : undefined,
-    shipping: 0, // Free shipping
-    total: Number(order.totalPrice),
+    discount: discount > 0.01 ? discount : undefined, // Threshold for float errors
+    shipping,
+    total,
     paymentMethod: order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment',
     status: order.status,
   };

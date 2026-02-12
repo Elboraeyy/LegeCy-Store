@@ -274,9 +274,12 @@ export async function getReturnsIntelligence(): Promise<ReturnStats> {
     }
   });
 
-  // Get total orders for rate calculation
+  // Get total orders for rate calculation (Exclude cancelled)
   const totalOrders = await prisma.order.count({
-    where: { createdAt: { gte: thirtyDaysAgo } }
+    where: {
+      createdAt: { gte: thirtyDaysAgo },
+      status: { not: 'cancelled' }
+    }
   });
 
   const totalReturns = returns.length;
@@ -314,7 +317,10 @@ export async function getReturnsIntelligence(): Promise<ReturnStats> {
   const productOrders = await prisma.orderItem.groupBy({
     by: ['productId'],
     where: {
-      order: { createdAt: { gte: thirtyDaysAgo } }
+      order: {
+        createdAt: { gte: thirtyDaysAgo },
+        status: { not: 'cancelled' }
+      }
     },
     _count: true
   });
@@ -350,7 +356,10 @@ export async function getReturnsIntelligence(): Promise<ReturnStats> {
   // Get total orders per region
   const regionOrders = await prisma.order.groupBy({
     by: ['shippingCity'],
-    where: { createdAt: { gte: thirtyDaysAgo } },
+    where: {
+      createdAt: { gte: thirtyDaysAgo },
+      status: { not: 'cancelled' }
+    },
     _count: true
   });
 

@@ -10,11 +10,12 @@ export default async function OrdersPage({
     const resolvedParams = await searchParams;
     const page = typeof resolvedParams.page === 'string' ? parseInt(resolvedParams.page) : 1;
     const status = typeof resolvedParams.status === 'string' ? (resolvedParams.status as OrderStatus) : undefined;
+    const view = typeof resolvedParams.view === 'string' ? (resolvedParams.view as any) : undefined;
     const search = typeof resolvedParams.search === 'string' ? resolvedParams.search : undefined;
 
     // Fetch data in parallel
     const [ordersResult, stats] = await Promise.all([
-        fetchAdminOrders({ page, status, search, limit: 100 }), // Fetch more for board view
+        fetchAdminOrders({ page, status, view, search, limit: 100 }), // Fetch more for board view
         fetchOrderStats()
     ]);
 
@@ -31,15 +32,15 @@ export default async function OrdersPage({
     // providing a transform here is safer.
     
     const serializedOrders = orders.map(order => ({
-        ...order,
+        id: order.id,
         totalPrice: Number(order.totalPrice),
-        createdAt: order.createdAt, // Already string from service mapping
+        createdAt: order.createdAt,
         status: order.status as OrderStatus,
+        paymentMethod: order.paymentMethod,
         user: order.user ? { name: order.user.name, email: order.user.email } : undefined,
-        items: [] // Typescript hack if strict: serializedOrders needs to match Order[], but Order[] might not require items if not used by all views?
-        // Wait, Order interface in OrdersClient has: id, totalPrice, status, createdAt, user.
-        // It DOES NOT have items currently defined?
-        // Let's check OrdersClient definition.
+        riskScore: (order as any).riskScore, // Cast if needed, or check type definition
+        hasDispute: (order as any).hasDispute,
+        items: [] 
     }));
 
     return (

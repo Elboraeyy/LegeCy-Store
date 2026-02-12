@@ -124,13 +124,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="nav-label">{t.sidebar.store}</div>
 
                         {/* Orders Group */}
-                        <NavLink href="/admin/orders" icon="🛍️" label={t.sidebar.orders} active={pathname?.startsWith('/admin/orders')} onClick={closeSidebar} />
-                        {pathname?.startsWith('/admin/orders') && (
-                            <div style={{ marginInlineStart: '24px', marginBottom: '8px' }}>
-                                <NavLink href="/admin/orders/returns" icon="↩️" label={t.sidebar.returns} active={pathname === '/admin/orders/returns'} onClick={closeSidebar} />
-                                <NavLink href="/admin/orders/returns/intelligence" icon="📊" label={t.sidebar.returns_analytics} active={pathname === '/admin/orders/returns/intelligence'} onClick={closeSidebar} />
-                            </div>
-                        )}
+                        <NavLink href="/admin/orders" icon="🛍️" label={t.sidebar.orders} active={pathname === '/admin/orders'} onClick={closeSidebar} />
 
                         {/* Products Group */}
                         <NavLink href="/admin/products" icon="📦" label={t.sidebar.products} active={pathname?.startsWith('/admin/products') || pathname?.startsWith('/admin/categories')} onClick={closeSidebar} />

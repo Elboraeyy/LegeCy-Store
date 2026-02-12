@@ -8,13 +8,15 @@ export interface OrderItem {
 
 export enum OrderStatus {
   Pending = 'pending',
-  PaymentPending = 'payment_pending',   // Waiting for online payment
-  PaymentFailed = 'payment_failed',     // Online payment failed
+  PaymentPending = 'payment_pending',
+  Confirmed = 'confirmed',
+  Preparing = 'preparing',
   Paid = 'paid',
   Shipped = 'shipped',
   Delivered = 'delivered',
-  CashReceived = 'cash_received',       // COD order with cash collected (for revenue recognition)
+  CashReceived = 'cash_received',
   Cancelled = 'cancelled',
+  Refunded = 'refunded',
 }
 
 export type OrderEventTypes =
@@ -30,10 +32,11 @@ export interface OrderHistoryItem {
 
 export interface Order {
   id: string; // UUID
-  items: OrderItem[];
   totalPrice: number;
   status: OrderStatus;
   createdAt: string; // ISO string
+  paymentMethod: string;
+  items: OrderItem[];
 
   history?: OrderHistoryItem[];
   user?: {

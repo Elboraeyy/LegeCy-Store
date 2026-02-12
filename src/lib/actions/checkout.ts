@@ -337,20 +337,10 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       // Calculate total discount amount
       const totalDiscountAmount = subtotalAmount - finalTotal;
 
-      // Calculate Shipping Cost
-      let shippingCost = new Prisma.Decimal(50); // Default fallback
-
-      // Free Shipping Logic (2000 EGP Threshold)
-      if (subtotalAmount >= 2000) {
-        shippingCost = new Prisma.Decimal(0);
-      } else if (input.shippingGovernorate) {
-        const zone = await tx.shippingZone.findFirst({
-          where: { cities: { has: input.shippingGovernorate } }
-        });
-        if (zone) {
-          shippingCost = zone.baseRate;
-        }
-      }
+      // Calculate Shipping Cost using centralized logic
+      const { calculateShipping } = await import('@/lib/actions/shipping');
+      const shippingResult = await calculateShipping(input.shippingGovernorate, subtotalAmount);
+      const shippingCost = new Prisma.Decimal(shippingResult.shippingCost);
 
       // Fetch cost prices for all items (for COGS tracking)
       const variantCostMap: Record<string, number> = {};
@@ -560,7 +550,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         price: item.price
       })),
         subtotal: itemsSubtotal,
-        shipping: calculatedShipping > 0 ? calculatedShipping : 0,
+        shipping: Number(order.shippingCost || 0),
         total: Number(order.totalPrice),
         shippingAddress: `${input.shippingAddress}, ${input.shippingCity}, ${input.shippingGovernorate}`,
       paymentMethod: 'cod'

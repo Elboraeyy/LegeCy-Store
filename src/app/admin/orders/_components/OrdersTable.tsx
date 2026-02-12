@@ -11,6 +11,8 @@ interface Order {
     status: OrderStatus;
     createdAt: string;
     user?: { name: string | null; email: string | null };
+    riskScore?: number;
+    hasDispute?: boolean;
 }
 
 interface OrdersTableProps {
@@ -39,37 +41,34 @@ export default function OrdersTable({ orders, onOrderClick }: OrdersTableProps) 
     };
 
     const getStatusConfig = (status: OrderStatus) => {
-        // Map OrderStatus enum/string to dictionary keys
-        // We assume OrderStatus values match the keys we added in the dictionary (lowercase or mapped)
-        // If OrderStatus is PascalCase or Uppercase, we might need normalization.
-        // For safety, we map specific enum values if known, or use dynamic access if consistent.
-
-        // Let's rely on the lowercase version of the status as the key, 
-        // assuming standard status strings like 'pending', 'paid', 'payment_failed'.
-        // If OrderStatus uses different strings, we might default to common text.
-
         const statusKey = status.toLowerCase() as keyof typeof t.orders.status;
         const label = t.orders.status[statusKey] || status;
 
         switch (status) {
             case OrderStatus.Paid: return { label, className: 'status-success' };
-            case OrderStatus.Shipped: return { label, className: 'status-shipped' };
+            case OrderStatus.Confirmed: return { label, className: 'status-success' };
+            case OrderStatus.Preparing: return { label, className: 'status-preparing' };
+            case OrderStatus.Shipped: return { label, className: 'status-info' };
             case OrderStatus.Delivered: return { label, className: 'status-success' };
             case OrderStatus.Cancelled: return { label, className: 'status-cancelled' };
-            case OrderStatus.PaymentPending: return { label, className: 'status-warning' };
-            case OrderStatus.PaymentFailed: return { label, className: 'status-cancelled' };
             case OrderStatus.Pending: return { label, className: 'status-pending' };
-            case 'partially_refunded' as OrderStatus: return { label, className: 'status-warning' };
-            case 'refunded' as OrderStatus: return { label, className: 'status-warning' };
+            case OrderStatus.Refunded: return { label, className: 'status-warning' };
+            case OrderStatus.PaymentPending: return { label, className: 'status-payment-pending' };
             default: return { label, className: 'status-default' };
         }
+    };
+
+    const getRiskIndicator = (score?: number) => {
+        if (!score || score < 50) return null;
+        if (score >= 80) return <span title="High Risk" style={{ color: 'var(--admin-error)', marginLeft: '8px' }}>🚨</span>;
+        return <span title="Medium Risk" style={{ color: 'var(--admin-warning)', marginLeft: '8px' }}>⚠️</span>;
     };
 
     if (orders.length === 0) {
         return (
             <div className="admin-card" style={{ padding: '60px', textAlign: 'center' }}>
                 <div style={{ fontSize: '48px', marginBottom: '20px', opacity: 0.5 }}>📭</div>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>No orders found</h3>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>{t.common.no_notes}</h3>
                 <p style={{ color: 'var(--admin-text-muted)', margin: 0 }}>Try adjusting your search or filters</p>
             </div>
         );
@@ -101,13 +100,17 @@ export default function OrdersTable({ orders, onOrderClick }: OrdersTableProps) 
                                     style={{ cursor: 'pointer' }}
                                 >
                                     <td style={{ paddingLeft: '24px' }}>
-                                        <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '13px', background: 'var(--admin-bg-hover)', padding: '4px 8px', borderRadius: '4px' }}>
-                                            #{order.id.slice(-6)}
-                                        </span>
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '13px', background: 'var(--admin-bg-hover)', padding: '4px 8px', borderRadius: '4px' }}>
+                                                #{order.id.slice(-6).toUpperCase()}
+                                            </span>
+                                            {getRiskIndicator(order.riskScore)}
+                                            {order.hasDispute && <span title="Disputed" style={{ marginLeft: '8px' }}>⚖️</span>}
+                                        </div>
                                     </td>
                                     <td>
-                                        <div style={{ fontWeight: 600 }}>{order.user?.name || 'Guest User'}</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>{order.user?.email || 'No email'}</div>
+                                        <div style={{ fontWeight: 600 }}>{order.user?.name || t.orders.details.guest}</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>{order.user?.email || t.orders.details.no_email}</div>
                                     </td>
                                     <td>
                                         <span className={`status-badge ${config.className}`}>
@@ -127,7 +130,7 @@ export default function OrdersTable({ orders, onOrderClick }: OrdersTableProps) 
                                             className="admin-btn admin-btn-outline" 
                                             style={{ padding: '6px 12px', fontSize: '12px' }}
                                             onClick={(e) => {
-                                                e.stopPropagation(); // Prevent row click
+                                                e.stopPropagation();
                                                 onOrderClick(order.id);
                                             }}
                                         >

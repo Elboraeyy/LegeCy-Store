@@ -10,14 +10,16 @@ export { OrderStatus };
  * The orderPolicy.ts is the source of truth for role-based authorization.
  */
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  [OrderStatus.Pending]: [OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Cancelled],
-  [OrderStatus.PaymentPending]: [OrderStatus.Paid, OrderStatus.PaymentFailed, OrderStatus.Cancelled],
-  [OrderStatus.PaymentFailed]: [OrderStatus.Cancelled], // Can only be cancelled
-  [OrderStatus.Paid]: [OrderStatus.Shipped, OrderStatus.Cancelled],
+  [OrderStatus.PaymentPending]: [OrderStatus.Pending, OrderStatus.Cancelled],
+  [OrderStatus.Pending]: [OrderStatus.Confirmed, OrderStatus.Paid, OrderStatus.Cancelled],
+  [OrderStatus.Paid]: [OrderStatus.Confirmed, OrderStatus.Cancelled],
+  [OrderStatus.Confirmed]: [OrderStatus.Preparing, OrderStatus.Cancelled],
+  [OrderStatus.Preparing]: [OrderStatus.Shipped, OrderStatus.Cancelled],
   [OrderStatus.Shipped]: [OrderStatus.Delivered, OrderStatus.Cancelled],
-  [OrderStatus.Delivered]: [OrderStatus.CashReceived], // COD orders can transition to CashReceived
-  [OrderStatus.CashReceived]: [], // Terminal state - cash collected
+  [OrderStatus.Delivered]: [OrderStatus.CashReceived],
+  [OrderStatus.CashReceived]: [],
   [OrderStatus.Cancelled]: [], 
+  [OrderStatus.Refunded]: [],
 };
 
 export function canTransition(from: OrderStatus, to: OrderStatus): boolean {

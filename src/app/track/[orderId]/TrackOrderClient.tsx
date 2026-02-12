@@ -31,6 +31,7 @@ interface Order {
   deliveredAt: string | null;
   totalPrice: number;
   subtotal: number;
+  shippingCost: number;
   discountAmount: number;
   customerName: string | null;
   customerEmail: string | null;
@@ -294,6 +295,10 @@ export default function TrackOrderClient({ order }: Props) {
               <div className={styles.priceRow}>
                 <span>{t.orders.details.summary.subtotal}</span>
                 <span>{formatPrice(order.subtotal)}</span>
+              </div>
+              <div className={styles.priceRow}>
+                <span>{t.orders.details.summary.shipping}</span>
+                <span>{order.shippingCost > 0 ? formatPrice(order.shippingCost) : t.common.free}</span>
               </div>
               {order.discountAmount > 0 && (
                 <div className={`${styles.priceRow} ${styles.discount}`}>

@@ -128,7 +128,11 @@ function OrderDetailsView({ id }: { id: string }) {
                                     <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
                                         {formatCurrency(Number(order.totalPrice))}
                                     </div>
-                                    <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>{t.orders.details_page.free}</div>
+                                    <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
+                                        {Number(order.shippingCost) > 0
+                                            ? formatCurrency(Number(order.shippingCost))
+                                            : t.orders.details_page.free}
+                                    </div>
                                     <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '8px', color: 'var(--admin-accent)' }}>
                                         {formatCurrency(Number(order.totalPrice))}
                                     </div>

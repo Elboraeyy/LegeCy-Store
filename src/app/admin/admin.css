@@ -555,6 +555,19 @@ body.admin-body {
   border: 1px solid rgba(183, 110, 0, 0.15);
 }
 
+.status-payment-pending {
+  background: rgba(124, 58, 237, 0.1);
+  /* Purple */
+  color: #7c3aed;
+  border: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+.status-preparing {
+  background: rgba(13, 148, 136, 0.1);
+  /* Teal */
+  color: #0d9488;
+  border: 1px solid rgba(13, 148, 136, 0.15);
+}
 .status-shipped { 
   background: rgba(30, 64, 175, 0.1); 
   color: #1e40af; 

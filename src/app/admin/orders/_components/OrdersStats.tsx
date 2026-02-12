@@ -7,7 +7,7 @@ import { adminDictionary } from "@/lib/dictionaries/admin";
 interface StatsData {
     totalOrders: number;
     pendingOrders: number;
-    failedPayments: number;
+    deliveredOrders: number;
     monthlyRevenue: number;
 }
 
@@ -32,11 +32,13 @@ export default function OrdersStats({ stats }: OrdersStatsProps) {
             {/* Total Orders */}
             <div className="admin-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div className="admin-stat-card">
-                    <div className="stat-icon-wrapper blue">
-                        📦
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                        <div className="stat-icon-wrapper blue">
+                            📦
+                        </div>
+                        <div className="stat-label" style={{ marginBottom: 0 }}>{t.orders.stats.total_orders}</div>
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">{t.orders.stats.total_orders}</div>
                         <div className="stat-value">{stats.totalOrders}</div>
                     </div>
                 </div>
@@ -48,11 +50,13 @@ export default function OrdersStats({ stats }: OrdersStatsProps) {
             {/* Pending Orders */}
             <div className="admin-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div className="admin-stat-card">
-                    <div className="stat-icon-wrapper yellow">
-                        ⏳
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                        <div className="stat-icon-wrapper yellow">
+                            ⏳
+                        </div>
+                        <div className="stat-label" style={{ marginBottom: 0 }}>{(t.orders.stats as any).pending_orders}</div>
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">{t.orders.stats.pending_orders}</div>
                         <div className="stat-value">{stats.pendingOrders}</div>
                     </div>
                 </div>
@@ -64,11 +68,13 @@ export default function OrdersStats({ stats }: OrdersStatsProps) {
             {/* Monthly Revenue */}
             <div className="admin-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div className="admin-stat-card">
-                    <div className="stat-icon-wrapper green">
-                        💰
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                        <div className="stat-icon-wrapper green">
+                            💰
+                        </div>
+                        <div className="stat-label" style={{ marginBottom: 0 }}>{t.orders.stats.revenue}</div>
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">{t.orders.stats.revenue}</div>
                         <div className="stat-value">{formatCurrency(stats.monthlyRevenue)}</div>
                     </div>
                 </div>
@@ -77,9 +83,9 @@ export default function OrdersStats({ stats }: OrdersStatsProps) {
                 </div>
             </div>
 
-            {/* Failed Payments */}
+            {/* Delivered Orders */}
             <Link
-                href="/admin/orders/failed-payments"
+                href="/admin/orders?status=delivered"
                 className="admin-card"
                 style={{
                     padding: '24px',
@@ -87,21 +93,21 @@ export default function OrdersStats({ stats }: OrdersStatsProps) {
                     flexDirection: 'column',
                     gap: '8px',
                     textDecoration: 'none',
-                    border: stats.failedPayments > 0 ? '2px solid #ef4444' : undefined,
-                    background: stats.failedPayments > 0 ? 'rgba(239, 68, 68, 0.05)' : undefined
                 }}
             >
                 <div className="admin-stat-card">
-                    <div className="stat-icon-wrapper red">
-                        ⚠️
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                        <div className="stat-icon-wrapper blue">
+                            ✅
+                        </div>
+                        <div className="stat-label" style={{ marginBottom: 0 }}>{(t.orders.stats as any).delivered_orders}</div>
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">{t.orders.stats.failed_payments}</div>
-                        <div className="stat-value">{stats.failedPayments}</div>
+                        <div className="stat-value">{stats.deliveredOrders}</div>
                     </div>
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
-                    Click to view details →
+                    Completed orders
                 </div>
             </Link>
 

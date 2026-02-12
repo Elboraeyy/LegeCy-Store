@@ -84,14 +84,14 @@ export const adminDictionary = {
       search_placeholder: "Search IDs or Customers...",
       status: {
         all: "All",
-        pending: "Pending",
         payment_pending: "Payment Pending",
+        pending: "Pending",
         paid: "Paid",
-        processing: "Processing",
+        confirmed: "Confirmed",
+        preparing: "Preparing",
         shipped: "Shipped",
         delivered: "Delivered",
         cancelled: "Cancelled",
-        payment_failed: "Payment Failed",
         returned: "Returned",
         partially_refunded: "Refunded (Partial)",
         refunded: "Refunded"
@@ -109,7 +109,7 @@ export const adminDictionary = {
       stats: {
         total_orders: "Total Orders",
         pending_orders: "Pending Orders",
-        failed_payments: "Failed Payments",
+        delivered_orders: "Delivered Orders",
         revenue: "Monthly Revenue"
       },
       details: {
@@ -190,25 +190,6 @@ export const adminDictionary = {
         error_customer: "Customer name and phone are required",
         error_address: "Shipping address is required",
         added_to_cart: "Added to cart"
-      },
-      failed_payments: {
-        title: "Failed Payments",
-        subtitle: "Orders with failed payment attempts. Contact customers to complete orders.",
-        failed_stat: "Payment Failed",
-        pending_stat: "Awaiting Payment",
-        total_stat: "Total",
-        failed_desc: "Failed transactions",
-        pending_desc: "Pending confirmation",
-        attention_desc: "Need attention",
-        no_failed: "No Failed Payments",
-        all_clear: "All payment attempts were successful",
-        whatsapp: "WhatsApp",
-        details: "Details",
-        hide: "Hide",
-        call: "Call",
-        email: "Email",
-        products: "Products",
-        contact_customer: "Contact Customer"
       },
       disputes: {
         title: "Dispute Management",
@@ -3201,14 +3182,14 @@ export const adminDictionary = {
       search_placeholder: "بحث برقم الطلب أو العميل...",
       status: {
         all: "الكل",
+        payment_pending: "بانتظار الدفع",
         pending: "معلق",
-        payment_pending: "انتظار الدفع",
         paid: "مدفوع",
-        processing: "تجهيز",
+        confirmed: "مؤكد",
+        preparing: "جاري التجهيز",
         shipped: "تم الشحن",
         delivered: "تم التوصيل",
         cancelled: "ملغي",
-        payment_failed: "فشل الدفع",
         returned: "مرتجع",
         partially_refunded: "استرجاع جزئي",
         refunded: "استرجاع"
@@ -3226,7 +3207,7 @@ export const adminDictionary = {
       stats: {
         total_orders: "إجمالي الطلبات",
         pending_orders: "طلبات معلقة",
-        failed_payments: "مدفوعات فاشلة",
+        delivered_orders: "طلبات تم توصيلها",
         revenue: "إيرادات الشهر"
       },
       details: {
@@ -3307,25 +3288,6 @@ export const adminDictionary = {
         error_customer: "اسم العميل ورقم الهاتف مطلوبين",
         error_address: "عنوان الشحن مطلوب",
         added_to_cart: "تمت الإضافة للسلة"
-      },
-      failed_payments: {
-        title: "المدفوعات الفاشلة",
-        subtitle: "طلبات فشلت محاولة دفعها. تواصل مع العملاء لإكمال الطلبات.",
-        failed_stat: "فشل الدفع",
-        pending_stat: "بانتظار الدفع",
-        total_stat: "الإجمالي",
-        failed_desc: "معاملات فاشلة",
-        pending_desc: "بانتظار التأكيد",
-        attention_desc: "تحتاج انتباه",
-        no_failed: "لا توجد مدفوعات فاشلة",
-        all_clear: "جميع محاولات الدفع ناجحة",
-        whatsapp: "واتساب",
-        details: "تفاصيل",
-        hide: "إخفاء",
-        call: "اتصال",
-        email: "بريد",
-        products: "المنتجات",
-        contact_customer: "تواصل مع العميل"
       },
       disputes: {
         title: "إدارة النزاعات",

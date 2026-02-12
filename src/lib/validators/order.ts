@@ -10,6 +10,7 @@ export const createOrderSchema = z.object({
     quantity: z.number().int().positive(),
   })).min(1, 'Order must have at least one item'),
   totalPrice: z.number().nonnegative(),
+  shippingCost: z.number().nonnegative().optional(), // Added for flexibility, though calculated on backend usually
   userId: z.string().optional(), // Link order to user
   paymentMethod: z.enum(['cod', 'wallet', 'instapay']).optional(),
   options: z.object({

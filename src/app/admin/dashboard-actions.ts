@@ -63,20 +63,20 @@ export async function fetchDashboardStats({ range = '30d' }: DashboardStatsParam
         statusDistribution
     ] = await Promise.all([
         // 1. Current Period Orders (Count)
-        prisma.order.count({ where: { createdAt: { gte: startDate, lte: endDate } } }),
+        prisma.order.count({ where: { createdAt: { gte: startDate, lte: endDate }, status: { not: 'cancelled' } } }),
         
         // 2. Prev Period Orders (Count)
-        prisma.order.count({ where: { createdAt: { gte: prevStartDate, lte: prevEndDate } } }),
+        prisma.order.count({ where: { createdAt: { gte: prevStartDate, lte: prevEndDate }, status: { not: 'cancelled' } } }),
 
         // 3. Current Revenue
         prisma.order.aggregate({
-            _sum: { totalPrice: true },
+            _sum: { totalPrice: true, shippingCost: true },
             where: { createdAt: { gte: startDate, lte: endDate }, status: { not: 'cancelled' } }
         }),
 
         // 4. Prev Revenue
         prisma.order.aggregate({
-            _sum: { totalPrice: true },
+            _sum: { totalPrice: true, shippingCost: true },
             where: { createdAt: { gte: prevStartDate, lte: prevEndDate }, status: { not: 'cancelled' } }
         }),
 
@@ -113,14 +113,15 @@ export async function fetchDashboardStats({ range = '30d' }: DashboardStatsParam
     // Fetch Daily Sales for Chart
     const ordersForChart = await prisma.order.findMany({
         where: { createdAt: { gte: startDate, lte: endDate }, status: { not: 'cancelled' } },
-        select: { createdAt: true, totalPrice: true }
+        select: { createdAt: true, totalPrice: true, shippingCost: true }
     });
 
     // Process Chart Data
     const salesMap = new Map<string, number>();
     ordersForChart.forEach(o => {
         const key = format(o.createdAt, 'yyyy-MM-dd');
-        salesMap.set(key, (salesMap.get(key) || 0) + Number(o.totalPrice));
+        const netRevenue = Number(o.totalPrice) - Number(o.shippingCost || 0);
+        salesMap.set(key, (salesMap.get(key) || 0) + netRevenue);
     });
     
     // Fill gaps
@@ -136,8 +137,8 @@ export async function fetchDashboardStats({ range = '30d' }: DashboardStatsParam
     }
 
     // Calculations
-    const currentRev = Number(currentPeriodRevenue._sum.totalPrice || 0);
-    const prevRev = Number(previousPeriodRevenue._sum.totalPrice || 0);
+    const currentRev = Number(currentPeriodRevenue._sum.totalPrice || 0) - Number(currentPeriodRevenue._sum.shippingCost || 0);
+    const prevRev = Number(previousPeriodRevenue._sum.totalPrice || 0) - Number(previousPeriodRevenue._sum.shippingCost || 0);
     const revChange = prevRev === 0 ? 100 : ((currentRev - prevRev) / prevRev) * 100;
 
     const currentOrd = currentPeriodOrders;

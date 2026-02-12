@@ -30,6 +30,7 @@ interface OrderDetails {
     shippingGovernorate?: string | null;
     shippingCity?: string | null;
     user: { name: string | null; email: string | null } | null;
+    paymentMethod?: string;
 }
 
 interface OrderPreviewProps {
@@ -150,17 +151,41 @@ export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderP
                             
                             {/* Status Control */}
                             <div className="admin-card" style={{ padding: '16px' }}>
-                                <label className="stat-label" style={{ marginBottom: '8px', display: 'block' }}>Order Status</label>
+                                    <label className="stat-label" style={{ marginBottom: '8px', display: 'block' }}>{t.orders.table.status}</label>
                                 <AdminDropdown 
                                     value={order.status}
                                     onChange={handleStatusChange}
                                     options={[
-                                        { value: 'pending', label: 'Pending' },
-                                        { value: 'paid', label: 'Paid' },
-                                        { value: 'shipped', label: 'Shipped' },
-                                        { value: 'delivered', label: 'Delivered' },
-                                        { value: 'cancelled', label: 'Cancelled' }
-                                    ]}
+                                        { value: 'payment_pending', label: t.orders.status.payment_pending },
+                                        { value: 'pending', label: t.orders.status.pending },
+                                        { value: 'paid', label: t.orders.status.paid },
+                                        { value: 'confirmed', label: t.orders.status.confirmed },
+                                        { value: 'preparing', label: t.orders.status.preparing },
+                                        { value: 'shipped', label: t.orders.status.shipped },
+                                        { value: 'delivered', label: t.orders.status.delivered },
+                                        { value: 'cancelled', label: t.orders.status.cancelled },
+                                        { value: 'refunded', label: t.orders.status.refunded }
+                                    ].filter(opt => {
+                                        // COD Rules
+                                        if (order.paymentMethod === 'cod') {
+                                            if (opt.value === 'paid') return false; // Money at Delivery
+                                            if (opt.value === 'payment_pending') return false; // COD starts at Pending
+                                        }
+
+                                        // Online Rules
+                                        if (order.paymentMethod !== 'cod') {
+                                            // Provide strict flow: PaymentPending -> Pending -> Confirmed
+                                            // But allow flexibility for Admin corrections, so just ensure key states are available.
+                                            // Maybe hide 'Paid' if we are using 'Pending' as the verified state? 
+                                            // User said: "turn to Pending... money added... when Paid"
+                                            // Wait, earlier I decided Pending IS the Paid state for Online. 
+                                            // So should I hide 'Paid' for Online too to avoid confusion?
+                                            // If I hide 'Paid', then 'Pending' is the only option.
+                                            // Let's hide 'Paid' to enforce the described flow: PaymentPending -> Pending -> Confirmed.
+                                            if (opt.value === 'paid') return false;
+                                        }
+                                        return true;
+                                    })}
                                     disabled={updating}
                                 />
                             </div>

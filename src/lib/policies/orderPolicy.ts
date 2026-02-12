@@ -11,30 +11,57 @@ type TransitionPolicy = {
 export const ORDER_POLICIES: { transitions: Partial<Record<OrderStatus, TransitionPolicy>> } = {
   // Who can perform which transitions?
   transitions: {
-    [OrderStatus.Pending]: {
-      allowedTo: [OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Cancelled],
+    [OrderStatus.PaymentPending]: {
+      allowedTo: [OrderStatus.Pending, OrderStatus.Cancelled],
       roles: {
-        [OrderStatus.Paid]: ['system'], // Only system (webhook) can mark paid
-        [OrderStatus.Shipped]: ['admin'], // Admin can ship COD orders directly
+        [OrderStatus.Pending]: ['admin', 'system'], // Admin verifies payment
+        [OrderStatus.Cancelled]: ['admin', 'system'],
+      },
+    },
+    [OrderStatus.Pending]: {
+      allowedTo: [OrderStatus.Confirmed, OrderStatus.Paid, OrderStatus.Cancelled],
+      roles: {
+        [OrderStatus.Paid]: ['admin', 'system'], // Admin can manually mark as Paid (Online verification)
+        [OrderStatus.Confirmed]: ['admin'], // Admin confirms COD orders
         [OrderStatus.Cancelled]: ['admin', 'customer', 'system'],
       },
     },
     [OrderStatus.Paid]: {
+      allowedTo: [OrderStatus.Confirmed, OrderStatus.Cancelled],
+      roles: {
+        [OrderStatus.Confirmed]: ['admin'], // Admin confirms after payment verification
+        [OrderStatus.Cancelled]: ['admin', 'system'],
+      },
+    },
+    [OrderStatus.Confirmed]: {
+      allowedTo: [OrderStatus.Preparing, OrderStatus.Cancelled],
+      roles: {
+        [OrderStatus.Preparing]: ['admin'],
+        [OrderStatus.Cancelled]: ['admin'],
+      },
+    },
+    [OrderStatus.Preparing]: {
       allowedTo: [OrderStatus.Shipped, OrderStatus.Cancelled],
       roles: {
-        [OrderStatus.Shipped]: ['admin', 'system'],
-        [OrderStatus.Cancelled]: ['admin', 'system'], // Customer cannot cancel after payment without support
+        [OrderStatus.Shipped]: ['admin'],
+        [OrderStatus.Cancelled]: ['admin'],
       },
     },
     [OrderStatus.Shipped]: {
       allowedTo: [OrderStatus.Delivered, OrderStatus.Cancelled],
       roles: {
-        [OrderStatus.Delivered]: ['admin', 'system'], // Courier webhook or admin
-        [OrderStatus.Cancelled]: ['admin'], // Rare, but possible (lost package)
+        [OrderStatus.Delivered]: ['admin', 'system'],
+        [OrderStatus.Cancelled]: ['admin'],
       },
     },
     [OrderStatus.Delivered]: {
-      allowedTo: [], // Terminal state for now
+      allowedTo: [OrderStatus.Refunded],
+      roles: {
+        [OrderStatus.Refunded]: ['admin'],
+      },
+    },
+    [OrderStatus.Refunded]: {
+      allowedTo: [],
       roles: {},
     },
     [OrderStatus.Cancelled]: {

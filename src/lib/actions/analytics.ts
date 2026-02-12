@@ -136,6 +136,7 @@ export async function getAnalyticsSummary(
             },
             select: { 
                 totalPrice: true, 
+                shippingCost: true,
                 createdAt: true,
                 paymentMethod: true,
                 shippingCity: true,
@@ -150,7 +151,7 @@ export async function getAnalyticsSummary(
                 createdAt: { gte: previousPeriodStart, lt: previousPeriodEnd },
                 status: { not: 'cancelled' }
             },
-            select: { totalPrice: true }
+            select: { totalPrice: true, shippingCost: true }
         }),
         // Current customers
         prisma.user.count({
@@ -197,22 +198,26 @@ export async function getAnalyticsSummary(
         prisma.order.count({
             where: {
                 createdAt: { gte: periodStart },
+                status: { not: 'cancelled' },
                 couponId: { not: null }
             }
         }),
         // Total items sold
         prisma.orderItem.aggregate({
             where: {
-                order: { createdAt: { gte: periodStart } }
+                order: {
+                    createdAt: { gte: periodStart },
+                    status: { not: 'cancelled' }
+                }
             },
             _sum: { quantity: true }
         }),
         // Repeat customers (users with 2+ orders)
         prisma.user.count({
             where: {
-                orders: { some: {} },
+                orders: { some: { status: { not: 'cancelled' } } },
                 AND: {
-                    orders: { some: { createdAt: { gte: periodStart } } }
+                    orders: { some: { createdAt: { gte: periodStart }, status: { not: 'cancelled' } } }
                 }
             }
         }),
@@ -244,9 +249,10 @@ export async function getAnalyticsSummary(
             by: ['userId'],
             where: {
                 createdAt: { gte: periodStart },
+                status: { not: 'cancelled' },
                 userId: { not: null }
             },
-            _sum: { totalPrice: true },
+            _sum: { totalPrice: true, shippingCost: true },
             _count: { id: true },
             orderBy: { _sum: { totalPrice: 'desc' } },
             take: 10
@@ -266,8 +272,8 @@ export async function getAnalyticsSummary(
     ]);
 
     // Calculate core metrics
-    const currentRevenue = currentOrders.reduce((sum, o) => sum + Number(o.totalPrice), 0);
-    const previousRevenue = previousOrders.reduce((sum, o) => sum + Number(o.totalPrice), 0);
+    const currentRevenue = currentOrders.reduce((sum, o) => sum + (Number(o.totalPrice) - Number(o.shippingCost || 0)), 0);
+    const previousRevenue = previousOrders.reduce((sum, o) => sum + (Number(o.totalPrice) - Number(o.shippingCost || 0)), 0);
     const currentOrderCount = currentOrders.length;
     const previousOrderCount = previousOrders.length;
     const allOrdersInPeriod = allTimeOrders.length;
@@ -304,7 +310,7 @@ export async function getAnalyticsSummary(
         if (salesMap.has(dateKey)) {
             const current = salesMap.get(dateKey)!;
             salesMap.set(dateKey, { 
-                revenue: current.revenue + Number(order.totalPrice),
+                revenue: current.revenue + (Number(order.totalPrice) - Number(order.shippingCost || 0)),
                 orders: current.orders + 1
             });
         }
@@ -320,7 +326,7 @@ export async function getAnalyticsSummary(
         const method = order.paymentMethod || 'cod';
         const current = paymentMethodMap.get(method) || { revenue: 0, count: 0 };
         paymentMethodMap.set(method, {
-            revenue: current.revenue + Number(order.totalPrice),
+            revenue: current.revenue + (Number(order.totalPrice) - Number(order.shippingCost || 0)),
             count: current.count + 1
         });
     });
@@ -334,7 +340,7 @@ export async function getAnalyticsSummary(
         const current = cityMap.get(city) || { count: 0, revenue: 0 };
         cityMap.set(city, {
             count: current.count + 1,
-            revenue: current.revenue + Number(order.totalPrice)
+            revenue: current.revenue + (Number(order.totalPrice) - Number(order.shippingCost || 0))
         });
     });
     const ordersByCity = Array.from(cityMap.entries())
@@ -361,7 +367,7 @@ export async function getAnalyticsSummary(
         const current = dayMap.get(day)!;
         dayMap.set(day, {
             count: current.count + 1,
-            revenue: current.revenue + Number(order.totalPrice)
+            revenue: current.revenue + (Number(order.totalPrice) - Number(order.shippingCost || 0))
         });
     });
     const ordersByDayOfWeek = Array.from(dayMap.entries())
@@ -444,14 +450,14 @@ export async function getAnalyticsSummary(
             createdAt: { gte: sixMonthsAgo },
             status: { not: 'cancelled' }
         },
-        select: { totalPrice: true, createdAt: true, userId: true }
+        select: { totalPrice: true, shippingCost: true, createdAt: true, userId: true }
     });
 
     const monthlyMap = new Map<string, { revenue: number; orders: number; customers: Set<string> }>();
     monthlyOrdersRaw.forEach(order => {
         const monthKey = order.createdAt.toISOString().slice(0, 7); // YYYY-MM
         const current = monthlyMap.get(monthKey) || { revenue: 0, orders: 0, customers: new Set<string>() };
-        current.revenue += Number(order.totalPrice);
+        current.revenue += (Number(order.totalPrice) - Number(order.shippingCost || 0));
         current.orders += 1;
         if (order.userId) current.customers.add(order.userId);
         monthlyMap.set(monthKey, current);
@@ -473,7 +479,7 @@ export async function getAnalyticsSummary(
             createdAt: { gte: fourWeeksAgo },
             status: { not: 'cancelled' }
         },
-        select: { totalPrice: true, createdAt: true }
+        select: { totalPrice: true, shippingCost: true, createdAt: true }
     });
 
     const weeklyMap = new Map<number, { revenue: number; orders: number }>();
@@ -484,7 +490,7 @@ export async function getAnalyticsSummary(
         if (weekNum < 4) {
             const current = weeklyMap.get(weekNum)!;
             weeklyMap.set(weekNum, {
-                revenue: current.revenue + Number(order.totalPrice),
+                revenue: current.revenue + (Number(order.totalPrice) - Number(order.shippingCost || 0)),
                 orders: current.orders + 1
             });
         }
@@ -507,7 +513,7 @@ export async function getAnalyticsSummary(
             name: user?.name || 'Guest',
             email: user?.email || '',
             orders: countObj?.id || 0,
-            revenue: Number(c._sum?.totalPrice || 0)
+            revenue: (Number(c._sum?.totalPrice || 0) - Number(c._sum?.shippingCost || 0))
         };
     });
 
@@ -542,12 +548,12 @@ export async function getAnalyticsSummary(
 
     // Get total stats (all time)
     const [totalOrdersAll, totalRevenueAll, totalCustomersAll] = await prisma.$transaction([
-        prisma.order.count(),
-        prisma.order.aggregate({ _sum: { totalPrice: true } }),
+        prisma.order.count({ where: { status: { not: 'cancelled' } } }),
+        prisma.order.aggregate({ _sum: { totalPrice: true, shippingCost: true }, where: { status: { not: 'cancelled' } } }),
         prisma.user.count()
     ]);
 
-    const allTimeRevenue = Number(totalRevenueAll._sum.totalPrice || 0);
+    const allTimeRevenue = Number(totalRevenueAll._sum.totalPrice || 0) - Number(totalRevenueAll._sum.shippingCost || 0);
     const revenuePerCustomer = totalCustomersAll > 0 ? allTimeRevenue / totalCustomersAll : 0;
     const avgOrdersPerCustomer = totalCustomersAll > 0 ? totalOrdersAll / totalCustomersAll : 0;
 

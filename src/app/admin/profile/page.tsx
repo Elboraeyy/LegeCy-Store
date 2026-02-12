@@ -16,15 +16,16 @@ export default async function AdminProfilePage() {
         totalRevenue,
         activeSessions
     ] = await prisma.$transaction([
-        prisma.order.count(),
+        prisma.order.count({ where: { status: { not: 'cancelled' } } }),
         prisma.order.count({
             where: {
-                createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+                createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+                status: { not: 'cancelled' }
             }
         }),
         prisma.order.aggregate({
             where: { status: { not: 'cancelled' } },
-            _sum: { totalPrice: true }
+            _sum: { totalPrice: true, shippingCost: true }
         }),
         prisma.adminSession.count({
             where: {
@@ -34,7 +35,7 @@ export default async function AdminProfilePage() {
     ]);
 
     const revenueValue = totalRevenue._sum.totalPrice 
-        ? (Number(totalRevenue._sum.totalPrice) / 1000).toFixed(1) 
+        ? ((Number(totalRevenue._sum.totalPrice) - Number(totalRevenue._sum.shippingCost || 0)) / 1000).toFixed(1) 
         : '0';
 
     return (

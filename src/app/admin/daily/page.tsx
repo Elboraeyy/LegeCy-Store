@@ -65,9 +65,10 @@ export default async function DailyOrdersPage({ searchParams }: Props) {
         orderBy: { createdAt: 'desc' }
     });
     
-    // Calculate stats
-    const totalOrders = orders.length;
-    const totalRevenue = orders.reduce((sum, o) => sum + Number(o.totalPrice), 0);
+    // Calculate stats (Exclude cancelled)
+    const validOrders = orders.filter(o => o.status !== 'cancelled');
+    const totalOrders = validOrders.length;
+    const totalRevenue = validOrders.reduce((sum, o) => sum + (Number(o.totalPrice) - Number(o.shippingCost || 0)), 0);
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
     
     // By status
@@ -77,20 +78,20 @@ export default async function DailyOrdersPage({ searchParams }: Props) {
     const deliveredCount = orders.filter(o => o.status === 'delivered').length;
     const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
     
-    // By source
+    // By source (Exclude cancelled)
     const sourceCounts: Record<string, { count: number; revenue: number }> = {};
     const sources = ['online', 'whatsapp', 'instagram', 'facebook', 'call', 'pos'];
     sources.forEach(s => {
-        const sourceOrders = orders.filter(o => (o.orderSource || 'online') === s);
+        const sourceOrders = validOrders.filter(o => (o.orderSource || 'online') === s);
         sourceCounts[s] = {
             count: sourceOrders.length,
-            revenue: sourceOrders.reduce((sum, o) => sum + Number(o.totalPrice), 0)
+            revenue: sourceOrders.reduce((sum, o) => sum + (Number(o.totalPrice) - Number(o.shippingCost || 0)), 0)
         };
     });
     
-    // By payment method
+    // By payment method (Exclude cancelled)
     const paymentCounts: Record<string, number> = {};
-    orders.forEach(o => {
+    validOrders.forEach(o => {
         const method = o.paymentMethod || 'cod';
         paymentCounts[method] = (paymentCounts[method] || 0) + 1;
     });

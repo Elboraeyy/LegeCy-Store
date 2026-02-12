@@ -171,8 +171,18 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
         </tbody>
       </table>
 
+      <div style="background: white; border-top: 1px solid #eee; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 14px; color: #666;">Subtotal</span>
+        <span style="font-size: 16px; font-weight: 600; color: #333;">${formatPrice(data.subtotal)}</span>
+      </div>
+
+      <div style="background: white; border-bottom: 1px solid #eee; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 14px; color: #666;">Shipping</span>
+        <span style="font-size: 16px; font-weight: 600; color: #333;">${data.shipping > 0 ? formatPrice(data.shipping) : 'Free'}</span>
+      </div>
+
       <!-- Total -->
-      <div style="background: ${BRAND.primaryColor}; color: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="background: ${BRAND.primaryColor}; color: white; padding: 15px 20px; border-radius: 0 0 8px 8px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 16px;">Total</span>
         <span style="font-size: 22px; font-weight: bold; color: ${BRAND.accentColor};">${formatPrice(data.total)}</span>
       </div>

@@ -51,7 +51,7 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
         const order = await tx.order.create({
             data: {
                 totalPrice: new Prisma.Decimal(data.totalPrice),
-                status: OrderStatus.Pending,
+            status: data.paymentMethod === 'cod' ? OrderStatus.Pending : OrderStatus.PaymentPending,
                 userId: data.userId, // Link order to user
                 paymentMethod: data.paymentMethod || 'cod',
                 items: {
@@ -74,173 +74,28 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
     });
 }
 
+import { orderStateService } from './orders/orderStateService';
+
 export async function updateOrderStatus(
     orderId: string, 
     newStatus: OrderStatus, 
     actor: ActorRole = 'system', 
     actorId?: string 
 ): Promise<Order> {
-  // Validate Actor ID for Admins
-  if (actor === 'admin' && !actorId) {
-      throw new ValidationError('Admin actions require an actorId for audit purposes.');
-  }
+  await orderStateService.transitionOrder({
+    orderId,
+    newStatus,
+    actor,
+    actorId,
+  });
 
-  const order = await prisma.order.findUnique({
+  const updated = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { items: true },
-  });
-
-  if (!order) {
-    throw new OrderNotFoundError(orderId);
-  }
-
-  const currentStatus = order.status as OrderStatus;
-
-  // Validate Transition & Policy
-  validateOrderTransition(currentStatus, newStatus, actor);
-
-  const updatedOrder = await prisma.$transaction(async (tx) => {
-      // PROXY TO INTERNAL CANCEL if status is Cancelled
-      if (newStatus === OrderStatus.Cancelled) {
-          return await internalCancelOrder(tx, orderId, `Cancelled by ${actor}`);
-      }
-
-      // Commit inventory for online payment orders when paid
-      // Note: COD orders deduct inventory immediately at order creation (checkout.ts)
-      if (newStatus === OrderStatus.Paid && order.paymentMethod !== 'cod') {
-          const warehouseId = await getDefaultWarehouseId(tx);
-          for (const item of order.items) {
-              if (item.variantId) {
-                  // Commit stock: remove from reserved (already deducted from available during reservation)
-                  await inventoryService.commitStock(tx, warehouseId, item.variantId, item.quantity, newStatus);
-                  
-                  // Log the inventory change for tracking
-                  await tx.inventoryLog.create({
-                      data: {
-                          warehouseId,
-                          variantId: item.variantId,
-                          action: 'ORDER_FULFILL',
-                          quantity: -item.quantity,
-                          reason: `Online Order Paid: ${orderId}`,
-                          referenceId: orderId,
-                      }
-                  });
-              }
-          }
-          logger.info(`Inventory committed for order`, { orderId, itemCount: order.items.length, paymentMethod: order.paymentMethod });
-      }
-
-      const updated = await tx.order.update({
-        where: { id: orderId },
-        data: { 
-          status: newStatus,
-          // Set deliveredAt when order is delivered for accurate return window
-          ...(newStatus === OrderStatus.Delivered && { deliveredAt: new Date() })
-        },
-        include: { items: true },
-      });
-
-      await tx.orderStatusHistory.create({
-        data: {
-          orderId,
-          from: currentStatus,
-          to: newStatus,
-          reason: `Status update by ${actor}`
-        },
-      });
-
-      // Audit Logging
-      if (actor === 'admin' && actorId) {
-          await auditService.logAction(
-              actorId, 
-              'UPDATE_ORDER_STATUS', 
-              'ORDER', 
-              orderId, 
-              { from: currentStatus, to: newStatus },
-              null, // ipAddress - not available in service layer
-              null, // userAgent - not available in service layer
-              tx
-          );
-      }
-
-      return updated;
-  });
-
-  logger.info(`Order status updated`, { orderId, oldStatus: currentStatus, newStatus, actor });
-  return mapToOrderType(updatedOrder);
-}
-
-/**
- * THE Single Source of Truth for order cancellation.
- * @internal This should only be used by internal services.
- */
-export async function internalCancelOrder(tx: Prisma.TransactionClient, orderId: string, reason: string) {
-    const order = await tx.order.findUnique({
-        where: { id: orderId },
         include: { items: true }
     });
 
-    if (!order) throw new OrderNotFoundError(orderId);
-    
-    // Idempotency check
-    if ((order.status as OrderStatus) === OrderStatus.Cancelled) {
-        logger.warn(`Attempted to cancel already cancelled order`, { orderId });
-        return order; 
-    }
-
-    const warehouseId = await getDefaultWarehouseId(tx);
-    const currentStatus = order.status as OrderStatus;
-
-    // 2. Release/Return Stock based on payment method and status
-    const isCOD = order.paymentMethod === 'cod';
-    
-    if (currentStatus === OrderStatus.Pending) {
-        for (const item of order.items) {
-             if (item.variantId) {
-                 if (isCOD) {
-                     // COD orders: stock was deducted from available, return it
-                     await tx.inventory.update({
-                         where: { warehouseId_variantId: { warehouseId, variantId: item.variantId } },
-                         data: { available: { increment: item.quantity } }
-                     });
-                 } else {
-                     // Online orders: stock was reserved, release it
-                     await inventoryService.releaseStock(tx, warehouseId, item.variantId, item.quantity);
-                 }
-             }
-        }
-    } 
-    else if (currentStatus === OrderStatus.Paid || currentStatus === OrderStatus.Shipped) {
-        // Stock was committed (deducted), return to available
-        for (const item of order.items) {
-             if (item.variantId) {
-                  await tx.inventory.update({
-                      where: { warehouseId_variantId: { warehouseId, variantId: item.variantId } },
-                      data: { available: { increment: item.quantity } }
-                  });
-             }
-        }
-    }
-
-    // 3. Update Status
-    const updatedOrder = await tx.order.update({
-        where: { id: orderId },
-        data: { status: OrderStatus.Cancelled },
-        include: { items: true }
-    });
-
-    // 4. Log History
-    await tx.orderStatusHistory.create({
-        data: {
-            orderId,
-            from: currentStatus,
-            to: OrderStatus.Cancelled,
-            reason: reason 
-        } 
-    });
-
-    logger.info(`Order cancelled`, { orderId, reason });
-    return updatedOrder;
+  if (!updated) throw new Error('Order not found after update');
+  return mapToOrderType(updated);
 }
 
 export interface GetOrdersParams {
@@ -250,6 +105,7 @@ export interface GetOrdersParams {
   sortBy?: 'newest' | 'oldest';
   search?: string;
   dateRange?: { from: Date; to: Date };
+  view?: 'all' | 'issues' | 'returns';
 }
 
 export interface OrdersResponse {
@@ -271,21 +127,43 @@ export async function getOrderForAdmin(orderId: string) {
     return order ? mapToOrderType(order) : null;
 }
 
-export async function getOrders({ page = 1, limit = 10, status, sortBy = 'newest', search, dateRange }: GetOrdersParams): Promise<OrdersResponse> {
+export async function getOrders({
+  page = 1,
+  limit = 10,
+  status,
+  sortBy = 'newest',
+  search,
+  dateRange,
+  view = 'all'
+}: GetOrdersParams): Promise<OrdersResponse> {
   const skip = (Math.max(1, page) - 1) * limit; 
   
-  const where: Prisma.OrderWhereInput = {
-    // Exclude payment-related pending/failed orders from main list
-    // These are shown in a separate "Failed Payments" section
-    status: { notIn: [OrderStatus.PaymentPending, OrderStatus.PaymentFailed] }
-  };
+  const where: Prisma.OrderWhereInput = {};
+
+  // Standard Status Filter
+  if (status) {
+    where.status = status;
+  } else if (view === 'all') {
+    // Show all statuses
+  }
   
-  // If specific status filter provided, use it instead
-  if (status) where.status = status;
-  
+  // VIEW LOGIC
+  if (view === 'issues') {
+    where.OR = [
+      { riskScore: { isNot: null } },
+      { disputes: { some: {} } }
+    ];
+  } else if (view === 'returns') {
+    where.returnRequest = { isNot: null };
+  }
+
+  // Search Logic
   if (search) {
      where.OR = [
+       ...(where.OR || []),
        { id: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
+       { customerName: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
+       { customerPhone: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
        { user: { email: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } },
        { user: { name: { contains: search, mode: 'insensitive' as Prisma.QueryMode } } }
      ];
@@ -309,13 +187,19 @@ export async function getOrders({ page = 1, limit = 10, status, sortBy = 'newest
       orderBy,
       include: { 
         items: true,
-        user: { select: { name: true, email: true } }
+        user: { select: { name: true, email: true } },
+        riskScore: true,
+        disputes: { take: 1 }
       },
     }),
   ]);
 
   return {
-    data: orders.map(mapToOrderType),
+    data: orders.map(order => ({
+      ...mapToOrderType(order),
+      riskScore: order.riskScore?.score,
+      hasDispute: order.disputes.length > 0
+    })),
     meta: {
       page,
       limit,
@@ -337,6 +221,7 @@ function mapToOrderType(prismaOrder: PrismaOrderWithRelations): Order {
         totalPrice: prismaOrder.totalPrice instanceof Prisma.Decimal ? prismaOrder.totalPrice.toNumber() : Number(prismaOrder.totalPrice),
         status: prismaOrder.status as OrderStatus,
         createdAt: prismaOrder.createdAt instanceof Date ? prismaOrder.createdAt.toISOString() : String(prismaOrder.createdAt),
+      paymentMethod: prismaOrder.paymentMethod,
         items: prismaOrder.items.map(mapToOrderItem),
         // userId property does not exist in our Order type definition
         user: prismaOrder.user ? {
