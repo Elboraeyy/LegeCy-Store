@@ -77,10 +77,8 @@ export default function WarehouseStockPage() {
                         {warehouse ? stockT.subtitle.replace('{name}', warehouse.city || warehouse.name) : stockT.default_subtitle}
                     </p>
                 </div>
-                <Link href="/admin/inventory/transfers/new" className="admin-btn admin-btn-primary">
-                    + {stockT.create_transfer}
-                </Link>
             </div>
+
 
             {/* Breadcrumb */}
             <div style={{ marginBottom: '24px', fontSize: '14px', color: 'var(--admin-text-muted)' }}>

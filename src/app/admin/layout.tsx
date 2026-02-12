@@ -131,7 +131,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <div style={{ marginInlineStart: '24px', marginBottom: '8px' }}>
                                 <NavLink href="/admin/procurement" icon="🚛" label={t.sidebar.procurement} active={pathname?.startsWith('/admin/procurement')} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/warehouses" icon="🏭" label={t.sidebar.warehouses} active={pathname === '/admin/inventory/warehouses'} onClick={closeSidebar} />
-                                <NavLink href="/admin/inventory/transfers" icon="🔄" label={t.sidebar.transfers} active={pathname === '/admin/inventory/transfers'} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/alerts" icon="⚠️" label={t.sidebar.alerts} active={pathname === '/admin/inventory/alerts'} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/counts" icon="🔢" label={t.sidebar.stock_counts} active={pathname === '/admin/inventory/counts'} onClick={closeSidebar} />
                                 <NavLink href="/admin/inventory/reports" icon="📈" label={t.sidebar.reports} active={pathname === '/admin/inventory/reports'} onClick={closeSidebar} />
