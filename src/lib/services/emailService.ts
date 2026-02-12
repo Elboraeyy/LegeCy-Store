@@ -87,6 +87,7 @@ interface OrderItem {
 
 interface OrderConfirmationData {
   orderId: string;
+  orderNumber: number;
   customerName: string;
   customerEmail: string;
   items: OrderItem[];
@@ -108,11 +109,11 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
       return { success: false, error: 'Email service not configured' };
     }
 
-    const orderNumber = data.orderId.slice(0, 8).toUpperCase();
+    const formattedOrderNumber = `#${data.orderNumber}`;
     const fromEmail = getFromEmail();
     
     console.log('📧 [EMAIL] From:', fromEmail);
-    console.log('📧 [EMAIL] Order number:', orderNumber);
+    console.log('📧 [EMAIL] Order number:', formattedOrderNumber);
     
     const itemsHtml = data.items.map(item => `
       <tr>
@@ -153,7 +154,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
       <!-- Order Number -->
       <div style="background: #f8f8f8; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 30px; border: 2px dashed #e0e0e0;">
         <p style="color: #888; margin: 0 0 5px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Order Number</p>
-        <p style="color: ${BRAND.primaryColor}; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: 3px; font-family: monospace;">#${orderNumber}</p>
+        <p style="color: ${BRAND.primaryColor}; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: 3px; font-family: monospace;">${formattedOrderNumber}</p>
       </div>
 
       <!-- Order Items -->
@@ -235,7 +236,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
     const { data: emailData, error } = await resend.emails.send({
       from: fromEmail,
       to: data.customerEmail,
-      subject: `✓ Order Confirmed #${orderNumber} - LegaCy Store`,
+      subject: `✓ Order Confirmed ${formattedOrderNumber} - LegaCy Store`,
       html: html,
     });
 
@@ -262,6 +263,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
 
 interface OrderShippedData {
   orderId: string;
+  orderNumber: number;
   customerName: string;
   customerEmail: string;
   trackingNumber?: string;
@@ -276,7 +278,7 @@ export async function sendOrderShippedEmail(data: OrderShippedData): Promise<{ s
     const resend = getResendClient();
     if (!resend) return { success: false, error: 'Email not configured' };
 
-    const orderNumber = data.orderId.slice(0, 8).toUpperCase();
+    const formattedOrderNumber = `#${data.orderNumber}`;
     
     const html = `
 <!DOCTYPE html>
@@ -292,7 +294,7 @@ export async function sendOrderShippedEmail(data: OrderShippedData): Promise<{ s
     <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); padding: 30px; text-align: center;">
       <div style="font-size: 50px; margin-bottom: 15px;">🚚</div>
       <h2 style="margin: 0 0 8px; color: ${BRAND.primaryColor}; font-size: 24px;">Your Order is On Its Way!</h2>
-      <p style="margin: 0; color: #1e40af; font-size: 14px;">Order #${orderNumber}</p>
+      <p style="margin: 0; color: #1e40af; font-size: 14px;">Order ${formattedOrderNumber}</p>
     </div>
     
     <div style="padding: 40px;">
@@ -333,7 +335,7 @@ export async function sendOrderShippedEmail(data: OrderShippedData): Promise<{ s
     const { error } = await resend.emails.send({
       from: getFromEmail(),
       to: data.customerEmail,
-      subject: `🚚 Your Order is Shipped! #${orderNumber}`,
+      subject: `🚚 Your Order is Shipped! ${formattedOrderNumber}`,
       html: html,
     });
 
@@ -506,6 +508,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<{ succes
 
 interface OrderDeliveredData {
   orderId: string;
+  orderNumber: number;
   customerName: string;
   customerEmail: string;
 }
@@ -517,7 +520,7 @@ export async function sendOrderDeliveredEmail(data: OrderDeliveredData): Promise
     const resend = getResendClient();
     if (!resend) return { success: false };
 
-    const orderNumber = data.orderId.slice(0, 8).toUpperCase();
+    const formattedOrderNumber = `#${data.orderNumber}`;
     
     const html = `
 <!DOCTYPE html>
@@ -533,7 +536,7 @@ export async function sendOrderDeliveredEmail(data: OrderDeliveredData): Promise
     <div style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); padding: 30px; text-align: center;">
       <div style="font-size: 50px; margin-bottom: 15px;">🎉</div>
       <h2 style="margin: 0 0 8px; color: ${BRAND.primaryColor}; font-size: 24px;">Delivered Successfully!</h2>
-      <p style="margin: 0; color: #166534; font-size: 14px;">Order #${orderNumber}</p>
+      <p style="margin: 0; color: #166534; font-size: 14px;">Order ${formattedOrderNumber}</p>
     </div>
     
     <div style="padding: 40px; text-align: center;">
@@ -567,7 +570,7 @@ export async function sendOrderDeliveredEmail(data: OrderDeliveredData): Promise
     const { error } = await resend.emails.send({
       from: getFromEmail(),
       to: data.customerEmail,
-      subject: `🎉 Delivered! Order #${orderNumber}`,
+      subject: `🎉 Delivered! Order ${formattedOrderNumber}`,
       html: html,
     });
 
@@ -688,6 +691,7 @@ export async function sendAbandonedCartEmail(data: AbandonedCartData): Promise<{
 
 interface PaymentConfirmationData {
   orderId: string;
+  orderNumber: number;
   customerName: string;
   customerEmail: string;
   amount: number;
@@ -702,7 +706,7 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationData
     const resend = getResendClient();
     if (!resend) return { success: false };
 
-    const orderNumber = data.orderId.slice(0, 8).toUpperCase();
+    const formattedOrderNumber = `#${data.orderNumber}`;
     
     const html = `
 <!DOCTYPE html>
@@ -732,7 +736,7 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationData
       <div style="background: #f8f8f8; border-radius: 12px; padding: 25px; margin-bottom: 30px;">
         <div style="display: flex; justify-content: space-between; padding: 8px 0;">
           <span style="color: #666;">Order Number</span>
-          <span style="color: ${BRAND.primaryColor}; font-weight: bold;">#${orderNumber}</span>
+          <span style="color: ${BRAND.primaryColor}; font-weight: bold;">${formattedOrderNumber}</span>
         </div>
         <div style="display: flex; justify-content: space-between; padding: 8px 0;">
           <span style="color: #666;">Amount Paid</span>
@@ -768,7 +772,7 @@ export async function sendPaymentConfirmationEmail(data: PaymentConfirmationData
     const { error } = await resend.emails.send({
       from: getFromEmail(),
       to: data.customerEmail,
-      subject: `✓ Payment Confirmed #${orderNumber} - LegaCy`,
+      subject: `✓ Payment Confirmed ${formattedOrderNumber} - LegaCy`,
       html: html,
     });
 

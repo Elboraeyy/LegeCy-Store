@@ -68,6 +68,7 @@ async function getOrder(orderId: string) {
 
   return {
     id: order.id,
+    orderNumber: order.orderNumber,
     status: order.status,
     createdAt: order.createdAt.toISOString(),
     deliveredAt: order.deliveredAt?.toISOString() || null,

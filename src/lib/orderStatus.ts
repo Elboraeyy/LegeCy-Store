@@ -20,6 +20,7 @@ const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.CashReceived]: [],
   [OrderStatus.Cancelled]: [], 
   [OrderStatus.Refunded]: [],
+  [OrderStatus.PaymentFailed]: [],
 };
 
 export function canTransition(from: OrderStatus, to: OrderStatus): boolean {

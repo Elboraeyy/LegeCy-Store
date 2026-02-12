@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Hook to persist form data across page refreshes using sessionStorage.
@@ -16,22 +16,26 @@ export function useFormPersistence<T extends object>(
 ): [T, React.Dispatch<React.SetStateAction<T>>, () => void] {
   const storageKey = `form_persist_${key}`;
   
-  // Initialize state - try to restore from sessionStorage
-  const [state, setState] = useState<T>(() => {
-    if (typeof window === 'undefined') return initialState;
+  const initialRef = useRef(initialState);
+
+  // Initialize state - server/client match on first render
+  const [state, setState] = useState<T>(initialState);
+
+  // Restore from sessionStorage after mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     
     try {
       const saved = sessionStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
         // Merge with initial state to handle new fields
-        return { ...initialState, ...parsed };
+        setState(prev => ({ ...initialRef.current, ...prev, ...parsed }));
       }
     } catch (e) {
       console.warn('[FormPersistence] Failed to restore from storage:', e);
     }
-    return initialState;
-  });
+  }, [storageKey]);
 
   // Save to sessionStorage whenever state changes
   useEffect(() => {
@@ -72,16 +76,20 @@ export function useInputPersistence(
 ): [string, (value: string) => void, () => void] {
   const storageKey = `input_persist_${key}`;
   
-  const [value, setValue] = useState<string>(() => {
-    if (typeof window === 'undefined') return defaultValue;
+  const [value, setValue] = useState<string>(defaultValue);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     
     try {
       const saved = sessionStorage.getItem(storageKey);
-      return saved ?? defaultValue;
+      if (saved !== null) {
+        setValue(saved);
+      }
     } catch {
-      return defaultValue;
+      // Ignore
     }
-  });
+  }, [storageKey]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

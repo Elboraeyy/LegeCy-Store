@@ -19,6 +19,7 @@ interface OrderLineItem {
 
 interface OrderDetails {
     id: string;
+    orderNumber: number;
     createdAt: string;
     status: OrderStatus;
     totalPrice: number;
@@ -129,7 +130,9 @@ export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderP
                 {/* Header */}
                     <div style={{ padding: '20px', borderBottom: '1px solid var(--admin-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>Order #{orderId.slice(0, 8)}</h2>
+                        <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>
+                            {order ? `Order #${order.orderNumber}` : `Order #${orderId.slice(0, 8)}`}
+                        </h2>
                         <span style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
                             {loading ? 'Loading...' : (order ? new Date(order.createdAt).toLocaleString() : '')}
                         </span>

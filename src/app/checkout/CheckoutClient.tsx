@@ -347,10 +347,16 @@ export default function CheckoutClient() {
     setForm((prev) => ({ ...prev, paymentMethod: method }));
   };
 
+  const [justOrdered, setJustOrdered] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('last_order_success')) {
+      setJustOrdered(true);
+    }
+  }, []);
+
   // Empty cart state
   if (cart.length === 0) {
-    // Scenario C: Back Button Handling
-    const justOrdered = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('last_order_success');
 
     return (
       <main className={styles.checkoutPage}>

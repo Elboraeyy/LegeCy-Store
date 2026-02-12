@@ -1,19 +1,9 @@
 "use client";
 
-import { OrderStatus } from "@/lib/orderStatus";
+import { OrderStatus, Order } from "@/types/order";
 import React from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { adminDictionary } from "@/lib/dictionaries/admin";
-
-interface Order {
-    id: string;
-    totalPrice: number;
-    status: OrderStatus;
-    createdAt: string;
-    user?: { name: string | null; email: string | null };
-    riskScore?: number;
-    hasDispute?: boolean;
-}
 
 interface OrdersTableProps {
     orders: Order[];
@@ -102,7 +92,7 @@ export default function OrdersTable({ orders, onOrderClick }: OrdersTableProps) 
                                     <td style={{ paddingLeft: '24px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '13px', background: 'var(--admin-bg-hover)', padding: '4px 8px', borderRadius: '4px' }}>
-                                                #{order.id.slice(-6).toUpperCase()}
+                                                #{order.orderNumber}
                                             </span>
                                             {getRiskIndicator(order.riskScore)}
                                             {order.hasDispute && <span title="Disputed" style={{ marginLeft: '8px' }}>⚖️</span>}

@@ -17,6 +17,7 @@ export enum OrderStatus {
   CashReceived = 'cash_received',
   Cancelled = 'cancelled',
   Refunded = 'refunded',
+  PaymentFailed = 'payment_failed',
 }
 
 export type OrderEventTypes =
@@ -32,10 +33,14 @@ export interface OrderHistoryItem {
 
 export interface Order {
   id: string; // UUID
+  orderNumber: number;
   totalPrice: number;
   status: OrderStatus;
   createdAt: string; // ISO string
   paymentMethod: string;
+  orderSource?: string;
+  riskScore?: number;
+  hasDispute?: boolean;
   items: OrderItem[];
 
   history?: OrderHistoryItem[];

@@ -94,7 +94,8 @@ export const adminDictionary = {
         cancelled: "Cancelled",
         returned: "Returned",
         partially_refunded: "Refunded (Partial)",
-        refunded: "Refunded"
+        refunded: "Refunded",
+        payment_failed: "Payment Failed"
       },
       table: {
         id: "Order ID",
@@ -3192,7 +3193,8 @@ export const adminDictionary = {
         cancelled: "ملغي",
         returned: "مرتجع",
         partially_refunded: "استرجاع جزئي",
-        refunded: "استرجاع"
+        refunded: "استرجاع",
+        payment_failed: "فشل الدفع"
       },
       table: {
         id: "رقم الطلب",

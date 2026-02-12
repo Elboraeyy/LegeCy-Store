@@ -72,7 +72,7 @@ function OrderDetailsView({ id }: { id: string }) {
                             style={{ background: 'none', border: 'none', padding: 0, color: 'var(--admin-text-muted)', fontSize: '14px', cursor: 'pointer' }}
                          />
                          <span style={{ color: 'var(--admin-border)' }}>|</span>
-                         <span style={{ fontSize: '14px', color: 'var(--admin-text-muted)', fontFamily: 'monospace' }}>#{order.id.slice(0, 8)}</span>
+                        <span style={{ fontSize: '14px', color: 'var(--admin-text-muted)', fontFamily: 'monospace' }}>#{order.orderNumber}</span>
                     </div>
                     <h1 className="admin-title">{t.orders.details.title}</h1>
                 </div>

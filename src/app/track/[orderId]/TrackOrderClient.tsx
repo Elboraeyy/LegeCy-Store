@@ -26,6 +26,7 @@ interface OrderHistory {
 
 interface Order {
   id: string;
+  orderNumber: number;
   status: string;
   createdAt: string;
   deliveredAt: string | null;
@@ -146,7 +147,7 @@ export default function TrackOrderClient({ order }: Props) {
       <div className={styles.hero}>
         <div className={styles.heroContent}>
           <span className={styles.heroLabel}>{t.orders.tracking.title}</span>
-          <h1 className={styles.heroTitle}>#{order.id.slice(0, 8).toUpperCase()}</h1>
+          <h1 className={styles.heroTitle}>#{order.orderNumber}</h1>
           <p className={styles.heroSubtitle}>{t.orders.tracking.placed_on.replace('{date}', formatDate(order.createdAt))}</p>
         </div>
       </div>
@@ -175,7 +176,7 @@ export default function TrackOrderClient({ order }: Props) {
           <div className={styles.statusMeta}>
             <div className={styles.metaItem}>
               <span>{t.orders.tracking.subtitle.split('#')[0]}</span>
-              <strong>#{order.id.slice(0, 8).toUpperCase()}</strong>
+              <strong>#{order.orderNumber}</strong>
               <button onClick={copyOrderId} className={styles.copyBtn} title={t.orders.tracking.copy_id}>
                 {copied ? '✓' : '📋'}
               </button>

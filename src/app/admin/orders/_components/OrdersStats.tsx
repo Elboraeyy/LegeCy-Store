@@ -54,7 +54,7 @@ export default function OrdersStats({ stats }: OrdersStatsProps) {
                         <div className="stat-icon-wrapper yellow">
                             ⏳
                         </div>
-                        <div className="stat-label" style={{ marginBottom: 0 }}>{(t.orders.stats as any).pending_orders}</div>
+                        <div className="stat-label" style={{ marginBottom: 0 }}>{t.orders.stats.pending_orders}</div>
                     </div>
                     <div className="stat-content">
                         <div className="stat-value">{stats.pendingOrders}</div>
@@ -100,7 +100,7 @@ export default function OrdersStats({ stats }: OrdersStatsProps) {
                         <div className="stat-icon-wrapper blue">
                             ✅
                         </div>
-                        <div className="stat-label" style={{ marginBottom: 0 }}>{(t.orders.stats as any).delivered_orders}</div>
+                        <div className="stat-label" style={{ marginBottom: 0 }}>{t.orders.stats.delivered_orders}</div>
                     </div>
                     <div className="stat-content">
                         <div className="stat-value">{stats.deliveredOrders}</div>

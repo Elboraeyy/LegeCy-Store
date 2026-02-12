@@ -1,6 +1,6 @@
 'use server';
 
-import { updateOrderStatus, createOrder } from '@/lib/services/orderService';
+import { createOrder } from '@/lib/services/orderService';
 import { requireAdminPermission } from '@/lib/auth/guards';
 import { AdminPermissions } from '@/lib/auth/permissions';
 import { revalidatePath } from 'next/cache';

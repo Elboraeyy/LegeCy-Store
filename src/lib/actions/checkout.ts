@@ -539,9 +539,9 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       // CRITICAL FIX: Calculate shipping from order total minus items subtotal
       // This ensures email amount matches what was actually charged
       const itemsSubtotal = input.cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      const calculatedShipping = Number(order.totalPrice) - finalTotal;
       sendOrderConfirmationEmail({
       orderId: order.id,
+        orderNumber: order.orderNumber,
       customerName: input.customerName,
       customerEmail: input.customerEmail,
       items: input.cartItems.map(item => ({

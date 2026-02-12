@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { OrderStatus } from "@/lib/orderStatus";
+import { OrderStatus, Order } from "@/types/order";
 import OrdersStats from "./_components/OrdersStats";
 import OrdersTable from "./_components/OrdersTable";
 import OrdersBoard from "./_components/OrdersBoard";
@@ -10,18 +10,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { adminDictionary } from "@/lib/dictionaries/admin";
-
-interface Order {
-    id: string;
-    totalPrice: number;
-    status: OrderStatus;
-    createdAt: string;
-    user?: { name: string | null; email: string | null };
-    paymentMethod?: string;
-    orderSource?: string;
-    riskScore?: number;
-    hasDispute?: boolean;
-}
 
 interface OrdersClientProps {
     initialOrders: Order[];

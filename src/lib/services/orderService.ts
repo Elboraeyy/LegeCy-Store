@@ -3,10 +3,9 @@ import { Prisma, Order as PrismaOrder, OrderItem as PrismaOrderItem, User as Pri
 import { OrderStatus } from '@/lib/orderStatus';
 import { Order } from '@/types/order';
 import { inventoryService } from './inventoryService';
-import { validateOrderTransition, ActorRole } from '@/lib/policies/orderPolicy';
-import { auditService } from './auditService';
+import { InventoryError, ValidationError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
-import { OrderNotFoundError, InventoryError, ValidationError } from '@/lib/errors';
+import { ActorRole } from '@/lib/policies/orderPolicy';
 import { createOrderSchema } from '@/lib/validators/order';
 import { z } from 'zod';
 
@@ -211,6 +210,7 @@ export async function getOrders({
 
 // Strict Type Mapping
 type PrismaOrderWithRelations = PrismaOrder & {
+  orderNumber: number;
     items: PrismaOrderItem[];
     user?: Partial<PrismaUser> | null;
 };
@@ -218,6 +218,7 @@ type PrismaOrderWithRelations = PrismaOrder & {
 function mapToOrderType(prismaOrder: PrismaOrderWithRelations): Order {
     return {
         id: prismaOrder.id,
+      orderNumber: prismaOrder.orderNumber,
         totalPrice: prismaOrder.totalPrice instanceof Prisma.Decimal ? prismaOrder.totalPrice.toNumber() : Number(prismaOrder.totalPrice),
         status: prismaOrder.status as OrderStatus,
         createdAt: prismaOrder.createdAt instanceof Date ? prismaOrder.createdAt.toISOString() : String(prismaOrder.createdAt),

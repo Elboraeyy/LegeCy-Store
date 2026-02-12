@@ -10,7 +10,8 @@ export default async function OrdersPage({
     const resolvedParams = await searchParams;
     const page = typeof resolvedParams.page === 'string' ? parseInt(resolvedParams.page) : 1;
     const status = typeof resolvedParams.status === 'string' ? (resolvedParams.status as OrderStatus) : undefined;
-    const view = typeof resolvedParams.view === 'string' ? (resolvedParams.view as any) : undefined;
+    const viewValue = typeof resolvedParams.view === 'string' ? resolvedParams.view : undefined;
+    const view = (viewValue === 'all' || viewValue === 'issues' || viewValue === 'returns') ? viewValue : undefined;
     const search = typeof resolvedParams.search === 'string' ? resolvedParams.search : undefined;
 
     // Fetch data in parallel
@@ -33,13 +34,15 @@ export default async function OrdersPage({
     
     const serializedOrders = orders.map(order => ({
         id: order.id,
+        orderNumber: order.orderNumber,
         totalPrice: Number(order.totalPrice),
         createdAt: order.createdAt,
         status: order.status as OrderStatus,
         paymentMethod: order.paymentMethod,
+        orderSource: order.orderSource,
         user: order.user ? { name: order.user.name, email: order.user.email } : undefined,
-        riskScore: (order as any).riskScore, // Cast if needed, or check type definition
-        hasDispute: (order as any).hasDispute,
+        riskScore: (order as { riskScore?: number }).riskScore,
+        hasDispute: (order as { hasDispute?: boolean }).hasDispute,
         items: [] 
     }));
 

@@ -1,18 +1,10 @@
 "use client";
 
-import { OrderStatus } from "@/lib/orderStatus";
+import { OrderStatus, Order } from "@/types/order";
 import { formatCurrency } from "../../../../lib/utils";
 import React from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { adminDictionary } from "@/lib/dictionaries/admin";
-
-interface Order {
-    id: string;
-    totalPrice: number;
-    status: OrderStatus;
-    createdAt: string;
-    user?: { name: string | null; email: string | null };
-}
 
 interface OrdersBoardProps {
     orders: Order[];

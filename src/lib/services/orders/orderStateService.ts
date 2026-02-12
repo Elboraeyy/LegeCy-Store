@@ -1,6 +1,7 @@
 
 
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { orderFinancialService } from './orderFinancialService';
 import { orderNotificationService } from './orderNotificationService';
@@ -97,7 +98,7 @@ export const orderStateService = {
      * Record event and trigger side effects
      * Supports external transaction
      */
-    async recordOrderEvent(input: OrderEventInput, txClient?: any) {
+    async recordOrderEvent(input: OrderEventInput, txClient?: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]) {
         const { orderId, eventType, fromStatus, toStatus, amount, reason, triggeredBy, metadata } = input;
         const db = txClient || prisma;
 
@@ -107,7 +108,7 @@ export const orderStateService = {
                 orderId, eventType, fromStatus, toStatus,
                 amount: amount ? new Decimal(amount) : null,
                 reason, triggeredBy,
-                metadata: metadata as any,
+                metadata: metadata as Prisma.InputJsonValue,
             }
         });
 
@@ -160,7 +161,7 @@ export const orderStateService = {
         return mapping[status] || 'CONFIRMED';
     },
 
-    async _handleCancellation(orderId: string, triggeredBy?: string, reason?: string, txClient?: any) {
+    async _handleCancellation(orderId: string, triggeredBy?: string, reason?: string, txClient?: Prisma.TransactionClient) {
         const db = txClient || prisma;
         const order = await db.order.findUnique({
             where: { id: orderId },
@@ -182,7 +183,7 @@ export const orderStateService = {
         // 3. Release Stock
         for (const item of order.items) {
             if (item.variantId) {
-                const warehouseId = (item as any).warehouseId || (await this._getDefaultWarehouseId(db));
+                const warehouseId = (item as { warehouseId?: string | null }).warehouseId || (await this._getDefaultWarehouseId(db));
                 if (warehouseId) {
                     await inventoryService.releaseStock(db, warehouseId, item.variantId, item.quantity);
                     await db.inventoryLog.create({
@@ -201,7 +202,7 @@ export const orderStateService = {
         }
     },
 
-    async _handleRefund(orderId: string, amount: number, triggeredBy?: string, reason?: string, txClient?: any) {
+    async _handleRefund(orderId: string, amount: number, triggeredBy?: string, reason?: string, txClient?: Prisma.TransactionClient) {
         const db = txClient || prisma;
         const order = await db.order.findUnique({
             where: { id: orderId },
@@ -238,7 +239,7 @@ export const orderStateService = {
         }
     },
 
-    async _getDefaultWarehouseId(db: any) {
+    async _getDefaultWarehouseId(db: Prisma.TransactionClient | typeof prisma) {
         const w = await db.warehouse.findFirst({ where: { type: 'MAIN' } }) || await db.warehouse.findFirst();
         return w?.id;
     }
