@@ -45,8 +45,12 @@ export async function fetchOrderDetails(orderId: string) {
                 }
             },
             paymentIntent: true,
-            history: {
-                orderBy: { createdAt: 'desc' }
+            // Fetch events instead of empty history table
+            events: {
+                orderBy: { createdAt: 'desc' },
+                where: {
+                    toStatus: { not: null } // Only get status changes
+                }
             },
             user: true
         }
@@ -87,9 +91,14 @@ export async function fetchOrderDetails(orderId: string) {
                 productName: item.variant.product.name,
             } : null
         })),
-        history: order.history.map(h => ({
-            ...h,
-            createdAt: h.createdAt.toISOString()
+        // Map events to the expected history structure
+        history: order.events.map(e => ({
+            id: e.id,
+            to: e.toStatus!, // Guaranteed by where clause
+            from: e.fromStatus,
+            reason: e.reason,
+            actor: e.triggeredBy,
+            createdAt: e.createdAt.toISOString()
         }))
     };
 }
