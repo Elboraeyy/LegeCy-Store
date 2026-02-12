@@ -113,7 +113,10 @@ export default function ShopClient({
             const query = deferredSearchQuery.toLowerCase();
             result = result.filter(p =>
                 p.name.toLowerCase().includes(query) ||
-                (p.description && p.description.toLowerCase().includes(query))
+                (p.description && p.description.toLowerCase().includes(query)) ||
+                (p.sku && p.sku.toLowerCase().includes(query)) ||
+                (p.brandName && p.brandName.toLowerCase().includes(query)) ||
+                (p.categoryName && p.categoryName.toLowerCase().includes(query))
             );
         }
 

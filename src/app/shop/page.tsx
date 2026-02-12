@@ -45,7 +45,8 @@ export default async function Shop() {
             inventory: true
           }
         },
-        categoryRel: { select: { slug: true } },
+        categoryRel: { select: { slug: true, name: true } },
+        brand: { select: { name: true } },
       },
     }),
   ]);
@@ -74,6 +75,11 @@ export default async function Shop() {
           brandId: p.brandId,
           materialId: p.materialId,
           categorySlug: p.categoryRel?.slug,
+
+          // Search fields
+          sku: firstVariant?.sku,
+          brandName: p.brand?.name,
+          categoryName: p.categoryRel?.name,
         };
       })}
       categories={categories.map(c => ({

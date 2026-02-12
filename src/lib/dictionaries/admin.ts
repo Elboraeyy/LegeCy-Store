@@ -328,6 +328,8 @@ export const adminDictionary = {
       no_notes: "No notes available",
       next: "Next",
       previous: "Previous",
+      recent_searches: "Recent Searches",
+      clear_all: "Clear All",
     },
     governorates: {
       Cairo: "Cairo",
@@ -3421,6 +3423,8 @@ export const adminDictionary = {
       no_notes: "لا توجد ملاحظات",
       next: "التالي",
       previous: "السابق",
+      recent_searches: "عمليات البحث الأخيرة",
+      clear_all: "مسح الكل",
     },
     governorates: {
       Cairo: "القاهرة",

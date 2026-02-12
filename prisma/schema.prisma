@@ -50,6 +50,9 @@ model User {
 
   // Loyalty Transactions
   loyaltyTransactions LoyaltyTransaction[]
+
+  // Reviews
+  reviews Review[]
 }
 
 // ==========================================
@@ -264,10 +267,14 @@ model Order {
   events             OrderEvent[]
 
   // Fraud Detection
-  riskScore OrderRiskScore?
+  riskScore     OrderRiskScore?
+  riskFactors   String[]
+  reviewedBy    String? // Admin ID
+  reviewedAt    DateTime?
 
-  // Recovery Email Tracking
+  // Abandoned Cart Recovery
   recoveryEmailSent Boolean @default(false)
+  recoverySentAt    DateTime? // Track when the recovery message was sent
 
   // Performance indexes
   @@index([status])
@@ -394,6 +401,13 @@ model Product {
   showInForYou      Boolean @default(true)
   detailTags        String[] @default([]) // e.g. ["Best Seller", "Limited Edition"]
 
+  // SEO Fields
+  slug              String?   @unique
+  metaTitle         String?
+  metaDescription   String?
+  metaTitleAr       String?
+  metaDescriptionAr String?
+
   // Similar Products Support
   similarProducts   Product[] @relation("SimilarProducts")
   similarTo         Product[] @relation("SimilarProducts")
@@ -407,6 +421,7 @@ model Product {
   @@index([supplierId])
   @@index([showInNewArrivals])
   @@index([showInForYou])
+  @@index([slug])
 }
 
 // ==========================================
@@ -440,11 +455,17 @@ model Material {
 
 model Review {
   id        String   @id @default(uuid())
-  name      String // Reviewer name
-  rating    Int // 1-5 stars
-  text      String // Review content
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String   // Reviewer name
+  rating    Int      // 1-5 stars
+  text      String   // Review content
+  images    String[] @default([]) // For visual reviews
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+
   featured  Boolean  @default(false) // Show on homepage/product pages
   createdAt DateTime @default(now())
 
@@ -2392,4 +2413,15 @@ model ContactMessage {
   @@index([email])
   @@index([status])
   @@index([createdAt])
+
+}
+
+// ==========================================
+// WISHLIST SHARING
+// ==========================================
+
+model SharedWishlist {
+  id        String   @id @default(uuid())
+  products  String[] // Array of Product IDs
+  createdAt DateTime @default(now())
 }

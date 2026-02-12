@@ -14,14 +14,65 @@ import { useIsClient } from "@/hooks/useIsClient";
 import { useLanguage } from "@/context/LanguageContext";
 
 
-export default function WishlistClient() {
+import { createSharedWishlist } from "@/lib/actions/wishlist";
+import { toast } from "sonner";
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  img?: string;
+  imageUrl?: string | null;
+  category?: string;
+  brand?: string;
+}
+
+interface WishlistClientProps {
+  initialProducts?: Product[];
+}
+
+export default function WishlistClient({ initialProducts }: WishlistClientProps) {
   const router = useRouter();
   const { fav, products, addToCart, toggleFav } = useStore();
   const isClient = useIsClient();
   const { t } = useLanguage();
 
-  const favProducts = products.filter((p) => fav.includes(p.id));
+  const isSharedView = !!initialProducts;
+  const displayProducts = isSharedView
+    ? initialProducts
+    : products.filter((p) => fav.includes(p.id));
+
   const formatPrice = (p: number) => `$${p.toFixed(2)}`;
+
+  const handleShare = async () => {
+    if (fav.length === 0) {
+      toast.error(t.wishlist.empty_desc || "Wishlist is empty");
+      return;
+    }
+
+    const toastId = toast.loading("Creating share link...");
+    try {
+      const res = await createSharedWishlist(fav);
+      if (res.success && res.id) {
+        const url = `${window.location.origin}/wishlist/share/${res.id}`;
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard!", { id: toastId });
+      } else {
+        toast.error("Failed to share wishlist", { id: toastId });
+      }
+    } catch {
+      toast.error("Something went wrong", { id: toastId });
+    }
+  };
+
+  const copyToMyWishlist = () => {
+    if (!initialProducts) return;
+    initialProducts.forEach(p => {
+      if (!fav.includes(p.id)) toggleFav(p.id);
+    });
+    toast.success("Added all items to your wishlist!");
+    router.push('/wishlist');
+  };
 
   if (!isClient) return null;
 
@@ -32,16 +83,48 @@ export default function WishlistClient() {
       <section className="shop-hero">
         <div className="container">
           <Reveal>
-            <h1 className="fade-in">{t.wishlist.title}</h1>
-          </Reveal>
-          <Reveal delay={0.2}>
-            <p className="fade-in">{t.wishlist.subtitle}</p>
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div>
+                <h1 className="fade-in">{isSharedView ? (t.wishlist.shared_title || "Shared Wishlist") : t.wishlist.title}</h1>
+                <p className="fade-in mt-2 opacity-80">{isSharedView ? (t.wishlist.shared_subtitle || "Here are the items shared with you") : t.wishlist.subtitle}</p>
+              </div>
+
+              {!isSharedView && displayProducts.length > 0 && (
+                <button
+                  onClick={handleShare}
+                  className="btn-primary flex items-center gap-2 group"
+                >
+                  <span>{t.common.share || "Share"}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                </button>
+              )}
+
+              {isSharedView && (
+                <button
+                  onClick={copyToMyWishlist}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  <span>{t.wishlist.copy_to_mine || "Copy to My List"}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                  </svg>
+                </button>
+              )}
+            </div>
           </Reveal>
         </div>
       </section>
 
       <section className="container" style={{ marginBottom: "80px" }}>
-        {favProducts.length === 0 ? (
+        {displayProducts.length === 0 ? (
           <Reveal width="100%">
             <div className="empty-state">
               <h3>{t.wishlist.empty_title}</h3>
@@ -58,7 +141,7 @@ export default function WishlistClient() {
             animate="visible"
             variants={staggerContainerSlow}
           >
-            {favProducts.map((p) => (
+              {displayProducts.map((p) => (
               <motion.div key={p.id} className="product-card premium" variants={fadeUpSlow}>
                 {/* Mobile View */}
                 <div className="md:hidden">
@@ -123,22 +206,25 @@ export default function WishlistClient() {
                           <path d="M16 10a4 4 0 0 1-8 0"></path>
                         </svg>
                       </button>
-                      <button
-                        className="btn-icon"
-                        title={t.wishlist.remove}
-                        onClick={() => toggleFav(String(p.id))}
-                      >
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        >
-                          <path d="M18 6L6 18M6 6l12 12"></path>
-                        </svg>
-                      </button>
+
+                        {!isSharedView && (
+                          <button
+                            className="btn-icon"
+                            title={t.wishlist.remove}
+                            onClick={() => toggleFav(String(p.id))}
+                          >
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                            >
+                              <path d="M18 6L6 18M6 6l12 12"></path>
+                            </svg>
+                          </button>
+                        )}
                     </div>
                   </div>
                 </div>

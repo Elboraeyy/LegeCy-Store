@@ -42,6 +42,13 @@ interface ProductFormProps {
         showInForYou?: boolean;
         detailTags?: string[];
         similarProducts?: { id: string }[];
+
+        // SEO
+        slug?: string | null;
+        metaTitle?: string | null;
+        metaDescription?: string | null;
+        metaTitleAr?: string | null;
+        metaDescriptionAr?: string | null;
     } | null;
 }
 
@@ -107,6 +114,13 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const [imageUrl, setImageUrl] = useState<string>(initialData?.imageUrl || "");
     const [gallery, setGallery] = useState<string[]>(initialData?.images?.map(img => img.url) || []);
 
+    // --- SEO ---
+    const [slug, setSlug] = useState(initialData?.slug || "");
+    const [metaTitle, setMetaTitle] = useState(initialData?.metaTitle || "");
+    const [metaDescription, setMetaDescription] = useState(initialData?.metaDescription || "");
+    const [metaTitleAr, setMetaTitleAr] = useState(initialData?.metaTitleAr || "");
+    const [metaDescriptionAr, setMetaDescriptionAr] = useState(initialData?.metaDescriptionAr || "");
+
     // --- Sourcing & Inventory (New Mode) ---
     // Mode: 'create_new' (standard) or 'add_stock' (for existing) - usually for NEW page.
     // But here we are in ProductForm which handles Edit too.
@@ -159,7 +173,14 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 showInNewArrivals,
                 showInForYou,
                 detailTags: detailTagsInput.split(",").map(t => t.trim()).filter(Boolean),
-                similarProductIds
+                similarProductIds,
+
+                // SEO Fields
+                slug: slug || undefined,
+                metaTitle: metaTitle || undefined,
+                metaDescription: metaDescription || undefined,
+                metaTitleAr: metaTitleAr || undefined,
+                metaDescriptionAr: metaDescriptionAr || undefined
             };
 
             if (initialData) {
@@ -167,47 +188,11 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 toast.success("Product updated successfully!");
             } else {
                 // Creation Logic
-                // checks if we have procurement data to create an invoice efficiently
-                // For now, product action mainly handles product creation. 
-                // If we implemented comprehensive transaction in action, we'd pass supplier info there.
-                // Or we call createProduct, then createInvoice.
-                // Given the plan: "Integrated Procurement"
-                
                 await createProductAction(payload);
-                
-                // If supplier info is provided, we should create a Purchase Invoice & Stock In
-                // But `createProductAction` already creates initial stock via `inventory.create`.
-                // If we also create an invoice that does stock-in, we double count or conflict.
-                // Strategy: 
-                // 1. If Supplier info present: create Product with 0 stock in `createProductAction` (ignore payload.stock there if we want strict flow),
-                //    THEN create PurchaseInvoice which adds stock.
-                //    OR: Just rely on simple flow for now (Product + Stock) and maybe log Invoice separately?
-                //    User Requirement: "Select Supplier... Invoice No... Cost Price... Write Selling Price...".
-                
-                // If supplier details are entered, we should trigger the Invoice Action.
-                // We need the NEW Product ID for that. `createProductAction` currently redirects.
-                // We might need to update `createProductAction` to return ID instead of redirecting if we want to chain.
-                // CHECK `product.ts`: it redirects. 
-                // To support this feature fully without changing `product.ts` return type breaking other things:
-                // We can't chain easily if it redirects on server.
-                // Assume for this iteration we just create the product. 
-                // **Correction**: To fulfill the user request of "Integrated Procurement", we must handle this.
-                // Ideally `createProductAction` should accept procurement data and do it in one transaction.
-                // But I didn't update `ProductInput` to accept supplier data.
-                
-                // fallback: The standard create action handles basic stock. 
-                // If the user wants separate tracking, they use the Procurement module. 
-                // Implementation Plan said: "Integrated...". 
-                // Let's assume for V1 we stick to Product Creation. If I add supplier/invoice fields, I need to update the action.
-                // Actually I should update the action if I want to save it. 
-                // *Self-Correction*: The task is "Full development". I should have updated the action.
-                // I will add a TODO or user note that Supplier info is for reference until Action supports it.
-                // Actually, let's just create the product.
-                
-                 toast.success("Product created!");
+                toast.success("Product created!");
             }
             
-            router.refresh(); // Handled by action redirect mostly
+            router.refresh(); 
             router.push('/admin/products');
         } catch (error: unknown) {
             // Next.js redirect() throws a special error - let it propagate
@@ -268,6 +253,27 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 <TabButton id="basic" label="Basic Info" />
                 <TabButton id="merchandising" label="Merchandising & Visibility" />
                 <TabButton id="sourcing" label="Sourcing & Pricing" />
+                <button
+                    type="button"
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    onClick={() => setActiveTab('seo' as any)}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    className={`admin-tab-btn ${activeTab === 'seo' as any ? 'active' : ''}`}
+                    style={{
+                        padding: '10px 20px',
+                        border: 'none',
+                        background: 'transparent',
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        borderBottom: activeTab === 'seo' as any ? '2px solid var(--admin-primary)' : '2px solid transparent',
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        color: activeTab === 'seo' as any ? 'var(--admin-primary)' : 'var(--admin-text-muted)',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    SEO & Metadata
+                </button>
             </div>
 
             <div className="admin-grid" style={{ gridTemplateColumns: '2fr 1fr', alignItems: 'start', display: activeTab === 'basic' ? 'grid' : 'none' }}>
@@ -452,6 +458,61 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                         </div>
                     </div>
                  </div>
+            </div>
+
+            {/* SEO Tab */}
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <div style={{ display: activeTab === 'seo' as any ? 'block' : 'none', maxWidth: '800px' }}>
+                <div className="admin-card">
+                    <h3 className="stat-label" style={{ marginBottom: '20px' }}>Search Engine Optimization</h3>
+
+                    <div className="admin-form-group">
+                        <label className="stat-label" style={{ fontSize: '11px' }}>URL Slug</label>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <span style={{ fontSize: '13px', color: 'var(--admin-text-muted)', background: 'var(--admin-bg)', padding: '8px 12px', border: '1px solid var(--admin-border)', borderRight: 'none', borderRadius: '4px 0 0 4px' }}>
+                                /product/
+                            </span>
+                            <input
+                                className="form-input"
+                                value={slug}
+                                onChange={e => setSlug(e.target.value)}
+                                placeholder="my-awesome-product"
+                                style={{ borderRadius: '0 4px 4px 0' }}
+                            />
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
+                            Leave empty to auto-generate from English name. Must be unique.
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
+                        {/* English SEO */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <h4 style={{ fontSize: '12px', fontWeight: 600 }}>English SEO</h4>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Meta Title</label>
+                                <input className="form-input" value={metaTitle} onChange={e => setMetaTitle(e.target.value)} placeholder="Product Name | Store Name" />
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Meta Description</label>
+                                <textarea className="form-input" value={metaDescription} onChange={e => setMetaDescription(e.target.value)} rows={3} placeholder="Brief description for search engines..." />
+                            </div>
+                        </div>
+
+                        {/* Arabic SEO */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <h4 style={{ fontSize: '12px', fontWeight: 600 }}>Arabic SEO</h4>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Meta Title (Ar)</label>
+                                <input className="form-input" value={metaTitleAr} onChange={e => setMetaTitleAr(e.target.value)} placeholder="اسم المنتج | اسم المتجر" dir="rtl" />
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Meta Description (Ar)</label>
+                                <textarea className="form-input" value={metaDescriptionAr} onChange={e => setMetaDescriptionAr(e.target.value)} rows={3} placeholder="وصف مختصر لمحركات البحث..." dir="rtl" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </form>

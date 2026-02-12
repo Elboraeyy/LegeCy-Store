@@ -36,6 +36,11 @@ export interface Product {
     brandId?: string | null;
     materialId?: string | null;
     categorySlug?: string | null;
+
+    // Search fields
+    sku?: string;
+    brandName?: string | null;
+    categoryName?: string | null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

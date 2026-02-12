@@ -23,14 +23,18 @@ export async function GET(request: Request) {
             OR: [
               // 1. Exact match logic (for SKU or exact name)
               { name: { contains: q, mode: 'insensitive' as Prisma.QueryMode } },
+              { nameAr: { contains: q, mode: 'insensitive' as Prisma.QueryMode } },
               { description: { contains: q, mode: 'insensitive' as Prisma.QueryMode } },
               { variants: { some: { sku: { contains: q, mode: 'insensitive' as Prisma.QueryMode } } } },
+              { brand: { name: { contains: q, mode: 'insensitive' as Prisma.QueryMode } } },
+              { categoryRel: { name: { contains: q, mode: 'insensitive' as Prisma.QueryMode } } },
               
               // 2. Partial match for each term (simulating fuzzy)
               ...terms.map(term => ({
                 OR: [
                   { name: { contains: term, mode: 'insensitive' as Prisma.QueryMode } },
-                  { category: { contains: term, mode: 'insensitive' as Prisma.QueryMode } }
+                  { nameAr: { contains: term, mode: 'insensitive' as Prisma.QueryMode } },
+                  { categoryRel: { name: { contains: term, mode: 'insensitive' as Prisma.QueryMode } } }
                 ]
               }))
             ]
@@ -40,9 +44,16 @@ export async function GET(request: Request) {
       select: {
         id: true,
         name: true,
+        nameAr: true,
         // price is on Variant, not Product
         imageUrl: true,
         category: true,
+        categoryRel: {
+          select: { name: true, nameAr: true }
+        },
+        brand: {
+          select: { name: true, nameAr: true }
+        },
         variants: {
           take: 1,
           select: { price: true }
@@ -60,7 +71,8 @@ export async function GET(request: Request) {
         name: p.name,
         price: p.variants[0]?.price ? Number(p.variants[0].price) : 0, 
         image: p.imageUrl,
-        category: p.category
+      category: p.categoryRel?.name || p.category,
+      brand: p.brand?.name
     }));
 
     return NextResponse.json({ products: formattedProducts });

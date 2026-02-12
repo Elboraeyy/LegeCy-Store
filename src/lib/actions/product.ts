@@ -32,6 +32,13 @@ export interface ProductInput {
     showInForYou?: boolean;
     detailTags?: string[];
     similarProductIds?: string[];
+
+    // SEO Fields
+    slug?: string;
+    metaTitle?: string;
+    metaDescription?: string;
+    metaTitleAr?: string;
+    metaDescriptionAr?: string;
 }
 
 // Fetch categories for dropdown
@@ -71,6 +78,13 @@ export async function createProductAction(data: ProductInput) {
                 showInForYou: data.showInForYou ?? true,
                 detailTags: data.detailTags || [],
 
+                // SEO Fields
+                slug: data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now().toString().slice(-4), // Simple fallback slug generation
+                metaTitle: data.metaTitle,
+                metaDescription: data.metaDescription,
+                metaTitleAr: data.metaTitleAr,
+                metaDescriptionAr: data.metaDescriptionAr,
+
                 // Similar Products
                 similarProducts: data.similarProductIds ? {
                     connect: data.similarProductIds.map(id => ({ id }))
@@ -81,6 +95,7 @@ export async function createProductAction(data: ProductInput) {
                 }
             }
         });
+
 
         // 3. Create Default Variant
         const v = await tx.variant.create({
@@ -139,6 +154,13 @@ export async function updateProductAction(id: string, data: ProductInput) {
             showInNewArrivals: data.showInNewArrivals,
             showInForYou: data.showInForYou,
             detailTags: data.detailTags,
+
+            // SEO Fields
+            slug: data.slug,
+            metaTitle: data.metaTitle,
+            metaDescription: data.metaDescription,
+            metaTitleAr: data.metaTitleAr,
+            metaDescriptionAr: data.metaDescriptionAr,
 
             // Similar Products logic: reset and connect new list
             similarProducts: data.similarProductIds ? {

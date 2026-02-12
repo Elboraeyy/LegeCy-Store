@@ -11,6 +11,7 @@ interface SearchResult {
   price: number;
   image: string | null;
   category: string | null;
+  brand?: string | null;
 }
 
 interface SearchBarProps {
@@ -37,6 +38,35 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
   // API Search Logic
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
+
+  // Load history from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('search_history');
+    if (saved) {
+      try {
+        setHistory(JSON.parse(saved).slice(0, 5));
+      } catch (e) {
+        console.error("Failed to parse search history", e);
+      }
+    }
+  }, []);
+
+  const addToHistory = (term: string) => {
+    const cleanTerm = term.trim();
+    if (!cleanTerm) return;
+
+    setHistory(prev => {
+      const newHistory = [cleanTerm, ...prev.filter(h => h !== cleanTerm)].slice(0, 5);
+      localStorage.setItem('search_history', JSON.stringify(newHistory));
+      return newHistory;
+    });
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem('search_history');
+  };
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -64,6 +94,7 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
+      addToHistory(query);
       router.push(`/shop?q=${encodeURIComponent(query.trim())}`);
       setIsOpen(false);
       setQuery("");
@@ -71,7 +102,8 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
     }
   };
 
-  const handleResultClick = (id: string) => {
+  const handleResultClick = (id: string, name: string) => {
+    addToHistory(name);
     router.push(`/product/${id}`);
     setIsOpen(false);
     setQuery("");
@@ -108,82 +140,177 @@ export default function SearchBar({ onProductSelect }: SearchBarProps) {
 
       <style jsx>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .history-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 16px;
+          border-bottom: 1px solid #f0f0f0;
+          margin-bottom: 4px;
+        }
+
+        .history-title {
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+          color: #999;
+          letter-spacing: 0.5px;
+        }
+
+        .clear-history-btn {
+          background: none;
+          border: none;
+          font-size: 11px;
+          color: #999;
+          cursor: pointer;
+          padding: 4px;
+        }
+
+        .clear-history-btn:hover {
+          color: #ff4d4f;
+        }
+
+        .history-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          padding: 8px 16px;
+          background: none;
+          border: none;
+          text-align: left;
+          cursor: pointer;
+          font-size: 13px;
+          color: #666;
+          transition: background 0.2s;
+        }
+
+        .history-item:hover {
+          background: #f9f9f9;
+          color: #12403C;
+        }
+
+        .history-icon {
+          color: #ccc;
+        }
       `}</style>
       
       {/* Search Results Dropdown */}
-      {isOpen && (results.length > 0 || isLoading) && (
+      {isOpen && (
         <div className="search-dropdown">
-          {results.map((result) => (
-            <button
-              key={result.id}
-              className="search-result-item"
-              onClick={() => handleResultClick(result.id)}
-            >
-              {result.image && (
-                <Image
-                  src={result.image}
-                  alt={result.name}
-                  width={48}
-                  height={48}
-                  className="search-result-image"
-                  style={{ objectFit: 'cover' }}
-                />
-              )}
-              <div className="search-result-info">
-                <p className="search-result-name">{result.name}</p>
-                <p className="search-result-meta">
-                  {result.category && <span>{result.category}</span>}
-                  <span className="search-result-price">{formatPrice(result.price)}</span>
-                </p>
-              </div>
-            </button>
-          ))}
-          <button
-            className="search-view-all"
-            onClick={handleSearch}
-          >
-            {t.common.view_all_results.replace('{query}', query)}
-          </button>
-        </div>
-      )}
-
-      {/* No results message with suggestions */}
-      {isOpen && query.length >= 2 && results.length === 0 && (
-        <div className="search-dropdown">
-          <div className="search-no-results">
-            <p>{t.common.no_results.replace('{query}', query)}</p>
-            <div className="search-suggestions">
-              <p className="suggestions-title">
-                {t.common.try_searching}
-              </p>
-              <div className="suggestion-chips">
+          {/* Recent Searches (History) */}
+          {query.trim().length === 0 && history.length > 0 && (
+            <div className="search-history">
+              <div className="history-header">
+                <span className="history-title">{t.common.recent_searches}</span>
                 <button
-                  onClick={() => router.push('/shop?category=watches')}
-                  className="suggestion-chip"
+                  onClick={clearHistory}
+                  className="clear-history-btn"
                 >
-                  {language === 'ar' ? 'ساعات' : 'Watches'}
-                </button>
-                <button
-                  onClick={() => router.push('/shop?category=belts')}
-                  className="suggestion-chip"
-                >
-                  {language === 'ar' ? 'أحزمة' : 'Belts'}
-                </button>
-                <button
-                  onClick={() => router.push('/shop?category=accessories')}
-                  className="suggestion-chip"
-                >
-                  {language === 'ar' ? 'اكسسوارات' : 'Accessories'}
+                  {t.common.clear_all}
                 </button>
               </div>
-              <button
-                onClick={() => router.push('/shop')}
-                className="browse-all-btn"
-              >
-                {t.common.browse_all_products}
-              </button>
+              <div className="history-list">
+                {history.map((term, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setQuery(term);
+                      router.push(`/shop?q=${encodeURIComponent(term)}`);
+                      setIsOpen(false);
+                    }}
+                    className="history-item"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="history-icon">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <span>{term}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Live Search Results */}
+          {query.trim().length >= 2 && (
+            <>
+              {results.length > 0 || isLoading ? (
+                <>
+                  {results.map((result) => (
+                    <button
+                      key={result.id}
+                      className="search-result-item"
+                      onClick={() => handleResultClick(result.id, result.name)}
+                    >
+                      {result.image && (
+                        <Image
+                          src={result.image}
+                          alt={result.name}
+                          width={48}
+                          height={48}
+                          className="search-result-image"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      )}
+                      <div className="search-result-info">
+                        <p className="search-result-name">{result.name}</p>
+                        <p className="search-result-meta">
+                          {result.category && <span>{result.category}</span>}
+                          {result.brand && <span> • {result.brand}</span>}
+                          <span className="search-result-price">{formatPrice(result.price)}</span>
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                  {!isLoading && (
+                    <button
+                      className="search-view-all"
+                      onClick={handleSearch}
+                    >
+                      {t.common.view_all_results.replace('{query}', query)}
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div className="search-no-results">
+                  <p>{t.common.no_results.replace('{query}', query)}</p>
+                  <div className="search-suggestions">
+                    <p className="suggestions-title">
+                      {t.common.try_searching}
+                    </p>
+                    <div className="suggestion-chips">
+                      <button
+                        onClick={() => router.push('/shop?category=watches')}
+                        className="suggestion-chip"
+                      >
+                        {language === 'ar' ? 'ساعات' : 'Watches'}
+                      </button>
+                      <button
+                        onClick={() => router.push('/shop?category=belts')}
+                        className="suggestion-chip"
+                      >
+                        {language === 'ar' ? 'أحزمة' : 'Belts'}
+                      </button>
+                      <button
+                        onClick={() => router.push('/shop?category=accessories')}
+                        className="suggestion-chip"
+                      >
+                        {language === 'ar' ? 'اكسسوارات' : 'Accessories'}
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => router.push('/shop')}
+                      className="browse-all-btn"
+                    >
+                      {t.common.browse_all_products}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
