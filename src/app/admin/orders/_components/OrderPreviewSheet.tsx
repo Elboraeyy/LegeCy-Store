@@ -155,17 +155,17 @@ export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderP
                                 <AdminDropdown 
                                     value={order.status}
                                     onChange={handleStatusChange}
-                                    options={[
-                                        { value: 'payment_pending', label: t.orders.status.payment_pending },
-                                        { value: 'pending', label: t.orders.status.pending },
-                                        { value: 'paid', label: t.orders.status.paid },
-                                        { value: 'confirmed', label: t.orders.status.confirmed },
-                                        { value: 'preparing', label: t.orders.status.preparing },
-                                        { value: 'shipped', label: t.orders.status.shipped },
-                                        { value: 'delivered', label: t.orders.status.delivered },
-                                        { value: 'cancelled', label: t.orders.status.cancelled },
-                                        { value: 'refunded', label: t.orders.status.refunded }
-                                    ].filter(opt => {
+                                        options={([
+                                            { value: 'payment_pending', label: t.orders.status.payment_pending, color: '#7c3aed' },
+                                            { value: 'pending', label: t.orders.status.pending, color: '#b76e00' },
+                                            { value: 'paid', label: t.orders.status.paid, color: '#166534' },
+                                            { value: 'confirmed', label: t.orders.status.confirmed, color: '#166534' },
+                                            { value: 'preparing', label: t.orders.status.preparing, color: '#0d9488' },
+                                            { value: 'shipped', label: t.orders.status.shipped, color: '#1e40af' },
+                                            { value: 'delivered', label: t.orders.status.delivered, color: '#166534' },
+                                            { value: 'cancelled', label: t.orders.status.cancelled, color: '#991b1b' },
+                                            { value: 'refunded', label: t.orders.status.refunded, color: '#ca8a04' }
+                                        ] as const).filter(opt => {
                                         // COD Rules
                                         if (order.paymentMethod === 'cod') {
                                             if (opt.value === 'paid') return false; // Money at Delivery
@@ -174,18 +174,28 @@ export default function OrderPreviewSheet({ orderId, onClose, onUpdate }: OrderP
 
                                         // Online Rules
                                         if (order.paymentMethod !== 'cod') {
-                                            // Provide strict flow: PaymentPending -> Pending -> Confirmed
-                                            // But allow flexibility for Admin corrections, so just ensure key states are available.
-                                            // Maybe hide 'Paid' if we are using 'Pending' as the verified state? 
-                                            // User said: "turn to Pending... money added... when Paid"
-                                            // Wait, earlier I decided Pending IS the Paid state for Online. 
-                                            // So should I hide 'Paid' for Online too to avoid confusion?
-                                            // If I hide 'Paid', then 'Pending' is the only option.
-                                            // Let's hide 'Paid' to enforce the described flow: PaymentPending -> Pending -> Confirmed.
+                                            // Hide 'Paid' to avoid confusion if we use 'Payment Pending' -> 'Pending' flow
                                             if (opt.value === 'paid') return false;
                                         }
                                         return true;
-                                    })}
+                                    }).map(opt => ({
+                                        ...opt,
+                                        icon: <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: opt.color }}></span>
+                                    }))}
+                                        icon={(() => {
+                                            const colorMap: Record<string, string> = {
+                                                payment_pending: '#7c3aed',
+                                                pending: '#b76e00',
+                                                paid: '#166534',
+                                                confirmed: '#166534',
+                                                preparing: '#0d9488',
+                                                shipped: '#1e40af',
+                                                delivered: '#166534',
+                                                cancelled: '#991b1b',
+                                                refunded: '#ca8a04'
+                                            };
+                                            return <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: colorMap[order.status] || '#6b7c90' }}></span>;
+                                        })()}
                                     disabled={updating}
                                 />
                             </div>

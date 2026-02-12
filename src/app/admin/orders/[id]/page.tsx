@@ -274,10 +274,33 @@ function OrderDetailsView({ id }: { id: string }) {
 
 function StatusBadge({ status, isLarge }: { status: string, isLarge?: boolean }) {
     const statusLower = status.toLowerCase();
-    let className = 'status-pending';
-    if (statusLower === 'succeeded' || statusLower === 'paid' || statusLower === 'delivered') className = 'status-paid';
-    else if (statusLower === 'shipped') className = 'status-shipped';
-    else if (statusLower === 'cancelled') className = 'status-cancelled';
+    let className = 'status-default';
+
+    switch (statusLower) {
+        case 'paid':
+        case 'succeeded':
+            className = 'status-paid'; break;
+        case 'confirmed':
+        case 'active':
+            className = 'status-confirmed'; break;
+        case 'preparing':
+            className = 'status-preparing'; break;
+        case 'shipped':
+            className = 'status-shipped'; break;
+        case 'delivered':
+            className = 'status-delivered'; break;
+        case 'cancelled':
+            className = 'status-cancelled'; break;
+        case 'pending':
+            className = 'status-pending'; break;
+        case 'payment_pending':
+            className = 'status-payment-pending'; break;
+        case 'refunded':
+            className = 'status-warning'; break;
+        default:
+            if (statusLower.includes('pending')) className = 'status-pending';
+            else if (statusLower.includes('fail')) className = 'status-cancelled';
+    }
 
     return (
         <span className={`status-badge ${className}`} style={{ fontSize: isLarge ? '13px' : undefined, padding: isLarge ? '8px 16px' : undefined }}>

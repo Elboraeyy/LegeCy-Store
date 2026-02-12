@@ -13,6 +13,7 @@ const accounts: { code: string; name: string; type: AccountType }[] = [
 
   // Liabilities (2xxx)
   { code: '2001', name: 'Accounts Payable', type: 'LIABILITY' },
+  { code: '2002', name: 'Sales Tax Payable', type: 'LIABILITY' },
 
   // Equity (3xxx)
   { code: '3001', name: 'Owner\'s Equity', type: 'EQUITY' },

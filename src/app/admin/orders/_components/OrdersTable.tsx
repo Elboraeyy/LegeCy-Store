@@ -45,14 +45,14 @@ export default function OrdersTable({ orders, onOrderClick }: OrdersTableProps) 
         const label = t.orders.status[statusKey] || status;
 
         switch (status) {
-            case OrderStatus.Paid: return { label, className: 'status-success' };
-            case OrderStatus.Confirmed: return { label, className: 'status-success' };
+            case OrderStatus.Paid: return { label, className: 'status-paid' };
+            case OrderStatus.Confirmed: return { label, className: 'status-confirmed' };
             case OrderStatus.Preparing: return { label, className: 'status-preparing' };
-            case OrderStatus.Shipped: return { label, className: 'status-info' };
-            case OrderStatus.Delivered: return { label, className: 'status-success' };
+            case OrderStatus.Shipped: return { label, className: 'status-shipped' };
+            case OrderStatus.Delivered: return { label, className: 'status-delivered' };
             case OrderStatus.Cancelled: return { label, className: 'status-cancelled' };
             case OrderStatus.Pending: return { label, className: 'status-pending' };
-            case OrderStatus.Refunded: return { label, className: 'status-warning' };
+            case OrderStatus.Refunded: return { label, className: 'status-warning' }; // Ensure status-warning exists or use similar
             case OrderStatus.PaymentPending: return { label, className: 'status-payment-pending' };
             default: return { label, className: 'status-default' };
         }

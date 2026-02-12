@@ -205,6 +205,7 @@ model AuditLog {
 
 model Order {
   id             String          @id @default(uuid())
+  orderNumber    Int             @unique @default(autoincrement()) // Human-readable sequential ID
   subtotal       Decimal? // Original price before discounts
   discountAmount Decimal? // Total discount applied (coupon, flash sale, etc.)
   shippingCost   Decimal? // Shipping cost charged

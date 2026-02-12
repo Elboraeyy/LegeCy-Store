@@ -543,7 +543,10 @@ body.admin-body {
   letter-spacing: 0.5px;
 }
 
-.status-paid, .status-active, .status-delivered { 
+.status-paid,
+.status-active,
+.status-delivered,
+.status-confirmed {
   background: rgba(22, 101, 52, 0.1); 
   color: #166534; 
   border: 1px solid rgba(22, 101, 52, 0.15);
@@ -580,6 +583,17 @@ body.admin-body {
   border: 1px solid rgba(153, 27, 27, 0.15);
 }
 
+.status-warning {
+  background: rgba(234, 179, 8, 0.1);
+  color: #ca8a04;
+  border: 1px solid rgba(234, 179, 8, 0.2);
+}
+
+.status-default {
+  background: rgba(107, 114, 128, 0.1);
+  color: #374151;
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
 /* Tabs */
 .admin-tabs {
   display: inline-flex;

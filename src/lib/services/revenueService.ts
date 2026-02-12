@@ -37,6 +37,7 @@ async function getAccountByCode(code: string) {
       '1100': { name: 'Accounts Receivable', type: AccountType.ASSET },
       '1200': { name: 'Inventory', type: AccountType.ASSET },
       '2000': { name: 'Accounts Payable', type: AccountType.LIABILITY },
+      '2002': { name: 'Sales Tax Payable', type: AccountType.LIABILITY },
       '2100': { name: 'Deferred Revenue', type: AccountType.LIABILITY },
       '3000': { name: 'Owner\'s Equity', type: AccountType.EQUITY },
       '4000': { name: 'Sales Revenue', type: AccountType.REVENUE },
