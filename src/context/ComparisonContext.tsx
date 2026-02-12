@@ -12,12 +12,14 @@ interface ComparisonContextType {
   removeFromCompare: (productId: ProductId) => void;
   clearComparison: () => void;
   isInComparison: (productId: ProductId) => boolean;
+  isLoading: boolean;
 }
 
 const ComparisonContext = createContext<ComparisonContextType | undefined>(undefined);
 
 export function ComparisonProvider({ children }: { children: ReactNode }) {
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { products } = useStore(); // Access active products
 
   // Load from localStorage on mount
@@ -31,6 +33,8 @@ export function ComparisonProvider({ children }: { children: ReactNode }) {
         console.error("Failed to parse comparison data", e);
       }
     }
+    // Set loading to false once localStorage is checked
+    setIsLoading(false);
   }, []);
 
   // Sync with active products to remove stale items
@@ -44,12 +48,14 @@ export function ComparisonProvider({ children }: { children: ReactNode }) {
         setSelectedProducts(validProducts);
       }
     }
-  }, [products, selectedProducts]); // Check when products load or selection changes
+  }, [products]); // Re-run only when global products load
 
   // Save to localStorage whenever selectedProducts changes
   React.useEffect(() => {
-    localStorage.setItem("comparison_products", JSON.stringify(selectedProducts));
-  }, [selectedProducts]);
+    if (!isLoading) {
+      localStorage.setItem("comparison_products", JSON.stringify(selectedProducts));
+    }
+  }, [selectedProducts, isLoading]);
 
   const addToCompare = (product: Product) => {
     if (selectedProducts.length >= 5) {
@@ -83,6 +89,7 @@ export function ComparisonProvider({ children }: { children: ReactNode }) {
         removeFromCompare,
         clearComparison,
         isInComparison,
+        isLoading,
       }}
     >
       {children}

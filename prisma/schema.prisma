@@ -79,7 +79,7 @@ model LoyaltyTransaction {
 
 model LoyaltySettings {
   id              String   @id @default("default")
-  enabled         Boolean  @default(true)
+  enabled         Boolean  @default(false)
   pointsPerEgp    Float    @default(0.1)  // How many points earned per 1 EGP
   pointValue      Float    @default(0.1)  // Value of 1 point in EGP
   minRedeemPoints Int      @default(1000)

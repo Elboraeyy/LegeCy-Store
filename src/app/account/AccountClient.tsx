@@ -367,10 +367,12 @@ export default function AccountClient({ user: initialUser, recentOrders, loyalty
                             <span className={styles.statValue}>{user.orderCount}</span>
                             <span className={styles.statLabel}>{t.account.orders}</span>
                         </div>
-                        <div className={styles.statItem}>
-                            <span className={styles.statValue}>{user.points}</span>
-                            <span className={styles.statLabel}>{t.account.points}</span>
-                        </div>
+                        {loyaltyEnabled && (
+                            <div className={styles.statItem}>
+                                <span className={styles.statValue}>{user.points}</span>
+                                <span className={styles.statLabel}>{t.account.points}</span>
+                            </div>
+                        )}
                         <div className={styles.statItem}>
                             <span className={styles.statValue}>{user.addressCount}</span>
                             <span className={styles.statLabel}>{t.account.addresses}</span>

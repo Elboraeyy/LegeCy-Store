@@ -13,7 +13,7 @@ export default async function Cart() {
   return (
     <CartClient
       freeShippingThreshold={Number(settings['FREE_SHIPPING_THRESHOLD']) || 2000}
-      isFreeShippingEnabled={settings['FREE_SHIPPING_ENABLED'] !== 'false'}
+      isFreeShippingEnabled={settings['FREE_SHIPPING_ENABLED'] === 'true'}
     />
   );
 }

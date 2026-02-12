@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useIsClient } from "@/hooks/useIsClient";
 import { useLanguage } from "@/context/LanguageContext";
 import CartRecommendations from "@/components/cart/CartRecommendations";
+import { CartSkeleton } from "@/components/skeletons/cart-skeleton";
 import {
   Trash2,
   Minus,
@@ -28,7 +29,7 @@ export default function CartClient({
   freeShippingThreshold = 2000,
   isFreeShippingEnabled = true
 }: CartClientProps) {
-  const { cart, addToCart, decFromCart, removeFromCart } = useStore();
+  const { cart, addToCart, decFromCart, removeFromCart, isLoading: storeLoading } = useStore();
   const isClient = useIsClient();
   const { t, language } = useLanguage();
 
@@ -48,7 +49,7 @@ export default function CartClient({
 
 
 
-  if (!isClient) return null;
+  if (!isClient || storeLoading) return <CartSkeleton />;
 
   if (cart.length === 0) {
     // Scenario C: Back Button Handling

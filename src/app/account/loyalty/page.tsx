@@ -2,7 +2,7 @@
 
 import { validateCustomerSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
-import { getLoyaltyPageData } from '@/lib/services/loyaltyService';
+import { getLoyaltyPageData, getLoyaltySettings } from '@/lib/services/loyaltyService';
 import LoyaltyClient from './LoyaltyClient';
 
 export default async function LoyaltyPage() {
@@ -12,9 +12,12 @@ export default async function LoyaltyPage() {
         redirect('/login?redirect=/account/loyalty');
     }
 
-    const data = await getLoyaltyPageData(session.user.id);
+    const [data, loyaltySettings] = await Promise.all([
+        getLoyaltyPageData(session.user.id),
+        getLoyaltySettings()
+    ]);
 
-    if (!data) {
+    if (!data || !loyaltySettings.enabled) {
         redirect('/account');
     }
 

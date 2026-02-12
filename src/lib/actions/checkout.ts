@@ -199,8 +199,10 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         }
     }
 
-    // Calculate Loyalty Points (1 point per 10 EGP)
-    const pointsEarned = Math.floor(finalTotal / 10);
+    // Calculate Loyalty Points (using dynamic settings)
+    const { getLoyaltySettings } = await import('@/lib/services/loyaltyService');
+    const loyaltySettings = await getLoyaltySettings();
+    const pointsEarned = loyaltySettings.enabled ? Math.floor(finalTotal * loyaltySettings.pointsPerEgp) : 0;
 
     // ========================================
     // FRAUD DETECTION (COD Only)

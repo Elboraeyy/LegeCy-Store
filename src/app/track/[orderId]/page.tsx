@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import TrackOrderClient from "./TrackOrderClient";
 import prisma from "@/lib/prisma";
+import { getLoyaltySettings } from "@/lib/services/loyaltyService";
 
 interface Props {
   params: Promise<{ orderId: string }>;
@@ -112,11 +113,14 @@ async function getOrder(orderId: string) {
 
 export default async function TrackOrderPage({ params }: Props) {
   const { orderId } = await params;
-  const order = await getOrder(orderId);
+  const [order, loyaltySettings] = await Promise.all([
+    getOrder(orderId),
+    getLoyaltySettings()
+  ]);
 
   if (!order) {
     notFound();
   }
 
-  return <TrackOrderClient order={order} />;
+  return <TrackOrderClient order={order} isLoyaltyEnabled={loyaltySettings.enabled} />;
 }

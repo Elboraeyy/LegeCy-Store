@@ -7,8 +7,9 @@ export function WishlistSkeleton() {
         <div className="min-h-screen bg-[#FCF8F3] pb-20">
             {/* Hero Skeleton */}
             <div className="bg-[#12403C] py-16 mb-12 flex flex-col items-center justify-center gap-4 text-center">
-                <Skeleton className="h-12 w-48 bg-white/10" />
-                <Skeleton className="h-4 w-32 bg-white/10" />
+                <Skeleton className="h-10 w-28 rounded-full bg-white/10" />
+                <Skeleton className="h-4 w-64 bg-white/10" />
+                <Skeleton className="h-10 w-32 rounded-full bg-white/10 mt-2" />
             </div>
 
             {/* Mobile - Horizontal Scroll */}

@@ -331,6 +331,7 @@ export const dictionary = {
       shared_title: "Shared Wishlist",
       shared_subtitle: "Here are the items shared with you",
       copy_to_mine: "Copy to My Wishlist",
+      share_text: "Check out my wishlist with {count} items at LegaCy Store!",
     },
     compare: {
       title: "Compare Watches",
@@ -1993,6 +1994,7 @@ export const dictionary = {
       shared_title: "قائمة أمنيات مشتركة",
       shared_subtitle: "إليك العناصر التي تمت مشاركتها معك",
       copy_to_mine: "نسخ إلى قائمتي",
+      share_text: "شوف قائمة أمنياتي فيها {count} قطع من متجر ليجاسي!",
     },
     compare: {
       title: "مقارنة الساعات",

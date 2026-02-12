@@ -11,7 +11,7 @@ import prisma from '@/lib/prisma';
 // ==========================================
 
 const DEFAULT_CONFIG = {
-    enabled: true,
+    enabled: false,
     pointsPerEgp: 0.1,        // 1 point per 10 EGP
     pointValue: 0.1,          // 1 point = 0.1 EGP
     minRedeemPoints: 1000,    // Minimum points to redeem

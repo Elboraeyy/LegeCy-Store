@@ -11,6 +11,7 @@ import EmptyState from "./components/EmptyState";
 import { Product } from "@/types/product";
 import { ShopProduct } from "@/lib/actions/shop";
 import DesktopComparisonView from "./components/DesktopComparisonView";
+import { CompareSkeleton } from "@/components/skeletons/compare-skeleton";
 import { useLanguage } from "@/context/LanguageContext";
 
 type ProductId = string | number;
@@ -23,7 +24,7 @@ export default function CompareClient({ }: CompareClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const fromLabel = searchParams.get("fromLabel");
-    const { selectedProducts, removeFromCompare, addToCompare } = useComparison();
+    const { selectedProducts, removeFromCompare, addToCompare, isLoading: isCompareLoading } = useComparison();
     const { addToCart, products, fav, isLoading: isStoreLoading } = useStore();
     const { t } = useLanguage();
 
@@ -70,10 +71,7 @@ export default function CompareClient({ }: CompareClientProps) {
 
     const hasProducts = selectedProducts.length > 0;
 
-    // Convert ShopProduct to Product for compatibility
-    // const normalizedSuggestions = suggestions.map(s => ({
-    //     ...s,
-    // })) as unknown as Product[];
+    if (isStoreLoading || isCompareLoading) return <CompareSkeleton />;
 
     return (
         <main style={{ background: "var(--bg)", minHeight: "100vh" }}>

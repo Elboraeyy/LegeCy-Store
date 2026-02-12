@@ -53,9 +53,10 @@ interface Order {
 
 interface Props {
   order: Order;
+  isLoyaltyEnabled: boolean;
 }
 
-export default function TrackOrderClient({ order }: Props) {
+export default function TrackOrderClient({ order, isLoyaltyEnabled }: Props) {
   const { t, language } = useLanguage();
   const [copied, setCopied] = useState(false);
 
@@ -307,7 +308,7 @@ export default function TrackOrderClient({ order }: Props) {
                   <span>-{formatPrice(order.discountAmount)}</span>
                 </div>
               )}
-              {order.pointsRedeemed > 0 && (
+              {isLoyaltyEnabled && order.pointsRedeemed > 0 && (
                 <div className={`${styles.priceRow} ${styles.discount}`}>
                   <span>{t.orders.details.summary.points_redeemed}</span>
                   <span>-{order.pointsRedeemed}</span>
@@ -352,7 +353,7 @@ export default function TrackOrderClient({ order }: Props) {
         )}
 
         {/* Points Earned */}
-        {order.pointsEarned > 0 && !isCancelled && (
+        {isLoyaltyEnabled && order.pointsEarned > 0 && !isCancelled && (
           <div className={styles.rewardsCard}>
             <div className={styles.rewardsInfo}>
               <h4>{t.orders.details.summary.points_earned}</h4>

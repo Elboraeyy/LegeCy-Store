@@ -28,12 +28,14 @@ export async function getShippingSettings(): Promise<ShippingSettings> {
 
     const config = settings ? (settings as ShippingSettings) : { ...defaultShippingSettings };
 
-    // Override with dynamic settings if available
-    if (dynamicSettings['FREE_SHIPPING_THRESHOLD']) {
-      config.freeShippingThreshold = Number(dynamicSettings['FREE_SHIPPING_THRESHOLD']);
-    }
+    // Default to false if not explicitly set to "true"
+    const isFreeShippingEnabled = dynamicSettings['FREE_SHIPPING_ENABLED'] === 'true';
 
-    if (dynamicSettings['FREE_SHIPPING_ENABLED'] === 'false') {
+    if (isFreeShippingEnabled) {
+      if (dynamicSettings['FREE_SHIPPING_THRESHOLD']) {
+        config.freeShippingThreshold = Number(dynamicSettings['FREE_SHIPPING_THRESHOLD']);
+      }
+    } else {
       config.freeShippingThreshold = 999999999; // Effectively disable if toggle is off
     }
 

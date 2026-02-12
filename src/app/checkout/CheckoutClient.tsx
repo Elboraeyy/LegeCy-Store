@@ -16,6 +16,7 @@ import { calculateShipping } from "@/lib/actions/shipping";
 import { EGYPT_LOCATIONS } from "@/data/egypt-locations";
 import CustomSelect from "@/components/ui/CustomSelect";
 import ManualPaymentInstructions from "@/components/shop/ManualPaymentInstructions"; // New Import
+import { CheckoutSkeleton } from "@/components/skeletons/checkout-skeleton";
 import styles from "./Checkout.module.css";
 
 interface ShippingForm {
@@ -36,10 +37,11 @@ interface ShippingForm {
 // Locations are imported from @/data/egypt-locations
 
 export default function CheckoutClient() {
-  const { cart, clearCart } = useStore();
+  const { cart, clearCart, isLoading: storeLoading } = useStore();
   const { t, language } = useLanguage();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   
   // Coupon State
   const [couponCode, setCouponCode] = useState("");
@@ -330,8 +332,7 @@ export default function CheckoutClient() {
         }
 
         // Success (COD or Manual Wallet)
-        sessionStorage.setItem('last_order_success', 'true');
-
+        setIsRedirecting(true);
         clearCart();
         clearFormStorage();
         toast.success(t.messages.order_success);
@@ -360,16 +361,9 @@ export default function CheckoutClient() {
     setForm((prev) => ({ ...prev, paymentMethod: method }));
   };
 
-  const [justOrdered, setJustOrdered] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && sessionStorage.getItem('last_order_success')) {
-      setJustOrdered(true);
-    }
-  }, []);
 
   // Empty cart state
-  if (cart.length === 0) {
+  if (!storeLoading && cart.length === 0 && !isRedirecting) {
 
     return (
       <main className={styles.checkoutPage}>
@@ -380,41 +374,24 @@ export default function CheckoutClient() {
         </div>
         <div className={styles.checkoutContainer}>
           <div className={styles.emptyCart}>
-            {justOrdered ? (
-              <>
-                <div style={{ width: 64, height: 64, background: '#e6fffa', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2">
-                    <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <h2 className={styles.emptyTitle}>{language === 'ar' ? 'تم استلام طلبك بنجاح' : 'Order Placed Successfully'}</h2>
-                <p className={styles.emptyText}>
-                  {language === 'ar'
-                    ? 'تم إرسال طلبك بالفعل. يمكنك متابعة حالته في صفحة طلباتي.'
-                    : 'Your order has already been processed. You can track it in your orders page.'}
-                </p>
-                <Link href="/profile" className={styles.emptyBtn}>
-                  {language === 'ar' ? 'اتبع طلبك' : 'Track Order'}
-                </Link>
-              </>
-            ) : (
-              <>
-                  <svg className={styles.emptyIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M9 22a1 1 0 100-2 1 1 0 000 2zM20 22a1 1 0 100-2 1 1 0 000 2z" />
-                    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
-                  </svg>
-                  <h2 className={styles.emptyTitle}>{t.cart.empty_cart}</h2>
-                  <p className={styles.emptyText}>{t.cart.empty_desc}</p>
-                  <Link href="/shop" className={styles.emptyBtn}>
-                    {t.cart.continue_shopping}
-                  </Link>
-              </>
-            )}
+            <>
+              <svg className={styles.emptyIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M9 22a1 1 0 100-2 1 1 0 000 2zM20 22a1 1 0 100-2 1 1 0 000 2z" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+              </svg>
+              <h2 className={styles.emptyTitle}>{t.cart.empty_cart}</h2>
+              <p className={styles.emptyText}>{t.cart.empty_desc}</p>
+              <Link href="/shop" className={styles.emptyBtn}>
+                {t.cart.continue_shopping}
+              </Link>
+            </>
           </div>
         </div>
       </main>
     );
   }
+
+  if (storeLoading) return <CheckoutSkeleton />;
 
   return (
     <main className={styles.checkoutPage}>
