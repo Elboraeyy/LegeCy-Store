@@ -2,6 +2,7 @@ import React from 'react';
 import { OrderStatus } from '@/types/order';
 
 const STATUS_COLORS: Record<OrderStatus, { bg: string; color: string }> = {
+  [OrderStatus.Draft]: { bg: 'bg-slate-100', color: 'text-slate-800' },
   [OrderStatus.Pending]: { bg: 'bg-yellow-100', color: 'text-yellow-800' },
   [OrderStatus.PaymentPending]: { bg: 'bg-purple-100', color: 'text-purple-800' },
   [OrderStatus.Confirmed]: { bg: 'bg-cyan-100', color: 'text-cyan-800' },
