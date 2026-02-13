@@ -7,6 +7,7 @@ export interface OrderItem {
 }
 
 export enum OrderStatus {
+  Draft = 'draft',
   Pending = 'pending',
   PaymentPending = 'payment_pending',
   Confirmed = 'confirmed',

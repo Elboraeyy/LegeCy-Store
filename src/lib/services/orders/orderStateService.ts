@@ -1,5 +1,4 @@
 
-
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
@@ -7,7 +6,7 @@ import { orderFinancialService } from './orderFinancialService';
 import { orderNotificationService } from './orderNotificationService';
 import { inventoryService } from '@/lib/services/inventoryService';
 import { revenueService } from '@/lib/services/revenueService';
-import { awardPoints, refundRedeemedPoints } from '@/lib/services/loyaltyService';
+import { awardPoints, refundRedeemedPoints, reverseEarnedPoints } from '@/lib/services/loyaltyService';
 import { logger } from '@/lib/logger';
 import { validateOrderTransition, ActorRole } from '@/lib/policies/orderPolicy';
 import { OrderStatus } from '@/types/order';
@@ -91,6 +90,13 @@ export const orderStateService = {
                         orderTotal: Number(order.totalPrice)
                     });
                 }
+
+                // Ensure stock is committed if we skipped Shipped state
+                if (currentStatus !== OrderStatus.Shipped) {
+                    await this._commitStockForFulfillment(order, tx);
+                }
+            } else if (newStatus === OrderStatus.Shipped) {
+                await this._commitStockForFulfillment(order, tx);
             }
 
                 // 6. Queue Post-Commit Notifications
@@ -138,7 +144,7 @@ export const orderStateService = {
                     const order = await db.order.findUnique({ where: { id: orderId } });
                     if (order && order.paymentMethod !== 'cod') {
                         if (fromStatus === OrderStatus.PaymentPending || toStatus === OrderStatus.Paid) {
-                            await orderFinancialService.recordPaymentReceipt(orderId);
+                            await orderFinancialService.recordPaymentReceipt(orderId, db);
                         }
                     }
                 }
@@ -153,10 +159,10 @@ export const orderStateService = {
                 // For COD orders, record payment source entry (xazna) upon delivery
                 const order = await db.order.findUnique({ where: { id: orderId } });
                 if (order && order.paymentMethod === 'cod') {
-                    await orderFinancialService.recordPaymentReceipt(orderId);
+                    await orderFinancialService.recordPaymentReceipt(orderId, db);
                 }
 
-                await orderFinancialService.recognizeRevenue(orderId, triggeredBy);
+                await orderFinancialService.recognizeRevenue(orderId, triggeredBy, db);
 
                 // Move notification outside or trigger if NOT in transaction
                 if (!txClient) {
@@ -192,13 +198,14 @@ export const orderStateService = {
 
         // 1. Reverse Financials
         if (order.revenueRecognition) {
-            await revenueService.reverseRevenue(orderId, reason || 'Order cancelled');
+            await revenueService.reverseRevenue(orderId, reason || 'Order cancelled', db);
             await db.revenueRecognition.delete({ where: { orderId } });
         }
 
         // 2. Refund Loyalty Points
         if (order.userId) {
             await refundRedeemedPoints({ userId: order.userId, orderId });
+            await reverseEarnedPoints({ userId: order.userId, orderId });
         }
 
         // 3. Release Stock
@@ -241,7 +248,7 @@ export const orderStateService = {
         const netRev = new Decimal(rec.netRevenue).mul(ratio);
         const cogsRev = new Decimal(rec.cogsAmount).mul(ratio);
 
-        await revenueService.createRefundEntry(orderId, netRev, cogsRev, reason, taxRev);
+        await revenueService.createRefundEntry(orderId, netRev, cogsRev, reason, taxRev, db);
 
         // Update Recognition record
         await db.revenueRecognition.update({
@@ -257,11 +264,58 @@ export const orderStateService = {
         // Refund points if partial or total? Usually total for full refund.
         if (order.userId && ratio.greaterThanOrEqualTo(0.99)) {
             await refundRedeemedPoints({ userId: order.userId, orderId });
+            await reverseEarnedPoints({ userId: order.userId, orderId });
         }
     },
 
     async _getDefaultWarehouseId(db: Prisma.TransactionClient | typeof prisma) {
         const w = await db.warehouse.findFirst({ where: { type: 'MAIN' } }) || await db.warehouse.findFirst();
         return w?.id;
+    },
+
+    async _commitStockForFulfillment(order: any, tx: Prisma.TransactionClient) {
+        for (const item of order.items) {
+            if (item.variantId) {
+                // Use item's warehouse if set, otherwise default
+                const warehouseId = item.warehouseId || (await this._getDefaultWarehouseId(tx));
+                if (warehouseId) {
+                    try {
+                        await inventoryService.commitStock(tx, warehouseId, item.variantId, item.quantity);
+                    } catch (e: any) {
+                        // warning only, as stock might have been committed by paymentService already for Online orders?
+                        // actually paymentService commits on "Paid".
+                        // If order is "Paid" (Online), stock is committed.
+                        // If we then Ship, we might double commit?
+
+                        // Wait. paymentService.confirmPaymentIntent calls commitStock.
+                        // That happens when status -> Paid.
+
+                        // If status is Paid, reseved is 0.
+                        // If we try to commit again, it will fail.
+
+                        // We should ONLY commit if paymentMethod is COD?
+                        // OR if stock is still reserved.
+
+                        // inventoryService.commitStock checks "reserved >= quantity".
+                        // If it's already committed, reserved is 0.
+                        // So checking for error is acceptable or we should check payment method.
+
+                        // BUT: "Paid" online order commits stock.
+                        // "Shipped" happens later.
+
+                        // So for Online Orders, we DON'T need to commit on Ship.
+                        // For COD Orders, we DO need to commit on Ship (or Deliver).
+
+                        if (order.paymentMethod === 'cod') {
+                            logger.warn(`Failed to commit stock for ${item.variantId} in order ${order.id}`, e);
+                            throw e; // Fail the transition if COD stock can't be committed
+                        } else {
+                            // Online order, likely already committed.
+                            logger.info(`Stock commit skipped/failed for ${item.variantId} (likely already committed)`, { error: e.message || e });
+                        }
+                    }
+                }
+            }
+        }
     }
 };

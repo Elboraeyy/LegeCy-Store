@@ -14,8 +14,8 @@
  */
 
 import prisma from '@/lib/prisma';
+import { Prisma, AccountType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
-import { AccountType } from '@prisma/client';
 import { validateTransactionDate } from './accountingPeriodService';
 
 // Account codes (should match seeded accounts)
@@ -25,13 +25,20 @@ import { ACCOUNTS } from '@/lib/constants/accounts';
 /**
  * Get or create a standard account by code
  */
-async function getAccountByCode(code: string) {
-  let account = await prisma.account.findFirst({
+async function getAccountByCode(code: string, tx?: DbClient) {
+  const db = tx || prisma;
+  let account = await db.account.findFirst({
     where: { code }
   });
   
   if (!account) {
     // Create missing standard accounts
+    // ... code truncated ...
+    // Note: If we are in a transaction, we should create using db.
+    // However, if we are in a read-only transaction (unlikely here), this might fail.
+    // Assuming writes are allowed.
+    
+    // We need to re-fetch the definition map or move it out
     const accountDefs: Record<string, { name: string; type: AccountType }> = {
       '1000': { name: 'Cash on Hand', type: AccountType.ASSET },
       '1100': { name: 'Accounts Receivable', type: AccountType.ASSET },
@@ -47,7 +54,7 @@ async function getAccountByCode(code: string) {
     
     const def = accountDefs[code];
     if (def) {
-      account = await prisma.account.create({
+      account = await db.account.create({
         data: {
           code,
           name: def.name,
@@ -60,6 +67,9 @@ async function getAccountByCode(code: string) {
   
   return account;
 }
+
+// Helper type for the transaction client
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
 export type JournalEntryInput = {
   reference?: string;
@@ -82,9 +92,10 @@ export type JournalEntryInput = {
 /**
  * Create a balanced journal entry
  */
-export async function createJournalEntry(input: JournalEntryInput) {
+export async function createJournalEntry(input: JournalEntryInput, tx?: DbClient) {
   const { lines, description, reference, date, orderId, expenseId, capitalTxId, createdBy } = input;
   const entryDate = date || new Date();
+  const db = tx || prisma;
 
   // 0. STRICT PERIOD CHECK
   const isPeriodOpen = await validateTransactionDate(entryDate);
@@ -106,7 +117,7 @@ export async function createJournalEntry(input: JournalEntryInput) {
   }
   
   // Create journal entry
-  const entry = await prisma.journalEntry.create({
+  const entry = await db.journalEntry.create({
     data: {
       date: new Date(),
       description,
@@ -121,12 +132,12 @@ export async function createJournalEntry(input: JournalEntryInput) {
   
   // Create transaction lines and update account balances
   for (const line of lines) {
-    const account = await getAccountByCode(line.accountCode);
+    const account = await getAccountByCode(line.accountCode, db);
     if (!account) {
       throw new Error(`Account ${line.accountCode} not found`);
     }
     
-    await prisma.transactionLine.create({
+    await db.transactionLine.create({
       data: {
         journalEntryId: entry.id,
         accountId: account.id,
@@ -148,7 +159,7 @@ export async function createJournalEntry(input: JournalEntryInput) {
       ? debit.minus(credit)
       : credit.minus(debit);
     
-    await prisma.account.update({
+    await db.account.update({
       where: { id: account.id },
       data: { balance: { increment: balanceChange } }
     });
@@ -253,8 +264,9 @@ export const revenueService = {
   /**
    * Reverse revenue for a cancelled order
    */
-  async reverseRevenue(orderId: string, reason: string) {
-    const recognition = await prisma.revenueRecognition.findUnique({
+  async reverseRevenue(orderId: string, reason: string, tx?: DbClient) {
+    const db = tx || prisma;
+    const recognition = await db.revenueRecognition.findUnique({
       where: { orderId }
     });
     
@@ -263,7 +275,7 @@ export const revenueService = {
       return;
     }
     
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    const order = await db.order.findUnique({ where: { id: orderId } });
     if (!order) return;
     
     const orderRef = `ORD-${orderId.substring(0, 8)}-REV`;
@@ -304,7 +316,7 @@ export const revenueService = {
       reference: orderRef,
       orderId: orderId,
       createdBy: 'system'
-    });
+    }, tx);
     
     // 2. Reverse COGS Entry
     if (cogsAmount.greaterThan(0)) {
@@ -325,7 +337,7 @@ export const revenueService = {
         reference: orderRef,
         orderId: orderId,
         createdBy: 'system'
-      });
+      }, tx);
     }
     
     console.log(`[RevenueService] Revenue reversed for ${orderRef}: Revenue=${netRevenue}, Tax=${taxAmount}, COGS=${cogsAmount}`);
@@ -334,11 +346,9 @@ export const revenueService = {
   /**
    * Create refund journal entry for partial refund
    */
-  /**
-   * Create refund journal entry for partial refund
-   */
-  async createRefundEntry(orderId: string, revenueToReverse: number | Decimal, cogsToReverse: number | Decimal, reason?: string, taxToReverse: number | Decimal = 0) {
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
+  async createRefundEntry(orderId: string, revenueToReverse: number | Decimal, cogsToReverse: number | Decimal, reason?: string, taxToReverse: number | Decimal = 0, tx?: DbClient) {
+    const db = tx || prisma;
+    const order = await db.order.findUnique({ where: { id: orderId } });
     if (!order) return;
     
     const orderRef = `ORD-${orderId.substring(0, 8)}-REF`;
@@ -381,7 +391,7 @@ export const revenueService = {
       reference: orderRef,
       orderId: orderId,
       createdBy: 'system'
-    });
+    }, tx);
     
     // If goods returned, reverse COGS
     if (cogsToReverseDec.greaterThan(0)) {

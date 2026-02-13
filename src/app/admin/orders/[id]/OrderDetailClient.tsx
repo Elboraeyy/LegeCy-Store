@@ -19,6 +19,10 @@ import {
     Mail,
     Phone,
     MapPin,
+    MessageCircle,
+    CheckCircle,
+    Copy,
+    ExternalLink
 } from 'lucide-react';
 import styles from '../OrderDetails.module.css';
 
@@ -62,6 +66,64 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const entry = order.history.find((h: any) => h.to.toLowerCase() === targetStatus.toLowerCase());
         return entry ? formatDate(entry.createdAt) : undefined;
+    };
+
+    const getWhatsAppUrl = (order: any): string | null => {
+        const phone = order.customerPhone || order.alternativePhone;
+        if (!phone || (typeof phone === 'string' && !phone.trim())) {
+            return null;
+        }
+
+        try {
+            // Clean phone number (remove spaces, dashes, etc.)
+            const cleanPhone = String(phone).replace(/\D/g, '');
+            
+            if (!cleanPhone || cleanPhone.length < 10) {
+                return null;
+            }
+
+            // If phone starts with 0, replace with country code
+            let phoneNumber: string;
+            if (cleanPhone.startsWith('0')) {
+                phoneNumber = `20${cleanPhone.substring(1)}`;
+            } else if (cleanPhone.startsWith('20')) {
+                phoneNumber = cleanPhone;
+            } else {
+                phoneNumber = `20${cleanPhone}`;
+            }
+
+            // Validate phone number format (should be 12-13 digits for Egypt)
+            if (phoneNumber.length < 12 || phoneNumber.length > 13) {
+                return null;
+            }
+
+            const isCod = order.paymentMethod === 'cod';
+            const customerName = order.firstName || order.customerName || (isRtl ? 'عميلنا العزيز' : 'Dear Customer');
+            const orderId = order.orderNumber || order.id.slice(0, 8).toUpperCase();
+            const total = formatCurrency(order.totalPrice || 0);
+            const address = `${order.shippingAddress || ''}, ${order.shippingCity || ''}`;
+
+            let message = '';
+
+            if (isRtl) {
+                if (isCod) {
+                    message = `أهلاً بك يا ${customerName}، 👋\n\nمعك خدمة عملاء ليجاسي ستور.\nبنأكد مع حضرتك تفاصيل الطلب رقم: *#${orderId}*\n\n💰 الإجمالي المطلوب: *${total}*\n📍 العنوان: ${address}\n\nيرجى تأكيد البيانات لنقوم بشحن الطلب في أسرع وقت. 🚀\nشكراً لتسوقك معنا!`;
+                } else {
+                    message = `أهلاً بك يا ${customerName}، 👋\n\nمعك خدمة عملاء ليجاسي ستور.\nتم تأكيد الدفع للطلب رقم: *#${orderId}* بنجاح! ✅\n\nجاري تجهيز طلبك حالياً للشحن إلى:\n📍 ${address}\n\nشكراً لثقتك في ليجاسي ستور! ❤️`;
+                }
+            } else {
+                if (isCod) {
+                    message = `Hello ${customerName}, 👋\n\nThis is Legacy Store Customer Support.\nWe are confirming your order details for Order: *#${orderId}*\n\n💰 Total Due: *${total}*\n📍 Address: ${address}\n\nPlease confirm so we can ship your order ASAP. 🚀\nThanks for shopping with us!`;
+                } else {
+                    message = `Hello ${customerName}, 👋\n\nThis is Legacy Store Customer Support.\nPayment received for Order: *#${orderId}* ✅\n\nWe are preparing your order for shipping to:\n📍 ${address}\n\nThanks for choosing Legacy Store! ❤️`;
+                }
+            }
+
+            return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+        } catch (error) {
+            console.error('[WhatsApp] Error generating URL:', error);
+            return null;
+        }
     };
 
     return (
@@ -282,6 +344,39 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
                                         </div>
                                     )}
                                 </div>
+                            </div>
+
+                            {/* WhatsApp Button - Moved inside contactList padding area for better flow */}
+                            <div style={{ marginTop: '16px' }}>
+                                {(() => {
+                                    const phone = order.customerPhone || order.alternativePhone;
+                                    const hasPhone = phone && phone.trim && phone.trim().length > 0;
+                                    const whatsappUrl = hasPhone ? getWhatsAppUrl(order) : null;
+                                    
+                                    if (hasPhone && whatsappUrl && whatsappUrl !== '#') {
+                                        return (
+                                            <a
+                                                href={whatsappUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={styles.whatsappBtn}
+                                            >
+                                                <MessageCircle size={18} />
+                                                <span>
+                                                    {isRtl ? 'تأكيد الطلب عبر واتساب' : 'Confirm Order via WhatsApp'}
+                                                    {order.alternativePhone && !order.customerPhone && ' (Alt)'}
+                                                </span>
+                                            </a>
+                                        );
+                                    } else {
+                                        return (
+                                            <div className={styles.whatsappDisabled}>
+                                                <MessageCircle size={18} />
+                                                <span>{isRtl ? 'لا يوجد رقم هاتف' : 'No Phone Number'}</span>
+                                            </div>
+                                        );
+                                    }
+                                })()}
                             </div>
                         </div>
                     </div>

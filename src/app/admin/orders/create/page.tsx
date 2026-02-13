@@ -89,8 +89,8 @@ export default async function CreateOrderPage() {
 
     return (
         <CreateOrderClient 
-            products={transformProducts(products)} 
-            customers={transformCustomers(customers)} 
+            initialProducts={transformProducts(products)}
+            initialCustomers={transformCustomers(customers)} 
         />
     );
 }

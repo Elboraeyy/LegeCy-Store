@@ -9,6 +9,7 @@ import { Order } from '@/types/order';
 import prisma from '@/lib/prisma';
 import { analyzeOrderRisk } from '@/lib/services/fraudService';
 import { orderStateService } from '@/lib/services/orders/orderStateService';
+import { validateCoupon } from '@/lib/actions/coupons';
 
 interface StatusUpdateResult {
     success: boolean;
@@ -88,10 +89,14 @@ interface ManualOrderInput {
     shippingAddress: {
         street: string;
         city: string;
+        governorate?: string;
     };
     items: { variantId: string; quantity: number }[];
     notes?: string;
     source?: string;
+    couponCode?: string;
+    pointsRedeemed?: number;
+    status?: OrderStatus;
 }
 
 interface ManualOrderResult {
@@ -110,6 +115,8 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
         let customerName: string;
         let customerPhone: string;
         let customerEmail: string | undefined;
+        let firstName: string | undefined;
+        let lastName: string | undefined;
         
         if ('existingId' in input.customer) {
             userId = input.customer.existingId;
@@ -121,16 +128,18 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             customerName = existingUser.name || 'Customer';
             customerPhone = existingUser.phone || '';
             customerEmail = existingUser.email || undefined;
+
+            const nameParts = (existingUser.name || '').split(' ');
+            firstName = nameParts[0];
+            lastName = nameParts.slice(1).join(' ') || undefined;
         } else {
-            // Create new user/customer
-            // Generate placeholder email if none provided (User.email is required in schema)
             const generatedEmail = input.customer.email || `manual_${Date.now()}_${Math.random().toString(36).slice(2)}@placeholder.local`;
             
             const newUser = await prisma.user.create({
                 data: {
                     name: input.customer.name,
                     email: generatedEmail,
-                    passwordHash: '', // Empty for manual customers
+                    passwordHash: '',
                     phone: input.customer.phone
                 }
             });
@@ -138,133 +147,117 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             customerName = input.customer.name;
             customerPhone = input.customer.phone;
             customerEmail = input.customer.email;
+
+            const nameParts = (input.customer.name || '').split(' ');
+            firstName = nameParts[0];
+            lastName = nameParts.slice(1).join(' ') || undefined;
         }
 
-        // 2. Get variant details and calculate total
+        // 2. Map items for createOrder service
         const variants = await prisma.variant.findMany({
             where: { id: { in: input.items.map(i => i.variantId) } },
             include: { product: { select: { name: true } } }
         });
 
-        const orderItems = input.items.map(item => {
+        const serviceItems = input.items.map(item => {
             const variant = variants.find(v => v.id === item.variantId);
             if (!variant) throw new Error(`Variant ${item.variantId} not found`);
-            
-            const price = variant.price.toNumber();
             return {
                 productId: variant.productId,
                 variantId: variant.id,
                 name: `${variant.product.name} (${variant.sku})`,
-                price,
+                price: variant.price.toNumber(),
                 quantity: item.quantity
             };
         });
 
-        const totalPrice = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const subtotal = serviceItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        // We'll trust the client for simple calculation for now, but in production we should re-verify
+        // Let's implement a more robust createOrder soon.
 
-        // 3. Create order directly with shipping info (matching Order schema)
-        // Use transaction to ensure inventory deduction is atomic with order creation
-        const order = await prisma.$transaction(async (tx) => {
-            // Get default warehouse
-            const warehouse = await tx.warehouse.findFirst();
-            if (!warehouse) {
-                throw new Error('No warehouse configured');
+        const order = await createOrder({
+            items: serviceItems,
+            totalPrice: subtotal,
+            userId,
+            firstName,
+            lastName,
+            customerPhone: customerPhone,
+            customerEmail: customerEmail,
+            shippingAddress: input.shippingAddress.street,
+            shippingCity: input.shippingAddress.city,
+            shippingGovernorate: input.shippingAddress.governorate,
+            shippingNotes: input.notes ? `[${input.source?.toUpperCase() || 'MANUAL'}] ${input.notes}` : `[${input.source?.toUpperCase() || 'MANUAL'}]`,
+            paymentMethod: 'cod',
+            couponCode: input.couponCode,
+            pointsRedeemed: input.pointsRedeemed,
+            options: {
+                skipReservation: false,
+                status: input.status
             }
-
-            // Verify stock availability BEFORE creating order
-            for (const item of orderItems) {
-                const inventory = await tx.inventory.findFirst({
-                    where: {
-                        warehouseId: warehouse.id,
-                        variantId: item.variantId
-                    }
-                });
-
-                if (!inventory || inventory.available < item.quantity) {
-                    const available = inventory?.available || 0;
-                    throw new Error(`Insufficient stock for product: ${item.name} (available: ${available}, required: ${item.quantity})`);
-                }
-            }
-
-            // Create order
-            const newOrder = await tx.order.create({
-                data: {
-                    userId,
-                    totalPrice,
-                    status: 'pending',
-                    paymentMethod: 'cod', // Manual orders are typically COD
-                    customerName,
-                    customerPhone,
-                    customerEmail,
-                    shippingAddress: input.shippingAddress.street,
-                    shippingCity: input.shippingAddress.city,
-                    shippingNotes: input.notes ? `[${input.source?.toUpperCase() || 'MANUAL'}] ${input.notes}` : `[${input.source?.toUpperCase() || 'MANUAL'}]`,
-                    items: {
-                        create: orderItems.map(item => ({
-                            productId: item.productId,
-                            variantId: item.variantId,
-                            name: item.name,
-                            sku: item.name.match(/\((.*?)\)/)?.[1] || null, // Extract SKU from name format: Name (SKU)
-                            price: item.price,
-                            quantity: item.quantity
-                        }))
-                    }
-                }
-            });
-
-            // Deduct inventory (same as COD checkout)
-            for (const item of orderItems) {
-                const result = await tx.inventory.updateMany({
-                    where: {
-                        warehouseId: warehouse.id,
-                        variantId: item.variantId,
-                        available: { gte: item.quantity }
-                    },
-                    data: {
-                        available: { decrement: item.quantity }
-                    }
-                });
-
-                if (result.count === 0) {
-                    throw new Error(`Failed to deduct inventory for product: ${item.name}`);
-                }
-
-                // Log the inventory change
-                await tx.inventoryLog.create({
-                    data: {
-                        warehouseId: warehouse.id,
-                        variantId: item.variantId,
-                        action: 'ORDER_FULFILL',
-                        quantity: -item.quantity,
-                        reason: `Manual Order Created: ${newOrder.id}`,
-                        referenceId: newOrder.id,
-                    }
-                });
-            }
-
-            return newOrder;
         });
 
-        // CRITICAL FIX: Analyze fraud risk for manual orders (social sources can be fraudulent)
+        // 3. Risk analysis
         try {
-            const riskResult = await analyzeOrderRisk(order.id);
-            if (riskResult.shouldReview) {
-                console.log(`[ManualOrder] Order ${order.id} flagged for fraud review. Risk score: ${riskResult.riskScore}`);
-            }
+            await analyzeOrderRisk(order.id);
         } catch (e) {
-            // Don't block order creation on fraud check failure
             console.error('[ManualOrder] Fraud analysis failed:', e);
         }
 
         revalidatePath('/admin/orders');
-        
         return { success: true, orderId: order.id };
     } catch (error) {
         console.error('Manual order creation failed:', error);
-        if (error instanceof Error) {
-            return { success: false, error: error.message };
-        }
-        return { success: false, error: 'Failed to create order' };
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to create order' };
+    }
+}
+
+/**
+ * Validate coupon for manual order UI
+ */
+export async function validateCouponAction(code: string, cartTotal: number) {
+    try {
+        await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
+        const result = await validateCoupon(code, cartTotal);
+        return result;
+    } catch (error) {
+        return { isValid: false, message: 'فشل التحقق من الكوبون' };
+    }
+}
+
+/**
+ * Search for customers for manual order creation
+ */
+export async function searchCustomersAction(query: string) {
+    try {
+        await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
+        if (!query || query.length < 2) return [];
+
+        const users = await prisma.user.findMany({
+            where: {
+                OR: [
+                    { name: { contains: query, mode: 'insensitive' } },
+                    { email: { contains: query, mode: 'insensitive' } },
+                    { phone: { contains: query, mode: 'insensitive' } }
+                ]
+            },
+            take: 10,
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                orders: {
+                    select: { id: true, createdAt: true, totalPrice: true, status: true },
+                    orderBy: { createdAt: 'desc' },
+                    take: 5
+                }
+            }
+        });
+
+        return users;
+    } catch (error) {
+        console.error('[Action] searchCustomersAction failed:', error);
+        return [];
     }
 }
 

@@ -122,64 +122,64 @@ export async function analyzeRisk(input: FraudInput): Promise<FraudCheckResult> 
     totalScore += score;
   }
 
-  // 4. Check if first order (database check)
-  if (input.userId) {
-    const previousOrders = await prisma.order.count({
+  // OPTIMIZATION: Run all database checks in parallel instead of sequentially
+  const dbChecks = await Promise.all([
+    // 4. Check if first order (database check)
+    input.userId ? prisma.order.count({
       where: {
         userId: input.userId,
         status: { notIn: ['cancelled', 'payment_failed'] }
       }
-    });
-
-    if (previousOrders === 0) {
-      const score = RISK_FACTORS.FIRST_ORDER.weight;
-      factors.push({
-        factor: 'FIRST_ORDER',
-        score,
-        details: 'This is the customer\'s first order'
-      });
-      totalScore += score;
-    }
-  }
-
-  // 5. Check customer risk profile (database check)
-  if (input.userId) {
-    const riskProfile = await prisma.customerRiskProfile.findUnique({
-      where: { userId: input.userId }
-    });
-
-    if (riskProfile) {
-      if (Number(riskProfile.riskScore) >= 70) {
-        const score = RISK_FACTORS.PREVIOUS_FRAUD_FLAG.weight;
-        factors.push({
-          factor: 'HIGH_RISK_CUSTOMER',
-          score,
-          details: `Customer has risk score of ${riskProfile.riskScore}`
-        });
-        totalScore += score;
-      }
-    }
-  }
-
-  // 6. Check velocity (multiple orders in 24 hours - database check)
-  if (input.customerEmail) {
-    const recentOrders = await prisma.order.count({
+    }) : Promise.resolve(0),
+    
+    // 5. Check customer risk profile (database check)
+    input.userId ? prisma.customerRiskProfile.findUnique({
+      where: { userId: input.userId },
+      select: { riskScore: true }
+    }) : Promise.resolve(null),
+    
+    // 6. Check velocity (multiple orders in 24 hours - database check)
+    input.customerEmail ? prisma.order.count({
       where: {
         customerEmail: input.customerEmail,
         createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
       }
-    });
+    }) : Promise.resolve(0)
+  ]);
 
-    // Note: Use > instead of >= because current order is not saved yet
-    if (recentOrders >= RISK_FACTORS.VELOCITY_SPIKE.threshold) {
-      const score = RISK_FACTORS.VELOCITY_SPIKE.weight;
-      factors.push({
-        factor: 'VELOCITY_SPIKE',
-        score,
-        details: `${recentOrders} orders from same email in 24 hours`
-      });
-      totalScore += score;
-    }
+  const [previousOrders, riskProfile, recentOrders] = dbChecks;
+
+  // Process first order check
+  if (input.userId && previousOrders === 0) {
+    const score = RISK_FACTORS.FIRST_ORDER.weight;
+    factors.push({
+      factor: 'FIRST_ORDER',
+      score,
+      details: 'This is the customer\'s first order'
+    });
+    totalScore += score;
+  }
+
+  // Process risk profile check
+  if (riskProfile && Number(riskProfile.riskScore) >= 70) {
+    const score = RISK_FACTORS.PREVIOUS_FRAUD_FLAG.weight;
+    factors.push({
+      factor: 'HIGH_RISK_CUSTOMER',
+      score,
+      details: `Customer has risk score of ${riskProfile.riskScore}`
+    });
+    totalScore += score;
+  }
+
+  // Process velocity check
+  if (input.customerEmail && recentOrders >= RISK_FACTORS.VELOCITY_SPIKE.threshold) {
+    const score = RISK_FACTORS.VELOCITY_SPIKE.weight;
+    factors.push({
+      factor: 'VELOCITY_SPIKE',
+      score,
+      details: `${recentOrders} orders from same email in 24 hours`
+    });
+    totalScore += score;
   }
 
   // 7. Check shipping area

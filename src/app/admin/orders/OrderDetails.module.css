@@ -558,3 +558,40 @@
 [dir="rtl"] .backBtn {
   flex-direction: row-reverse;
 }
+.whatsappBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #25D366;
+  color: white;
+  font-size: 14px;
+  text-decoration: none;
+  font-weight: 700;
+  width: 100%;
+  transition: all 0.2s;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(37, 211, 102, 0.2);
+}
+
+.whatsappBtn:hover {
+  background-color: #1faf53;
+  box-shadow: 0 4px 6px rgba(37, 211, 102, 0.3);
+}
+
+.whatsappDisabled {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  cursor: not-allowed;
+}

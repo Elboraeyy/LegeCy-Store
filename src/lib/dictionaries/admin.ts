@@ -196,7 +196,17 @@ export const adminDictionary = {
         error_items: "Please add at least one item to the cart",
         error_customer: "Customer name and phone are required",
         error_address: "Shipping address is required",
-        added_to_cart: "Added to cart"
+        added_to_cart: "Added to cart",
+        save_draft: "Save Draft",
+        search_customers: "Search customers...",
+        recent_orders: "Recent Orders",
+        search_products: "Search products...",
+        subtotal: "Subtotal",
+        discount: "Discount",
+        shipping: "Shipping",
+        coupon_code: "Coupon Code",
+        apply: "Apply",
+        error_stock: "Insufficient stock"
       },
       disputes: {
         title: "Dispute Management",
@@ -3300,7 +3310,17 @@ export const adminDictionary = {
         error_items: "يرجى إضافة منتج واحد على الأقل",
         error_customer: "اسم العميل ورقم الهاتف مطلوبين",
         error_address: "عنوان الشحن مطلوب",
-        added_to_cart: "تمت الإضافة للسلة"
+        added_to_cart: "تمت الإضافة للسلة",
+        save_draft: "حفظ كمسودة",
+        search_customers: "بحث عن العملاء...",
+        recent_orders: "الطلبات الأخيرة",
+        search_products: "بحث عن المنتجات...",
+        subtotal: "المجموع الفرعي",
+        discount: "الخصم",
+        shipping: "الشحن",
+        coupon_code: "كود الخصم",
+        apply: "تطبيق",
+        error_stock: "الكمية غير متوفرة"
       },
       disputes: {
         title: "إدارة النزاعات",

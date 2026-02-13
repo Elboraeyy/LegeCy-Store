@@ -37,7 +37,7 @@ export async function createPaymentIntent(tx: Prisma.TransactionClient, orderId:
  * Commits stock and updates Order status.
  */
 export async function confirmPaymentIntent(intentId: string) {
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
         // 1. Fetch & Verify Intent
         const intent = await tx.paymentIntent.findUnique({
             where: { id: intentId },
@@ -107,29 +107,29 @@ export async function confirmPaymentIntent(intentId: string) {
             tx
         );
 
-        // 7. Send confirmation email NOW (after payment verified)
-        const { sendOrderConfirmationEmail } = await import('@/lib/services/emailService');
-        await sendOrderConfirmationEmail({
-            orderId: intent.orderId,
-            orderNumber: intent.order.orderNumber,
-            customerName: intent.order.customerName || 'Customer',
-            customerEmail: intent.order.customerEmail || '',
-            items: intent.order.items.map(item => ({
-                name: item.name,
-                quantity: item.quantity,
-                price: Number(item.price)
-            })),
-            subtotal: orderTotal,
-            shipping: 0,
-            total: orderTotal,
-            shippingAddress: `${intent.order.shippingAddress || ''}, ${intent.order.shippingCity || ''}`,
-            paymentMethod: intent.order.paymentMethod || 'online_payment'
-        }).catch(err => {
-            logger.error('Failed to send payment confirmation email', { orderId: intent.orderId, error: err });
-        });
-
-        return { success: true };
+        return { success: true, order: intent.order };
     });
+
+    // 7. Send payment confirmation email (Outside Transaction)
+    if (result.success && result.order) {
+        const order = result.order;
+        const { sendPaymentConfirmationEmail } = await import('@/lib/services/emailService');
+
+        // Non-blocking email send
+        sendPaymentConfirmationEmail({
+            orderId: order.id,
+            orderNumber: order.orderNumber,
+            customerName: order.customerName || 'Customer',
+            customerEmail: order.customerEmail || '',
+            amount: Number(order.totalPrice),
+            paymentMethod: order.paymentMethod || 'online_payment',
+            transactionId: (order as any).paymentIntent?.providerReference || undefined
+        }).catch(err => {
+            logger.error('Failed to send payment confirmation email', { orderId: order.id, error: err });
+        });
+    }
+
+    return { success: true };
 }
 
 /**

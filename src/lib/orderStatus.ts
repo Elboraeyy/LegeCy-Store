@@ -10,6 +10,7 @@ export { OrderStatus };
  * The orderPolicy.ts is the source of truth for role-based authorization.
  */
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  [OrderStatus.Draft]: [OrderStatus.Pending, OrderStatus.Cancelled],
   [OrderStatus.PaymentPending]: [OrderStatus.Pending, OrderStatus.Cancelled],
   [OrderStatus.Pending]: [OrderStatus.Confirmed, OrderStatus.Paid, OrderStatus.Cancelled],
   [OrderStatus.Paid]: [OrderStatus.Confirmed, OrderStatus.Cancelled],

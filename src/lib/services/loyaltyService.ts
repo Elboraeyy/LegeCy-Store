@@ -308,6 +308,79 @@ export async function refundRedeemedPoints(params: {
     return { success: true, pointsRefunded: pointsToRefund };
 }
 
+/**
+ * Reverse earned points (when order is cancelled/refunded after being delivered)
+ */
+export async function reverseEarnedPoints(params: {
+    userId: string;
+    orderId: string;
+}): Promise<{ success: boolean; pointsReversed: number }> {
+    const { userId, orderId } = params;
+
+    // Find earn transaction for this order
+    const earnTx = await prisma.loyaltyTransaction.findFirst({
+        where: {
+            orderId,
+            type: 'EARN'
+        }
+    });
+
+    if (!earnTx) {
+        // No points were earned for this order
+        return { success: true, pointsReversed: 0 };
+    }
+
+    // Check if already reversed
+    const existingReversal = await prisma.loyaltyTransaction.findFirst({
+        where: {
+            orderId,
+            type: 'ADJUST',
+            description: { contains: 'خصم نقاط' }
+        }
+    });
+
+    if (existingReversal) {
+        return { success: true, pointsReversed: 0 };
+    }
+
+    const pointsToReverse = earnTx.points;
+
+    // Process reversal
+    await prisma.$transaction(async (tx) => {
+        const user = await tx.user.findUnique({
+            where: { id: userId },
+            select: { points: true }
+        });
+
+        const currentBalance = user?.points || 0;
+        const newBalance = Math.max(0, currentBalance - pointsToReverse);
+
+        await tx.user.update({
+            where: { id: userId },
+            data: { points: newBalance }
+        });
+
+        await tx.loyaltyTransaction.create({
+            data: {
+                userId,
+                orderId,
+                type: 'ADJUST',
+                points: -pointsToReverse,
+                balance: newBalance,
+                description: `خصم نقاط من الطلب الملغي #${orderId.slice(-6).toUpperCase()}`
+            }
+        });
+
+        // Update order record
+        await tx.order.update({
+            where: { id: orderId },
+            data: { pointsEarned: 0 }
+        });
+    });
+
+    return { success: true, pointsReversed: pointsToReverse };
+}
+
 
 
 /**

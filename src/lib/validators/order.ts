@@ -15,13 +15,18 @@ export const createOrderSchema = z.object({
   firstName: z.string().optional(), // New
   lastName: z.string().optional(),  // New
   alternativePhone: z.string().optional().nullable(), // New
+  customerPhone: z.string().optional(), // New
+  customerEmail: z.string().optional(), // New
   shippingAddress: z.string().optional(), // New
   shippingGovernorate: z.string().optional(), // New
   shippingCity: z.string().optional(), // New
   shippingNotes: z.string().optional().nullable(), // New
   paymentMethod: z.enum(['cod', 'wallet', 'instapay']).optional(),
+  couponCode: z.string().optional(), // New
+  pointsRedeemed: z.number().int().nonnegative().optional(), // New
   options: z.object({
     skipReservation: z.boolean().optional(),
+    status: z.nativeEnum(OrderStatus).optional(), // Allow forcing status (e.g. for Drafts)
   }).optional(),
 });
 

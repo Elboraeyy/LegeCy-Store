@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { Reveal } from "@/components/ui/Reveal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,6 +33,24 @@ export default function CartClient({
   const { cart, addToCart, decFromCart, removeFromCart, isLoading: storeLoading } = useStore();
   const isClient = useIsClient();
   const { t, language } = useLanguage();
+  const router = useRouter();
+
+  // Redirect to home if user just placed an order (prevent cart from showing)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const orderJustPlaced = sessionStorage.getItem('order_just_placed');
+      const redirectHome = sessionStorage.getItem('order_redirect_home');
+      
+      if (orderJustPlaced && redirectHome) {
+        // Clear flags
+        sessionStorage.removeItem('order_just_placed');
+        sessionStorage.removeItem('order_redirect_home');
+        
+        // Redirect to home instead of showing cart
+        router.replace('/');
+      }
+    }
+  }, [router]);
 
   // Dynamic Free Shipping Threshold passed from server
   const FREE_SHIPPING_THRESHOLD = freeShippingThreshold;

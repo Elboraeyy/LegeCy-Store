@@ -6,8 +6,9 @@ export class PartnerService {
   /**
    * Calculate and credit commission for a partner
    */
-  async processCommission(orderId: string, partnerCode: string, orderTotal: number) {
-    const partner = await prisma.partner.findUnique({
+  async processCommission(orderId: string, partnerCode: string, orderTotal: number, tx?: Prisma.TransactionClient) {
+    const db = tx || prisma;
+    const partner = await db.partner.findUnique({
       where: { code: partnerCode }
     });
 
@@ -20,9 +21,9 @@ export class PartnerService {
 
     if (commissionAmount.lte(0)) return;
 
-    await prisma.$transaction(async (tx) => {
+    const execute = async (txClient: Prisma.TransactionClient) => {
       // 1. Create Transaction Record
-      await tx.partnerTransaction.create({
+      await txClient.partnerTransaction.create({
         data: {
           partnerId: partner.id,
           type: 'EARN',
@@ -33,13 +34,19 @@ export class PartnerService {
       });
 
       // 2. Update Wallet Balance
-      await tx.partner.update({
+      await txClient.partner.update({
         where: { id: partner.id },
         data: {
           walletBalance: { increment: commissionAmount }
         }
       });
-    });
+    };
+
+    if (tx) {
+      await execute(tx);
+    } else {
+      await prisma.$transaction(execute);
+    }
 
     logger.info(`Commission processed for ${partnerCode}: ${commissionAmount} EGP on order ${orderId}`);
   }
@@ -69,8 +76,8 @@ export class PartnerService {
       if (!partner) throw new Error("Partner not found");
       if (partner.walletBalance.lt(amount)) throw new Error("Insufficient funds");
 
-      await prisma.$transaction(async (tx) => {
-          await tx.partnerTransaction.create({
+    const execute = async (txClient: Prisma.TransactionClient) => {
+      await txClient.partnerTransaction.create({
               data: {
                   partnerId,
                   type: 'PAYOUT',
@@ -80,11 +87,13 @@ export class PartnerService {
               }
           });
 
-          await tx.partner.update({
+        await txClient.partner.update({
               where: { id: partnerId },
               data: { walletBalance: { decrement: amount } }
           });
-      });
+    };
+
+    await prisma.$transaction(execute);
       
       return true;
   }

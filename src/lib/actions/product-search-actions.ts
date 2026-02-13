@@ -12,7 +12,23 @@ export async function searchAdminProducts(query: string) {
             ]
         },
         take: 20,
-        select: { id: true, name: true }
+        select: {
+            id: true,
+            name: true,
+            imageUrl: true,
+            variants: {
+                select: {
+                    id: true,
+                    sku: true,
+                    price: true,
+                    inventory: {
+                        select: {
+                            available: true
+                        }
+                    }
+                }
+            }
+        }
     });
 
     // If we want to search by SKU we need relation filter
@@ -25,7 +41,23 @@ export async function searchAdminProducts(query: string) {
             }
         },
         take: 20,
-        select: { id: true, name: true }
+        select: {
+            id: true,
+            name: true,
+            imageUrl: true,
+            variants: {
+                select: {
+                    id: true,
+                    sku: true,
+                    price: true,
+                    inventory: {
+                        select: {
+                            available: true
+                        }
+                    }
+                }
+            }
+        }
     });
 
     // Merge and dedup

@@ -13,8 +13,9 @@ export const orderFinancialService = {
      * Handle Payment Received (Online)
      * DR Cash, CR Deferred Revenue
      */
-    async recordPaymentReceipt(orderId: string) {
-        const order = await prisma.order.findUnique({ where: { id: orderId } });
+    async recordPaymentReceipt(orderId: string, tx?: Prisma.TransactionClient) {
+        const db = tx || prisma;
+        const order = await db.order.findUnique({ where: { id: orderId } });
         if (!order || order.paymentMethod === 'cod') return;
 
         const orderRef = `ORD-${orderId.substring(0, 8)}-PAID`;
@@ -37,7 +38,7 @@ export const orderFinancialService = {
             reference: orderRef,
             orderId: orderId,
             createdBy: 'system'
-        });
+        }, tx);
 
         logger.info(`[Financial] Payment recorded for ${orderId}`);
     },
@@ -46,10 +47,10 @@ export const orderFinancialService = {
      * Recognize Revenue on Delivery
      * Handled in a strict transaction
      */
-    async recognizeRevenue(orderId: string, triggeredBy: string = 'system') {
+    async recognizeRevenue(orderId: string, triggeredBy: string = 'system', tx?: Prisma.TransactionClient) {
         try {
-            const result = await prisma.$transaction(async (tx) => {
-                const order = await tx.order.findUnique({
+            const executeLogic = async (txClient: Prisma.TransactionClient) => {
+                const order = await txClient.order.findUnique({
                     where: { id: orderId },
                     include: {
                         items: { include: { variant: true } },
@@ -121,7 +122,7 @@ export const orderFinancialService = {
                         totalCogs = totalCogs.plus(itemCost);
                     } else if (item.variantId) {
                         // Fallback: fetch current cost if not snapshotted (Audit Risk: deviation over time)
-                        const variant = await tx.variant.findUnique({ where: { id: item.variantId } });
+                        const variant = await txClient.variant.findUnique({ where: { id: item.variantId } });
                         if (variant?.costPrice) {
                             const currentCost = new Prisma.Decimal(variant.costPrice).mul(item.quantity);
                             totalCogs = totalCogs.plus(currentCost);
@@ -137,7 +138,7 @@ export const orderFinancialService = {
                     cogs: totalCogs.toString()
                 });
                 // Create Record
-                const recog = await tx.revenueRecognition.create({
+                const recog = await txClient.revenueRecognition.create({
                     data: {
                         orderId,
                         grossRevenue: totalBilledAmount,
@@ -203,21 +204,43 @@ export const orderFinancialService = {
                         ]
                     });
 
-                    await tx.revenueRecognition.update({
+                    await txClient.revenueRecognition.update({
                         where: { orderId },
                         data: { cogsJournalId: cogsJournalEntry.id }
                     });
                 }
 
                 return recog;
-            }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }); // End Transaction
+                return recog;
+            };
 
-            // Post-Commit Actions (Outside TX)
+            // If tx provided, use it (Note: Independence of isolation level relies on caller)
+            // If not, create new Serializable transaction
+            let result;
+            if (tx) {
+                 result = await executeLogic(tx);
+            } else {
+                 result = await prisma.$transaction(executeLogic, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+            }
+
+            // Post-Commit Actions (Outside TX) - Logic remains same, but if tx passed, caller handles commit?
+            // Actually, if tx is passed, we are INSIDE a transaction. The side effects below (Partner Commission)
+            // should probably also be threaded if they need to be atomic, OR they run after this function returns.
+            // But since this function returns `result` (the recognition), and the caller awaits it...
+            
+            // Partner commission does its OWN transaction normally.
+            // If we are in a parent transaction, we should potentially thread it too?
+            // Partner commission uses `prisma` global.
+            // If we are in a transaction, calling partnerService.processCommission (which uses prisma.$transaction new)
+            // is technically allowed (nested/independent) BUT deadlock risk if it touches same rows.
+            // Partner tables are different. Likely safe.
+
             if (result) {
                 // Process Partner Commission
-                const order = await prisma.order.findUnique({ where: { id: orderId }, include: { coupon: true } });
+                const db = tx || prisma;
+                const order = await db.order.findUnique({ where: { id: orderId }, include: { coupon: true } });
                 if (order?.coupon?.code) {
-                    await partnerService.processCommission(orderId, order.coupon.code, Number(order.totalPrice))
+                    await partnerService.processCommission(orderId, order.coupon.code, Number(order.totalPrice), tx)
                         .catch(e => logger.error(`Commission failed`, e));
                 }
             }
