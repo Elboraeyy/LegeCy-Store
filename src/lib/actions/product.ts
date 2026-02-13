@@ -26,6 +26,7 @@ export interface ProductInput {
     brandId?: string;
     materialId?: string;
     warehouseId?: string;
+    costPrice?: number;
 
     // New Fields
     showInNewArrivals?: boolean;
@@ -87,6 +88,7 @@ export async function createProductAction(data: ProductInput) {
                 categoryId: data.categoryId || null,
                 brandId: data.brandId || null,
                 materialId: data.materialId || null,
+                costPrice: data.costPrice ? new Decimal(data.costPrice) : null,
 
                 // New Fields
                 showInNewArrivals: data.showInNewArrivals ?? true,
@@ -122,6 +124,7 @@ export async function createProductAction(data: ProductInput) {
                 productId: p.id,
                 sku: data.sku,
                 price: new Decimal(data.price),
+                costPrice: data.costPrice ? new Decimal(data.costPrice) : null,
             }
         });
 
@@ -168,6 +171,7 @@ export async function updateProductAction(id: string, data: ProductInput) {
             detailedDescription: data.detailedDescription,
             detailedDescriptionAr: data.detailedDescriptionAr,
             imageUrl: data.imageUrl,
+            costPrice: data.costPrice ? new Decimal(data.costPrice) : undefined,
 
             // New Fields
             showInNewArrivals: data.showInNewArrivals,
@@ -205,6 +209,7 @@ export async function updateProductAction(id: string, data: ProductInput) {
             data: {
                 sku: data.sku,
                 price: new Decimal(data.price),
+                costPrice: data.costPrice ? new Decimal(data.costPrice) : undefined,
             }
         });
 

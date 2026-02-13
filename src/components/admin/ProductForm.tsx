@@ -34,6 +34,7 @@ interface ProductFormProps {
         variants: { sku: string; price: number }[]; 
         stock?: number;
         compareAtPrice?: number | null;
+        costPrice?: number | null;
         status?: string;
         categoryId?: string | null;
         brandId?: string | null;
@@ -163,7 +164,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const [supplierId, setSupplierId] = useState("");
     const [invoiceNumber, setInvoiceNumber] = useState("");
     const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
-    const [unitCost, setUnitCost] = useState(""); 
+    const [unitCost, setUnitCost] = useState(initialData?.costPrice?.toString() || ""); 
     
     const title = initialData ? "Edit Product" : "Create Product";
     const action = initialData ? "Save Changes" : "Create Product";
@@ -190,6 +191,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 sku,
                 price: parseFloat(price),
                 compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
+                costPrice: unitCost ? parseFloat(unitCost) : undefined,
                 imageUrl,
                 gallery,
                 stock: stock ? parseInt(stock) : undefined,
@@ -515,9 +517,13 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                              <label className="stat-label" style={{ fontSize: '11px' }}>Selling Price (EGP)</label>
                              <input className="form-input" type="number" value={price} onChange={e => setPrice(e.target.value)} required />
                         </div>
-                         <div className="admin-form-group">
-                             <label className="stat-label" style={{ fontSize: '11px' }}>Compare At Price (Optional)</label>
-                             <input className="form-input" type="number" value={compareAtPrice} onChange={e => setCompareAtPrice(e.target.value)} />
+                        <div className="admin-form-group">
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Compare At Price (Optional)</label>
+                            <input className="form-input" type="number" value={compareAtPrice} onChange={e => setCompareAtPrice(e.target.value)} />
+                        </div>
+                        <div className="admin-form-group">
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Purchase Price / سعر الشراء</label>
+                            <input className="form-input" type="number" placeholder="0.00" value={unitCost} onChange={e => setUnitCost(e.target.value)} />
                         </div>
                     </div>
 
@@ -529,10 +535,6 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                             <div className="admin-form-group">
                                 <label className="stat-label" style={{ fontSize: '11px' }}>Supplier</label>
                                 <SupplierSelect value={supplierId} onChange={setSupplierId} />
-                            </div>
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Cost Price (Unit)</label>
-                                <input className="form-input" type="number" placeholder="0.00" value={unitCost} onChange={e => setUnitCost(e.target.value)} />
                             </div>
                         </div>
 
