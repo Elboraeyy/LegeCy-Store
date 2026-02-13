@@ -4,7 +4,6 @@ import prisma from '@/lib/prisma';
 import { OrderStatus } from '@/lib/orderStatus';
 import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
-import { getLoyaltySettings } from '@/lib/services/loyaltyService';
 import { FraudCheckResult } from '@/lib/services/fraudService';
 import { logger } from '@/lib/logger';
 import { sendOrderConfirmationEmail } from '@/lib/services/emailService';
