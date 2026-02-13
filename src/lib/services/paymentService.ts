@@ -243,9 +243,7 @@ export async function processZombieOrders() {
     let count = 0;
     for (const zombie of zombies) {
         try {
-            await prisma.$transaction(async (_tx) => {
-                await internalCancelOrder(zombie.id, 'Abandoned Checkout (Zombie)');
-            });
+            await internalCancelOrder(zombie.id, 'Abandoned Checkout (Zombie)');
             count++;
         } catch (e) {
             logger.error(`[Cleanup] Failed to crush zombie order ${zombie.id}`, { error: e });

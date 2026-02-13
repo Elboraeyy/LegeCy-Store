@@ -37,12 +37,10 @@ export async function GET(req: NextRequest) {
         // 4. Cancel Orders (One by one to prevent total failure)
         const results = await Promise.allSettled(
             abandonedOrders.map(async (order) => {
-                return prisma.$transaction(async (_tx) => {
-                    await internalCancelOrder(
-                        order.id,
-                        'System Auto-Cancellation: Payment Timeout'
-                    );
-                });
+                return internalCancelOrder(
+                    order.id,
+                    'System Auto-Cancellation: Payment Timeout'
+                );
             })
         );
 

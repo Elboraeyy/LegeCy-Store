@@ -4,6 +4,8 @@ import prisma from '@/lib/prisma';
 import { OrderStatus } from '@/lib/orderStatus';
 import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { getLoyaltySettings } from '@/lib/services/loyaltyService';
+import { FraudCheckResult } from '@/lib/services/fraudService';
 import { logger } from '@/lib/logger';
 import { sendOrderConfirmationEmail } from '@/lib/services/emailService';
 
@@ -251,7 +253,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       || 'unknown';
 
     // Run fraud check in parallel if COD
-    let fraudCheckPromise: Promise<any> | null = null;
+    let fraudCheckPromise: Promise<FraudCheckResult> | null = null;
     if (input.paymentMethod === 'cod') {
       const { analyzeRisk } = await import('@/lib/services/fraudService');
 
@@ -269,11 +271,11 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     // Wait for fraud check if COD
     if (fraudCheckPromise) {
       const fraudAnalysis = await fraudCheckPromise;
-      if ((fraudAnalysis as any).shouldBlock) {
+      if (fraudAnalysis.shouldBlock) {
         logger.warn('COD Order blocked by fraud detection', {
           email: input.customerEmail,
-          score: (fraudAnalysis as any).riskScore,
-          reasons: (fraudAnalysis as any).factors
+          score: fraudAnalysis.riskScore,
+          reasons: fraudAnalysis.factors
         });
         return {
           success: false,
@@ -689,25 +691,4 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
   }
 }
 
-/**
- * Helper to get the correct warehouse for fulfillment.
- * Improved Logic:
- * 1. Priority: Active 'MAIN' warehouse.
- * 2. Fallback: First created Active warehouse (stable fallback).
- */
-async function _getDefaultWarehouse(tx: Prisma.TransactionClient) {
-  // Priority 1: Main Warehouse
-  let warehouse = await tx.warehouse.findFirst({
-    where: { type: 'MAIN', isActive: true }
-  });
 
-  // Priority 2: Fallback to any active warehouse (oldest first for stability)
-  if (!warehouse) {
-    warehouse = await tx.warehouse.findFirst({
-      where: { isActive: true },
-      orderBy: { createdAt: 'asc' }
-    });
-  }
-
-  return warehouse;
-}

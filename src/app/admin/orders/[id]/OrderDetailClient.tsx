@@ -3,7 +3,7 @@
 import React from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
-import { Order, OrderHistoryItem } from '@/types/order';
+import { Order } from '@/types/order';
 
 import StatusUpdateControl from '@/components/admin/StatusUpdateControl';
 import BackButton from '@/components/admin/BackButton';
@@ -20,10 +20,7 @@ import {
     Mail,
     Phone,
     MapPin,
-    MessageCircle,
-    CheckCircle,
-    Copy,
-    ExternalLink
+    MessageCircle
 } from 'lucide-react';
 import styles from '../OrderDetails.module.css';
 

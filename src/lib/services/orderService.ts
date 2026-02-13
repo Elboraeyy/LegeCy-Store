@@ -90,13 +90,15 @@ export async function updateOrderStatus(
     orderId: string, 
     newStatus: OrderStatus, 
     actor: ActorRole = 'system', 
-    actorId?: string 
+  actorId?: string,
+  reason?: string
 ): Promise<Order> {
   await orderStateService.transitionOrder({
     orderId,
     newStatus,
     actor,
     actorId,
+    reason,
   });
 
   const updated = await prisma.order.findUnique({
@@ -272,6 +274,6 @@ function mapToOrderItem(item: PrismaOrderItem) {
     };
 }
 
-export async function internalCancelOrder(orderId: string, _reason?: string) {
-  return await updateOrderStatus(orderId, OrderStatus.Cancelled, 'system');
+export async function internalCancelOrder(orderId: string, reason?: string) {
+  return await updateOrderStatus(orderId, OrderStatus.Cancelled, 'system', undefined, reason);
 }
