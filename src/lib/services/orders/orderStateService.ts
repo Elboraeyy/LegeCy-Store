@@ -24,6 +24,8 @@ interface OrderEventInput {
     metadata?: Record<string, unknown>;
 }
 
+type OrderWithItems = Prisma.OrderGetPayload<{ include: { items: true } }>;
+
 export const orderStateService = {
     /**
      * Centralized method to transition an order status and trigger all side effects
@@ -43,7 +45,7 @@ export const orderStateService = {
         try {
             return await prisma.$transaction(async (tx) => {
             // 1. Fetch Order
-            const order = await tx.order.findUnique({
+                const order = await tx.order.findUnique({
                 where: { id: orderId },
                 include: { items: true, revenueRecognition: true }
             });
@@ -55,7 +57,7 @@ export const orderStateService = {
             validateOrderTransition(currentStatus, newStatus, actor);
 
             // 3. Update Order Status
-            await tx.order.update({
+                await tx.order.update({
                 where: { id: orderId },
                 data: {
                     status: newStatus,
@@ -268,12 +270,12 @@ export const orderStateService = {
         }
     },
 
-    async _getDefaultWarehouseId(db: Prisma.TransactionClient | typeof prisma) {
-        const w = await db.warehouse.findFirst({ where: { type: 'MAIN' } }) || await db.warehouse.findFirst();
+    async _getDefaultWarehouseId(tx: Prisma.TransactionClient | typeof prisma) {
+        const w = await tx.warehouse.findFirst({ where: { type: 'MAIN' } }) || await tx.warehouse.findFirst();
         return w?.id;
     },
 
-    async _commitStockForFulfillment(order: any, tx: Prisma.TransactionClient) {
+    async _commitStockForFulfillment(order: OrderWithItems, tx: Prisma.TransactionClient) {
         for (const item of order.items) {
             if (item.variantId) {
                 // Use item's warehouse if set, otherwise default
@@ -281,7 +283,7 @@ export const orderStateService = {
                 if (warehouseId) {
                     try {
                         await inventoryService.commitStock(tx, warehouseId, item.variantId, item.quantity);
-                    } catch (e: any) {
+                    } catch (e: unknown) {
                         // warning only, as stock might have been committed by paymentService already for Online orders?
                         // actually paymentService commits on "Paid".
                         // If order is "Paid" (Online), stock is committed.
@@ -307,11 +309,11 @@ export const orderStateService = {
                         // For COD Orders, we DO need to commit on Ship (or Deliver).
 
                         if (order.paymentMethod === 'cod') {
-                            logger.warn(`Failed to commit stock for ${item.variantId} in order ${order.id}`, e);
+                            logger.warn(`Failed to commit stock for ${item.variantId} in order ${order.id}`, { error: e });
                             throw e; // Fail the transition if COD stock can't be committed
                         } else {
                             // Online order, likely already committed.
-                            logger.info(`Stock commit skipped/failed for ${item.variantId} (likely already committed)`, { error: e.message || e });
+                            logger.info(`Stock commit skipped/failed for ${item.variantId} (likely already committed)`, { error: e instanceof Error ? e.message : String(e) });
                         }
                     }
                 }

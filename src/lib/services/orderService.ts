@@ -53,7 +53,7 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
             status: data.options?.status || (data.paymentMethod === 'cod' ? OrderStatus.Pending : OrderStatus.PaymentPending),
                 userId: data.userId, // Link order to user
                 paymentMethod: data.paymentMethod || 'cod',
-            couponId: (data as any).couponId || undefined,
+            couponId: (data as unknown as { couponId?: string }).couponId || undefined,
             pointsRedeemed: data.pointsRedeemed || 0,
             firstName: data.firstName,
             lastName: data.lastName,
@@ -272,6 +272,6 @@ function mapToOrderItem(item: PrismaOrderItem) {
     };
 }
 
-export async function internalCancelOrder(orderId: string, reason?: string) {
+export async function internalCancelOrder(orderId: string, _reason?: string) {
   return await updateOrderStatus(orderId, OrderStatus.Cancelled, 'system');
 }

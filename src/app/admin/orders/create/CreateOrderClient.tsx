@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createManualOrder, searchCustomersAction, validateCouponAction } from '@/lib/actions/order';
@@ -9,6 +9,7 @@ import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
 import { OrderStatus } from '@/types/order';
+import { CouponData } from '@/lib/actions/coupons';
 
 interface Variant {
     id: string;
@@ -35,7 +36,7 @@ interface Customer {
     orders?: {
         id: string;
         createdAt: Date | string;
-        totalPrice: any;
+        totalPrice: number | { toNumber: () => number };
         status: string;
     }[];
 }
@@ -87,7 +88,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
 
     // Coupon & Shipping
     const [couponCode, setCouponCode] = useState('');
-    const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+    const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
     const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
     const [shippingCost, setShippingCost] = useState(0);
 
@@ -100,7 +101,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
         const timer = setTimeout(async () => {
             setIsSearchingCustomers(true);
             const results = await searchCustomersAction(customerQuery);
-            setCustomers(results as any);
+            setCustomers(results as unknown as Customer[]);
             setIsSearchingCustomers(false);
         }, 500);
         return () => clearTimeout(timer);
@@ -114,7 +115,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
         const timer = setTimeout(async () => {
             setIsSearchingProducts(true);
             const results = await searchAdminProducts(productQuery);
-            setProducts(results as any);
+            setProducts(results as unknown as Product[]);
             setIsSearchingProducts(false);
         }, 500);
         return () => clearTimeout(timer);
@@ -202,7 +203,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
                 setAppliedCoupon(null);
                 toast.error(('error' in result ? result.error : result.message) || 'Invalid coupon');
             }
-        } catch (err) {
+        } catch {
             toast.error('Failed to validate coupon');
         } finally {
             setIsValidatingCoupon(false);
@@ -444,7 +445,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
                                 <AdminDropdown
                                     options={[
                                         { value: '', label: 'Select Governorate...' },
-                                        ...egyptGovernorates.map(gov => ({ value: gov, label: (t.governorates as any)?.[gov] || gov }))
+                                        ...egyptGovernorates.map(gov => ({ value: gov, label: (t.governorates as Record<string, string>)?.[gov] || gov }))
                                     ]}
                                     value={governorate}
                                     onChange={setGovernorate}

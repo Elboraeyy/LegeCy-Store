@@ -269,11 +269,11 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     // Wait for fraud check if COD
     if (fraudCheckPromise) {
       const fraudAnalysis = await fraudCheckPromise;
-      if (fraudAnalysis.shouldBlock) {
+      if ((fraudAnalysis as any).shouldBlock) {
         logger.warn('COD Order blocked by fraud detection', {
           email: input.customerEmail,
-          score: fraudAnalysis.riskScore,
-          reasons: fraudAnalysis.factors
+          score: (fraudAnalysis as any).riskScore,
+          reasons: (fraudAnalysis as any).factors
         });
         return {
           success: false,
@@ -695,7 +695,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
  * 1. Priority: Active 'MAIN' warehouse.
  * 2. Fallback: First created Active warehouse (stable fallback).
  */
-async function getDefaultWarehouse(tx: Prisma.TransactionClient) {
+async function _getDefaultWarehouse(tx: Prisma.TransactionClient) {
   // Priority 1: Main Warehouse
   let warehouse = await tx.warehouse.findFirst({
     where: { type: 'MAIN', isActive: true }

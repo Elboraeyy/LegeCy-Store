@@ -3,6 +3,7 @@
 import React from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
+import { Order, OrderHistoryItem } from '@/types/order';
 
 import StatusUpdateControl from '@/components/admin/StatusUpdateControl';
 import BackButton from '@/components/admin/BackButton';
@@ -68,7 +69,7 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
         return entry ? formatDate(entry.createdAt) : undefined;
     };
 
-    const getWhatsAppUrl = (order: any): string | null => {
+    const getWhatsAppUrl = (order: Order): string | null => {
         const phone = order.customerPhone || order.alternativePhone;
         if (!phone || (typeof phone === 'string' && !phone.trim())) {
             return null;
@@ -98,7 +99,7 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
             }
 
             const isCod = order.paymentMethod === 'cod';
-            const customerName = order.firstName || order.customerName || (isRtl ? 'عميلنا العزيز' : 'Dear Customer');
+            const customerName = order.firstName || order.user?.name || (isRtl ? 'عميلنا العزيز' : 'Dear Customer');
             const orderId = order.orderNumber || order.id.slice(0, 8).toUpperCase();
             const total = formatCurrency(order.totalPrice || 0);
             const address = `${order.shippingAddress || ''}, ${order.shippingCity || ''}`;

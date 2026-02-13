@@ -3,6 +3,7 @@ import prisma from '../prisma';
 import { inventoryService } from './inventoryService';
 import { getDefaultWarehouseId, internalCancelOrder } from './orderService';
 import { OrderStatus } from '../orderStatus';
+import { Order } from '@/types/order';
 import { PaymentError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 
@@ -123,7 +124,7 @@ export async function confirmPaymentIntent(intentId: string) {
             customerEmail: order.customerEmail || '',
             amount: Number(order.totalPrice),
             paymentMethod: order.paymentMethod || 'online_payment',
-            transactionId: (order as any).paymentIntent?.providerReference || undefined
+            transactionId: (order as unknown as Order & { paymentIntent?: { providerReference: string | null } }).paymentIntent?.providerReference || undefined
         }).catch(err => {
             logger.error('Failed to send payment confirmation email', { orderId: order.id, error: err });
         });
@@ -242,7 +243,7 @@ export async function processZombieOrders() {
     let count = 0;
     for (const zombie of zombies) {
         try {
-            await prisma.$transaction(async (tx) => {
+            await prisma.$transaction(async (_tx) => {
                 await internalCancelOrder(zombie.id, 'Abandoned Checkout (Zombie)');
             });
             count++;

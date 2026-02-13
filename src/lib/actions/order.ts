@@ -112,7 +112,6 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
 
         // 1. Resolve customer info
         let userId: string | undefined;
-        let customerName: string;
         let customerPhone: string;
         let customerEmail: string | undefined;
         let firstName: string | undefined;
@@ -125,7 +124,6 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
                 select: { name: true, phone: true, email: true }
             });
             if (!existingUser) throw new Error('Customer not found');
-            customerName = existingUser.name || 'Customer';
             customerPhone = existingUser.phone || '';
             customerEmail = existingUser.email || undefined;
 
@@ -144,7 +142,6 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
                 }
             });
             userId = newUser.id;
-            customerName = input.customer.name;
             customerPhone = input.customer.phone;
             customerEmail = input.customer.email;
 
@@ -219,7 +216,7 @@ export async function validateCouponAction(code: string, cartTotal: number) {
         await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
         const result = await validateCoupon(code, cartTotal);
         return result;
-    } catch (error) {
+    } catch {
         return { isValid: false, message: 'فشل التحقق من الكوبون' };
     }
 }
