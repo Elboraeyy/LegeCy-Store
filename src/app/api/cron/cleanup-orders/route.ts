@@ -39,7 +39,6 @@ export async function GET(req: NextRequest) {
             abandonedOrders.map(async (order) => {
                 return prisma.$transaction(async (tx) => {
                     await internalCancelOrder(
-                        tx,
                         order.id,
                         'System Auto-Cancellation: Payment Timeout'
                     );

@@ -111,6 +111,7 @@ export async function confirmPaymentIntent(intentId: string) {
         const { sendOrderConfirmationEmail } = await import('@/lib/services/emailService');
         await sendOrderConfirmationEmail({
             orderId: intent.orderId,
+            orderNumber: intent.order.orderNumber,
             customerName: intent.order.customerName || 'Customer',
             customerEmail: intent.order.customerEmail || '',
             items: intent.order.items.map(item => ({
@@ -242,7 +243,7 @@ export async function processZombieOrders() {
     for (const zombie of zombies) {
         try {
             await prisma.$transaction(async (tx) => {
-                 await internalCancelOrder(tx, zombie.id, 'Abandoned Checkout (Zombie)');
+                await internalCancelOrder(zombie.id, 'Abandoned Checkout (Zombie)');
             });
             count++;
         } catch (e) {

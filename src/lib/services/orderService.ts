@@ -260,3 +260,7 @@ function mapToOrderItem(item: PrismaOrderItem) {
         quantity: item.quantity
     };
 }
+
+export async function internalCancelOrder(orderId: string, reason?: string) {
+  return await updateOrderStatus(orderId, OrderStatus.Cancelled, 'system');
+}

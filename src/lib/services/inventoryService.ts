@@ -1,3 +1,4 @@
+import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { INVENTORY_POLICIES } from '@/lib/policies/inventoryPolicy';
 import { OrderStatus } from '@/lib/orderStatus';
@@ -195,5 +196,27 @@ export const inventoryService = {
       const err = e instanceof Error ? e : new Error(String(e));
       logger.warn('Could not emit stock event', { error: err.message });
     }
+  },
+
+  async getInventoryByWarehouse(warehouseId: string) {
+    return await prisma.inventory.findMany({
+      where: { warehouseId, available: { gt: 0 } },
+      include: {
+        variant: {
+          include: {
+            product: {
+              include: { images: true }
+            }
+          }
+        }
+      }
+    }).then(items => items.map(item => ({
+      variantId: item.variantId,
+      sku: item.variant.sku,
+      productName: item.variant.product.name,
+      productImage: item.variant.product.images[0]?.url || null, // ProductImage model has url. Product has images[]
+      available: item.available,
+      reserved: item.reserved
+    })));
   }
 };

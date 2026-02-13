@@ -2,14 +2,17 @@ import React from 'react';
 import { OrderStatus } from '@/types/order';
 
 const STATUS_COLORS: Record<OrderStatus, { bg: string; color: string }> = {
-  [OrderStatus.Pending]: { bg: '#fff4e5', color: '#b76e00' },   // Orange-ish
-  [OrderStatus.Paid]: { bg: '#e6f4ea', color: '#137333' },      // Green
-  [OrderStatus.Shipped]: { bg: '#e8f0fe', color: '#1967d2' },   // Blue
-  [OrderStatus.Delivered]: { bg: '#ceead6', color: '#0d652d' }, // Darker Green
-  [OrderStatus.CashReceived]: { bg: '#c6f7e2', color: '#0d652d' }, // Green (COD completed)
-  [OrderStatus.Cancelled]: { bg: '#fce8e6', color: '#c5221f' }, // Red
-  [OrderStatus.PaymentPending]: { bg: '#fff8e1', color: '#f57c00' }, // Amber
-  [OrderStatus.PaymentFailed]: { bg: '#ffebee', color: '#d32f2f' },  // Light Red
+  [OrderStatus.Pending]: { bg: 'bg-yellow-100', color: 'text-yellow-800' },
+  [OrderStatus.PaymentPending]: { bg: 'bg-purple-100', color: 'text-purple-800' },
+  [OrderStatus.Confirmed]: { bg: 'bg-cyan-100', color: 'text-cyan-800' },
+  [OrderStatus.Preparing]: { bg: 'bg-amber-100', color: 'text-amber-800' },
+  [OrderStatus.Paid]: { bg: 'bg-green-100', color: 'text-green-800' },
+  [OrderStatus.Shipped]: { bg: 'bg-indigo-100', color: 'text-indigo-800' },
+  [OrderStatus.Delivered]: { bg: 'bg-green-100', color: 'text-green-800' },
+  [OrderStatus.CashReceived]: { bg: 'bg-emerald-100', color: 'text-emerald-800' },
+  [OrderStatus.Cancelled]: { bg: 'bg-red-100', color: 'text-red-800' },
+  [OrderStatus.Refunded]: { bg: 'bg-gray-100', color: 'text-gray-800' },
+  [OrderStatus.PaymentFailed]: { bg: 'bg-red-50', color: 'text-red-600' },
 };
 
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {

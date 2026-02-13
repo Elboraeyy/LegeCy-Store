@@ -97,6 +97,10 @@ export const adminDictionary = {
         refunded: "Refunded",
         payment_failed: "Payment Failed"
       },
+      failed_payments: {
+        hide: "Less",
+        details: "More"
+      },
       table: {
         id: "Order ID",
         order: "Order",
@@ -3197,6 +3201,10 @@ export const adminDictionary = {
         partially_refunded: "استرجاع جزئي",
         refunded: "استرجاع",
         payment_failed: "فشل الدفع"
+      },
+      failed_payments: {
+        hide: "إخفاء",
+        details: "التفاصيل"
       },
       table: {
         id: "رقم الطلب",

@@ -37,6 +37,8 @@ export const dictionary = {
       browse_all_products: "Browse All Products",
       free_shipping: "Free Shipping",
       free_shipping_orders_over: "Free shipping on orders over",
+      recent_searches: "Recent Searches",
+      clear_all: "Clear All",
     },
     nav: {
       home: "Home",
@@ -1201,6 +1203,8 @@ export const dictionary = {
       browse_all_products: "تصفح كل المنتجات",
       free_shipping: "شحن مجاني",
       free_shipping_orders_over: "شحن مجاني للطلبات فوق",
+      recent_searches: "اخر عمليات بحث",
+      clear_all: "مسح الكل"
     },
     nav: {
       home: "الرئيسية",
@@ -1496,6 +1500,10 @@ export const dictionary = {
       brand: "البراند",
       material: "الخامة",
       category: "القسم",
+      movement: "الماكينة",
+      case: "الإطار",
+      water_resistance: "مقاومة الماء",
+      glass: "الزجاج",
       shipping_returns: "الشحن والاسترجاع",
 
       // Detailed Specs
@@ -2300,6 +2308,7 @@ export const dictionary = {
         items: "المنتجات",
         shipping: "بيانات الشحن",
         payment: "طريقة الدفع",
+        free: "مجاني",
         summary: {
           subtotal: "المجموع الفرعي",
           discount: "الخصم",

@@ -44,6 +44,7 @@ export async function GET(request: Request) {
         console.log('📧 Sending ORDER CONFIRMATION test email...');
         result = await sendOrderConfirmationEmail({
           orderId: 'TEST-' + Date.now().toString(36).toUpperCase(),
+          orderNumber: 12345,
           customerName: 'Test Customer',
           customerEmail: email,
           items: [

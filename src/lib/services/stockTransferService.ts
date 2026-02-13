@@ -125,5 +125,9 @@ export const stockTransferService = {
           orderBy: { createdAt: 'desc' },
           include: { fromWarehouse: true, toWarehouse: true, items: true }
       });
+    },
+
+    async fetchInventoryForTransfer(warehouseId: string) {
+        return await inventoryService.getInventoryByWarehouse(warehouseId);
   }
 };
