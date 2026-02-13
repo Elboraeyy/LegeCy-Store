@@ -314,6 +314,11 @@ export default function CheckoutClient() {
         variantId: item.variantId || null,
       }));
 
+      // Show optimistic success message immediately
+      toast.success(language === 'ar' ? 'جاري إنشاء الطلب...' : 'Creating your order...', {
+        duration: 2000
+      });
+
       const result = await placeOrderWithShipping({
         ...form,
         cartItems,
@@ -323,21 +328,34 @@ export default function CheckoutClient() {
       });
 
       if (result.success && result.orderId) {
+        // Set flag to prevent cart from showing after order
+        sessionStorage.setItem('order_just_placed', result.orderId);
+        sessionStorage.setItem('order_redirect_home', 'true');
+        
+        // Clear cart and form immediately
+        clearCart();
+        clearFormStorage();
+        localStorage.removeItem('cart'); // Ensure cart is cleared from localStorage
+        
         if (result.paymentUrl) { 
-          // Check if it is a manual wallet payment (no URL redirection needed usually, but logic might vary)
-          // For manual wallet, we might NOT get a paymentUrl if we changed the backend to "pending"
-          // But if we did get one (e.g., Paymob), redirect.
-
+          // For payment gateway redirect - store orderId for redirect after payment
+          sessionStorage.setItem('pending_order_id', result.orderId);
           window.location.href = result.paymentUrl;
           return;
         }
 
-        // Success (COD or Manual Wallet)
+        // Success - Redirect immediately to order page (background tasks continue)
         setIsRedirecting(true);
-        clearCart();
-        clearFormStorage();
-        toast.success(t.messages.order_success);
-        router.push(`/orders/${result.orderId}`);
+        
+        // Use replace to prevent back button from going to cart
+        router.replace(`/orders/${result.orderId}`);
+        
+        // Show success toast after redirect starts
+        setTimeout(() => {
+          toast.success(t.messages.order_success, {
+            duration: 3000
+          });
+        }, 100);
       } else {
         toast.error(result.error || t.messages.error_occurred);
         setIsLoading(false); // Only turn off loading on error
@@ -396,7 +414,7 @@ export default function CheckoutClient() {
 
   return (
     <main className={styles.checkoutPage}>
-      {/* Loading Overlay */}
+      {/* Loading Overlay - Improved UX */}
       {isLoading && (
         <div style={{
           position: 'fixed',
@@ -404,8 +422,8 @@ export default function CheckoutClient() {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(4px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(8px)',
           zIndex: 9999,
           display: 'flex',
           flexDirection: 'column',
@@ -413,24 +431,63 @@ export default function CheckoutClient() {
           justifyContent: 'center',
         }}>
           <div style={{
-            width: 48,
-            height: 48,
+            width: 64,
+            height: 64,
             border: '4px solid #e5e7eb',
             borderTopColor: '#12403C',
             borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
+            animation: 'spin 0.8s linear infinite',
+            marginBottom: 24
           }} />
           <style jsx>{`
             @keyframes spin {
               to { transform: rotate(360deg); }
             }
           `}</style>
-          <p style={{ marginTop: 16, fontSize: 18, fontWeight: 600, color: '#12403C' }}>
+          <p style={{ 
+            marginTop: 0, 
+            fontSize: 20, 
+            fontWeight: 600, 
+            color: '#12403C',
+            marginBottom: 8
+          }}>
             {t.checkout.processing}
           </p>
-          <p style={{ marginTop: 8, color: '#6b7280' }}>
-            {language === 'ar' ? 'برجاء الانتظار، جاري تحويلك...' : 'Please wait, redirecting...'}
+          <p style={{ 
+            marginTop: 0, 
+            color: '#6b7280',
+            fontSize: 14,
+            textAlign: 'center',
+            maxWidth: 300
+          }}>
+            {language === 'ar' 
+              ? 'جاري معالجة طلبك... سيتم تحويلك قريباً' 
+              : 'Processing your order... You will be redirected shortly'}
           </p>
+          {/* Progress indicator */}
+          <div style={{
+            marginTop: 24,
+            width: 200,
+            height: 3,
+            backgroundColor: '#e5e7eb',
+            borderRadius: 2,
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              width: '100%',
+              height: '100%',
+              backgroundColor: '#12403C',
+              animation: 'progress 1.5s ease-in-out infinite',
+              transformOrigin: 'left'
+            }} />
+          </div>
+          <style jsx>{`
+            @keyframes progress {
+              0% { transform: translateX(-100%); }
+              50% { transform: translateX(0%); }
+              100% { transform: translateX(100%); }
+            }
+          `}</style>
         </div>
       )}
 
