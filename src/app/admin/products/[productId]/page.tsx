@@ -22,7 +22,10 @@ export default async function EditProductPage({ params }: PageProps) {
                     inventory: true
                 }
             },
-            images: true
+            images: true,
+            similarProducts: {
+                select: { id: true }
+            }
         }
     });
 
@@ -30,8 +33,7 @@ export default async function EditProductPage({ params }: PageProps) {
         redirect('/admin/products');
     }
 
-    // Calculate total stock (Simple MVP: First variant's first inventory record)
-    // In a multi-warehouse setup, this would be a sum.
+    // Calculate total stock (Sum of all inventory across warehouses for this variant)
     const defaultVariant = product.variants[0];
     const currentStock = defaultVariant?.inventory?.reduce((acc, inv) => acc + inv.available, 0) || 0;
 
@@ -45,10 +47,25 @@ export default async function EditProductPage({ params }: PageProps) {
         detailedDescriptionAr: product.detailedDescriptionAr,
         imageUrl: product.imageUrl,
         compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+        costPrice: product.costPrice ? Number(product.costPrice) : null,
         status: product.status,
         categoryId: product.categoryId,
+        brandId: product.brandId,
+        materialId: product.materialId,
+        supplierId: product.supplierId,
         images: product.images || [],
-        stock: currentStock, // Pass stock
+        stock: currentStock,
+        showInNewArrivals: product.showInNewArrivals,
+        showInForYou: product.showInForYou,
+        detailTags: product.detailTags,
+        similarProducts: product.similarProducts || [],
+        slug: product.slug,
+        metaTitle: product.metaTitle,
+        metaDescription: product.metaDescription,
+        metaTitleAr: product.metaTitleAr,
+        metaDescriptionAr: product.metaDescriptionAr,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        specs: product.specs as any,
         variants: product.variants.map((v) => ({
             ...v,
             price: Number(v.price),

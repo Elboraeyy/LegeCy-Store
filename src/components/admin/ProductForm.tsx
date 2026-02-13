@@ -39,6 +39,7 @@ interface ProductFormProps {
         categoryId?: string | null;
         brandId?: string | null;
         materialId?: string | null;
+        supplierId?: string | null;
         showInNewArrivals?: boolean;
         showInForYou?: boolean;
         detailTags?: string[];
@@ -161,7 +162,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const [warehouseId, setWarehouseId] = useState("");
     
     // Procurement Fields
-    const [supplierId, setSupplierId] = useState("");
+    const [supplierId, setSupplierId] = useState(initialData?.supplierId || "");
     const [invoiceNumber, setInvoiceNumber] = useState("");
     const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
     const [unitCost, setUnitCost] = useState(initialData?.costPrice?.toString() || ""); 
