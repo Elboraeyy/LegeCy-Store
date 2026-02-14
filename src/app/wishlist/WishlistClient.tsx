@@ -39,7 +39,7 @@ export default function WishlistClient({ initialProducts }: WishlistClientProps)
 
   // Close share menu on click outside
   React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
         setShowShareMenu(false);
       }
@@ -47,9 +47,11 @@ export default function WishlistClient({ initialProducts }: WishlistClientProps)
 
     if (showShareMenu) {
       document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
     };
   }, [showShareMenu]);
 
@@ -128,9 +130,12 @@ export default function WishlistClient({ initialProducts }: WishlistClientProps)
               </div>
 
               {!isSharedView && displayProducts.length > 0 && (
-                <div className="share-dropdown-wrapper mx-auto" ref={shareMenuRef}>
+                <div className="share-dropdown-wrapper mx-auto relative z-[10]" ref={shareMenuRef}>
                   <button
-                    onClick={() => setShowShareMenu(!showShareMenu)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowShareMenu(!showShareMenu);
+                    }}
                     className="px-6 h-12 rounded-full bg-[#FCF8F3] border border-[#12403C]/10 flex items-center gap-3 text-[#12403C] hover:bg-[#12403C] hover:text-white transition-all shadow-sm group"
                     title={t.product.share}
                   >
@@ -148,10 +153,15 @@ export default function WishlistClient({ initialProducts }: WishlistClientProps)
                     {showShareMenu && (
                       <motion.div
                         className="share-dropdown"
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        style={{ right: '50%', transform: 'translateX(50%)', top: 'calc(100% + 12px)' }}
+                        initial={{ opacity: 0, y: 10, scale: 0.95, x: "-50%" }}
+                        animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95, x: "-50%" }}
+                        style={{ 
+                          left: '50%', 
+                          top: 'calc(100% + 12px)',
+                          position: 'absolute',
+                          zIndex: 100000
+                        }}
                       >
                         <div className="share-menu-inner">
                           <button className="share-item" onClick={() => handleShare('whatsapp')}>
@@ -198,7 +208,7 @@ export default function WishlistClient({ initialProducts }: WishlistClientProps)
         </div>
       </section>
 
-      <section className="container" style={{ marginBottom: "80px" }}>
+      <section className="container mb-12 md:mb-20">
         {displayProducts.length === 0 ? (
           <Reveal width="100%">
             <div className="empty-state">

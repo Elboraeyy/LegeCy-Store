@@ -15,9 +15,10 @@ interface ModernProductCardProps {
     product: Product;
     priority?: boolean;
     compact?: boolean;
+    hideNewBadge?: boolean;
 }
 
-export default function ModernProductCard({ product, priority = false, compact = false }: ModernProductCardProps) {
+export default function ModernProductCard({ product, priority = false, compact = false, hideNewBadge = false }: ModernProductCardProps) {
     const { addToCart, toggleFav, isFav } = useStore();
     const isClient = useIsClient();
     const { t, language } = useLanguage();
@@ -44,7 +45,7 @@ export default function ModernProductCard({ product, priority = false, compact =
     return (
         <div className="group modern-card relative w-full bg-white rounded-lg overflow-hidden border border-gray-100/50 shadow-sm">
             {/* 1. Image Container */}
-            <div className="relative aspect-[3/4] w-full bg-gray-50 overflow-hidden">
+            <div className="relative aspect-[4/5] w-full bg-gray-50 overflow-hidden">
                 <Link href={`/product/${product.id}`} className="block w-full h-full">
                     <Image
                         src={imgSrc}
@@ -64,7 +65,7 @@ export default function ModernProductCard({ product, priority = false, compact =
                             -{salePercent}%
                         </span>
                     )}
-                    {isNew && !isOnSale && !isOutOfStock && (
+                    {isNew && !isOnSale && !isOutOfStock && !hideNewBadge && (
                         <span className="px-2 py-0.5 text-[10px] font-bold text-white bg-[#12403C] rounded-full uppercase shadow-sm">
                             {t.product.new}
                         </span>
@@ -119,14 +120,14 @@ export default function ModernProductCard({ product, priority = false, compact =
             </div>
 
             {/* 2. Info Area */}
-            <div className="p-3">
+            <div className="p-2 md:p-3">
                 <Link href={`/product/${product.id}`} className="block">
-                    <h3 className="text-[13px] font-medium text-[#12403C] leading-snug line-clamp-2 min-h-[2.5em] mb-1">
+                    <h3 className="text-[11px] md:text-[13px] font-medium text-[#12403C] leading-snug line-clamp-2 min-h-[2.5em] mb-1">
                         {product.name}
                     </h3>
                 </Link>
                 <div className="flex items-baseline gap-2">
-                    <span className="text-[14px] font-bold text-[#12403C]">
+                    <span className="text-[12px] md:text-[14px] font-bold text-[#12403C]">
                         {formatPrice(product.price)}
                     </span>
                     {isOnSale && (

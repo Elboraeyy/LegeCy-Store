@@ -14,9 +14,10 @@ import { optimizeCloudinaryUrl } from "@/lib/utils/image";
 interface ProductCardProps {
   product: Product;
   priority?: boolean;
+  hideNewBadge?: boolean;
 }
 
-export default function ProductCard({ product, priority = false }: ProductCardProps) {
+export default function ProductCard({ product, priority = false, hideNewBadge = false }: ProductCardProps) {
   const { addToCart, toggleFav, isFav } = useStore();
   const isClient = useIsClient();
   const { t, language } = useLanguage();
@@ -77,7 +78,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                     -{salePercent}%
                   </span>
                 )}
-                {isNew && !isOnSale && (
+                {isNew && !isOnSale && !hideNewBadge && (
                   <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-[#12403C] rounded-sm tracking-wider uppercase">
                     {t.product.new_arrival}
                   </span>

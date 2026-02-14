@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { fetchFeaturedProducts, ShopProduct } from '@/lib/actions/shop';
+import { fetchRandomProducts, ShopProduct } from '@/lib/actions/shop';
 import ModernProductCarousel from '../ModernProductCarousel';
 
 
@@ -11,8 +11,8 @@ export default function CartRecommendations() {
     useEffect(() => {
         const loadProducts = async () => {
             try {
-                // Fetch random products or best sellers
-                const data = await fetchFeaturedProducts(4);
+                // Fetch random products
+                const data = await fetchRandomProducts(8);
                 setProducts(data);
             } catch (err) {
                 console.error("Failed to load recommendations", err);
@@ -37,6 +37,7 @@ export default function CartRecommendations() {
                 customItemClass="!min-w-0 w-[calc(50%-4px)] md:w-[135px]" // 50% - (gap/2)
                 useContainer={false}
                 compact={true}
+                hideNewBadge={true}
             />
         </section>
     );

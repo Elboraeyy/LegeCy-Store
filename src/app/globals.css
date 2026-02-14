@@ -80,6 +80,11 @@ h6 {
   padding-inline: 24px;
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding-inline: 16px;
+  }
+}
 .site-footer {
   background: var(--bg-dark);
   border-top: 1px solid var(--border-dark);
@@ -1179,8 +1184,8 @@ select:disabled {
   }
 
                 .modern-card {
-                  aspect-ratio: 16/9;
-                  /* Shorter on mobile */
+                  aspect-ratio: auto;
+                    height: auto;
                 }
   .product-grid {
     grid-template-columns: 1fr;
@@ -1226,6 +1231,20 @@ select:disabled {
   padding: 40px 0;
   text-align: center;
   margin-bottom: 60px;
+}
+@media (max-width: 768px) {
+  .shop-hero {
+    padding: 30px 0;
+    margin-bottom: 30px;
+  }
+
+  .shop-hero h1 {
+    font-size: 32px;
+  }
+
+  .shop-hero p {
+    font-size: 14px;
+  }
 }
 .shop-hero h1 {
   font-size: 48px;
@@ -4824,70 +4843,53 @@ select:disabled {
 /* Share Dropdown Redesign */
 .share-dropdown-wrapper {
   position: relative;
+  display: inline-block;
 }
 
 .share-dropdown {
   position: absolute;
   top: calc(100% + 12px);
-  right: 0;
-  min-width: 220px;
+  min-width: 240px;
     background: #ffffff;
-    border-radius: 28px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     padding: 8px;
     z-index: 1000;
-    border: 1px solid rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.share-option-btn {
+.share-menu-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.share-item {
   display: flex !important;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   width: 100%;
-  padding: 14px 18px;
+  padding: 12px 16px;
   background: none;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: start;
-  border-radius: 20px;
-  }
-  
-  .share-option-btn:hover {
-    background: #f8f9fa;
-  }
-  
-  .share-option-btn:not(:last-child) {
-    position: relative;
-  }
-  
-  .share-option-btn:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 54px;
-    right: 18px;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.05);
-  }
-  
-  .share-label {
-    font-size: 16px;
+  border-radius: 14px;
+    color: #12403C;
     font-weight: 500;
-    color: #1a1a1a;
-    font-family: var(--font-body);
+  font-size: 15px;
   }
-  
-  .share-option-btn.whatsapp svg {
-    color: #25D366;
+[dir="rtl"] .share-item {
+  text-align: right;
 }
 
-.share-option-btn.facebook svg {
-  color: #1877F2;
+.share-item:hover {
+  background: #f0f4f4;
 }
 
-.share-option-btn.copy svg {
-  color: #333;
+.share-item svg {
+  flex-shrink: 0;
 }
 
 /* =============================================
@@ -6213,67 +6215,6 @@ select:disabled {
 
 .shipping-info-list li {
   margin-bottom: 8px;
-}
-
-/* Share Menu Styles */
-.share-dropdown-wrapper {
-  position: relative;
-}
-
-.share-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  left: auto;
-  min-width: 200px;
-  margin-top: 8px;
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  z-index: 50;
-  overflow: hidden;
-}
-
-[dir="rtl"] .share-dropdown {
-  right: auto;
-  left: 0;
-}
-
-.share-menu-inner {
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.share-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 14px;
-  color: var(--text);
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.2s;
-}
-
-[dir="rtl"] .share-item {
-  text-align: right;
-  gap: 12px;
-}
-
-.share-item:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.share-item svg {
-  flex-shrink: 0;
 }
 
 /* File Upload Styles */

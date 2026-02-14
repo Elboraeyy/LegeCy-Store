@@ -30,6 +30,8 @@ export interface Product {
   description?: string | null;
   variants?: { id: string; sku: string; price: number; stock: number }[];
   defaultVariantId?: string | null; // For cart operations
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    specs?: any; // Product specifications for comparison page
 }
 
 // Cart Item extends DTO logic - Add 'img' for legacy UI compatibility
@@ -40,7 +42,7 @@ type ProductId = string;
 interface StoreContextType {
   cart: CartItem[];
   fav: ProductId[];
-    addToCart: (id: ProductId, variantId?: string, openDrawer?: boolean) => void;
+    addToCart: (id: ProductId, variantId?: string, openDrawer?: boolean, qty?: number) => void;
   removeFromCart: (id: ProductId, variantId?: string) => void;
   decFromCart: (id: ProductId, variantId?: string) => void;
   toggleFav: (id: ProductId) => void;
@@ -103,7 +105,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                     brand: p.brand,
                     description: null,
                     variants: p.variants || [],
-                    defaultVariantId: p.defaultVariantId
+                    defaultVariantId: p.defaultVariantId,
+                    specs: p.specs || undefined
                 }));
                 if (mounted) setProducts(mapped);
                 return; // Skip normal cart loading
@@ -168,7 +171,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 brand: p.brand,
                 description: null,
                 variants: p.variants || [],
-                defaultVariantId: p.defaultVariantId
+                defaultVariantId: p.defaultVariantId,
+                specs: p.specs || undefined
             }));
             
             if (mounted) setProducts(mapped);
@@ -324,7 +328,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const closeCart = () => setIsCartOpen(false);
 
   // Add Item
-    const addToCart = (id: string, variantId?: string, openDrawer: boolean = true) => {
+    const addToCart = (id: string, variantId?: string, openDrawer: boolean = true, qty: number = 1) => {
         const product = products.find(p => p.id === id);
       const vId = variantId || product?.defaultVariantId || "";
 
@@ -336,13 +340,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const currentItem = cart.find(i => i.id === id && (i.variantId || "") === vId);
         const currentQty = currentItem?.qty || 0;
 
-        if (currentQty >= stock) {
-            showToast("No more stock available", "danger");
-            return;
+        if (currentQty + qty > stock) {
+            const availableToAdd = stock - currentQty;
+            if (availableToAdd <= 0) {
+                showToast("No more stock available", "danger");
+                return;
+            }
+            // Add what's available
+            qty = availableToAdd;
         }
 
       const tempItem: CartItem = {
-           id, variantId: vId, qty: 1, 
+          id, variantId: vId, qty: qty, 
            name: product?.name || 'Item', 
            price: product?.price || 0,
            imageUrl: product?.imageUrl || '',
@@ -353,17 +362,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setCart(prev => {
           const exists = prev.find(i => i.id === id && (i.variantId || "") === vId);
           if (exists) {
-              return prev.map(i => i.id === id && (i.variantId || "") === vId ? { ...i, qty: Math.min(i.qty + 1, stock) } : i);
+              return prev.map(i => i.id === id && (i.variantId || "") === vId ? { ...i, qty: Math.min(i.qty + qty, stock) } : i);
           }
           return [...prev, tempItem];
       });
       
-      showToast("Added to Cart");
+        showToast(qty > 1 ? `Added ${qty} items to Cart` : "Added to Cart");
       if (openDrawer) openCart();
 
-      // Server Sync (only if valid variantId exists)
+        // Server Sync
       if (isLoggedIn && vId) {
-          addToCartAction(id, vId, 1).catch(err => {
+          addToCartAction(id, vId, qty).catch(err => {
               console.error("Add failed", err);
           });
       }

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, PanInfo } from "framer-motion";
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
-import { Product } from "@/types/product";
+import { Product, getLocalized } from "@/types/product";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface DesktopComparisonViewProps {
@@ -79,7 +79,7 @@ export default function DesktopComparisonView({
             id: "Basic Info",
             rows: [
                 { label: t.compare.labels.brand, key: "brand" },
-                { label: t.compare.labels.collection, key: "category" },
+                { label: t.compare.labels.category, key: "category" },
                 { label: t.compare.labels.status, key: "status" },
             ]
         },
@@ -87,17 +87,16 @@ export default function DesktopComparisonView({
             title: t.compare.specifications,
             id: "Specifications",
             rows: [
-                { label: t.product.dial_size, specKey: "dialSize" },
-                { label: t.product.dial_color, specKey: "dialColor" },
-                { label: t.product.case_color, specKey: "caseColor" },
-                { label: t.product.strap_color, specKey: "strapColor" },
-                { label: t.product.strap_material, specKey: "strapMaterial" },
-                { label: t.product.strap_width, specKey: "strapWidth" },
-                { label: t.product.movement, specKey: "movement", default: "Quartz" },
-                { label: t.product.glass, specKey: "glass", default: "Mineral" },
-                { label: t.product.water_resistance, specKey: "waterResistance", default: "3 ATM" },
-                { label: t.product.case, specKey: "case", default: "Stainless Steel" },
-                { label: t.product.hour_markers, specKey: "hourMarkers" },
+                { label: t.compare.labels.dial_size, specKey: "dialSize" },
+                { label: t.compare.labels.dial_color, specKey: "dialColor" },
+                { label: t.compare.labels.case, specKey: "case" },
+                { label: t.compare.labels.case_color, specKey: "caseColor" },
+                { label: t.compare.labels.strap_material, specKey: "strapMaterial" },
+                { label: t.compare.labels.strap_color, specKey: "strapColor" },
+                { label: t.compare.labels.strap_width, specKey: "strapWidth" },
+                { label: t.compare.labels.movement, specKey: "movement" },
+                { label: t.compare.labels.water_resistance, specKey: "waterResistance" },
+                { label: t.compare.labels.hour_markers, specKey: "hourMarkers" },
             ]
         }
     ];
@@ -105,6 +104,12 @@ export default function DesktopComparisonView({
     const getSpecValue = (product: Product | undefined | null, row: { key?: string; specKey?: string; default?: string }) => {
         if (!product) return "-";
         if (row.key) {
+            if (row.key === "status") {
+                return product.totalStock && product.totalStock > 0 ? t.product.in_stock : t.product.out_of_stock;
+            }
+            if (row.key === "brand" || row.key === "category") {
+                return getLocalized(product, language, row.key) || row.default || "-";
+            }
             // @ts-expect-error - Dynamic property access
             return product[row.key] || row.default || "-";
         }

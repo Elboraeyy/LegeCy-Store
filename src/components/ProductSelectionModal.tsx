@@ -102,7 +102,10 @@ export default function ProductSelectionModal({ isOpen, onClose, onSelect, exclu
                            price: product.price,
                            imageUrl: product.imageUrl,
                            img: product.imageUrl || '/placeholder.jpg',
-                           category: product.category
+                           category: product.category,
+                           brand: product.brand,
+                           specs: product.specs,
+                           totalStock: product.inStock ? 1 : 0,
                          })}
                          style={{ 
                            border: "1px solid var(--border-light)", 

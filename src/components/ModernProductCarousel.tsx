@@ -17,6 +17,7 @@ interface ModernProductCarouselProps {
     customItemClass?: string;
     useContainer?: boolean;
     compact?: boolean;
+    hideNewBadge?: boolean;
 }
 
 export default function ModernProductCarousel({
@@ -27,7 +28,8 @@ export default function ModernProductCarousel({
     enableMobilePadding = true,
     customItemClass,
     useContainer = true,
-    compact = false
+    compact = false,
+    hideNewBadge = false
 }: ModernProductCarouselProps) {
     const { t, direction } = useLanguage();
     const isRTL = direction === 'rtl';
@@ -144,10 +146,10 @@ export default function ModernProductCarousel({
                                 className={`carousel-item flex-none snap-start ${customItemClass || 'w-[calc(50%-4px)] md:w-auto'}`}
                             >
                                 <div className="md:hidden">
-                                     <ProductCard product={product} />
+                                     <ProductCard product={product} hideNewBadge={hideNewBadge} />
                                 </div>
                                 <div className="hidden md:block">
-                                    <ModernProductCard product={product} compact={compact} />
+                                    <ModernProductCard product={product} compact={compact} hideNewBadge={hideNewBadge} />
                                 </div>
                             </div>
                         ))}

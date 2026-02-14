@@ -78,17 +78,23 @@ async function getProductData(id: string): Promise<ProductData | null> {
 // Fetch related products
 async function getRelatedProducts(categoryId: string | null, productId: string): Promise<Product[]> {
   try {
-    const params = new URLSearchParams({ limit: '8' });
-    if (categoryId) params.set('categoryId', categoryId);
-    params.set('excludeId', productId);
-    const res = await fetch(`/api/products?${params.toString()}`, { cache: 'no-store' });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.products || [];
-  } catch {
-    return [];
+      // Fetch more products to have a good pool for randomization
+      const params = new URLSearchParams({ limit: '20' });
+      if (categoryId) params.set('categoryId', categoryId);
+      params.set('excludeId', productId);
+      const res = await fetch(`/api/products?${params.toString()}`, { cache: 'no-store' });
+      if (!res.ok) return [];
+      const data = await res.json();
+      const allRelated = data.products || [];
+
+      // Randomize and take 8
+      return allRelated
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 8);
+    } catch {
+      return [];
+    }
   }
-}
 
 export default function ProductDetailsClient({ id }: ProductDetailsClientProps) {
   const router = useRouter();
@@ -244,16 +250,16 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   const handleAddToCart = async () => {
     if (!product || isOutOfStock) return;
     setAddingToCart(true);
-    for (let i = 0; i < quantity; i++) {
-      addToCart(product.id);
-    }
+    // Use the updated addToCart that supports quantity
+    addToCart(product.id, undefined, true, quantity);
     await new Promise(r => setTimeout(r, 500));
     setAddingToCart(false);
   };
 
   const handleQuantityChange = (delta: number) => {
     const newQty = quantity + delta;
-    if (newQty >= 1 && newQty <= 10) {
+    const maxStock = product?.totalStock || 0;
+    if (newQty >= 1 && newQty <= maxStock) {
       setQuantity(newQty);
     }
   };
@@ -567,7 +573,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 <span className="qty-value">{quantity}</span>
                 <button 
                   onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= 10}
+                    disabled={quantity >= (product?.totalStock || 0)}
                   className="qty-btn"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -741,7 +747,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                     inStock: product.totalStock > 0,
                     isNew: false,
                     category: getLocalized(product, language, 'category'),
-                    brand: getLocalized(product.brand, language, 'name')
+                    brand: getLocalized(product.brand, language, 'name'),
+                    specs: product.specs,
+                    totalStock: product.totalStock,
                   };
                   if (!isInComparison(product.id)) {
                     addToCompare(productForCompare as unknown as Product);
@@ -1328,7 +1336,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 <span className="qty-value">{quantity}</span>
                 <button
                   onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= 10}
+                  disabled={quantity >= (product?.totalStock || 0)}
                   className="qty-btn"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

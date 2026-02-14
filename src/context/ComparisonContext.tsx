@@ -37,18 +37,32 @@ export function ComparisonProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  // Sync with active products to remove stale items
+  // Sync with active products to remove stale items and refresh data
   React.useEffect(() => {
     if (products.length > 0 && selectedProducts.length > 0) {
-      const activeIds = new Set(products.map(p => p.id));
-      const validProducts = selectedProducts.filter(p => activeIds.has(String(p.id)));
+      const productMap = new Map(products.map(p => [String(p.id), p]));
 
-      if (validProducts.length !== selectedProducts.length) {
-        console.log("[Comparison] Removing stale products", selectedProducts.length - validProducts.length);
-        setSelectedProducts(validProducts);
+      let changed = false;
+      const updatedProducts = selectedProducts.map(sp => {
+        const latest = productMap.get(String(sp.id));
+        if (latest) {
+          // Check if specs or other data updated (deep compare simplified with stringify)
+          if (JSON.stringify(latest.specs) !== JSON.stringify(sp.specs)) {
+            changed = true;
+            return { ...sp, ...latest };
+          }
+          return sp;
+        }
+        changed = true; // Product not found in current shop products
+        return null;
+      }).filter(Boolean) as Product[];
+
+      if (changed) {
+        console.log("[Comparison] Syncing data with master product list");
+        setSelectedProducts(updatedProducts);
       }
     }
-  }, [products, selectedProducts]); // Re-run only when global products load
+  }, [products]); // Re-run when master products load
 
   // Save to localStorage whenever selectedProducts changes
   React.useEffect(() => {

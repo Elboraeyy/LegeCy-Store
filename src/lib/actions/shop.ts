@@ -20,6 +20,7 @@ export interface ShopProduct {
     defaultVariantId: string | null; // For cart operations
     isNew?: boolean;
     variants?: { id: string; sku: string; price: number; stock: number }[];
+    specs?: any;
 }
 
 export async function fetchShopProducts(): Promise<ShopProduct[]> {
@@ -66,6 +67,7 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
+            specs: product.specs,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -113,6 +115,7 @@ export async function fetchProductById(id: string) {
         })),
         inStock: totalStock > 0,
         totalStock,
+        specs: product.specs,
         isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000)
     };
 }
@@ -199,6 +202,7 @@ export async function fetchRelatedProducts(productId: string, category: string |
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
+            specs: product.specs,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -248,6 +252,7 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProd
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
+            specs: product.specs,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -305,6 +310,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
+            specs: product.specs,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -361,6 +367,72 @@ export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduc
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
+            specs: product.specs,
+            variants: product.variants.map(v => ({
+                id: v.id,
+                sku: v.sku,
+                price: Number(v.price),
+                stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
+            }))
+        };
+    });
+}
+
+// Fetch random products (for cart recommendations)
+export async function fetchRandomProducts(limit: number = 8): Promise<ShopProduct[]> {
+    // 1. Get total number of active products
+    const totalCount = await prisma.product.count({
+        where: { status: 'active' }
+    });
+
+    if (totalCount === 0) return [];
+
+    // 2. Select random skip values
+    // We fetch a bit more than needed to ensure variety and then shuffle
+    const skip = Math.max(0, Math.floor(Math.random() * Math.max(0, totalCount - limit)));
+
+    const products = await prisma.product.findMany({
+        where: { status: 'active' },
+        take: limit * 2, // Fetch double to shuffle more effectively
+        skip: skip,
+        include: {
+            variants: {
+                include: {
+                    inventory: true
+                }
+            },
+            images: true,
+            brand: true,
+            material: true
+        }
+    });
+
+    // 3. Shuffle the result
+    const shuffled = [...products].sort(() => Math.random() - 0.5).slice(0, limit);
+
+    return shuffled.map(product => {
+        const mainVariant = product.variants[0];
+        const totalStock = product.variants.reduce((acc, v) =>
+            acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0
+        );
+
+        return {
+            id: product.id,
+            name: product.name,
+            price: mainVariant ? Number(mainVariant.price) : 0,
+            compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+            category: product.category,
+            imageUrl: product.imageUrl,
+            images: product.images.map(img => img.url),
+            brand: product.brand?.slug || null,
+            material: product.material?.slug || null,
+            strap: product.material?.name || null,
+            status: 'active',
+            variantCount: product.variants.length,
+            inStock: totalStock > 0,
+            defaultVariantId: mainVariant?.id || null,
+            isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
+            specs: product.specs,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
