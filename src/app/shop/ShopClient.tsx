@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useTransition, useDeferredValue, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useDeferredValue, useTransition } from 'react';
 import { useRouter, useSearchParams } from "next/navigation";
 import FilterSidebar from "@/components/shop/FilterSidebar";
 import MobileFilters from "@/components/shop/MobileFilters";
@@ -126,13 +126,12 @@ export default function ShopClient({
         setCurrentPage(1);
     }, []);
 
-    // Stable randomization for "Featured" view
-    // Using isClient to avoid hydration mismatch during SSR
-    const isClient = useIsClient();
-    const randomizedInitialProducts = useMemo(() => {
-        if (!isClient) return initialProducts;
-        return [...initialProducts].sort(() => Math.random() - 0.5);
-    }, [initialProducts, isClient]);
+    // State for randomized products to ensure purity and avoid hydration mismatches
+    const [randomizedInitialProducts, setRandomizedInitialProducts] = useState(initialProducts);
+
+    useEffect(() => {
+        setRandomizedInitialProducts([...initialProducts].sort(() => Math.random() - 0.5));
+    }, [initialProducts]);
 
     // CLIENT-SIDE FILTERING LOGIC - Optimized for instant filtering
     // Use deferred search query for smoother typing

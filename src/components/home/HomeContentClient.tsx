@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -35,16 +35,21 @@ export function HomeContentClient({
   const isClient = useIsClient();
   const { t, language } = useLanguage();
 
-  // Randomize lists only on client side to avoid hydration mismatch
-  const randomizedForYou = useMemo(() => {
-    if (!isClient || !forYouProducts) return forYouProducts || [];
-    return [...forYouProducts].sort(() => Math.random() - 0.5);
-  }, [forYouProducts, isClient]);
+  // State for randomized lists to ensure purity and avoid hydration mismatches
+  const [randomizedForYou, setRandomizedForYou] = useState<Product[]>(forYouProducts || []);
+  const [randomizedNewArrivals, setRandomizedNewArrivals] = useState<Product[]>(newArrivals || []);
 
-  const randomizedNewArrivals = useMemo(() => {
-    if (!isClient || !newArrivals) return newArrivals || [];
-    return [...newArrivals].sort(() => Math.random() - 0.5);
-  }, [newArrivals, isClient]);
+  useEffect(() => {
+    if (forYouProducts) {
+      setRandomizedForYou([...forYouProducts].sort(() => Math.random() - 0.5));
+    }
+  }, [forYouProducts]);
+
+  useEffect(() => {
+    if (newArrivals) {
+      setRandomizedNewArrivals([...newArrivals].sort(() => Math.random() - 0.5));
+    }
+  }, [newArrivals]);
 
   return (
     <main>
