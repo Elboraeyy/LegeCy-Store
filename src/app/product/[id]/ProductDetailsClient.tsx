@@ -189,10 +189,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
       setProduct(productData);
       setReviews(reviewsData);
 
-      if (productData?.categoryId) {
-        const related = await getRelatedProducts(productData.categoryId, id);
-        setRelatedProducts(related);
-      }
+      // Always fetch internal related products as fallback
+      const related = await getRelatedProducts(productData?.categoryId || null, id);
+      setRelatedProducts(related);
 
       // Check settings
       const settings = await getStoreSettings(['FREE_SHIPPING_ENABLED', 'FREE_SHIPPING_THRESHOLD']);
@@ -368,9 +367,10 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
 
   return (
     <>
-      <main className="container product-details-page">
-        {/* Breadcrumb */}
-        <nav className="breadcrumb" aria-label="Breadcrumb">
+      <main className="product-details-page">
+        <div className="container">
+          {/* Breadcrumb */}
+          <nav className="breadcrumb" aria-label="Breadcrumb">
           <Link href="/" className="breadcrumb-home">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -1037,29 +1037,6 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
           </div>
         </div>
 
-        {/* Similar Products */}
-        {product.similarProducts && product.similarProducts.length > 0 && (
-          <div className="mt-16">
-            <ModernProductCarousel
-              products={product.similarProducts}
-              title={t.product.similar_products || (language === 'ar' ? 'منتجات مشابهة' : 'Similar Products')}
-              subtitle={language === 'ar' ? 'قد يعجبك أيضاً' : 'You might also like'}
-              viewAllLink={`/shop?category=${product.categorySlug || product.categoryId}`}
-            />
-          </div>
-        )}
-
-        {/* Related Products (Category based) - Only show if similar products are few or to supplement */}
-        {relatedProducts.length > 0 && (!product.similarProducts || product.similarProducts.length < 4) && (
-          <div className="mt-16">
-            <ModernProductCarousel
-              products={relatedProducts}
-              title={t.product.related_products}
-              subtitle={t.product.complete_look}
-              viewAllLink={`/shop?category=${product.categorySlug || product.categoryId}`}
-            />
-          </div>
-        )}
 
 
 
@@ -1159,16 +1136,20 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
           )}
         </section>
 
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <section className="related-section">
+          {/* Similar Products (Manual or Fallback) */}
+          {((product.similarProducts && product.similarProducts.length > 0) || relatedProducts.length > 0) && (
+            <section className="related-section mt-16 px-0 md:px-4">
             <ModernProductCarousel
-              title={t.product.related_products}
-              products={relatedProducts}
-              viewAllLink={`/shop?category=${product.category}`}
+                products={product.similarProducts && product.similarProducts.length > 0 ? product.similarProducts : relatedProducts}
+                title={product.similarProducts && product.similarProducts.length > 0
+                  ? (t.product.similar_products || (language === 'ar' ? 'منتجات مشابهة' : 'Similar Products'))
+                  : (t.product.related_products || (language === 'ar' ? 'مقترحات لنا' : 'Recommended For You'))}
+                subtitle={language === 'ar' ? 'قد يعجبك أيضاً' : 'You might also like'}
+                viewAllLink={`/shop?category=${product.categorySlug || product.categoryId || ''}`}
             />
           </section>
         )}
+        </div>
       </main>
 
       {/* Lightbox Modal */}

@@ -329,7 +329,7 @@ export default function ShopClient({
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 lg:px-8 pb-20 md:pb-16">
+            <div className="container mx-auto px-4 lg:px-8 pb-20 md:pb-16 hidden md:block">
                 <div className="flex gap-8">
                     {/* Desktop Sidebar */}
                     <div className="hidden lg:block flex-shrink-0">
@@ -500,6 +500,70 @@ export default function ShopClient({
                         )}
                     </div>
                 </div>
+            </div>
+
+            {/* Mobile-only Content (Edge-to-Edge) */}
+            <div className="block md:hidden pb-20">
+                {/* Mobile Toolbar */}
+                <div className="px-4 mb-4">
+                    <div className="bg-white rounded-2xl border border-gray-100 p-3 shadow-sm">
+                        <div className="flex items-center justify-between gap-2">
+                            <button
+                                onClick={() => setMobileFiltersOpen(true)}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-[#12403C] text-white rounded-full font-medium text-xs shadow-sm"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
+                                </svg>
+                                <span>{t.shop.filter_btn}</span>
+                                {activeFilters.length > 0 && (
+                                    <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold bg-[#d4af37] text-[#12403C] rounded-full px-1">
+                                        {activeFilters.length}
+                                    </span>
+                                )}
+                            </button>
+                            <SortDropdown
+                                value={filters.sortBy}
+                                onChange={(val) => updateFilters({ sortBy: val })}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Mobile Product Grid (Edge-to-Edge) */}
+                <ProductGrid
+                    products={viewMode === "categories" ? filteredAndSortedProducts : paginatedProducts}
+                    viewMode={viewMode}
+                    isLoading={isPending}
+                    categories={categories}
+                />
+
+                {/* Mobile Pagination */}
+                {viewMode !== "categories" && totalPages > 1 && (
+                    <div className="mt-8 px-4 flex items-center justify-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                            disabled={currentPage === 1}
+                            className="p-2 border border-gray-200 rounded-lg disabled:opacity-50"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <span className="text-sm font-medium">
+                            {currentPage} / {totalPages}
+                        </span>
+                        <button
+                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                            disabled={currentPage === totalPages}
+                            className="p-2 border border-gray-200 rounded-lg disabled:opacity-50"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Mobile Filters */}

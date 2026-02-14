@@ -2,10 +2,12 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 // import ModernProductCard from "@/components/ModernProductCard";
 import { Product, getLocalized } from "@/types/product";
 import { useLanguage } from "@/context/LanguageContext";
+import { optimizeCloudinaryUrl } from "@/lib/utils/image";
 
 interface ProductGridProps {
     products: Product[];
@@ -172,39 +174,64 @@ export default function ProductGrid({
                     }
                 `}</style>
                 <div className="space-y-10">
-                    {categoriesWithProducts.map(({ category, products: categoryProducts }) => (
-                        <div key={category.slug} className="space-y-5">
-                            {/* Category Header */}
-                            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-                                <h2 className="text-2xl font-semibold text-[#12403C] font-heading">
-                                    {getLocalized(category, language, 'name')}
-                                </h2>
-                                <span className="text-sm text-gray-500 font-medium">
-                                    {categoryProducts.length} {categoryProducts.length === 1 ? (language === "ar" ? "منتج" : "product") : (language === "ar" ? "منتجات" : "products")}
-                                </span>
-                            </div>
+                    {categoriesWithProducts.map(({ category, products: categoryProducts }) => {
+                        const formatPrice = (p: number) => `${t.common.currency} ${p.toLocaleString()}`;
+                        
+                        return (
+                            <div key={category.slug} className="space-y-5">
+                                {/* Category Header */}
+                                <div className="flex items-center justify-between border-b border-gray-200 pb-3 px-4 md:px-0">
+                                    <h2 className="text-2xl font-semibold text-[#12403C] font-heading">
+                                        {getLocalized(category, language, 'name')}
+                                    </h2>
+                                    <span className="text-sm text-gray-500 font-medium">
+                                        {categoryProducts.length} {categoryProducts.length === 1 ? (language === "ar" ? "منتج" : "product") : (language === "ar" ? "منتجات" : "products")}
+                                    </span>
+                                </div>
 
-                            {/* Horizontal Scrollable Products */}
-                            <div className="relative w-full">
-                                <div
-                                    className="category-scroll overflow-x-auto overflow-y-hidden w-full"
-                                    style={{
-                                        scrollbarWidth: 'none',
-                                        msOverflowStyle: 'none',
-                                        WebkitOverflowScrolling: 'touch'
-                                    }}
-                                >
-                                    <div className="flex gap-3 px-1" style={{ width: "max-content", paddingRight: "1rem" }}>
-                                        {categoryProducts.map((product, index) => (
-                                            <div key={product.id} className="flex-shrink-0" style={{ width: '140px' }}>
-                                                <ProductCard product={product} priority={index < 4} />
-                                            </div>
-                                        ))}
+                                {/* Horizontal Scrollable Products */}
+                                <div className="relative w-full -mx-0">
+                                    <div
+                                        className="category-scroll overflow-x-auto overflow-y-hidden w-full px-0"
+                                        style={{
+                                            scrollbarWidth: 'none',
+                                            msOverflowStyle: 'none',
+                                            WebkitOverflowScrolling: 'touch'
+                                        }}
+                                    >
+                                        <div className="flex gap-2 md:gap-6 pb-4">
+                                            {categoryProducts.map((product) => {
+                                                const productImage = optimizeCloudinaryUrl(product.imageUrl || product.img || '/placeholder.jpg', 300);
+                                                return (
+                                                    <div key={product.id} className="w-[calc(50%-4px)] md:w-[240px] flex-none">
+                                                        <Link href={`/product/${product.id}`} className="block space-y-2">
+                                                            <div className="aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 relative">
+                                                                <Image
+                                                                    src={productImage}
+                                                                    alt={getLocalized(product, language, 'name')}
+                                                                    fill
+                                                                    className="object-cover"
+                                                                    sizes="140px"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <h3 className="text-xs font-medium text-gray-900 line-clamp-1">
+                                                                    {getLocalized(product, language, 'name')}
+                                                                </h3>
+                                                                <p className="text-xs font-bold text-[#12403C]">
+                                                                    {formatPrice(product.price)}
+                                                                </p>
+                                                            </div>
+                                                        </Link>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </>
         );
@@ -255,8 +282,13 @@ function ProductSkeleton() {
 function ProductListCard({ product }: { product: Product }) {
     const { t, language } = useLanguage();
     const formatPrice = (p: number) => `${t.common.currency} ${p.toLocaleString()}`;
-    const productImage = product.imageUrl || product.img || '/placeholder.jpg';
+    const productImage = optimizeCloudinaryUrl(product.imageUrl || product.img || '/placeholder.jpg', 600);
     const [imgSrc, setImgSrc] = React.useState(productImage);
+
+    // Update imgSrc when product changes
+    React.useEffect(() => {
+        setImgSrc(productImage);
+    }, [productImage]);
 
     const isOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
     const isOutOfStock = product.inStock === false;

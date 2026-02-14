@@ -21,7 +21,7 @@ export default function RelatedProducts({ products, currentProductId }: RelatedP
   if (relatedProducts.length === 0) return null;
 
   return (
-    <div className="mt-8">
+    <div className="mt-8 px-0 md:px-4">
       <ModernProductCarousel
         products={relatedProducts}
         title={t.product.you_may_also_like}

@@ -96,27 +96,27 @@ export function HomeContentClient({
           variants={staggerContainerSlow}
         >
           <motion.div className="collection-card large" variants={fadeUpSlow}>
-            <div className="collection-media" style={{ backgroundImage: "url('/image/luxury-collection.jpg')" }}>
+            <div className="collection-media" style={{ backgroundImage: "url('/image/luxury.jpg')" }}>
             </div>
             <div className="collection-overlay">
               <Reveal>
                 <h3>{t.home.luxury_collection}</h3>
               </Reveal>
               <Reveal delay={0.1}>
-                <Link href="/shop" className="btn-link">{t.home.view_more}</Link>
+                <Link href="/shop?category=luxury,classic" className="btn-link">{t.home.view_more}</Link>
               </Reveal>
             </div>
           </motion.div>
           <motion.div className="collection-card modern-card" variants={fadeUpSlow}>
             <div className="collection-media"
-              style={{ backgroundImage: "url('/image/modern-classics-green.jpg')" }}>
+              style={{ backgroundImage: "url('/image/Women.jpg')" }}>
             </div>
             <div className="collection-overlay">
               <Reveal>
                 <h3>{t.home.modern_classics}</h3>
               </Reveal>
               <Reveal delay={0.1}>
-                <Link href="/shop" className="btn-link">{t.home.view_more}</Link>
+                <Link href="/shop?category=women" className="btn-link">{t.home.view_more}</Link>
               </Reveal>
             </div>
           </motion.div>
@@ -205,7 +205,7 @@ export function HomeContentClient({
               <Reveal width="100%" fullHeight>
                 <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                   <Image
-                    src="/image/legacy-precision.jpg"
+                    src="/image/legacy-precision2.jpg"
                     alt={`${storeName} Heritage`}
                     fill
                     sizes="(max-width: 900px) 100vw, 50vw"

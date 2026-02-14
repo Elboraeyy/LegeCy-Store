@@ -336,7 +336,10 @@ export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduc
         }
     });
 
-    return products.map(product => {
+    // Shuffle products for a fresh look on every visit
+    const shuffled = [...products].sort(() => Math.random() - 0.5);
+
+    return shuffled.map(product => {
         const mainVariant = product.variants[0];
         const totalStock = product.variants.reduce((acc, v) =>
             acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0

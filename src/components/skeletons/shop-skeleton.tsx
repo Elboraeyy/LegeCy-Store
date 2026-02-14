@@ -14,17 +14,17 @@ export function ShopSkeleton() {
                   <Skeleton className="h-10 w-10 rounded-lg flex-shrink-0" style={{ backgroundColor: '#E0EFEA' }} />
                </div>
                {/* Filter Tabs */}
-               <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+               <div className="flex gap-2 mt-3 overflow-x-auto pb-1 px-4">
                   {[1, 2, 3, 4].map(i => (
                      <Skeleton key={i} className="h-8 w-20 rounded-full flex-shrink-0" style={{ backgroundColor: '#E0EFEA' }} />
                   ))}
                </div>
             </div>
 
-            {/* Mobile Product Grid */}
-            <div className="p-3 flex overflow-x-auto gap-3 pb-4 hide-scrollbar snap-x">
-               {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="min-w-[150px] w-[45%] flex-none snap-start">
+            {/* Horizontal Scroll Skeleton */}
+            <div className="p-0 flex overflow-x-auto gap-2 pb-4 hide-scrollbar snap-x">
+               {[1, 2, 3].map((i) => (
+                  <div key={i} className="w-[calc(50%-4px)] flex-none snap-start">
                      <ProductCardSkeleton />
                   </div>
                ))}

@@ -27,14 +27,14 @@ export default function CartRecommendations() {
     if (loading || products.length === 0) return null;
 
     return (
-        <section className="mt-16 pt-12 border-t border-[rgba(18,64,60,0.08)] relative">
+        <section className="mt-16 pt-12 border-t border-[rgba(18,64,60,0.08)] relative px-0 md:px-4">
             <ModernProductCarousel
                 title="Complete Your Look"
                 subtitle="You Might Also Like"
                 products={products}
                 viewAllLink="/shop"
-                enableMobilePadding={true}
-                customItemClass="!min-w-0 w-[calc(33.333%-10px)] md:w-[135px]" // 33.33% - (2/3 * gap) approx. gap is 12px.
+                enableMobilePadding={false}
+                customItemClass="!min-w-0 w-[calc(50%-4px)] md:w-[135px]" // 50% - (gap/2)
                 useContainer={false}
                 compact={true}
             />

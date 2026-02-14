@@ -15,13 +15,13 @@ export function HomeSkeleton() {
         </section>
 
         {/* Mobile Featured Grid (2 cols) */}
-        <section className="container px-4">
-          <div className="flex justify-between items-end mb-4">
+        <section className="px-0">
+          <div className="flex justify-between items-end mb-4 px-4">
             <Skeleton className="h-6 w-32" />
           </div>
-          <div className="flex overflow-x-auto gap-3 pb-4 hide-scrollbar snap-x px-1">
+          <div className="flex overflow-x-auto gap-2 pb-4 hide-scrollbar snap-x px-0">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="min-w-[150px] w-[45%] flex-none snap-start">
+              <div key={i} className="w-[calc(50%-4px)] flex-none snap-start">
                 <ProductCardSkeleton />
               </div>
             ))}

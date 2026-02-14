@@ -343,11 +343,11 @@ export default function CartClient({
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Cross-Sell Recommendations - Mobile Only (Moved below summary) */}
-        <div className="block md:hidden mt-8">
-          <CartRecommendations />
-        </div>
+      {/* Cross-Sell Recommendations - Mobile Only (Moved outside padded container) */}
+      <div className="block md:hidden mt-8">
+        <CartRecommendations />
       </div>
     </main>
   );

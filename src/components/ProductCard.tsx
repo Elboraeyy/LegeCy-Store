@@ -9,6 +9,7 @@ import { useIsClient } from "@/hooks/useIsClient";
 import AddToCompareButton from "./AddToCompareButton";
 import { CartIcon } from "@/components/icons/CartIcon";
 import { useLanguage } from "@/context/LanguageContext";
+import { optimizeCloudinaryUrl } from "@/lib/utils/image";
 
 interface ProductCardProps {
   product: Product;
@@ -27,8 +28,13 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     }).format(p);
   };
   
-  const productImage = product.imageUrl || product.img || '/placeholder.jpg';
+  const productImage = optimizeCloudinaryUrl(product.imageUrl || product.img || '/placeholder.jpg', 600);
   const [imgSrc, setImgSrc] = React.useState(productImage);
+
+  // Update imgSrc when product changes
+  React.useEffect(() => {
+    setImgSrc(productImage);
+  }, [productImage]);
 
   // Badges logic
   const isOnSale = product.compareAtPrice && product.compareAtPrice > product.price;

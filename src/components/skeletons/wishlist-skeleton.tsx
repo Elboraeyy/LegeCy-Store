@@ -13,9 +13,9 @@ export function WishlistSkeleton() {
             </div>
 
             {/* Mobile - Horizontal Scroll */}
-            <div className="md:hidden px-3 flex overflow-x-auto gap-3 pb-4 hide-scrollbar snap-x">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="min-w-[150px] w-[45%] flex-none snap-start">
+            <div className="md:hidden px-0 flex overflow-x-auto gap-2 pb-4 hide-scrollbar snap-x">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="w-[calc(50%-4px)] flex-none snap-start">
                         <ProductCardSkeleton />
                     </div>
                 ))}

@@ -85,7 +85,7 @@ export function FlashSalesSection({ sales }: { sales: FlashSale[] }) {
                 return (
 
                     <section key={sale.id} className="py-6 bg-[#12403C]">
-                        <div className="container mx-auto px-4">
+                        <div className="container mx-auto px-0 md:px-4">
                             <motion.div 
                                 className="flex flex-row items-center justify-center gap-6 mb-4"
                                 initial={{ opacity: 0, y: 10 }}

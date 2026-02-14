@@ -76,9 +76,9 @@ export default function ModernProductCarousel({
     if (!products || products.length === 0) return null;
 
     return (
-        <section className="py-4 md:py-8 bg-transparent relative group/carousel">
-            <div className={`container px-4 mb-6 ${!useContainer ? '!p-0' : ''}`}>
-                <div className={`container px-4 mb-6 ${!useContainer ? '!p-0 !min-w-0 !w-full' : ''}`}>
+        <section className="py-4 md:py-8 bg-transparent relative group/carousel overflow-hidden">
+            <div className={`px-0 md:px-4 mb-6 ${!useContainer ? '!p-0' : ''}`}>
+                <div className={`px-4 md:px-0 mb-6 ${!useContainer ? '!p-0 !min-w-0 !w-full' : ''}`}>
                     <div className="flex flex-col items-center text-center md:flex-row md:items-end md:justify-between md:text-left gap-4">
                         <div className="flex flex-col items-center md:items-start gap-2">
                         {subtitle && (
@@ -99,7 +99,7 @@ export default function ModernProductCarousel({
             </div>
             </div>
 
-            <div className={`relative w-full ${useContainer ? 'md:container md:mx-auto' : ''} ${enableMobilePadding ? '!px-4' : 'px-0 md:px-4'}`}>
+            <div className={`relative w-full ${useContainer ? 'md:container md:mx-auto' : ''} px-0 md:px-4`}>
                 {/* Navigation Arrows */}
                 {/* PREV BUTTON (Scrolls to start) */}
                 {canScrollLeft && (
@@ -136,12 +136,12 @@ export default function ModernProductCarousel({
                     <div
                         ref={scrollContainerRef}
                         onScroll={checkScroll}
-                        className={`carousel-track w-full flex overflow-x-auto gap-3 md:gap-4 pb-4 hide-scrollbar snap-x`}
+                        className={`carousel-track w-full flex overflow-x-auto gap-2 md:gap-4 pb-4 hide-scrollbar snap-x`}
                     >
                         {products.map((product) => (
                             <div
                                 key={product.id}
-                                className={`carousel-item flex-none snap-start ${customItemClass || 'w-[calc(50%-6px)] md:w-auto'}`}
+                                className={`carousel-item flex-none snap-start ${customItemClass || 'w-[calc(50%-4px)] md:w-auto'}`}
                             >
                                 <div className="md:hidden">
                                      <ProductCard product={product} />
@@ -154,7 +154,7 @@ export default function ModernProductCarousel({
 
                         {/* View All Card at end of scroll */}
                         <div
-                            className="carousel-item flex-none snap-start flex items-center justify-center p-4 bg-white/50 rounded-xl border border-[#12403C]/10"
+                            className={`carousel-item flex-none snap-start flex items-center justify-center p-4 bg-white/50 rounded-xl border border-[#12403C]/10 ${customItemClass || 'w-[calc(50%-4px)] md:w-auto'}`}
                         >
                             <Link href={viewAllLink} className="flex flex-col items-center justify-center gap-3 text-center group">
                                 <div className="w-12 h-12 rounded-full border border-[#12403C]/20 flex items-center justify-center group-hover:bg-[#12403C] group-hover:border-[#12403C] transition-colors">

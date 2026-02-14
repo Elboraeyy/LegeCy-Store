@@ -64,7 +64,7 @@ export const dictionary = {
       view_all: "View All",
       view_more: "View More",
       luxury_collection: "The Luxury Collection",
-      modern_classics: "Modern Classics",
+      modern_classics: "Women's Collection",
       new_arrivals: "New Arrivals",
       just_dropped: "Just Dropped",
       trust: {
@@ -1399,7 +1399,7 @@ export const dictionary = {
       view_all: "عرض الكل",
       view_more: "شوف المزيد",
       luxury_collection: "كوليكشن الفخامة",
-      modern_classics: "كلاسيكيات عصرية",
+      modern_classics: "كوليكشن حريمي",
       new_arrivals: "وصل حديثاً",
       just_dropped: "لسه واصلة حالا",
       trust: {
