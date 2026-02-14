@@ -6,6 +6,7 @@ import '../admin.css';
 import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 function SubmitButton({ text = 'AUTHENTICATE' }: { text?: string }) {
     return (
@@ -290,9 +291,8 @@ export default function AdminLoginPage() {
                                         {t.login?.password_label || 'Password'}
                                     </label>
                                 </div>
-                                <input
+                                <PasswordInput
                                     name="password"
-                                    type="password"
                                     autoComplete="current-password"
                                     required
                                     placeholder="••••••••"

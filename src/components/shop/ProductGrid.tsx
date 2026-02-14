@@ -192,12 +192,14 @@ export default function ProductGrid({
                                 {/* Horizontal Scrollable Products */}
                                 <div className="relative w-full -mx-0">
                                     <div
-                                        className="category-scroll overflow-x-auto overflow-y-hidden w-full px-4 md:px-0"
+                                        className="category-scroll overflow-x-auto overflow-y-hidden w-full md:px-0"
                                         style={{
                                             scrollbarWidth: 'none',
                                             msOverflowStyle: 'none',
                                             WebkitOverflowScrolling: 'touch',
                                             scrollSnapType: 'x mandatory',
+                                            paddingLeft: '3px',
+                                            paddingRight: '3px',
                                         }}
                                     >
                                         <div className="flex gap-3 md:gap-6 pb-4">

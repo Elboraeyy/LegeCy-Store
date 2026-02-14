@@ -127,31 +127,18 @@ export async function getShippingRateForCity(city: string): Promise<{
 }
 
 /**
- * Calculate shipping cost with free shipping threshold
+ * Calculate shipping cost for a city.
+ * Free shipping is only granted via coupons or if the FREE_SHIPPING_ENABLED
+ * toggle is on in admin settings — never automatically based on order total.
  */
 export async function calculateShipping(
   city: string, 
-  subtotal: number
+  _subtotal: number
 ): Promise<{
   shippingCost: number;
   zoneName: string;
   isFreeShipping: boolean;
-  freeShippingThreshold: number;
-  amountToFreeShipping: number;
 }> {
-  const settings = await getShippingSettings();
-  
-  // Check if subtotal qualifies for free shipping
-  if (settings.freeShippingThreshold > 0 && subtotal >= settings.freeShippingThreshold) {
-    return {
-      shippingCost: 0,
-      zoneName: 'Free Shipping',
-      isFreeShipping: true,
-      freeShippingThreshold: settings.freeShippingThreshold,
-      amountToFreeShipping: 0,
-    };
-  }
-  
   // Get rate for city
   const { rate, zoneName } = await getShippingRateForCity(city);
   
@@ -159,10 +146,6 @@ export async function calculateShipping(
     shippingCost: rate,
     zoneName,
     isFreeShipping: rate === 0,
-    freeShippingThreshold: settings.freeShippingThreshold,
-    amountToFreeShipping: settings.freeShippingThreshold > 0 
-      ? Math.max(0, settings.freeShippingThreshold - subtotal) 
-      : 0,
   };
 }
 

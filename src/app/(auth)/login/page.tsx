@@ -5,6 +5,7 @@ import { login } from '@/lib/actions/auth';
 import Link from 'next/link';
 import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
 import { useLanguage } from '@/context/LanguageContext';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 function SubmitButton() {
     const { t } = useLanguage();
@@ -313,9 +314,8 @@ export default function LoginPage() {
                                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#1a3c34', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.auth.password}</label>
                                 <Link href="/forgot-password" style={{ fontSize: '12px', color: '#d4af37', textDecoration: 'none', fontWeight: 500 }}>{t.auth.forgot_password}</Link>
                             </div>
-                            <input 
+                            <PasswordInput 
                                 name="password" 
-                                type="password" 
                                 autoComplete="current-password" 
                                 required 
                                 placeholder="••••••••"

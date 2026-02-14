@@ -9,6 +9,7 @@ import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
 import BackButton from '@/components/admin/BackButton';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 interface Props {
     roles: { id: string; name: string; description: string | null }[];
@@ -146,8 +147,7 @@ export default function AddMemberForm({ roles }: Props) {
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
                             {t.team.form.password} *
                         </label>
-                        <input
-                            type="password"
+                        <PasswordInput
                             value={formData.password}
                             onChange={(e) => handleChange('password', e.target.value)}
                             required

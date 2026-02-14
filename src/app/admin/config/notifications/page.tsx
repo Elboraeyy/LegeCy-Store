@@ -7,6 +7,7 @@ import SettingsField from '@/components/admin/settings/SettingsField';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { toast } from 'sonner';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 const defaultSettings: NotificationSettings = {
     smtpHost: '',
@@ -148,9 +149,8 @@ export default function NotificationsSettingsPage() {
                         label="SMTP Password"
                         htmlFor="smtpPass"
                     >
-                        <input
+                        <PasswordInput
                             id="smtpPass"
-                            type="password"
                             value={settings.smtpPass}
                             onChange={(e) => setSettings({ ...settings, smtpPass: e.target.value })}
                             placeholder="••••••••"

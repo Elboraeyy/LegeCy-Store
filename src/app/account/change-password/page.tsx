@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { changePassword } from '@/lib/actions/auth';
 import { useLanguage } from '@/context/LanguageContext';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 export default function ChangePasswordPage() {
     const { t, language } = useLanguage();
@@ -91,8 +92,7 @@ export default function ChangePasswordPage() {
                                 }}>
                                     {t.account.password_page.current_password}
                                 </label>
-                                <input
-                                    type="password"
+                                <PasswordInput
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
                                     placeholder="••••••••"
@@ -118,8 +118,7 @@ export default function ChangePasswordPage() {
                                 }}>
                                     {t.account.password_page.new_password}
                                 </label>
-                                <input
-                                    type="password"
+                                <PasswordInput
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     placeholder="••••••••"
@@ -149,8 +148,7 @@ export default function ChangePasswordPage() {
                                 }}>
                                     {t.account.password_page.confirm_password}
                                 </label>
-                                <input
-                                    type="password"
+                                <PasswordInput
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="••••••••"

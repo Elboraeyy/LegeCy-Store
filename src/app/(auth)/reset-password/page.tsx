@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { resetPassword, verifyResetToken } from '@/lib/actions/password-reset';
 import { toast } from 'sonner';
 import { useLanguage } from '@/context/LanguageContext';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 function ResetPasswordForm() {
     const { t } = useLanguage();
@@ -232,8 +233,7 @@ function ResetPasswordForm() {
                         }}>
                             {t.auth.new_password}
                         </label>
-                        <input
-                            type="password"
+                        <PasswordInput
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
@@ -263,8 +263,7 @@ function ResetPasswordForm() {
                         }}>
                             {t.auth.confirm_password}
                         </label>
-                        <input
-                            type="password"
+                        <PasswordInput
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             placeholder="••••••••"

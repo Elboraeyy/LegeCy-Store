@@ -632,11 +632,12 @@ body {
     top: calc(100% + 12px) !important;
     bottom: auto !important;
     left: 50% !important;
-      right: auto !important;
+    right: auto !important;
+    transform: translateX(-65%) !important;
     margin-bottom: 0 !important;
     min-width: 220px !important;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12) !important;
-      border-radius: 28px !important;
+    border-radius: 20px !important;
       padding: 8px !important;
     z-index: 100000 !important;
   }

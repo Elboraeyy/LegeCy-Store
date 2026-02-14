@@ -21,15 +21,7 @@ import {
   ArrowRight
 } from "lucide-react";
 
-interface CartClientProps {
-  freeShippingThreshold: number;
-  isFreeShippingEnabled: boolean;
-}
-
-export default function CartClient({
-  freeShippingThreshold = 2000,
-  isFreeShippingEnabled = true
-}: CartClientProps) {
+export default function CartClient() {
   const { cart, addToCart, decFromCart, removeFromCart, isLoading: storeLoading } = useStore();
   const isClient = useIsClient();
   const { t, language } = useLanguage();
@@ -52,13 +44,8 @@ export default function CartClient({
     }
   }, [router]);
 
-  // Dynamic Free Shipping Threshold passed from server
-  const FREE_SHIPPING_THRESHOLD = freeShippingThreshold;
-
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const total = subtotal;
-  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
-  const shippingProgress = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
 
   const formatPrice = (p: number) => {
     return language === 'ar'
@@ -152,33 +139,6 @@ export default function CartClient({
 
           {/* Left Column: Cart Items & Options */}
           <div className="flex-1 max-w-3xl w-full">
-            {/* Free Shipping Progress */}
-            {/* Free Shipping Progress */}
-            {isFreeShippingEnabled && (
-              <Reveal delay={0.1}>
-                <div className="bg-white p-6 rounded-xl border border-[rgba(18,64,60,0.08)] mb-8 shadow-sm relative overflow-hidden">
-                  <div className="flex items-center gap-3 mb-3 relative z-10">
-                    <Truck className="w-5 h-5 text-[#d4af37]" />
-                    <span className="font-medium text-[#12403C]">
-                      {remainingForFreeShipping > 0
-                        ? <span>{t.cart.free_shipping_progress.add_more.replace('{amount}', formatPrice(remainingForFreeShipping))}</span>
-                        : <span className="text-green-600 font-bold">{t.cart.free_shipping_progress.unlocked}</span>
-                      }
-                    </span>
-                  </div>
-                  <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden relative z-10">
-                    <motion.div 
-                      className="h-full bg-gradient-to-r from-[#12403C] to-[#d4af37]"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${shippingProgress}%` }}
-                      transition={{ duration: 1, ease: "easeOut" }}
-                    />
-                  </div>
-                  {/* Background decoration */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.1)_0%,transparent_70%)] pointer-events-none" />
-                </div>
-              </Reveal>
-            )}
 
             {/* Cart Items List */}
             <div className="space-y-6 mb-12">
@@ -292,12 +252,8 @@ export default function CartClient({
 
 
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">{t.product.shipping_returns.split('&')[0].trim()}</span>
-                      {remainingForFreeShipping === 0 ? (
-                        <span className="font-bold text-green-600">{t.common.free}</span>
-                      ) : (
-                          <span className="text-gray-400 text-xs">{t.cart.shipping_calculated_checkout}</span>
-                      )}
+                    <span className="text-gray-600">{t.product.shipping_returns.split('&')[0].trim()}</span>
+                    <span className="text-gray-400 text-xs">{t.cart.shipping_calculated_checkout}</span>
                     </div>
 
                     <div className="my-4 pt-4 border-t border-dashed border-gray-200 flex justify-between items-baseline">

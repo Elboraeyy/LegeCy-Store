@@ -5,6 +5,7 @@ import { signup } from '@/lib/actions/auth';
 import Link from 'next/link';
 import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
 import { useLanguage } from '@/context/LanguageContext';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 function SubmitButton() {
     const { t } = useLanguage();
@@ -332,9 +333,8 @@ export default function SignupPage() {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <label style={{ fontSize: '12px', fontWeight: 700, color: '#12403C', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.auth.password}</label>
-                            <input 
+                            <PasswordInput 
                                 name="password" 
-                                type="password" 
                                 autoComplete="new-password" 
                                 required 
                                 placeholder="Min. 7 characters"

@@ -1145,18 +1145,26 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
         </section>
 
           {/* Similar Products (Manual or Fallback) */}
-          {((product.similarProducts && product.similarProducts.length > 0) || relatedProducts.length > 0) && (
-            <section className="related-section mt-16 px-0 md:px-4">
-            <ModernProductCarousel
-                products={product.similarProducts && product.similarProducts.length > 0 ? product.similarProducts : relatedProducts}
-                title={product.similarProducts && product.similarProducts.length > 0
-                  ? (t.product.similar_products || (language === 'ar' ? 'منتجات مشابهة' : 'Similar Products'))
-                  : (t.product.related_products || (language === 'ar' ? 'مقترحات لنا' : 'Recommended For You'))}
-                subtitle={language === 'ar' ? 'قد يعجبك أيضاً' : 'You might also like'}
-                viewAllLink={`/shop?category=${product.categorySlug || product.categoryId || ''}`}
-            />
-          </section>
-        )}
+          {(() => {
+            const rawProducts = product.similarProducts && product.similarProducts.length > 0
+              ? product.similarProducts
+              : relatedProducts;
+            // Filter out the current product from recommendations
+            const filteredProducts = rawProducts.filter(p => p.id !== product.id);
+            if (filteredProducts.length === 0) return null;
+            return (
+              <section className="related-section mt-16 px-0 md:px-4">
+                <ModernProductCarousel
+                  products={filteredProducts}
+                  title={product.similarProducts && product.similarProducts.length > 0
+                    ? (t.product.similar_products || (language === 'ar' ? 'منتجات مشابهة' : 'Similar Products'))
+                    : (t.product.related_products || (language === 'ar' ? 'مقترحات لنا' : 'Recommended For You'))}
+                  subtitle={language === 'ar' ? 'قد يعجبك أيضاً' : 'You might also like'}
+                  viewAllLink={`/shop?category=${product.categorySlug || product.categoryId || ''}`}
+                />
+              </section>
+            );
+          })()}
         </div>
       </main>
 

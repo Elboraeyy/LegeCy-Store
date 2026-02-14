@@ -6,6 +6,7 @@ import SettingsSection from '@/components/admin/settings/SettingsSection';
 import SettingsField from '@/components/admin/settings/SettingsField';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
 import { toast } from 'sonner';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 const defaultSettings: PaymentSettings = {
     enableCOD: true,
@@ -157,9 +158,8 @@ export default function PaymentsSettingsPage() {
                                 label="Security Key"
                                 htmlFor="fawrySecurityKey"
                             >
-                                <input
+                                <PasswordInput
                                     id="fawrySecurityKey"
-                                    type="password"
                                     value={settings.fawrySecurityKey}
                                     onChange={(e) => setSettings({ ...settings, fawrySecurityKey: e.target.value })}
                                     placeholder="••••••••"
