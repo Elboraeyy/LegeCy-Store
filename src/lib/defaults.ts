@@ -11,7 +11,7 @@ import type {
 export const defaultGeneral: GeneralSettings = {
   storeName: "Legacy Store",
   storeEmail: "info@legecy.store",
-  storePhone: "+20 127 843 2630",
+  storePhone: "01515205073",
   storeAddress: "Samanoud, Gharbia, Egypt",
   timezone: "Africa/Cairo",
   currency: "EGP",
@@ -47,7 +47,7 @@ export const defaultSEO: SEOSettings = {
     twitter: "",
     tiktok: "",
     youtube: "",
-    whatsapp: "",
+    whatsapp: "01515205073",
   },
 };
 

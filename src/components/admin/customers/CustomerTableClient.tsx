@@ -147,14 +147,30 @@ export default function CustomerTableClient({ data, totalPages, currentPage, sea
                                 </td>
                                 <td>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ 
-                                            width: '32px', height: '32px', borderRadius: '50%',
-                                            background: '#3b82f6', color: '#fff',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontWeight: 'bold', fontSize: '12px'
-                                        }}>
-                                            {customer.name?.[0]?.toUpperCase() || 'U'}
-                                        </div>
+                                        {customer.image ? (
+                                            <img
+                                                src={customer.image}
+                                                alt={customer.name || 'Customer'}
+                                                style={{
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    borderRadius: '50%',
+                                                    objectFit: 'cover',
+                                                    border: '1px solid var(--admin-border)',
+                                                    flexShrink: 0
+                                                }}
+                                            />
+                                        ) : (
+                                                <div style={{
+                                                    width: '32px', height: '32px', borderRadius: '50%',
+                                                    background: '#3b82f6', color: '#fff',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    fontWeight: 'bold', fontSize: '12px',
+                                                    flexShrink: 0
+                                                }}>
+                                                    {customer.name?.[0]?.toUpperCase() || 'U'}
+                                                </div>
+                                        )}
                                         <div>
                                             <div style={{ fontWeight: 600, fontSize: '14px' }}>{customer.name || 'Unknown'}</div>
                                             <div style={{ fontSize: '12px', color: '#666' }}>{customer.email}</div>

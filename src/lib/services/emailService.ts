@@ -26,7 +26,7 @@ const BRAND = {
   lightBg: '#F6E5C6',
   darkBg: '#0A2622',
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://legecy.store',
-  whatsapp: '+201515205073',
+  whatsapp: "https://wa.me/201515205073",
 };
 
 // Get FROM email with fallback
@@ -212,7 +212,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
       <div style="margin-top: 35px; padding: 20px; background: linear-gradient(135deg, ${BRAND.lightBg}, #fef3c7); border-radius: 12px; text-align: center;">
         <p style="margin: 0; color: ${BRAND.primaryColor}; font-size: 14px; line-height: 1.8;">
           🚚 Expected delivery: <strong>3-5 business days</strong><br>
-          📞 Questions? <a href="https://wa.me/${BRAND.whatsapp.replace('+', '')}" style="color: ${BRAND.primaryColor}; font-weight: 600;">Chat with us on WhatsApp</a>
+          📞 Questions? <a href="${BRAND.whatsapp}" style="color: ${BRAND.primaryColor}; font-weight: 600;">Chat with us on WhatsApp</a>
         </p>
       </div>
 

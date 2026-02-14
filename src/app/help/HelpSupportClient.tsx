@@ -263,7 +263,7 @@ export default function HelpSupportClient() {
                     </div>
                       <h4>{t.help.contact.info.call.title}</h4>
                       <p>{t.help.contact.info.call.desc}</p>
-                      <a href="tel:+201515205073" className="contact-link">+20 151 520 5073</a>
+                      <a href="tel:01515205073" className="contact-link">01515205073</a>
                   </motion.div>
 
                   <motion.div 

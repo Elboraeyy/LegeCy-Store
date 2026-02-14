@@ -9,7 +9,7 @@ const socialLinks = {
     facebook: "https://www.facebook.com/share/1DuExapGGK/",
     instagram: "https://www.instagram.com/llegacy.eg?igsh=Z2djNmU2aWJmeTJx",
     tiktok: "https://www.tiktok.com/@llegacy.eg?_r=1&_t=ZS-93W3kAky8HN",
-    whatsapp: "https://wa.me/2001515205073",
+    whatsapp: "https://wa.me/201515205073",
 };
 
 export default function ComingSoon() {
