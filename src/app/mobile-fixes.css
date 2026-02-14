@@ -189,7 +189,7 @@ body {
     }
     
     /* Break carousel out of container padding so products are flush with phone edges */
-    .group\/carousel {
+        .container .group\/carousel {
       margin-left: -20px !important;
       margin-right: -20px !important;
       width: calc(100% + 40px) !important;
