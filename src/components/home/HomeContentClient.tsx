@@ -97,13 +97,12 @@ export function HomeContentClient({
         >
           <motion.div className="collection-card large" variants={fadeUpSlow}>
             <div className="collection-media">
-              <img src="/image/luxury.jpg" 
+              <Image
+                src="/image/luxury.jpg" 
                 alt="Luxury Collection" 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'cover' 
-                }} 
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
             <div className="collection-overlay">
@@ -117,14 +116,12 @@ export function HomeContentClient({
           </motion.div>
           <motion.div className="collection-card modern-card" variants={fadeUpSlow}>
             <div className="collection-media">
-              <img 
+              <Image 
                 src="/image/the-women.jpg" 
                 alt="Women's Collection" 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'cover' 
-                }} 
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
             <div className="collection-overlay">

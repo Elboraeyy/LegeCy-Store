@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { ProductSpecs } from '@/types/product';
 
 export interface ShopProduct {
     id: string;
@@ -20,7 +21,7 @@ export interface ShopProduct {
     defaultVariantId: string | null; // For cart operations
     isNew?: boolean;
     variants?: { id: string; sku: string; price: number; stock: number }[];
-    specs?: any;
+    specs?: ProductSpecs;
 }
 
 export async function fetchShopProducts(): Promise<ShopProduct[]> {
@@ -67,7 +68,7 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: product.specs,
+            specs: (product.specs as any) as ProductSpecs || undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -115,7 +116,7 @@ export async function fetchProductById(id: string) {
         })),
         inStock: totalStock > 0,
         totalStock,
-        specs: product.specs,
+        specs: (product.specs as any) as ProductSpecs || undefined,
         isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000)
     };
 }
@@ -202,7 +203,7 @@ export async function fetchRelatedProducts(productId: string, category: string |
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: product.specs,
+            specs: (product.specs as any) as ProductSpecs || undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -252,7 +253,7 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProd
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: product.specs,
+            specs: (product.specs as any) as ProductSpecs || undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -310,7 +311,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: product.specs,
+            specs: (product.specs as any) as ProductSpecs || undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -367,7 +368,7 @@ export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduc
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: product.specs,
+            specs: (product.specs as any) as ProductSpecs || undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -432,7 +433,7 @@ export async function fetchRandomProducts(limit: number = 8): Promise<ShopProduc
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: product.specs,
+            specs: (product.specs as any) as ProductSpecs || undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,

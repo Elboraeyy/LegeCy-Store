@@ -33,7 +33,6 @@ export default function CartRecommendations() {
                 subtitle="You Might Also Like"
                 products={products}
                 viewAllLink="/shop"
-                enableMobilePadding={false}
                 customItemClass="!min-w-0 w-[calc(50%-4px)] md:w-[135px]" // 50% - (gap/2)
                 useContainer={false}
                 compact={true}

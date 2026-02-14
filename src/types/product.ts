@@ -1,3 +1,17 @@
+export interface ProductSpecs {
+    dialSize?: string;
+    dialColor?: string;
+    caseColor?: string;
+    strapColor?: string;
+    strapMaterial?: string;
+    strapWidth?: string;
+    waterResistance?: string;
+    movement?: string;
+    glass?: string;
+    case?: string; // Legacy/Basic case material
+    hourMarkers?: string;
+}
+
 // Shared Product type that works with both database and legacy static data
 export interface Product {
     id: string | number;
@@ -24,19 +38,7 @@ export interface Product {
     totalStock?: number;
     createdAt?: string; // For sorting by newest
     cat?: string; // Legacy field
-    specs?: {
-        dialSize?: string;
-        dialColor?: string;
-        caseColor?: string;
-        strapColor?: string;
-        strapMaterial?: string;
-        strapWidth?: string;
-        waterResistance?: string;
-        movement?: string;
-        glass?: string;
-        case?: string; // Legacy/Basic case material
-        hourMarkers?: string;
-    };
+    specs?: ProductSpecs;
     gallery?: string[];
     // Filter fields
     categoryId?: string | null;

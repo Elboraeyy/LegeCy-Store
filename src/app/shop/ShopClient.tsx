@@ -26,7 +26,7 @@ export default function ShopClient({
     const router = useRouter();
     const searchParams = useSearchParams();
     const { t, language } = useLanguage();
-    const [isPending, startTransition] = useTransition();
+    const [isPending] = useTransition();
 
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "list" | "compact" | "categories">("grid");

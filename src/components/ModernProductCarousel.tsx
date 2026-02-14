@@ -13,7 +13,6 @@ interface ModernProductCarouselProps {
     title: string;
     subtitle?: string;
     viewAllLink?: string;
-    enableMobilePadding?: boolean;
     customItemClass?: string;
     useContainer?: boolean;
     compact?: boolean;
@@ -25,7 +24,6 @@ export default function ModernProductCarousel({
     title,
     subtitle,
     viewAllLink = "/shop",
-    enableMobilePadding = true,
     customItemClass,
     useContainer = true,
     compact = false,
