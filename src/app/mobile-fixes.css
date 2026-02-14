@@ -183,9 +183,17 @@ body {
     touch-action: manipulation;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
-    padding-inline-start: 16px;
-      padding-inline-end: 16px;
-                }
+    padding: 8px 0 !important;
+      padding-inline-start: 0 !important;
+      padding-inline-end: 0 !important;
+    }
+    
+    /* Break carousel out of container padding so products are flush with phone edges */
+    .group\/carousel {
+      margin-left: -20px !important;
+      margin-right: -20px !important;
+      width: calc(100% + 40px) !important;
+    }
                 
   .product-card {
     touch-action: manipulation;
