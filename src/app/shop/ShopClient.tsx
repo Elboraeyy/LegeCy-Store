@@ -9,6 +9,7 @@ import SortDropdown from "@/components/shop/SortDropdown";
 import ActiveFilters from "@/components/shop/ActiveFilters";
 import { Product } from "@/types/product";
 import { useLanguage } from "@/context/LanguageContext";
+import { useIsClient } from "@/hooks/useIsClient";
 
 interface ShopClientProps {
     initialProducts?: Product[];
@@ -29,7 +30,7 @@ export default function ShopClient({
     const [isPending] = useTransition();
 
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<"grid" | "list" | "compact" | "categories">("grid");
+    const [viewMode, setViewMode] = useState<"grid" | "list" | "compact" | "categories">("categories");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
@@ -125,10 +126,18 @@ export default function ShopClient({
         setCurrentPage(1);
     }, []);
 
+    // Stable randomization for "Featured" view
+    // Using isClient to avoid hydration mismatch during SSR
+    const isClient = useIsClient();
+    const randomizedInitialProducts = useMemo(() => {
+        if (!isClient) return initialProducts;
+        return [...initialProducts].sort(() => Math.random() - 0.5);
+    }, [initialProducts, isClient]);
+
     // CLIENT-SIDE FILTERING LOGIC - Optimized for instant filtering
     // Use deferred search query for smoother typing
     const filteredProducts = useMemo(() => {
-        let result = [...initialProducts];
+        let result = [...randomizedInitialProducts];
 
         // 1. Search Query (using deferred value for smoother typing)
         if (deferredSearchQuery) {
@@ -181,7 +190,7 @@ export default function ShopClient({
 
         return result;
     }, [
-        initialProducts,
+        randomizedInitialProducts,
         deferredSearchQuery,
         filters.selectedCategories,
         filters.selectedBrands,

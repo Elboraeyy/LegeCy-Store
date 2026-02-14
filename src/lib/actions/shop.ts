@@ -217,7 +217,7 @@ export async function fetchRelatedProducts(productId: string, category: string |
 // Fetch featured products (for homepage carousel)
 export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProduct[]> {
     const products = await prisma.product.findMany({
-        take: limit,
+        take: 50, // Fetch a larger pool for better randomization
         orderBy: { createdAt: 'desc' },
         include: {
             variants: {
@@ -261,7 +261,7 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProd
                 stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
             }))
         };
-    });
+    }).sort(() => Math.random() - 0.5).slice(0, limit);
 }
 
 // Fetch new arrivals (products created in last 30 days)
@@ -275,7 +275,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             status: 'active',
             showInNewArrivals: true
         },
-        take: limit,
+        take: 50, // Fetch a larger pool for better randomization
         orderBy: { createdAt: 'desc' },
         include: {
             variants: {
@@ -288,7 +288,6 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             material: true
         }
     });
-
     return products.map(product => {
         const mainVariant = product.variants[0];
         const totalStock = product.variants.reduce((acc, v) => 
@@ -319,7 +318,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
                 stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
             }))
         };
-    });
+    }).sort(() => Math.random() - 0.5).slice(0, limit);
 }
 
 // Fetch "For You" products (Curated list)
@@ -329,7 +328,7 @@ export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduc
             status: 'active',
             showInForYou: true
         },
-        take: limit,
+        take: 50, // Fetch a larger pool for better randomization
         orderBy: { updatedAt: 'desc' }, // Show recently updated/curated items
         include: {
             variants: {
@@ -343,10 +342,7 @@ export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduc
         }
     });
 
-    // Shuffle products for a fresh look on every visit
-    const shuffled = [...products].sort(() => Math.random() - 0.5);
-
-    return shuffled.map(product => {
+    return products.map(product => {
         const mainVariant = product.variants[0];
         const totalStock = product.variants.reduce((acc, v) =>
             acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0
@@ -376,7 +372,7 @@ export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduc
                 stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
             }))
         };
-    });
+    }).sort(() => Math.random() - 0.5).slice(0, limit);
 }
 
 // Fetch random products (for cart recommendations)

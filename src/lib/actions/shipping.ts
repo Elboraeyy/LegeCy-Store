@@ -1,6 +1,7 @@
 "use server";
 
 import { getStoreConfig, ShippingSettings } from "@/lib/actions/config";
+import { EGYPT_LOCATIONS } from "@/data/egypt-locations";
 
 // Default shipping settings (fallback if not configured)
 const defaultShippingSettings: ShippingSettings = {
@@ -9,9 +10,9 @@ const defaultShippingSettings: ShippingSettings = {
   defaultShippingRate: 50,
   expressShippingRate: 100,
   shippingZones: [
-    { name: 'Cairo & Giza', cities: ['Cairo', 'Giza'], rate: 40 },
-    { name: 'Alexandria', cities: ['Alexandria'], rate: 50 },
-    { name: 'Other Governorates', cities: [], rate: 70 },
+    { name: 'Cairo & Giza', governorates: ['Cairo', 'Giza'], cities: [], rate: 40 },
+    { name: 'Alexandria', governorates: ['Alexandria'], cities: [], rate: 50 },
+    { name: 'Other Governorates', governorates: [], cities: [], rate: 70 },
   ],
 };
 
@@ -47,50 +48,25 @@ export async function getShippingSettings(): Promise<ShippingSettings> {
 }
 
 /**
- * Get list of all Egyptian cities for checkout dropdown
+ * Get list of all Egyptian governorates for checkout dropdown
  */
+export async function getEgyptianGovernorates(): Promise<string[]> {
+  return EGYPT_LOCATIONS.map(gov => gov.en);
+}
+
+// Deprecated: Use getEgyptianGovernorates instead
 export async function getEgyptianCities(): Promise<string[]> {
-  return [
-    'Cairo',
-    'Giza',
-    'Alexandria',
-    'Mansoura',
-    'Tanta',
-    'Zagazig',
-    'Assiut',
-    'Sohag',
-    'Luxor',
-    'Aswan',
-    'Port Said',
-    'Suez',
-    'Ismailia',
-    'Damietta',
-    'Minya',
-    'Beni Suef',
-    'Fayoum',
-    'Qena',
-    'Sharm El Sheikh',
-    'Hurghada',
-    'Marsa Matrouh',
-    'Kafr El Sheikh',
-    'Beheira',
-    'Gharbia',
-    'Monufia',
-    'Sharqia',
-    'Dakahlia',
-    'Red Sea',
-    'New Valley',
-    'North Sinai',
-    'South Sinai',
-    'Matrouh',
-  ];
+  return getEgyptianGovernorates();
 }
 
 /**
- * Get shipping rate for a specific city
- * Searches through zones to find matching city, falls back to default rate
+ * Get shipping rate for a specific governorate and city (optional)
+ * Priority: 
+ * 1. Specific City Match in any zone
+ * 2. Governorate Match in any zone
+ * 3. Default Shipping Rate
  */
-export async function getShippingRateForCity(city: string): Promise<{
+export async function getShippingRateForGovernorate(governorate: string, city?: string): Promise<{
   rate: number;
   zoneName: string;
   isFreeShipping: boolean;
@@ -101,15 +77,33 @@ export async function getShippingRateForCity(city: string): Promise<{
     return { rate: 0, zoneName: 'Shipping Disabled', isFreeShipping: true };
   }
   
-  // Normalize city name for comparison
-  const normalizedCity = city.toLowerCase().trim();
+  // Normalize names for comparison
+  const normalizedGov = governorate.toLowerCase().trim();
+  const normalizedCity = city?.toLowerCase().trim();
   
-  // Search through zones for matching city
+  // 1. Check for specific City Exception across all zones
+  if (normalizedCity) {
+    for (const zone of settings.shippingZones) {
+      const cityMatch = (zone.cities || []).find(
+        (c) => c.governorate.toLowerCase().trim() === normalizedGov &&
+          c.city.toLowerCase().trim() === normalizedCity
+      );
+      if (cityMatch) {
+        return {
+          rate: cityMatch.rate,
+          zoneName: `${zone.name} (City Override)`,
+          isFreeShipping: false
+        };
+      }
+    }
+  }
+
+  // 2. Check for Governorate Match
   for (const zone of settings.shippingZones) {
-    const cityMatch = zone.cities.some(
-      (c) => c.toLowerCase().trim() === normalizedCity
+    const govMatch = (zone.governorates || []).some(
+      (g) => g.toLowerCase().trim() === normalizedGov
     );
-    if (cityMatch) {
+    if (govMatch) {
       return { 
         rate: zone.rate, 
         zoneName: zone.name,
@@ -126,21 +120,25 @@ export async function getShippingRateForCity(city: string): Promise<{
   };
 }
 
+// Backward compatibility alias (still useful as some parts might only pass one)
+export async function getShippingRateForCity(city: string) {
+  return getShippingRateForGovernorate(city);
+}
+
 /**
- * Calculate shipping cost for a city.
- * Free shipping is only granted via coupons or if the FREE_SHIPPING_ENABLED
- * toggle is on in admin settings — never automatically based on order total.
+ * Calculate shipping cost for a governorate and city.
  */
 export async function calculateShipping(
-  city: string, 
-  _subtotal: number
+  governorate: string,
+  _subtotal: number,
+  city?: string
 ): Promise<{
   shippingCost: number;
   zoneName: string;
   isFreeShipping: boolean;
 }> {
-  // Get rate for city
-  const { rate, zoneName } = await getShippingRateForCity(city);
+  // Get rate for location
+  const { rate, zoneName } = await getShippingRateForGovernorate(governorate, city);
   
   return {
     shippingCost: rate,
@@ -152,8 +150,8 @@ export async function calculateShipping(
 /**
  * Get shipping summary for order creation
  */
-export async function getShippingSummary(city: string, subtotal: number) {
-  const result = await calculateShipping(city, subtotal);
+export async function getShippingSummary(governorate: string, subtotal: number, city?: string) {
+  const result = await calculateShipping(governorate, subtotal, city);
   return {
     shippingCost: result.shippingCost,
     shippingMethod: result.zoneName,

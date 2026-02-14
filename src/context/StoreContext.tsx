@@ -54,6 +54,7 @@ interface StoreContextType {
   products: Product[];
   showToast: (msg: string, type?: "success" | "danger") => void;
   isLoading: boolean;
+    isLoggedIn: boolean;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -438,7 +439,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     <StoreContext.Provider value={{
       cart, fav, addToCart, removeFromCart, decFromCart,
       toggleFav, isFav, clearCart, isCartOpen, openCart, closeCart,
-      products, showToast, isLoading
+          products, showToast, isLoading, isLoggedIn
     }}>
       {children}
     </StoreContext.Provider>

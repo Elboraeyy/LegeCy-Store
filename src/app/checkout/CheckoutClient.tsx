@@ -162,7 +162,7 @@ export default function CheckoutClient() {
       }
       setLoadingShipping(true);
       try {
-        const result = await calculateShipping(form.shippingGovernorate, subtotal);
+        const result = await calculateShipping(form.shippingGovernorate, subtotal, form.shippingCity);
         if (appliedCoupon?.freeShipping) {
           setShippingCost(0);
           setShippingZone("Free Shipping (Coupon)");
@@ -179,7 +179,7 @@ export default function CheckoutClient() {
       }
     }
     loadShipping();
-  }, [form.shippingGovernorate, subtotal, appliedCoupon?.freeShipping]);
+  }, [form.shippingGovernorate, form.shippingCity, subtotal, appliedCoupon?.freeShipping]);
 
   // Calculate totals - Discount applies to products only
   const actualShipping = shippingCost ?? 0;

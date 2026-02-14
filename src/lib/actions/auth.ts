@@ -167,6 +167,11 @@ export async function login(prevState: ActionState, formData: FormData): Promise
         return { error: 'Login failed' };
     }
 
+    // Support redirect after login (e.g., from cart page)
+    const redirectTo = formData.get('redirectTo') as string | null;
+    if (redirectTo && redirectTo.startsWith('/')) {
+        redirect(redirectTo);
+    }
     redirect('/');
 }
 

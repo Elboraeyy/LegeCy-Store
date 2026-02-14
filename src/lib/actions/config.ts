@@ -155,7 +155,8 @@ export type ShippingSettings = {
   expressShippingRate: number;
   shippingZones: Array<{
     name: string;
-    cities: string[];
+    governorates: string[];
+    cities: Array<{ governorate: string; city: string; rate: number }>;
     rate: number;
   }>;
 };

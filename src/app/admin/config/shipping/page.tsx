@@ -7,14 +7,10 @@ import SettingsField from '@/components/admin/settings/SettingsField';
 import ToggleSwitch from '@/components/admin/settings/ToggleSwitch';
 import { toast } from 'sonner';
 
-// All Egyptian governorates/cities
-const EGYPT_CITIES = [
-    'Cairo', 'Giza', 'Alexandria', 'Mansoura', 'Tanta', 'Zagazig', 'Assiut',
-    'Sohag', 'Luxor', 'Aswan', 'Port Said', 'Suez', 'Ismailia', 'Damietta',
-    'Minya', 'Beni Suef', 'Fayoum', 'Qena', 'Sharm El Sheikh', 'Hurghada',
-    'Marsa Matrouh', 'Kafr El Sheikh', 'Beheira', 'Gharbia', 'Monufia',
-    'Sharqia', 'Dakahlia', 'Red Sea', 'New Valley', 'North Sinai', 'South Sinai', 'Matrouh'
-];
+import { EGYPT_LOCATIONS } from '@/data/egypt-locations';
+
+// All Egyptian governorates
+const EGYPT_GOVERNORATES = EGYPT_LOCATIONS.map(gov => gov.en);
 
 const defaultSettings: ShippingSettings = {
     enableShipping: true,
@@ -22,9 +18,9 @@ const defaultSettings: ShippingSettings = {
     defaultShippingRate: 50,
     expressShippingRate: 100,
     shippingZones: [
-        { name: 'Cairo & Giza', cities: ['Cairo', 'Giza'], rate: 40 },
-        { name: 'Alexandria', cities: ['Alexandria'], rate: 50 },
-        { name: 'Other Governorates', cities: [], rate: 70 },
+        { name: 'Cairo & Giza', governorates: ['Cairo', 'Giza'], cities: [], rate: 40 },
+        { name: 'Alexandria', governorates: ['Alexandria'], cities: [], rate: 50 },
+        { name: 'Other Governorates', governorates: [], cities: [], rate: 70 },
     ],
 };
 
@@ -32,6 +28,9 @@ export default function ShippingSettingsPage() {
     const [settings, setSettings] = useState<ShippingSettings>(defaultSettings);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+
+    // State for city selection dropdowns in zones
+    const [cityAddingState, setCityAddingState] = useState<Record<number, { governorate: string; city: string; rate: number }>>({});
 
     useEffect(() => {
         async function loadSettings() {
@@ -66,18 +65,58 @@ export default function ShippingSettingsPage() {
         setSettings({ ...settings, shippingZones: newZones });
     };
 
-    const updateZoneCities = (index: number, cities: string[]) => {
+    const updateZoneGovernorates = (index: number, governorates: string[]) => {
+        const newZones = [...settings.shippingZones];
+        newZones[index] = { ...newZones[index], governorates };
+        setSettings({ ...settings, shippingZones: newZones });
+    };
+
+    const toggleGovernorateInZone = (index: number, gov: string) => {
+        const zone = settings.shippingZones[index];
+        const currentGovs = zone.governorates || [];
+        const governorates = currentGovs.includes(gov)
+            ? currentGovs.filter(g => g !== gov)
+            : [...currentGovs, gov];
+        updateZoneGovernorates(index, governorates);
+    };
+
+    const updateZoneCities = (index: number, cities: Array<{ governorate: string; city: string; rate: number }>) => {
         const newZones = [...settings.shippingZones];
         newZones[index] = { ...newZones[index], cities };
         setSettings({ ...settings, shippingZones: newZones });
     };
 
-    const toggleCityInZone = (index: number, city: string) => {
+    const addCityToZone = (index: number) => {
+        const selection = cityAddingState[index];
+        if (!selection || !selection.governorate || !selection.city) return;
+
         const zone = settings.shippingZones[index];
-        const cities = zone.cities.includes(city)
-            ? zone.cities.filter(c => c !== city)
-            : [...zone.cities, city];
-        updateZoneCities(index, cities);
+        const currentCities = zone.cities || [];
+
+        // Prevent duplicates
+        if (currentCities.some(c => c.governorate === selection.governorate && c.city === selection.city)) {
+            toast.error('This city is already in this zone');
+            return;
+        }
+
+        updateZoneCities(index, [...currentCities, {
+            governorate: selection.governorate,
+            city: selection.city,
+            rate: selection.rate || zone.rate // Use zone rate as default if not specified
+        }]);
+
+        // Reset adding state for this zone
+        setCityAddingState(prev => ({
+            ...prev,
+            [index]: { governorate: selection.governorate, city: '', rate: zone.rate }
+        }));
+        toast.success(`Added ${selection.city} to ${zone.name}`);
+    };
+
+    const removeCityFromZone = (index: number, cityIndex: number) => {
+        const zone = settings.shippingZones[index];
+        const newCities = (zone.cities || []).filter((_, i) => i !== cityIndex);
+        updateZoneCities(index, newCities);
     };
 
     const addZone = () => {
@@ -85,7 +124,7 @@ export default function ShippingSettingsPage() {
             ...settings,
             shippingZones: [
                 ...settings.shippingZones,
-                { name: 'New Zone', cities: [], rate: 50 },
+                { name: 'New Zone', governorates: [], cities: [], rate: 50 },
             ],
         });
     };
@@ -248,7 +287,7 @@ export default function ShippingSettingsPage() {
                         </div>
                         <div style={{ marginTop: '16px' }}>
                             <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '8px', color: 'var(--admin-text-secondary)' }}>
-                                Cities in this zone ({zone.cities.length} selected)
+                                Governorates in this zone ({(zone.governorates || []).length} selected)
                             </label>
                             <div style={{
                                 display: 'flex',
@@ -256,33 +295,122 @@ export default function ShippingSettingsPage() {
                                 gap: '6px',
                                 maxHeight: '150px',
                                 overflowY: 'auto',
-                                padding: '8px',
+                                padding: '12px',
                                 background: 'var(--admin-bg)',
                                 borderRadius: '8px',
                                 border: '1px solid var(--admin-border)'
                             }}>
-                                {EGYPT_CITIES.map(city => (
+                                {EGYPT_GOVERNORATES.map(gov => (
                                     <button
-                                        key={city}
+                                        key={gov}
                                         type="button"
-                                        onClick={() => toggleCityInZone(index, city)}
+                                        onClick={() => toggleGovernorateInZone(index, gov)}
                                         style={{
                                             padding: '4px 10px',
                                             fontSize: '12px',
                                             borderRadius: '99px',
                                             border: 'none',
                                             cursor: 'pointer',
-                                            background: zone.cities.includes(city) ? '#12403C' : 'var(--admin-surface)',
-                                            color: zone.cities.includes(city) ? '#fff' : 'var(--admin-text)',
+                                            background: (zone.governorates || []).includes(gov) ? '#12403C' : 'var(--admin-surface)',
+                                            color: (zone.governorates || []).includes(gov) ? '#fff' : 'var(--admin-text)',
                                             transition: 'all 0.15s ease'
                                         }}
                                     >
-                                        {city}
+                                        {gov}
                                     </button>
                                 ))}
                             </div>
                             <p style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginTop: '6px' }}>
-                                Click cities to add/remove. Cities not in any zone use the default rate.
+                                Full governorates included.
+                            </p>
+                        </div>
+
+                        {/* City Exceptions */}
+                        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px dashed var(--admin-border)' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '12px', color: 'var(--admin-text-secondary)' }}>
+                                Specific City Exceptions ({(zone.cities || []).length})
+                            </label>
+
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                                <select
+                                    style={{ flex: 1, minWidth: '150px', padding: '8px', borderRadius: '8px', border: '1px solid var(--admin-border)', background: 'var(--admin-bg)', fontSize: '13px' }}
+                                    value={cityAddingState[index]?.governorate || ''}
+                                    onChange={(e) => setCityAddingState(prev => ({ ...prev, [index]: { governorate: e.target.value, city: '', rate: zone.rate } }))}
+                                >
+                                    <option value="">Select Governorate</option>
+                                    {EGYPT_GOVERNORATES.map(gov => <option key={gov} value={gov}>{gov}</option>)}
+                                </select>
+
+                                <select
+                                    style={{ flex: 1, minWidth: '150px', padding: '8px', borderRadius: '8px', border: '1px solid var(--admin-border)', background: 'var(--admin-bg)', fontSize: '13px' }}
+                                    value={cityAddingState[index]?.city || ''}
+                                    onChange={(e) => setCityAddingState(prev => ({ ...prev, [index]: { ...prev[index], city: e.target.value } }))}
+                                    disabled={!cityAddingState[index]?.governorate}
+                                >
+                                    <option value="">Select City</option>
+                                    {cityAddingState[index]?.governorate && EGYPT_LOCATIONS.find(l => l.en === cityAddingState[index].governorate)?.cities.map(c => (
+                                        <option key={c.en} value={c.en}>{c.en}</option>
+                                    ))}
+                                </select>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '120px' }}>
+                                    <span style={{ fontSize: '12px' }}>EGP</span>
+                                    <input
+                                        type="number"
+                                        placeholder="Rate"
+                                        style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--admin-border)', background: 'var(--admin-bg)', fontSize: '13px' }}
+                                        value={cityAddingState[index]?.rate ?? zone.rate}
+                                        onChange={(e) => setCityAddingState(prev => ({ ...prev, [index]: { ...prev[index], rate: Number(e.target.value) } }))}
+                                    />
+                                </div>
+
+                                <button
+                                    type="button"
+                                    className="admin-btn admin-btn-primary"
+                                    style={{ padding: '4px 16px', height: '38px', fontSize: '12px' }}
+                                    onClick={() => addCityToZone(index)}
+                                    disabled={!cityAddingState[index]?.city}
+                                >
+                                    Add Exception
+                                </button>
+                            </div>
+
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {(zone.cities || []).map((cityObj, cityIdx) => (
+                                    <div
+                                        key={cityIdx}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            padding: '6px 12px',
+                                            background: 'var(--admin-bg)',
+                                            border: '1px solid #12403C',
+                                            color: 'var(--admin-text)',
+                                            borderRadius: '8px',
+                                            fontSize: '12px'
+                                        }}
+                                    >
+                                        <span style={{ fontWeight: 600 }}>{cityObj.city}</span>
+                                        <span style={{ color: 'var(--admin-text-muted)', fontSize: '11px' }}>({cityObj.governorate})</span>
+                                        <span style={{ padding: '2px 6px', background: '#12403C', color: '#fff', borderRadius: '4px', fontWeight: 700 }}>{cityObj.rate} EGP</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeCityFromZone(index, cityIdx)}
+                                            style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', marginLeft: '4px' }}
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                                {(zone.cities || []).length === 0 && (
+                                    <span style={{ fontSize: '12px', color: 'var(--admin-text-muted)', fontStyle: 'italic' }}>
+                                        No specific city exceptions in this zone.
+                                    </span>
+                                )}
+                            </div>
+                            <p style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginTop: '8px' }}>
+                                City exceptions override governorate-level pricing. Use this to make specific towns cheaper.
                             </p>
                         </div>
                     </div>

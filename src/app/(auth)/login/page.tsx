@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import { login } from '@/lib/actions/auth';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
 import { useLanguage } from '@/context/LanguageContext';
 import PasswordInput from '@/components/ui/PasswordInput';
@@ -50,6 +51,8 @@ export default function LoginPage() {
     const { containerRef } = useUncontrolledFormPersistence('login_form');
 
     const { t } = useLanguage();
+    const searchParams = useSearchParams();
+    const redirectTo = searchParams.get('redirect') || '';
 
     return (
         <div className="auth-container" style={{ 
@@ -286,6 +289,7 @@ export default function LoginPage() {
                     </div>
 
                     <form ref={containerRef} action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <label style={{ fontSize: '12px', fontWeight: 700, color: '#1a3c34', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.auth.email}</label>
                             <input 

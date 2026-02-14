@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -11,6 +11,7 @@ import { PromotionsHub, FlashSale, BOGODeal, Bundle } from "@/components/home/Pr
 import type { HomepageSettings } from "@/lib/settings";
 import type { Product } from "@/types/product";
 import { useLanguage } from "@/context/LanguageContext";
+import { useIsClient } from "@/hooks/useIsClient";
 
 type Props = {
   homepage: HomepageSettings;
@@ -31,7 +32,19 @@ export function HomeContentClient({
   bundles,
   bogos
 }: Props) {
+  const isClient = useIsClient();
   const { t, language } = useLanguage();
+
+  // Randomize lists only on client side to avoid hydration mismatch
+  const randomizedForYou = useMemo(() => {
+    if (!isClient || !forYouProducts) return forYouProducts || [];
+    return [...forYouProducts].sort(() => Math.random() - 0.5);
+  }, [forYouProducts, isClient]);
+
+  const randomizedNewArrivals = useMemo(() => {
+    if (!isClient || !newArrivals) return newArrivals || [];
+    return [...newArrivals].sort(() => Math.random() - 0.5);
+  }, [newArrivals, isClient]);
 
   return (
     <main>
@@ -77,9 +90,9 @@ export function HomeContentClient({
       />
 
       {/* Featured Products Carousel (Admin-controlled via showInForYou) */}
-      {forYouProducts && forYouProducts.length > 0 && (
+      {randomizedForYou.length > 0 && (
         <ModernProductCarousel
-          products={forYouProducts}
+          products={randomizedForYou}
           title={t.home.featured_collection}
           subtitle={t.home.handpicked}
           viewAllLink="/shop"
@@ -139,9 +152,9 @@ export function HomeContentClient({
 
 
       {/* New Arrivals Carousel */}
-      {newArrivals && newArrivals.length > 0 && (
+      {randomizedNewArrivals.length > 0 && (
         <ModernProductCarousel
-          products={newArrivals}
+          products={randomizedNewArrivals}
           title={t.home.new_arrivals}
           subtitle={t.home.just_dropped}
           viewAllLink="/shop"

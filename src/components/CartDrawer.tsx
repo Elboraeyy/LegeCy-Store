@@ -9,7 +9,7 @@ import { useIsClient } from "@/hooks/useIsClient";
 import styles from "./CartDrawer.module.css";
 
 export default function CartDrawer() {
-  const { cart, isCartOpen, closeCart, removeFromCart, addToCart, decFromCart } = useStore();
+  const { cart, isCartOpen, closeCart, removeFromCart, addToCart, decFromCart, isLoggedIn } = useStore();
   const drawerRef = useRef<HTMLDivElement>(null);
   const isClient = useIsClient();
   const { t, language } = useLanguage();
@@ -181,17 +181,20 @@ export default function CartDrawer() {
 
             {/* Buttons */}
             <div className={styles.actionButtons}>
-              <Link 
-                href="/checkout"
-                className={styles.checkoutBtn}
-                onClick={closeCart}
-              >
-                {t.cart.checkout}
-              </Link>
+              {isLoggedIn && (
+                <Link
+                  href="/checkout"
+                  className={styles.checkoutBtn}
+                  onClick={closeCart}
+                >
+                  {t.cart.checkout}
+                </Link>
+              )}
               <Link 
                 href="/cart" 
                 className={styles.viewCartBtn}
                 onClick={closeCart}
+                style={!isLoggedIn ? { flex: 1, width: '100%' } : undefined}
               >
                 {t.cart.view_cart}
               </Link>
