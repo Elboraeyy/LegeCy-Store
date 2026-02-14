@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -11,7 +11,6 @@ import { PromotionsHub, FlashSale, BOGODeal, Bundle } from "@/components/home/Pr
 import type { HomepageSettings } from "@/lib/settings";
 import type { Product } from "@/types/product";
 import { useLanguage } from "@/context/LanguageContext";
-import { useIsClient } from "@/hooks/useIsClient";
 
 type Props = {
   homepage: HomepageSettings;
@@ -32,24 +31,11 @@ export function HomeContentClient({
   bundles,
   bogos
 }: Props) {
-  const isClient = useIsClient();
   const { t, language } = useLanguage();
 
-  // State for randomized lists to ensure purity and avoid hydration mismatches
-  const [randomizedForYou, setRandomizedForYou] = useState<Product[]>(forYouProducts || []);
-  const [randomizedNewArrivals, setRandomizedNewArrivals] = useState<Product[]>(newArrivals || []);
-
-  useEffect(() => {
-    if (forYouProducts) {
-      setRandomizedForYou([...forYouProducts].sort(() => Math.random() - 0.5));
-    }
-  }, [forYouProducts]);
-
-  useEffect(() => {
-    if (newArrivals) {
-      setRandomizedNewArrivals([...newArrivals].sort(() => Math.random() - 0.5));
-    }
-  }, [newArrivals]);
+  // Products are already randomized server-side in shop.ts fetch functions
+  const randomizedForYou = forYouProducts || [];
+  const randomizedNewArrivals = newArrivals || [];
 
   return (
     <main>

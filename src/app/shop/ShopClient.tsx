@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback, useDeferredValue, useTransition } from 'react';
+import React, { useState, useMemo, useCallback, useDeferredValue, useTransition } from 'react';
 import { useRouter, useSearchParams } from "next/navigation";
 import FilterSidebar from "@/components/shop/FilterSidebar";
 import MobileFilters from "@/components/shop/MobileFilters";
@@ -9,7 +9,6 @@ import SortDropdown from "@/components/shop/SortDropdown";
 import ActiveFilters from "@/components/shop/ActiveFilters";
 import { Product } from "@/types/product";
 import { useLanguage } from "@/context/LanguageContext";
-import { useIsClient } from "@/hooks/useIsClient";
 
 interface ShopClientProps {
     initialProducts?: Product[];
@@ -126,12 +125,8 @@ export default function ShopClient({
         setCurrentPage(1);
     }, []);
 
-    // State for randomized products to ensure purity and avoid hydration mismatches
-    const [randomizedInitialProducts, setRandomizedInitialProducts] = useState(initialProducts);
-
-    useEffect(() => {
-        setRandomizedInitialProducts([...initialProducts].sort(() => Math.random() - 0.5));
-    }, [initialProducts]);
+    // Products are already randomized server-side in shop.ts
+    const randomizedInitialProducts = initialProducts;
 
     // CLIENT-SIDE FILTERING LOGIC - Optimized for instant filtering
     // Use deferred search query for smoother typing
