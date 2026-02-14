@@ -222,7 +222,7 @@ export function HomeContentClient({
               <Reveal width="100%" fullHeight>
                 <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                   <Image
-                    src="/image/legacy-precision2.jpg"
+                    src="/image/legacy-precision.png"
                     alt={`${storeName} Heritage`}
                     fill
                     sizes="(max-width: 900px) 100vw, 50vw"
