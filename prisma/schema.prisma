@@ -321,8 +321,8 @@ model Product {
   reviews               Review[]
   stockNotifications    StockNotification[]
   variants              Variant[]
-  Product_A             Product[]             @relation("SimilarProducts")
-  Product_B             Product[]             @relation("SimilarProducts")
+  similarProducts       Product[]             @relation("SimilarProducts")
+  similarTo             Product[]             @relation("SimilarProducts")
 
   @@index([name])
   @@index([category])
