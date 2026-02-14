@@ -10,9 +10,16 @@ interface SpecRowProps {
 }
 
 export default function SpecRow({ label, values, highlightDiff = false }: SpecRowProps) {
-    // Check if values are different (ignore empty/placeholders)
+    const normalize = (v: string | undefined | null) =>
+        (v ?? "")
+            .trim()
+            .replace(/\s+/g, " ")
+            .toLowerCase();
+
+    // Check if values are different (ignore empty/placeholders) using normalized comparison
     const validValues = values.filter(v => v !== undefined && v !== null && v !== "");
-    const isDifferent = validValues.length > 1 && new Set(validValues).size > 1;
+    const normalized = validValues.map(normalize);
+    const isDifferent = normalized.length > 1 && new Set(normalized).size > 1;
 
     const shouldHighlight = highlightDiff && isDifferent;
 
@@ -59,7 +66,7 @@ export default function SpecRow({ label, values, highlightDiff = false }: SpecRo
                     fontSize: "14px",
                     lineHeight: "1.6"
                 }}>
-                    {val || "-"}
+                    {(val ?? "-").toString().trim().replace(/\s+/g, " ")}
                 </td>
             ))}
         </tr>

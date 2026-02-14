@@ -68,7 +68,7 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: (product.specs as any) as ProductSpecs || undefined,
+            specs: (product.specs ?? undefined) as ProductSpecs | undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -116,7 +116,7 @@ export async function fetchProductById(id: string) {
         })),
         inStock: totalStock > 0,
         totalStock,
-        specs: (product.specs as any) as ProductSpecs || undefined,
+        specs: (product.specs ?? undefined) as ProductSpecs | undefined,
         isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000)
     };
 }
@@ -203,7 +203,7 @@ export async function fetchRelatedProducts(productId: string, category: string |
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: (product.specs as any) as ProductSpecs || undefined,
+            specs: (product.specs ?? undefined) as ProductSpecs | undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -253,7 +253,7 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProd
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: (product.specs as any) as ProductSpecs || undefined,
+            specs: (product.specs ?? undefined) as ProductSpecs | undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -311,7 +311,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: (product.specs as any) as ProductSpecs || undefined,
+            specs: (product.specs ?? undefined) as ProductSpecs | undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -368,7 +368,7 @@ export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduc
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: (product.specs as any) as ProductSpecs || undefined,
+            specs: (product.specs ?? undefined) as ProductSpecs | undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,
@@ -433,7 +433,7 @@ export async function fetchRandomProducts(limit: number = 8): Promise<ShopProduc
             inStock: totalStock > 0,
             defaultVariantId: mainVariant?.id || null,
             isNew: (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000),
-            specs: (product.specs as any) as ProductSpecs || undefined,
+            specs: (product.specs ?? undefined) as ProductSpecs | undefined,
             variants: product.variants.map(v => ({
                 id: v.id,
                 sku: v.sku,

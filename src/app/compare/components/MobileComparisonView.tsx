@@ -32,6 +32,67 @@ export default function MobileComparisonView({
         "Specifications": true
     });
 
+    const labelFor = (key: string) => {
+        switch (key) {
+            case "dialSize": return t.compare.labels.dial_size;
+            case "dialColor": return t.compare.labels.dial_color;
+            case "case": return t.compare.labels.case;
+            case "caseColor": return t.compare.labels.case_color;
+            case "strapMaterial": return t.compare.labels.strap_material;
+            case "strapColor": return t.compare.labels.strap_color;
+            case "strapWidth": return t.compare.labels.strap_width;
+            case "movement": return t.compare.labels.movement;
+            case "waterResistance": return t.compare.labels.water_resistance;
+            case "hourMarkers": return t.compare.labels.hour_markers;
+            case "glass": return t.product.glass;
+            default: {
+                const spaced = key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/_/g, " ");
+                return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+            }
+        }
+    };
+
+    const preferredOrder = [
+        "dialSize",
+        "dialColor",
+        "case",
+        "caseColor",
+        "strapMaterial",
+        "strapColor",
+        "strapWidth",
+        "movement",
+        "glass",
+        "waterResistance",
+        "hourMarkers"
+    ];
+
+    const isInStock = (p: Product | null | undefined) => {
+        if (!p) return false;
+        if (typeof p.totalStock === 'number') return p.totalStock > 0;
+        const v: unknown = (p as unknown as { variants?: { stock?: number }[] }).variants;
+        if (Array.isArray(v)) {
+            const sum = v.reduce((acc, it) => acc + (it?.stock || 0), 0);
+            if (sum > 0) return true;
+        }
+        // Fallback if backend provided boolean
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((p as any).inStock !== undefined) return Boolean((p as any).inStock);
+        return false;
+    };
+
+    const specKeysSet = new Set<string>();
+    products.forEach(p => {
+        const s = p?.specs || {};
+        Object.keys(s).forEach(k => {
+            if (s[k as keyof typeof s]) specKeysSet.add(k);
+        });
+    });
+    const dynamicSpecKeys = Array.from(specKeysSet);
+    const orderedSpecKeys = [
+        ...preferredOrder.filter(k => dynamicSpecKeys.includes(k)),
+        ...dynamicSpecKeys.filter(k => !preferredOrder.includes(k)).sort()
+    ];
+
     const toggleSection = (section: string) => {
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
     };
@@ -39,7 +100,6 @@ export default function MobileComparisonView({
     const primary = products[primaryIdx];
     const secondary = products[secondaryIdx];
 
-    // Spec groups
     const specGroups = [
         {
             title: t.compare.basic_info,
@@ -53,36 +113,27 @@ export default function MobileComparisonView({
         {
             title: t.compare.specifications,
             id: "Specifications",
-            rows: [
-                { label: t.compare.labels.dial_size, specKey: "dialSize" },
-                { label: t.compare.labels.dial_color, specKey: "dialColor" },
-                { label: t.compare.labels.case, specKey: "case" },
-                { label: t.compare.labels.case_color, specKey: "caseColor" },
-                { label: t.compare.labels.strap_material, specKey: "strapMaterial" },
-                { label: t.compare.labels.strap_color, specKey: "strapColor" },
-                { label: t.compare.labels.strap_width, specKey: "strapWidth" },
-                { label: t.compare.labels.movement, specKey: "movement" },
-                { label: t.compare.labels.water_resistance, specKey: "waterResistance" },
-                { label: t.compare.labels.hour_markers, specKey: "hourMarkers" },
-            ]
+            rows: orderedSpecKeys.map(k => ({ label: labelFor(k), specKey: k }))
         }
     ];
+
+    const normalizeDisplay = (v: string | undefined | null) => (v ?? "").toString().trim().replace(/\s+/g, " ");
 
     const getSpecValue = (product: Product | undefined, row: { key?: string; specKey?: string; default?: string }) => {
         if (!product) return "-";
         if (row.key) {
             if (row.key === "status") {
-                return product.totalStock && product.totalStock > 0 ? t.product.in_stock : t.product.out_of_stock;
+                return isInStock(product) ? t.product.in_stock : t.product.out_of_stock;
             }
             if (row.key === "brand" || row.key === "category") {
-                return getLocalized(product, language, row.key) || row.default || "-";
+                return normalizeDisplay(getLocalized(product, language, row.key) || row.default || "-");
             }
             // @ts-expect-error - Dynamic property access
-            return product[row.key] || row.default || "-";
+            return normalizeDisplay(product[row.key] || row.default || "-");
         }
         if (row.specKey) {
             // @ts-expect-error - Dynamic property access
-            return product.specs?.[row.specKey] || row.default || "-";
+            return normalizeDisplay(product.specs?.[row.specKey] || row.default || "-");
         }
         return "-";
     };

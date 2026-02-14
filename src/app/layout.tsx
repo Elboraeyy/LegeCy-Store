@@ -72,7 +72,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={appearance.darkMode ? 'dark' : ''}>
       <head>
-        <style dangerouslySetInnerHTML={{ __html: cssVars }} />
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: cssVars }} />
       </head>
       <body className={`${geistSans.variable} ${inter.variable} ${playfair.variable} ${cairo.variable}`}>
         <LanguageProvider>
