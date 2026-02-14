@@ -185,8 +185,10 @@ export async function removeCustomerTag(id: string, tag: string) {
 }
 
 export interface CustomerDetailsPro extends CustomerProData {
+    points: number;
     ordersList: {
         id: string;
+        orderNumber: number;
         createdAt: Date;
         status: string;
         totalPrice: number;
@@ -196,10 +198,12 @@ export interface CustomerDetailsPro extends CustomerProData {
         name: string;
         street: string;
         city: string;
+        governorate: string | null;
         phone: string;
         type: string;
         isDefault: boolean;
     }[];
+    allPhones: string[];
 }
 
 export async function fetchCustomerDetailsPro(id: string): Promise<CustomerDetailsPro | null> {
@@ -214,6 +218,7 @@ export async function fetchCustomerDetailsPro(id: string): Promise<CustomerDetai
                 take: 10, // Recent 10 orders
                 select: {
                     id: true,
+                    orderNumber: true,
                     createdAt: true,
                     status: true,
                     totalPrice: true
@@ -236,6 +241,21 @@ export async function fetchCustomerDetailsPro(id: string): Promise<CustomerDetai
 
     const lastOrder = user.orders[0]?.createdAt || null;
 
+    // Aggregate all unique phones from User, Addresses, and Orders
+    const phonesSet = new Set<string>();
+    if (user.phone) phonesSet.add(user.phone);
+    user.addresses.forEach(a => phonesSet.add(a.phone));
+
+    // Fetch all order phones for this user to be thorough
+    const orderPhones = await prisma.order.findMany({
+        where: { userId: id },
+        select: { customerPhone: true, alternativePhone: true }
+    });
+    orderPhones.forEach(o => {
+        if (o.customerPhone) phonesSet.add(o.customerPhone);
+        if (o.alternativePhone) phonesSet.add(o.alternativePhone);
+    });
+
     return {
         id: user.id,
         name: user.name,
@@ -249,8 +269,10 @@ export async function fetchCustomerDetailsPro(id: string): Promise<CustomerDetai
         totalOrders: user._count.orders,
         totalSpend: realTotalSpend,
         lastOrderDate: lastOrder,
+        points: user.points,
         ordersList: user.orders.map(o => ({
             id: o.id,
+            orderNumber: o.orderNumber,
             createdAt: o.createdAt,
             status: o.status,
             totalPrice: Number(o.totalPrice)
@@ -260,9 +282,11 @@ export async function fetchCustomerDetailsPro(id: string): Promise<CustomerDetai
             name: a.name,
             street: a.street,
             city: a.city,
+            governorate: a.governorate,
             phone: a.phone,
             type: a.type,
             isDefault: a.isDefault
-        }))
+        })),
+        allPhones: Array.from(phonesSet)
     };
 }

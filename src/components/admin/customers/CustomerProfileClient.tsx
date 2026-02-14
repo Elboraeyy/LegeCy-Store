@@ -78,11 +78,15 @@ export default function CustomerProfileClient({ customer }: CustomerProfileProps
                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{ 
                             width: '64px', height: '64px', borderRadius: '50%',
-                            background: '#3b82f6', color: '#fff',
+                            background: customer.image ? `url(${customer.image})` : '#3b82f6',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            color: '#fff',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '24px', fontWeight: 600
+                            fontSize: '24px', fontWeight: 600,
+                            overflow: 'hidden'
                         }}>
-                            {customer.name?.[0]?.toUpperCase() || 'U'}
+                            {!customer.image && (customer.name?.[0]?.toUpperCase() || 'U')}
                         </div>
                         <div>
                             <h1 className="admin-title" style={{ marginBottom: '4px', fontSize: '24px' }}>
@@ -163,10 +167,24 @@ export default function CustomerProfileClient({ customer }: CustomerProfileProps
                                     <div className="admin-label" style={{ fontSize: '11px', color: '#999' }}>Email</div>
                                     <div style={{ fontSize: '13px' }}>{customer.email}</div>
                                 </div>
-                                <div>
-                                    <div className="admin-label" style={{ fontSize: '11px', color: '#999' }}>Phone</div>
-                                    <div style={{ fontSize: '13px' }}>{customer.phone || '—'}</div>
-                                </div>
+                                    {customer.allPhones.length > 0 ? (
+                                        <div>
+                                            <div className="admin-label" style={{ fontSize: '11px', color: '#999' }}>Phone Numbers</div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                {customer.allPhones.map((p, i) => (
+                                                    <div key={i} style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        {p}
+                                                        {p === customer.phone && <span style={{ fontSize: '10px', background: '#e0f2fe', color: '#0369a1', padding: '1px 4px', borderRadius: '4px' }}>Primary</span>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                            <div>
+                                                <div className="admin-label" style={{ fontSize: '11px', color: '#999' }}>Phone</div>
+                                                <div style={{ fontSize: '13px' }}>—</div>
+                                            </div>
+                                    )}
                                 <div>
                                     <div className="admin-label" style={{ fontSize: '11px', color: '#999' }}>Joined</div>
                                     <div style={{ fontSize: '13px' }}>{new Date(customer.joinedAt).toLocaleDateString()}</div>
@@ -214,7 +232,7 @@ export default function CustomerProfileClient({ customer }: CustomerProfileProps
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     
                     {/* Stats Row */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
                         <div className="admin-card" style={{ padding: '16px' }}>
                             <div className="admin-label" style={{ fontSize: '11px', color: '#999' }}>Total Spent</div>
                             <div style={{ fontSize: '18px', fontWeight: 600, marginTop: '4px' }}>
@@ -225,6 +243,12 @@ export default function CustomerProfileClient({ customer }: CustomerProfileProps
                             <div className="admin-label" style={{ fontSize: '11px', color: '#999' }}>Orders</div>
                             <div style={{ fontSize: '18px', fontWeight: 600, marginTop: '4px' }}>
                                 {customer.totalOrders}
+                            </div>
+                        </div>
+                        <div className="admin-card" style={{ padding: '16px' }}>
+                            <div className="admin-label" style={{ fontSize: '11px', color: '#999' }}>Loyalty Points</div>
+                            <div style={{ fontSize: '18px', fontWeight: 600, marginTop: '4px', color: '#d97706' }}>
+                                {customer.points}
                             </div>
                         </div>
                         <div className="admin-card" style={{ padding: '16px' }}>
@@ -254,7 +278,7 @@ export default function CustomerProfileClient({ customer }: CustomerProfileProps
                                 <tbody>
                                     {customer.ordersList.map((order) => (
                                         <tr key={order.id}>
-                                            <td style={{ fontFamily: 'monospace' }}>#{order.id.slice(0, 8)}</td>
+                                            <td style={{ fontWeight: 600 }}>#{order.orderNumber}</td>
                                             <td style={{ fontSize: '13px' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
                                             <td>
                                                 <span className={`status-badge ${
@@ -320,10 +344,15 @@ export default function CustomerProfileClient({ customer }: CustomerProfileProps
                                     <div key={addr.id} style={{ 
                                         padding: '12px', border: '1px solid #eee', borderRadius: '8px', fontSize: '13px' 
                                     }}>
-                                        <div style={{ fontWeight: 600 }}>{addr.name}</div>
-                                        <div style={{ color: '#666' }}>{addr.street}</div>
-                                        <div style={{ color: '#666' }}>{addr.city}</div>
-                                        <div style={{ color: '#999', fontSize: '11px', marginTop: '4px' }}>{addr.phone}</div>
+                                        <div style={{ fontWeight: 600, color: 'var(--admin-text)' }}>{addr.name}</div>
+                                        <div style={{ color: '#666', marginTop: '4px' }}>{addr.street}</div>
+                                        <div style={{ color: '#666' }}>{addr.city}{addr.governorate ? `, ${addr.governorate}` : ''}</div>
+                                        <div style={{ color: '#999', fontSize: '11px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                                            </svg>
+                                            {addr.phone}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

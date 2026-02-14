@@ -121,7 +121,7 @@ export function HomeContentClient({
           <motion.div className="collection-card modern-card" variants={fadeUpSlow}>
             <div className="collection-media">
               <Image 
-                src="/image/ww.png" 
+                src="/image/1.png" 
                 alt="Women's Collection" 
                 fill
                 className="object-cover"

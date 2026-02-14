@@ -1,10 +1,10 @@
 "use client";
 // Mobile Optimized ProductDetailsClient
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useAnimation, PanInfo } from "framer-motion";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
@@ -96,6 +96,170 @@ async function getRelatedProducts(categoryId: string | null, productId: string):
     }
   }
 
+// Mobile Image Carousel with smooth finger swipe
+interface MobileImageCarouselProps {
+  allImages: string[];
+  productName: string;
+  selectedImageIndex: number;
+  setSelectedImageIndex: (idx: number | ((prev: number) => number)) => void;
+  onImageClick: () => void;
+  isOnSale: boolean;
+  salePercent: number;
+  isOutOfStock: boolean;
+  soldOutLabel: string;
+}
+
+function MobileImageCarousel({
+  allImages,
+  productName,
+  selectedImageIndex,
+  setSelectedImageIndex,
+  onImageClick,
+  isOnSale,
+  salePercent,
+  isOutOfStock,
+  soldOutLabel,
+}: MobileImageCarouselProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragX = useMotionValue(0);
+  const controls = useAnimation();
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  // Measure container width
+  useEffect(() => {
+    const measure = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
+  // Liquid spring configuration
+  const liquidSpring = {
+    type: "spring",
+    stiffness: 180, // Slightly reduced for smoother flow
+    damping: 25,    // Balanced to avoid too much oscillation
+    mass: 0.6,      // Lower mass for sportier, faster feel
+    restDelta: 0.001
+  } as const;
+
+  // Animate to the selected image
+  useEffect(() => {
+    if (containerWidth > 0) {
+      controls.start({
+        x: -selectedImageIndex * containerWidth,
+        transition: liquidSpring,
+      });
+    }
+  }, [selectedImageIndex, containerWidth, controls]);
+
+  const handleDragEnd = useCallback(
+    (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      const offset = info.offset.x;
+      const velocity = info.velocity.x;
+      const swipeThreshold = containerWidth * 0.15; // 15% of width instead of fixed 50px
+      const velocityThreshold = 200; // Lower threshold to catch more flicks
+
+      // Decide whether to go next, previous, or stay
+      if (
+        (offset < -swipeThreshold || velocity < -velocityThreshold) &&
+        selectedImageIndex < allImages.length - 1
+      ) {
+        setSelectedImageIndex((s: number) => s + 1);
+      } else if (
+        (offset > swipeThreshold || velocity > velocityThreshold) &&
+        selectedImageIndex > 0
+      ) {
+        setSelectedImageIndex((s: number) => s - 1);
+      } else {
+        // Snap back to current image
+        controls.start({
+          x: -selectedImageIndex * containerWidth,
+          transition: liquidSpring,
+        });
+      }
+    },
+    [selectedImageIndex, allImages.length, containerWidth, controls, setSelectedImageIndex]
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      className="block md:hidden relative w-full aspect-[4/5] rounded-[24px] overflow-hidden bg-[#f8f8f6]"
+      style={{ touchAction: "pan-y" }}
+    >
+      <motion.div
+        className="flex h-full"
+        style={{
+          width: `${allImages.length * 100}%`,
+          x: dragX,
+          cursor: "grab",
+        }}
+        drag="x"
+        dragConstraints={{
+          left: -(allImages.length - 1) * containerWidth,
+          right: 0,
+        }}
+        dragElastic={0.08} // Tighter tracking for "liquid" feel
+        dragMomentum={false}
+        onDragEnd={handleDragEnd}
+        animate={controls}
+      >
+        {allImages.map((img, idx) => (
+          <div
+            key={idx}
+            className="relative h-full flex-shrink-0"
+            style={{ width: `${100 / allImages.length}%` }}
+          >
+            <Image
+              src={img}
+              alt={`${productName} ${idx + 1}`}
+              fill
+              className="object-cover"
+              draggable={false}
+              priority={idx === 0}
+              onClick={onImageClick}
+            />
+          </div>
+        ))}
+      </motion.div>
+
+      {/* Badges Mobile */}
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
+        {isOnSale && (
+          <span className="product-badge sale-badge relative top-0 left-0">
+            -{salePercent}%
+          </span>
+        )}
+        {isOutOfStock && (
+          <span className="product-badge stock-badge out relative top-0 left-0">
+            {soldOutLabel}
+          </span>
+        )}
+      </div>
+
+      {/* Dot Indicators */}
+      {allImages.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/10 backdrop-blur-md p-2 rounded-full pointer-events-none">
+          {allImages.map((_, idx) => (
+            <motion.div
+              key={idx}
+              animate={{
+                width: selectedImageIndex === idx ? 20 : 6,
+                backgroundColor: selectedImageIndex === idx ? "#fff" : "rgba(255,255,255,0.4)"
+              }}
+              className="h-1.5 rounded-full"
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProductDetailsClient({ id }: ProductDetailsClientProps) {
   const router = useRouter();
   const { addToCart, toggleFav, isFav } = useStore();
@@ -126,8 +290,8 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   const [notifyContact, setNotifyContact] = useState('');
   const [notifyLoading, setNotifyLoading] = useState(false);
   const [notifyDone, setNotifyDone] = useState(false);
-  const mobileGalleryRef = React.useRef<HTMLDivElement>(null);
   const shareMenuRef = React.useRef<HTMLDivElement>(null);
+  const carouselContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Close share menu on click outside
   React.useEffect(() => {
@@ -158,30 +322,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     window.scrollTo(0, 0);
   }, []);
 
-  const isUserScrolling = React.useRef(false);
-
-  // Sync mobile gallery scroll with selection
-  useEffect(() => {
-    if (mobileGalleryRef.current && !isUserScrolling.current) {
-      const scrollLeft = selectedImageIndex * mobileGalleryRef.current.clientWidth;
-      if (Math.abs(mobileGalleryRef.current.scrollLeft - scrollLeft) > 10) {
-        mobileGalleryRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-      }
-    }
-    // Reset flag after effect runs (for next external update)
-    isUserScrolling.current = false;
-  }, [selectedImageIndex]);
-
-  const handleMobileScroll = () => {
-    if (mobileGalleryRef.current) {
-      const { scrollLeft, clientWidth } = mobileGalleryRef.current;
-      const newIndex = Math.round(scrollLeft / clientWidth);
-      if (newIndex !== selectedImageIndex && newIndex >= 0 && newIndex < (allImages?.length || 0)) {
-        isUserScrolling.current = true;
-        setSelectedImageIndex(newIndex);
-      }
-    }
-  };
+  // Carousel scroll sync is now handled by Framer Motion animate prop
 
   // Load data
   useEffect(() => {
@@ -439,36 +580,18 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               </div>
             </div>
 
-            {/* Main Image - Mobile (Swipeable) */}
-            <div className="block md:hidden relative w-full aspect-[4/5] rounded-[32px] overflow-hidden">
-              <div
-                ref={mobileGalleryRef}
-                className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full h-full"
-                onScroll={handleMobileScroll}
-              >
-                {allImages.map((img, idx) => (
-                  <div key={idx} className="flex-none w-full h-full snap-center relative">
-                    <Image
-                      src={img}
-                      alt={`${getLocalized(product, language, 'name')} ${idx + 1}`}
-                      fill
-                      className="object-cover"
-                      priority={idx === 0}
-                      onClick={() => setShowLightbox(true)}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Badges Mobile */}
-              {isOnSale && (
-                <span className="product-badge sale-badge absolute top-2 left-2">-{salePercent}%</span>
-              )}
-              {isOutOfStock && (
-                <span className="product-badge stock-badge out absolute bottom-2 left-2">{t.product.sold_out}</span>
-              )}
-
-            </div>
+              {/* Main Image - Mobile (Liquid Framer Motion Carousel) */}
+              <MobileImageCarousel
+                allImages={allImages}
+                productName={getLocalized(product, language, 'name')}
+                selectedImageIndex={selectedImageIndex}
+                setSelectedImageIndex={setSelectedImageIndex}
+                onImageClick={() => setShowLightbox(true)}
+                isOnSale={!!isOnSale}
+                salePercent={salePercent}
+                isOutOfStock={isOutOfStock}
+                soldOutLabel={t.product.sold_out}
+              />
 
             {/* Thumbnails */}
             {allImages.length > 1 && (

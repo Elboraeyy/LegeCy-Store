@@ -302,10 +302,11 @@ body {
 
   .main-image-wrapper {
     min-height: 280px !important;
-      width: 100% !important;
+    width: 100% !important;
       margin: 0 !important;
       border-radius: 32px !important;
       overflow: hidden;
+    position: relative;
   }
 
   .about-img-full {
