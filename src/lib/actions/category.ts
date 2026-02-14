@@ -18,7 +18,7 @@ export interface CategoryInput {
 
 export async function fetchAllCategories() {
     const categories = await prisma.category.findMany({
-        orderBy: [{ parentId: 'asc' }, { sortOrder: 'asc' }, { name: 'asc' }],
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
         include: {
             _count: { select: { products: true } },
             parent: { select: { name: true } }

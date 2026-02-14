@@ -1005,7 +1005,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                           {/* Free Shipping */}
                           {showFreeShipping && (
                             <li className="flex items-start gap-3">
-                              <Truck className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                                <Truck className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
                               <div>
                                 <span className="font-semibold block text-foreground">{t.product.shipping_list.free_shipping.replace('{amount}', formatPrice(Number(shippingThreshold)))}</span>
                               </div>
@@ -1014,25 +1014,25 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
 
                           {/* Delivery */}
                           <li className="flex items-start gap-3">
-                            <Truck className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                              <Truck className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
                             <span>{t.product.shipping_list.delivery}</span>
                           </li>
 
                           {/* Packaging */}
                           <li className="flex items-start gap-3">
-                            <Package className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                              <Package className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
                             <span>{t.product.shipping_list.packaging}</span>
                           </li>
 
                           {/* Returns */}
                           <li className="flex items-start gap-3">
-                            <RefreshCw className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                              <RefreshCw className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
                             <span>{t.product.shipping_list.returns}</span>
                           </li>
 
                           {/* Exchange */}
                           <li className="flex items-start gap-3">
-                            <RefreshCw className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                              <RefreshCw className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent)' }} />
                             <span>{t.product.shipping_list.exchange}</span>
                           </li>
                         </ul>

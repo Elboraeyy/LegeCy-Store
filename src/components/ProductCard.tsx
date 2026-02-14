@@ -17,7 +17,7 @@ interface ProductCardProps {
   hideNewBadge?: boolean;
 }
 
-export default function ProductCard({ product, priority = false, hideNewBadge = false }: ProductCardProps) {
+export default React.memo(function ProductCard({ product, priority = false, hideNewBadge = false }: ProductCardProps) {
   const { addToCart, toggleFav, isFav } = useStore();
   const isClient = useIsClient();
   const { t, language } = useLanguage();
@@ -181,4 +181,4 @@ export default function ProductCard({ product, priority = false, hideNewBadge = 
       </div>
     </div>
   );
-}
+});

@@ -192,18 +192,19 @@ export default function ProductGrid({
                                 {/* Horizontal Scrollable Products */}
                                 <div className="relative w-full -mx-0">
                                     <div
-                                        className="category-scroll overflow-x-auto overflow-y-hidden w-full px-0"
+                                        className="category-scroll overflow-x-auto overflow-y-hidden w-full px-4 md:px-0"
                                         style={{
                                             scrollbarWidth: 'none',
                                             msOverflowStyle: 'none',
-                                            WebkitOverflowScrolling: 'touch'
+                                            WebkitOverflowScrolling: 'touch',
+                                            scrollSnapType: 'x mandatory',
                                         }}
                                     >
-                                        <div className="flex gap-2 md:gap-6 pb-4">
+                                        <div className="flex gap-3 md:gap-6 pb-4">
                                             {categoryProducts.map((product) => {
                                                 const productImage = optimizeCloudinaryUrl(product.imageUrl || product.img || '/placeholder.jpg', 300);
                                                 return (
-                                                    <div key={product.id} className="w-[calc(50%-4px)] md:w-[240px] flex-none">
+                                                    <div key={product.id} className="w-[45%] md:w-[240px] flex-none" style={{ scrollSnapAlign: 'start' }}>
                                                         <Link href={`/product/${product.id}`} className="block space-y-2">
                                                             <div className="aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 relative">
                                                                 <Image

@@ -78,19 +78,20 @@ export default function LoginPage() {
 
                 @media (max-width: 900px) {
                     .auth-container { 
-                        display: flex !important;
-                        flex-direction: column !important;
+                        display: block !important;
                         background: #12403C !important;
-                        height: 100vh !important;
-                        overflow: hidden !important; /* Prevent scroll */
+                        height: 100vh;
+                        overflow-y: scroll; /* Allow vertical scroll */
+                        scroll-snap-type: y mandatory; /* Force snap points */
+                        scroll-behavior: smooth;
                     }
 
-                    /* 1. Green Header (Top Part) */
+                    /* 1. Green Header (Top 1/3) */
                     .auth-brand-side { 
-                        height: 30vh !important; /* Reduced height */
+                        height: 35vh !important; /* Exactly 1/3 approx */
                         width: 100% !important;
-                        padding: 20px !important;
-                        flex-shrink: 0 !important;
+                        padding: 24px 20px !important;
+                        scroll-snap-align: start; /* Snap point 1 */
                         
                         display: flex !important;
                         flex-direction: column !important;
@@ -101,10 +102,10 @@ export default function LoginPage() {
                         z-index: 1;
                     }
 
-                    /* Compact Text Scaling */
+                    /* Compact Text Scaling for 35vh */
                     .auth-brand-side .brand-title { 
                         display: block !important; 
-                        font-size: 28px !important;
+                        font-size: 32px !important;
                         line-height: 1.1 !important;
                         margin-bottom: 8px !important;
                         text-align: center;
@@ -116,25 +117,33 @@ export default function LoginPage() {
                         text-align: center;
                         opacity: 0.8 !important;
                     }
+                    /* User requested ALL text visible */
                     .auth-brand-side .brand-quote { 
-                        display: none !important; /* Hide quote to save space */
+                        display: block !important; 
+                        font-size: 11px !important; /* Small enough to fit */
+                        line-height: 1.4 !important;
+                        margin-bottom: 0 !important;
+                        text-align: center;
+                        max-width: 90% !important;
+                        opacity: 0.7 !important;
                     }
                     .auth-brand-side .brand-footer { 
-                        display: none !important; 
+                         display: none !important; /* Footer might be too much for 35vh, hiding to prioritize key text */
                     }
                     
                     .mobile-brand-header { display: none !important; }
 
                     /* 2. White Form Sheet */
                     .auth-form-side { 
-                        flex: 1 !important; /* Take remaining space */
+                        height: 100vh !important; /* Full screen height */
                         width: 100% !important;
-                        height: auto !important;
+                        scroll-snap-align: start; /* Snap point 2 */
+                        scroll-snap-stop: always; /* Force stop here */
                         
                         background: #FCF8F3 !important;
                         border-radius: 30px 30px 0 0 !important;
                         margin-top: -20px !important; /* Overlap */
-                        padding: 30px 24px !important;
+                        padding: 40px 24px !important;
                         
                         display: flex !important;
                         align-items: center !important;
@@ -143,7 +152,6 @@ export default function LoginPage() {
                         position: relative;
                         z-index: 2;
                         box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-                        overflow-y: auto !important; /* Internal scroll if needed */
                     }
                     
                     .auth-form-side > div {
@@ -152,7 +160,7 @@ export default function LoginPage() {
                         margin: 0 auto;
                     }
 
-                    /* Drag Handle - Optional visual cue */
+                    /* Drag Handle Indicator */
                      .auth-form-side::before {
                         content: '';
                         display: block;
@@ -202,7 +210,7 @@ export default function LoginPage() {
                     </svg>
                 </div>
 
-                <div style={{ position: 'relative', zIndex: 1, maxWidth: '440px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ position: 'relative', zIndex: 1, maxWidth: '440px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                     <div style={{ 
                         fontFamily: "'Playfair Display', serif", 
                         fontSize: '14px', 

@@ -1484,8 +1484,8 @@ select:disabled {
 }
 
 .spec-label {
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+    color: var(--accent);
 }
 
 .spec-value {
@@ -6196,8 +6196,9 @@ select:disabled {
 }
 
 .spec-label {
-  color: var(--text-muted);
+  color: var(--accent);
   font-size: 14px;
+  font-weight: 700;
 }
 
 .spec-value {

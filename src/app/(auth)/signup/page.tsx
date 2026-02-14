@@ -209,7 +209,7 @@ export default function SignupPage() {
                     </svg>
                 </div>
 
-                <div style={{ position: 'relative', zIndex: 1, maxWidth: '440px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ position: 'relative', zIndex: 1, maxWidth: '440px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                     <div style={{ 
                         fontFamily: "'Playfair Display', serif", 
                         fontSize: '14px', 

@@ -204,7 +204,9 @@ body {
     font-size: 13px;
     padding: 10px 24px;
     letter-spacing: 0.5px;
-      display: inline-block;
+    display: inline-flex;
+      align-items: center;
+      justify-content: center;
       white-space: nowrap;
       width: auto;
     }

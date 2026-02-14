@@ -28,80 +28,102 @@ export default function ShopClient({
     const { t, language } = useLanguage();
     const [isPending, startTransition] = useTransition();
 
-    // State - Local state for instant filtering
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "list" | "compact" | "categories">("grid");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
-    // Derived filters from URL - Single Source of Truth
-    const filters = useMemo(() => ({
+    // Fixed price bounds (0-3000)
+    const absoluteMinPrice = 0;
+    const absoluteMaxPrice = 3000;
+
+    // State - Local state for instant filtering
+    const [filters, setFilters] = useState({
         selectedCategories: searchParams.get("category")?.split(",").filter(Boolean) || [],
         selectedBrands: searchParams.get("brands")?.split(",").filter(Boolean) || [],
         selectedMaterials: searchParams.get("materials")?.split(",").filter(Boolean) || [],
         sortBy: searchParams.get("sort") || "featured",
         searchQuery: searchParams.get("q") || "",
-        minPrice: Number(searchParams.get("minPrice")) || 0,
-        maxPrice: Number(searchParams.get("maxPrice")) || 3000,
+        minPrice: Number(searchParams.get("minPrice")) || absoluteMinPrice,
+        maxPrice: Number(searchParams.get("maxPrice")) || absoluteMaxPrice,
         inStock: searchParams.get("inStock") === "true" ? true : searchParams.get("inStock") === "false" ? false : null,
         onSale: searchParams.get("onSale") === "true" ? true : null,
         isNew: searchParams.get("new") === "true" ? true : null,
-    }), [searchParams]);
+    });
 
-    // Fixed price bounds (0-3000)
-    const absoluteMinPrice = 0;
-    const absoluteMaxPrice = 3000;
+    // Update local state when searchParams change (e.g. browser back button)
+    React.useEffect(() => {
+        setFilters({
+            selectedCategories: searchParams.get("category")?.split(",").filter(Boolean) || [],
+            selectedBrands: searchParams.get("brands")?.split(",").filter(Boolean) || [],
+            selectedMaterials: searchParams.get("materials")?.split(",").filter(Boolean) || [],
+            sortBy: searchParams.get("sort") || "featured",
+            searchQuery: searchParams.get("q") || "",
+            minPrice: Number(searchParams.get("minPrice")) || absoluteMinPrice,
+            maxPrice: Number(searchParams.get("maxPrice")) || absoluteMaxPrice,
+            inStock: searchParams.get("inStock") === "true" ? true : searchParams.get("inStock") === "false" ? false : null,
+            onSale: searchParams.get("onSale") === "true" ? true : null,
+            isNew: searchParams.get("new") === "true" ? true : null,
+        });
+        setCurrentPage(1);
+    }, [searchParams, absoluteMinPrice, absoluteMaxPrice]);
 
-    // Deferred search query for smoother typing experience
-    const deferredSearchQuery = useDeferredValue(filters.searchQuery);
-
-    // Update URL asynchronously
-    const updateFilters = useCallback((updates: Partial<typeof filters>) => {
-        // Calculate new filters based on current derived state
-        const newFilters = { ...filters, ...updates };
-
-        // Update URL
-        startTransition(() => {
+    // Update URL asynchronously with a small debounce to avoid history flooding
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
             const params = new URLSearchParams();
 
-            if (newFilters.selectedCategories.length > 0) {
-                params.set("category", newFilters.selectedCategories.join(","));
+            if (filters.selectedCategories.length > 0) {
+                params.set("category", filters.selectedCategories.join(","));
             }
-            if (newFilters.selectedBrands.length > 0) {
-                params.set("brands", newFilters.selectedBrands.join(","));
+            if (filters.selectedBrands.length > 0) {
+                params.set("brands", filters.selectedBrands.join(","));
             }
-            if (newFilters.selectedMaterials.length > 0) {
-                params.set("materials", newFilters.selectedMaterials.join(","));
+            if (filters.selectedMaterials.length > 0) {
+                params.set("materials", filters.selectedMaterials.join(","));
             }
-            if (newFilters.searchQuery) {
-                params.set("q", newFilters.searchQuery);
+            if (filters.searchQuery) {
+                params.set("q", filters.searchQuery);
             }
-            if (newFilters.sortBy !== "featured") {
-                params.set("sort", newFilters.sortBy);
+            if (filters.sortBy !== "featured") {
+                params.set("sort", filters.sortBy);
             }
-            if (newFilters.minPrice > absoluteMinPrice) {
-                params.set("minPrice", String(newFilters.minPrice));
+            if (filters.minPrice > absoluteMinPrice) {
+                params.set("minPrice", String(filters.minPrice));
             }
-            if (newFilters.maxPrice < absoluteMaxPrice) {
-                params.set("maxPrice", String(newFilters.maxPrice));
+            if (filters.maxPrice < absoluteMaxPrice) {
+                params.set("maxPrice", String(filters.maxPrice));
             }
-            if (newFilters.inStock !== null) {
-                params.set("inStock", String(newFilters.inStock));
+            if (filters.inStock !== null) {
+                params.set("inStock", String(filters.inStock));
             }
-            if (newFilters.onSale === true) {
+            if (filters.onSale === true) {
                 params.set("onSale", "true");
             }
-            if (newFilters.isNew === true) {
+            if (filters.isNew === true) {
                 params.set("new", "true");
             }
 
             const url = params.toString() ? `/shop?${params.toString()}` : "/shop";
-            router.replace(url, { scroll: false });
-        });
 
-        // Reset to page 1 on filter change
-        setCurrentPage(1);
+            // Only replace if the URL actually changed to avoid unnecessary re-renders
+            const currentUrl = window.location.pathname + window.location.search;
+            if (url !== currentUrl) {
+                router.replace(url, { scroll: false });
+            }
+        }, 400); // 400ms debounce
+
+        return () => clearTimeout(timer);
     }, [filters, router, absoluteMinPrice, absoluteMaxPrice]);
+
+    // Deferred search query for smoother typing experience
+    const deferredSearchQuery = useDeferredValue(filters.searchQuery);
+
+    // Update local state immediately
+    const updateFilters = useCallback((updates: Partial<typeof filters>) => {
+        setFilters(prev => ({ ...prev, ...updates }));
+        setCurrentPage(1);
+    }, []);
 
     // CLIENT-SIDE FILTERING LOGIC - Optimized for instant filtering
     // Use deferred search query for smoother typing
@@ -508,35 +530,87 @@ export default function ShopClient({
                 <div className="px-4 mb-4">
                     <div className="bg-white rounded-2xl border border-gray-100 p-3 shadow-sm">
                         <div className="flex items-center justify-between gap-2">
-                            <button
-                                onClick={() => setMobileFiltersOpen(true)}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-[#12403C] text-white rounded-full font-medium text-xs shadow-sm"
-                            >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                    <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
-                                </svg>
-                                <span>{t.shop.filter_btn}</span>
-                                {activeFilters.length > 0 && (
-                                    <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold bg-[#d4af37] text-[#12403C] rounded-full px-1">
-                                        {activeFilters.length}
-                                    </span>
-                                )}
-                            </button>
-                            <SortDropdown
-                                value={filters.sortBy}
-                                onChange={(val) => updateFilters({ sortBy: val })}
-                            />
+                            {/* Left: Filter Button + Results Count */}
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setMobileFiltersOpen(true)}
+                                    className="flex items-center gap-1.5 px-3 py-2 bg-[#12403C] text-white rounded-full font-medium text-xs shadow-sm"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                        <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
+                                    </svg>
+                                    <span>{t.shop.filter_btn}</span>
+                                    {activeFilters.length > 0 && (
+                                        <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold bg-[#d4af37] text-[#12403C] rounded-full px-1">
+                                            {activeFilters.length}
+                                        </span>
+                                    )}
+                                </button>
+                                <p className="text-xs text-gray-600 whitespace-nowrap">
+                                    <span className="font-bold text-[#12403C]">{filteredAndSortedProducts.length}</span>
+                                    <span> {language === 'ar' ? t.shop.products_items : 'items'}</span>
+                                </p>
+                            </div>
+
+                            {/* Right: View Mode + Sort */}
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                                    <button
+                                        onClick={() => setViewMode("grid")}
+                                        className={`p-2 rounded ${viewMode === "grid" ? "bg-white shadow-sm" : "text-gray-500"}`}
+                                        title={t.shop.view_grid}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <rect x="3" y="3" width="7" height="7" rx="1" />
+                                            <rect x="14" y="3" width="7" height="7" rx="1" />
+                                            <rect x="3" y="14" width="7" height="7" rx="1" />
+                                            <rect x="14" y="14" width="7" height="7" rx="1" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode("categories")}
+                                        className={`p-2 rounded ${viewMode === "categories" ? "bg-white shadow-sm" : "text-gray-500"}`}
+                                        title="View by Categories"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <rect x="4" y="5" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                                            <rect x="11" y="6" width="9" height="2" rx="1" />
+                                            <rect x="4" y="11" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                                            <rect x="11" y="12" width="9" height="2" rx="1" />
+                                            <rect x="4" y="17" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                                            <rect x="11" y="18" width="9" height="2" rx="1" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <SortDropdown
+                                    value={filters.sortBy}
+                                    onChange={(val) => updateFilters({ sortBy: val })}
+                                />
+                            </div>
                         </div>
+
+                        {/* Active Filters */}
+                        {activeFilters.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                                <ActiveFilters
+                                    filters={activeFilters}
+                                    onRemove={handleRemoveFilter}
+                                    onClearAll={handleClearAll}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Mobile Product Grid (Edge-to-Edge) */}
-                <ProductGrid
-                    products={viewMode === "categories" ? filteredAndSortedProducts : paginatedProducts}
-                    viewMode={viewMode}
-                    isLoading={isPending}
-                    categories={categories}
-                />
+                {/* Mobile Product Grid */}
+                <div className={viewMode === "categories" ? "" : "px-4"}>
+                    <ProductGrid
+                        products={viewMode === "categories" ? filteredAndSortedProducts : paginatedProducts}
+                        viewMode={viewMode}
+                        isLoading={isPending}
+                        categories={categories}
+                    />
+                </div>
 
                 {/* Mobile Pagination */}
                 {viewMode !== "categories" && totalPages > 1 && (

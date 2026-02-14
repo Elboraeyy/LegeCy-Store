@@ -61,7 +61,6 @@ const FilterSidebar = memo(function FilterSidebar({
         price: true,
         brands: true,
         materials: true,
-        status: true,
     });
 
     const toggleSection = useCallback((section: keyof typeof expandedSections) => {
@@ -281,49 +280,6 @@ const FilterSidebar = memo(function FilterSidebar({
                     </div>
                 </FilterSection>
             )}
-
-            {/* Status Filters */}
-            <FilterSection
-                title={t.shop.status}
-                isExpanded={expandedSections.status}
-                onToggle={() => toggleSection("status")}
-            >
-                <div className="space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                        <input
-                            type="checkbox"
-                            checked={inStock === true}
-                            onChange={() => onInStockChange(inStock === true ? null : true)}
-                            className="w-4 h-4 rounded border-gray-300 text-[#12403C] focus:ring-[#d4af37] focus:ring-offset-0"
-                        />
-                        <span className="text-sm text-gray-700 group-hover:text-[#12403C] transition-colors">
-                            {t.shop.in_stock}
-                        </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                        <input
-                            type="checkbox"
-                            checked={onSale === true}
-                            onChange={() => onSaleChange(onSale === true ? null : true)}
-                            className="w-4 h-4 rounded border-gray-300 text-[#12403C] focus:ring-[#d4af37] focus:ring-offset-0"
-                        />
-                        <span className="text-sm text-gray-700 group-hover:text-[#12403C] transition-colors">
-                            {t.shop.on_sale}
-                        </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                        <input
-                            type="checkbox"
-                            checked={isNew === true}
-                            onChange={() => onNewChange(isNew === true ? null : true)}
-                            className="w-4 h-4 rounded border-gray-300 text-[#12403C] focus:ring-[#d4af37] focus:ring-offset-0"
-                        />
-                        <span className="text-sm text-gray-700 group-hover:text-[#12403C] transition-colors">
-                            {t.shop.new_arrivals}
-                        </span>
-                    </label>
-                </div>
-            </FilterSection>
         </aside>
     );
 });
