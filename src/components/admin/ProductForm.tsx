@@ -201,6 +201,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 brandId: brandId || undefined,
                 materialId: materialId || undefined,
                 warehouseId: warehouseId || undefined,
+                supplierId: supplierId || undefined,
                 // New Fields
                 showInNewArrivals,
                 showInForYou,
@@ -233,16 +234,21 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             };
 
             if (initialData) {
-                await updateProductAction(initialData.id, payload);
-                toast.success("Product updated successfully!");
+                const result = await updateProductAction(initialData.id, payload);
+                if (result.success) {
+                    toast.success("Product updated successfully!");
+                    router.push('/admin/products');
+                    router.refresh();
+                }
             } else {
                 // Creation Logic
-                await createProductAction(payload);
-                toast.success("Product created!");
+                const result = await createProductAction(payload);
+                if (result.success) {
+                    toast.success("Product created!");
+                    router.push('/admin/products');
+                    router.refresh();
+                }
             }
-            
-            router.refresh(); 
-            router.push('/admin/products');
         } catch (error: unknown) {
             // Next.js redirect() throws a special error - let it propagate
             if (error && typeof error === 'object' && 'digest' in error) {

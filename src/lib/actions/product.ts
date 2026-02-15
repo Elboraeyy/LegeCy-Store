@@ -26,6 +26,7 @@ export interface ProductInput {
     brandId?: string;
     materialId?: string;
     warehouseId?: string;
+    supplierId?: string;
     costPrice?: number;
 
     // New Fields
@@ -88,6 +89,7 @@ export async function createProductAction(data: ProductInput) {
                 categoryId: data.categoryId || null,
                 brandId: data.brandId || null,
                 materialId: data.materialId || null,
+                supplierId: data.supplierId || null,
                 costPrice: data.costPrice ? new Decimal(data.costPrice) : null,
 
                 // New Fields
@@ -153,8 +155,11 @@ export async function createProductAction(data: ProductInput) {
         { name: data.name, sku: data.sku, initialStock: data.stock }
     );
 
+    revalidatePath('/');
+    revalidatePath('/shop');
     revalidatePath('/admin/products');
-    redirect('/admin/products');
+
+    return { success: true, id: product.id };
 }
 
 export async function updateProductAction(id: string, data: ProductInput) {
@@ -171,6 +176,11 @@ export async function updateProductAction(id: string, data: ProductInput) {
             detailedDescription: data.detailedDescription,
             detailedDescriptionAr: data.detailedDescriptionAr,
             imageUrl: data.imageUrl,
+            status: data.status,
+            categoryId: data.categoryId || null,
+            brandId: data.brandId || null,
+            materialId: data.materialId || null,
+            supplierId: data.supplierId || null,
             costPrice: data.costPrice ? new Decimal(data.costPrice) : undefined,
 
             // New Fields
@@ -263,8 +273,13 @@ export async function updateProductAction(id: string, data: ProductInput) {
         { changes: data }
     );
 
+    revalidatePath('/');
+    revalidatePath('/shop');
+    revalidatePath(`/product/${id}`);
     revalidatePath('/admin/products');
-    redirect('/admin/products');
+    revalidatePath(`/admin/products/${id}`);
+
+    return { success: true };
 }
 
 export async function deleteProductAction(id: string): Promise<{ success: boolean; error?: string }> {
