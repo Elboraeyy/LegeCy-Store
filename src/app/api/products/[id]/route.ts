@@ -23,7 +23,7 @@ export async function GET(_: NextRequest, { params }: Params) {
         },
         brand: { select: { id: true, name: true, slug: true } },
         material: { select: { id: true, name: true } },
-        categoryRel: { select: { id: true, name: true, slug: true } },
+        categoryRel: { select: { id: true, name: true, slug: true, nameAr: true } },
         images: { select: { url: true } },
         similarProducts: {
           select: {
@@ -57,13 +57,17 @@ export async function GET(_: NextRequest, { params }: Params) {
     const transformedProduct = {
       id: product.id,
       name: product.name,
+      nameAr: product.nameAr,
       description: product.description,
+      descriptionAr: product.descriptionAr,
       detailedDescription: product.detailedDescription,
+      detailedDescriptionAr: product.detailedDescriptionAr,
       price,
       compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
       imageUrl: product.imageUrl,
       images: product.images.map(img => img.url),
       category: product.categoryRel?.name || product.category,
+      categoryAr: product.categoryRel?.nameAr || null,
       categoryId: product.categoryRel?.id || product.categoryId,
       categorySlug: product.categoryRel?.slug,
       brand: product.brand,

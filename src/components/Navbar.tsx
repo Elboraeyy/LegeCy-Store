@@ -125,10 +125,10 @@ export default function Navbar({
   // Gold: #d4af37
 
   return (
-    <div className="flex flex-col w-full z-50 relative">
+    <div className="flex flex-col w-full z-[100] relative">
       {/* Announcement Bar - Hides on Scroll Down */}
       <div 
-        className={`transition-transform duration-300 ${!visible ? '-translate-y-full absolute' : 'translate-y-0 relative'} z-50 w-full`}
+        className={`transition-transform duration-300 ${!visible ? '-translate-y-full absolute' : 'translate-y-0 relative'} z-[100] w-full`}
       >
         {headerSettings?.announcementEnabled && (
           <div
@@ -147,7 +147,7 @@ export default function Navbar({
 
       {/* Main Navbar */}
       <header
-        className={`w-full fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+        className={`w-full fixed top-0 left-0 right-0 z-[90] transition-all duration-300 ${
           visible ? 'translate-y-0' : '-translate-y-full'
         } ${
           scrolled

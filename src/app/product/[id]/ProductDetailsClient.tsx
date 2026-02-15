@@ -218,9 +218,13 @@ function MobileImageCarousel({
               src={img}
               alt={`${productName} ${idx + 1}`}
               fill
+              sizes="100vw"
+              quality={85}
               className="object-cover"
               draggable={false}
               priority={idx === 0}
+              loading="eager"
+              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
               onClick={onImageClick}
             />
           </div>
@@ -552,6 +556,8 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   src={allImages[selectedImageIndex]}
                   alt={getLocalized(product, language, 'name')}
                   fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    quality={85}
                   className="main-product-image"
                   style={{
                     objectFit: 'cover',
@@ -560,6 +566,8 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                     transition: isZoomed ? 'none' : 'transform 0.3s ease'
                   }}
                   priority
+                    loading="eager"
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                 />
 
                 {/* Badges Desktop */}
@@ -606,7 +614,11 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                       src={img}
                       alt={`${getLocalized(product, language, 'name')} ${idx + 1}`}
                       fill
+                      sizes="80px"
+                      quality={60}
                       style={{ objectFit: 'cover' }}
+                      loading="eager"
+                      onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                     />
                   </button>
                 ))}
@@ -1321,7 +1333,10 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 alt={product.name}
                 width={800}
                 height={800}
+                quality={90}
                 style={{ objectFit: 'contain', maxHeight: '80vh', width: 'auto' }}
+                loading="eager"
+                onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
               />
               <button
                 className="lightbox-arrow right"
@@ -1340,7 +1355,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   className={`lightbox-thumb ${selectedImageIndex === idx ? 'active' : ''}`}
                   onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(idx); }}
                 >
-                  <Image src={img} alt="" width={60} height={60} style={{ objectFit: 'cover' }} />
+                  <Image src={img} alt="" width={60} height={60} quality={50} style={{ objectFit: 'cover' }} loading="eager" />
                 </button>
               ))}
             </div>
@@ -1446,7 +1461,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 alt={product.name}
                 width={48}
                 height={48}
+                quality={60}
                 style={{ borderRadius: '8px', objectFit: 'cover' }}
+                loading="eager"
               />
               <div>
                 <span className="sticky-product-name">{product.name.length > 25 ? product.name.slice(0, 25) + '...' : product.name}</span>
