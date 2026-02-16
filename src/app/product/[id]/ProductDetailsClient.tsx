@@ -107,6 +107,7 @@ interface MobileImageCarouselProps {
   salePercent: number;
   isOutOfStock: boolean;
   soldOutLabel: string;
+  language: string;
 }
 
 function MobileImageCarousel({
@@ -119,11 +120,13 @@ function MobileImageCarousel({
   salePercent,
   isOutOfStock,
   soldOutLabel,
+  language,
 }: MobileImageCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dragX = useMotionValue(0);
   const controls = useAnimation();
   const [containerWidth, setContainerWidth] = useState(0);
+  const isRTL = language === 'ar';
 
   // Measure container width
   useEffect(() => {
@@ -149,12 +152,16 @@ function MobileImageCarousel({
   // Animate to the selected image
   useEffect(() => {
     if (containerWidth > 0) {
+      const targetX = isRTL
+        ? selectedImageIndex * containerWidth
+        : -selectedImageIndex * containerWidth;
+
       controls.start({
-        x: -selectedImageIndex * containerWidth,
+        x: targetX,
         transition: liquidSpring,
       });
     }
-  }, [selectedImageIndex, containerWidth, controls]);
+  }, [selectedImageIndex, containerWidth, controls, isRTL]);
 
   const handleDragEnd = useCallback(
     (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -164,25 +171,36 @@ function MobileImageCarousel({
       const velocityThreshold = 200; // Lower threshold to catch more flicks
 
       // Decide whether to go next, previous, or stay
-      if (
-        (offset < -swipeThreshold || velocity < -velocityThreshold) &&
-        selectedImageIndex < allImages.length - 1
-      ) {
+      let shouldGoNext = false;
+      let shouldGoPrev = false;
+
+      if (isRTL) {
+        // RTL: Next is Right (positive offset), Prev is Left (negative offset)
+        shouldGoNext = (offset > swipeThreshold || velocity > velocityThreshold);
+        shouldGoPrev = (offset < -swipeThreshold || velocity < -velocityThreshold);
+      } else {
+        // LTR: Next is Left (negative offset), Prev is Right (positive offset)
+        shouldGoNext = (offset < -swipeThreshold || velocity < -velocityThreshold);
+        shouldGoPrev = (offset > swipeThreshold || velocity > velocityThreshold);
+      }
+
+      if (shouldGoNext && selectedImageIndex < allImages.length - 1) {
         setSelectedImageIndex((s: number) => s + 1);
-      } else if (
-        (offset > swipeThreshold || velocity > velocityThreshold) &&
-        selectedImageIndex > 0
-      ) {
+      } else if (shouldGoPrev && selectedImageIndex > 0) {
         setSelectedImageIndex((s: number) => s - 1);
       } else {
         // Snap back to current image
+        const targetX = isRTL
+          ? selectedImageIndex * containerWidth
+          : -selectedImageIndex * containerWidth;
+
         controls.start({
-          x: -selectedImageIndex * containerWidth,
+          x: targetX,
           transition: liquidSpring,
         });
       }
     },
-    [selectedImageIndex, allImages.length, containerWidth, controls, setSelectedImageIndex]
+    [selectedImageIndex, allImages.length, containerWidth, controls, setSelectedImageIndex, isRTL]
   );
 
   return (
@@ -197,11 +215,12 @@ function MobileImageCarousel({
           width: `${allImages.length * 100}%`,
           x: dragX,
           cursor: "grab",
+          flexDirection: isRTL ? 'row-reverse' : 'row',
         }}
         drag="x"
         dragConstraints={{
-          left: -(allImages.length - 1) * containerWidth,
-          right: 0,
+          left: isRTL ? 0 : -(allImages.length - 1) * containerWidth,
+          right: isRTL ? (allImages.length - 1) * containerWidth : 0,
         }}
         dragElastic={0.08} // Tighter tracking for "liquid" feel
         dragMomentum={false}
@@ -599,6 +618,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 salePercent={salePercent}
                 isOutOfStock={isOutOfStock}
                 soldOutLabel={t.product.sold_out}
+                language={language}
               />
 
             {/* Thumbnails */}
