@@ -206,6 +206,7 @@ function MobileImageCarousel({
   return (
     <div
       ref={containerRef}
+      dir={isRTL ? "rtl" : "ltr"}
       className="block md:hidden relative w-full aspect-[4/5] rounded-[24px] overflow-hidden bg-[#f8f8f6]"
       style={{ touchAction: "pan-y" }}
     >
@@ -215,7 +216,6 @@ function MobileImageCarousel({
           width: `${allImages.length * 100}%`,
           x: dragX,
           cursor: "grab",
-          flexDirection: isRTL ? 'row-reverse' : 'row',
         }}
         drag="x"
         dragConstraints={{
