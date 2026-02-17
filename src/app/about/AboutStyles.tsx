@@ -68,11 +68,18 @@ export default function AboutStyles() {
         
         /* Team Grid - 3 Columns for maximum density */
         .about-team-grid {
-          grid-template-columns: repeat(3, 1fr) !important;
+          display: flex !important;
+          flex-wrap: wrap !important;
+          justify-content: center !important;
           gap: 8px !important;
         }
         
+        .about-team-grid > div {
+          width: calc(33.33% - 6px) !important;
+        }
+
         .about-team-card {
+          width: 100% !important;
           padding: 10px 4px !important;
           border-radius: 8px !important;
         }
