@@ -13,6 +13,7 @@ import {
     CartItemDTO
 } from '@/lib/actions/cart';
 import { toast } from 'sonner';
+import { getCurrentUser } from "@/lib/actions/auth";
 
 // Flag used to signal cart should be cleared after payment success
 export const CART_CLEARED_FLAG = 'cart_cleared_on_payment';
@@ -113,6 +114,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 return; // Skip normal cart loading
             }
 
+            // 0. CHECK SESSION STATUS EXPLICITLY
+            const user = await getCurrentUser();
+            const userLoggedIn = !!user;
+            if (mounted) setIsLoggedIn(userLoggedIn);
+
             // 1. ALWAYS restore from localStorage first (for instant UX)
             const localStr = localStorage.getItem("cart");
             let localItems: CartItem[] = localStr ? JSON.parse(localStr) : [];
@@ -190,7 +196,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                         img: i.imageUrl || undefined
                     }));
                     
-                    setIsLoggedIn(true);
+                    // setIsLoggedIn(true); // Already set by getCurrentUser
                     
                     // Merge local items into DB if any exist
                     if (localItems.length > 0) {
@@ -223,14 +229,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                         if (mergeResult.success) {
                             console.log("[Cart] Merge succeeded - user is logged in");
                             localStorage.removeItem("cart");
-                            setIsLoggedIn(true);
+                            // setIsLoggedIn(true); // Already set
                             const finalRaw = await getCartAction();
                             currentCart = finalRaw.map(i => ({ ...i, img: i.imageUrl || undefined }));
                             if (mounted) setCart(currentCart);
                         } else {
                             // User is NOT logged in - KEEP localStorage cart
                             console.log("[Cart] User is guest - keeping localStorage cart");
-                            setIsLoggedIn(false);
+                            if (userLoggedIn) {
+                                // Weird state: Logged in but merge failed?
+                                // Should imply session invalid or server error.
+                                // But we rely on getCurrentUser as truth.
+                            } else {
+                                setIsLoggedIn(false);
+                            }
                             // Cart is already set from localStorage, don't change it!
                         }
                     } else {
@@ -242,7 +254,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             } catch (dbError) {
                 console.error("[Cart] DB fetch failed, keeping localStorage:", dbError);
                 // DB failed - user is guest, keep localStorage cart (already set)
-                setIsLoggedIn(false);
+                // DB failed - user is guest, keep localStorage cart (already set)
+                if (!userLoggedIn && mounted) setIsLoggedIn(false);
             }
             
         } catch (error) {

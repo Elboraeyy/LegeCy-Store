@@ -17,7 +17,8 @@ import {
   Plus,
   ShieldCheck,
   Truck,
-  CreditCard,
+  RotateCcw,
+  BadgeCheck,
   ArrowRight
 } from "lucide-react";
 
@@ -273,18 +274,23 @@ export default function CartClient() {
                     </Link>
 
                     {/* Trust Badges */}
-                    <div className="pt-6 mt-2 flex justify-center items-start gap-6 text-center">
-                      <div className="flex flex-col items-center gap-1.5">
+                  {/* Trust Badges */}
+                  <div className="pt-6 mt-2 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div className="flex flex-col items-center gap-2">
                         <ShieldCheck className="w-5 h-5 text-[#d4af37]" />
-                        <span className="text-[10px] text-gray-500 font-medium">{t.product.trust.secure}</span>
+                      <span className="text-[10px] text-gray-500 font-medium">{t.cart.trust.secure}</span>
                       </div>
-                      <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex flex-col items-center gap-2">
                         <Truck className="w-5 h-5 text-[#d4af37]" />
-                        <span className="text-[10px] text-gray-500 font-medium">{t.product.shipping_list.delivery.split(' ').slice(0, 2).join(' ')}</span>
+                      <span className="text-[10px] text-gray-500 font-medium">{t.cart.trust.shipping}</span>
                       </div>
-                      <div className="flex flex-col items-center gap-1.5">
-                        <CreditCard className="w-5 h-5 text-[#d4af37]" />
-                        <span className="text-[10px] text-gray-500 font-medium">{t.checkout.payment_method}</span>
+                    <div className="flex flex-col items-center gap-2">
+                      <RotateCcw className="w-5 h-5 text-[#d4af37]" />
+                      <span className="text-[10px] text-gray-500 font-medium">{t.cart.trust.returns}</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <BadgeCheck className="w-5 h-5 text-[#d4af37]" />
+                      <span className="text-[10px] text-gray-500 font-medium">{t.cart.trust.authentic}</span>
                       </div>
                     </div>
                   </div>

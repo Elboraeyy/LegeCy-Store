@@ -268,8 +268,8 @@ export const dictionary = {
       payment_subtitle: "Choose how you'd like to pay",
       cod: "Cash on Delivery",
       cod_desc: "Pay when you receive your order",
-      card: "Credit / Debit Card",
-      card_desc: "Visa, Mastercard, Meeza",
+      instapay: "InstaPay",
+      instapay_desc: "Instant transfer via InstaPay",
       wallet: "Mobile Wallet",
       wallet_desc: "Vodafone Cash, Orange, Etisalat",
       wallet_number: "Wallet Number",
@@ -322,6 +322,12 @@ export const dictionary = {
       order_placed_success: "Order Placed Successfully!",
       order_success_desc: "Your order has already been processed. You can track it in your orders page.",
       track_order_btn: "Track Order",
+      trust: {
+        secure: "Secure Payment",
+        shipping: "Fast Shipping",
+        returns: "Easy Returns",
+        authentic: "Premium Quality",
+      },
     },
     wishlist: {
       title: "Your Wishlist",
@@ -969,7 +975,7 @@ export const dictionary = {
           },
           {
             title: "4. Payment",
-            content: "We accept Cash on Delivery (COD) and secure online payments via Paymob (Visa, Mastercard, and mobile wallets). For online payments, your order will be processed after successful payment confirmation."
+            content: "We accept Cash on Delivery (COD), InstaPay, and mobile wallet transfers. For transfer payments, your order will be processed after payment confirmation."
           },
           {
             title: "5. Shipping",
@@ -980,8 +986,8 @@ export const dictionary = {
             content: "We want you to be completely satisfied with your purchase. Please review our Refund Policy for details on returns. Returns must be initiated within 14 days of delivery. Products must be unused and in original packaging."
           },
           {
-            title: "7. Product Authenticity",
-            content: "All watches, accessories, and products sold at LegaCy are 100% authentic. We source directly from authorized distributors and trusted suppliers. Each item comes with authenticity guarantee where applicable."
+            title: "7. Quality Guarantee",
+            content: "All watches and accessories sold on LegaCy are Premium Quality (High Grade). We source directly from trusted manufacturers to ensure the best experience. Each item undergoes strict quality checks before shipping."
           },
           {
             title: "8. Limitation of Liability",
@@ -1028,12 +1034,12 @@ export const dictionary = {
         },
         processing: {
           title: "Refund Processing",
-          online: "Online Payments: Refunded to your original payment method within 5-10 business days after we receive and inspect the returned item.",
+          online: "Online Transfers (InstaPay/Wallets): Refunded to your original payment method within 5-10 business days after we receive and inspect the returned item.",
           cod: "Cash on Delivery: Refund via bank transfer. Please provide your bank account details when initiating the return."
         },
         product_returns: {
           title: "Product Returns",
-          content: "All products must be returned with their original box, warranty card, manual, and any accessories. Protective stickers and seals must not be removed. Items with signs of use may be subject to a restocking fee."
+          content: "All products must be returned with their original box, catalog, and any accessories. Protective stickers and seals must not be removed. Items with signs of use may be subject to a restocking fee."
         },
         damaged: {
           title: "Damaged or Wrong Items",
@@ -1119,14 +1125,14 @@ export const dictionary = {
           { cat: "Shipping & Delivery", q: "What is the delivery time?", a: "We ship from Samanoud, Gharbia. Orders to Gharbia & Dakahlia arrive in 1-2 business days. Cairo, Giza & Alexandria take 2-4 days. Other areas take 3-7 days depending on distance." },
           { cat: "Shipping & Delivery", q: "Is shipping free?", a: "Free shipping is available for orders above 1,500 EGP to Gharbia and Dakahlia governorates. For other areas, shipping fees are calculated at checkout." },
           { cat: "Shipping & Delivery", q: "Can I track my shipment?", a: "Absolutely! After your order is shipped, you will receive an email with the tracking number and a link to track your shipment." },
-          { cat: "Payment", q: "What payment methods are available?", a: "We accept Cash on Delivery (COD), bank cards (Visa/Mastercard), and mobile wallets (Vodafone Cash, Orange Cash, Etisalat Cash)." },
-          { cat: "Payment", q: "Is payment secure?", a: "Yes, we use the latest encryption technologies and the certified Paymob gateway to ensure the security of all your financial transactions." },
+          { cat: "Payment", q: "What payment methods are available?", a: "We accept Cash on Delivery (COD), InstaPay transfers, and mobile wallet transfers (Vodafone Cash, Orange Cash, Etisalat Cash, WE Pay)." },
+          { cat: "Payment", q: "Is payment secure?", a: "Yes, all transfers are secured through their respective official applications (InstaPay, Banking Apps, Telecom Wallets)." },
           { cat: "Payment", q: "Can I pay in installments?", a: "Currently, we do not offer installment payment, but we are working on adding this feature soon." },
           { cat: "Returns & Exchange", q: "What is the return policy?", a: "You can return the product within 14 days of receipt, provided it is in its original condition with all accessories and packaging." },
           { cat: "Returns & Exchange", q: "How do I request a return or exchange?", a: "You can contact us through the 'My Orders' page in your account, or contact customer service and we will arrange the return process." },
           { cat: "Returns & Exchange", q: "When will I receive the refund?", a: "After receiving and inspecting the product, the refund will be processed within 5-7 business days to the original payment method." },
-          { cat: "Products", q: "Are the products authentic?", a: "Yes! All our products are 100% authentic and sourced from authorized dealers. We provide a certificate of authenticity where applicable." },
-          { cat: "Products", q: "What is the warranty period?", a: "We offer a one-year warranty on all products against manufacturing defects. The warranty does not cover misuse or breakage." },
+          { cat: "Products", q: "What is the grade/quality of the products?", a: "Our products are Premium Quality (High Grade), carefully crafted to provide an exceptional experience with high attention to detail." },
+          { cat: "Products", q: "Is there a warranty?", a: "We offer a 'Check on Delivery' service which allows you to inspect the product before payment. We also has a 14-day return policy for unused items." },
           { cat: "Products", q: "Can I try the product before purchasing?", a: "You can inspect the product upon delivery before payment (in case of Cash on Delivery). If it doesn't suit you, you can refuse the delivery." },
           { cat: "Account & Orders", q: "How do I create an account?", a: "Click on 'Sign Up' at the top of the page, enter your details and create a password. You can also sign up with your Google account." },
           { cat: "Account & Orders", q: "I forgot my password, what should I do?", a: "Click on 'Forgot Password' on the login page, enter your email and you will receive a message to reset your password." },
@@ -1237,7 +1243,7 @@ export const dictionary = {
       },
       features: {
         quality: { title: "جودة مختارة", desc: "منتجات مختارة بعناية من أفضل البراندات العالمية." },
-        authenticity: { title: "أصالة مضمونة", desc: "كل قطعة مضمونة وموثقة من خبرائنا." },
+        authenticity: { title: "جودة ممتازة", desc: "كل قطعة مختارة بعناية لضمان أفضل تجربة." },
         service: { title: "خدمة متميزة", desc: "دعم مخصص لكل عملية شراء بتقوم بيها." },
       },
       team: {
@@ -1308,14 +1314,14 @@ export const dictionary = {
           { q: "ايه هو وقت التوصيل؟", a: "احنا بنشحن من سمنود، الغربية. الطلبات للغربية والدقهلية بتوصل في يوم أو يومين. القاهرة والجيزة واسكندرية بياخدوا من يومين لـ 4 أيام. باقي المحافظات من 3 لـ 7 أيام.", cat: "الشحن والتوصيل" },
           { q: "هل الشحن مجاني؟", a: "الشحن مجاني للطلبات فوق 1500 جنيه لمحافظات الغربية والدقهلية. لباقي المناطق، مصاريف الشحن بتتحسب عند الدفع.", cat: "الشحن والتوصيل" },
           { q: "ممكن أتتبع شحنتي؟", a: "أكيد! بعد ما طلبك يخرج للشحن، هيبعتلك إيميل فيه رقم التتبع ورابط عشان تتابع الشحنة.", cat: "الشحن والتوصيل" },
-          { q: "ايه طرق الدفع المتاحة؟", a: "بنقبل الدفع عند الاستلام (COD)، الكروت البنكية (فيزا/ماستركارد)، والمحافظ الإلكترونية (فودافون كاش، أورانج كاش، اتصالات كاش).", cat: "الدفع" },
-          { q: "هل الدفع آمن؟", a: "أيوه، بنستخدم أحدث تقنيات التشفير وبوابة دفع Paymob المعتمدة لضمان أمان كل معاملاتك المالية.", cat: "الدفع" },
+          { q: "ايه طرق الدفع المتاحة؟", a: "بنقبل الدفع عند الاستلام (COD)، تحويل انستا باي (InstaPay)، والمحافظ الإلكترونية (فودافون كاش، أورانج كاش، اتصالات كاش، وي باي).", cat: "الدفع" },
+          { q: "هل الدفع آمن؟", a: "أيوه، التحويلات بتتم بشكل آمن تماماً عن طريق التطبيقات الرسمية (انستا باي والمحافظ الإلكترونية).", cat: "الدفع" },
           { q: "ممكن أدفع بالتقسيط؟", a: "حالياً مفيش تقسيط، بس شغالين إننا نضيف الميزة دي قريب.", cat: "الدفع" },
           { q: "ايه هي سياسة الاسترجاع؟", a: "تقدر ترجع المنتج خلال 14 يوم من الاستلام، بشرط يكون في حالته الأصلية وبكل مشتملاته وعلبته.", cat: "الاسترجاع والاستبدال" },
           { q: "ازاي أعمل طلب استرجاع أو استبدال؟", a: "تقدر تتواصل معانا عن طريق صفحة 'طلباتي' في حسابك، أو كلم خدمة العملاء واحنا هنرتبلك عملية الاسترجاع.", cat: "الاسترجاع والاستبدال" },
           { q: "امتى هستلم فلوسي؟", a: "بعد ما نستلم المنتج ونفحصه، الفلوس بترجعلك خلال 5-7 أيام عمل وبنفس طريقة الدفع اللي دفعت بيها.", cat: "الاسترجاع والاستبدال" },
-          { q: "هل المنتجات أصلية؟", a: "أيوه! كل منتجاتنا أصلية 100% وبنجيبها من الوكلاء المعتمدين. وبنقدم شهادة ضمان مع المنتجات اللي بتيجي بضمان.", cat: "المنتجات" },
-          { q: "ايه مدة الضمان؟", a: "بنقدم ضمان سنة على كل المنتجات ضد عيوب الصناعة. الضمان مش بيشمل سوء الاستخدام أو الكسر.", cat: "المنتجات" },
+          { q: "ايه هي جودة المنتجات؟", a: "منتجاتنا كوالتي بريميم (High Copy) بفرز أول، ومختارة بعناية عشان تديك نفس تجربة الأصلي.", cat: "المنتجات" },
+          { q: "هل يوجد ضمان؟", a: "بنوفرلك ميزة المعاينة عند الاستلام، تقدر تفتح الشحنة وتتأكد منها قبل الدفع. وكمان ليك حق الاسترجاع خلال 14 يوم لو المنتج مش مطابق.", cat: "المنتجات" },
           { q: "ممكن أجرب المنتج قبل ما أستلم؟", a: "تقدر تعاين المنتج وقت الاستلام قبل الدفع (في حالة الدفع عند الاستلام). لو معجبكش تقدر ترفض الاستلام.", cat: "المنتجات" },
           { q: "ازاي أعمل حساب؟", a: "اضغط على 'حساب جديد' فوق، دخل بياناتك واعمل كلمة سر. وممكن تسجل دخول بحساب جوجل بتاعك.", cat: "الحساب والطلبات" },
           { q: "نسيت كلمة السر، أعمل ايه؟", a: "اضغط على 'نسيت كلمة السر' في صفحة الدخول، دخل إيميلك وهيبعتلك رسالة عشان تعمل كلمة سر جديدة.", cat: "الحساب والطلبات" },
@@ -1535,7 +1541,7 @@ export const dictionary = {
       trust: {
         returns: "استرجاع ١٤ يوم",
         secure: "دفع آمن",
-        authentic: "١٠٠٪ أصلي",
+        authentic: "كوالتي بريميم",
       },
       write_review: "اكتب تقييم",
       your_name: "الاسم",
@@ -1717,8 +1723,8 @@ export const dictionary = {
       payment_subtitle: "اختار الطريقة المناسبة ليك",
       cod: "الدفع عند الاستلام",
       cod_desc: "ادفع كاش لما تستلم طلبك",
-      card: "بطاقة بنكية / فيزا",
-      card_desc: "فيزا، ماستركارد، ميزة",
+      instapay: "انستا باي",
+      instapay_desc: "تحويل فوري عبر انستا باي",
       wallet: "محفظة إلكترونية",
       wallet_desc: "فودافون كاش، أورانج، اتصالات",
       wallet_number: "رقم المحفظة",
@@ -1770,6 +1776,12 @@ export const dictionary = {
       order_placed_success: "تم طلب الاوردر بنجاح!",
       order_success_desc: "تم إرسال طلبك بالفعل. يمكنك متابعة حالته في صفحة طلباتي.",
       track_order_btn: "تتبع الطلب",
+      trust: {
+        secure: "دفع آمن",
+        shipping: "شحن سريع",
+        returns: "استرجاع سهل",
+        authentic: "كوالتي بريميم",
+      },
     },
     auth: {
       email: "البريد الإلكتروني",
@@ -1870,7 +1882,7 @@ export const dictionary = {
           },
           {
             title: "٤. الدفع",
-            content: "بنقبل الدفع عند الاستلام ودفع أونلاين آمن عن طريق Paymob (فيزا، ماستركارد، ومحافظ إلكترونية). بالنسبة للدفع الأونلاين، طلبك هيتم تجهيزه بعد تأكيد الدفع."
+            content: "بنقبل الدفع عند الاستلام، تحويل انستا باي (InstaPay)، وتحويل محافظ إلكترونية. بالنسبة للتحويلات، طلبك هيتم تجهيزه بعد تأكيد الدفع."
           },
           {
             title: "٥. الشحن",
@@ -1881,8 +1893,8 @@ export const dictionary = {
             content: "يهمنا تكون راضي تماماً عن شروتك. من فضلك راجع سياسة الاسترجاع للتفاصيل. الاسترجاع لازم يتم خلال ١٤ يوم من الاستلام. المنتجات لازم تكون جديدة وبالتغليف الأصلي."
           },
           {
-            title: "٧. ضمان الأصالة",
-            content: "كل الساعات والإكسسوارات اللي بتتباع على ليجاسي أصلية ١٠٠٪. بنجيب منتجاتنا مباشرة من الوكلاء المعتمدين والموردين الموثوقين. كل قطعة بتيجي معاها ضمان الأصالة لو متاح."
+            title: "٧. ضمان الجودة",
+            content: "كل الساعات والإكسسوارات اللي بتتباع على ليجاسي كوالتي بريميم (High Grade). بنجيب منتجاتنا من مصنعين موثوقين وبنعمل فحص دقيق لكل قطعة قبل الشحن عشان نضمنلك أفضل تجربة."
           },
           {
             title: "٨. حدود المسؤولية",
@@ -1929,12 +1941,12 @@ export const dictionary = {
         },
         processing: {
           title: "استرداد الفلوس",
-          online: "الدفع الأونلاين: بيرجع لنفس الكارت أو المحفظة خلال ٥-١٠ أيام عمل بعد ما نستلم المنتج ونفحصه.",
+          online: "الدفع الأونلاين (انستا باي / محافظ): بيرجع لنفس الحساب أو المحفظة خلال ٥-١٠ أيام عمل بعد ما نستلم المنتج ونفحصه.",
           cod: "الدفع عند الاستلام: بيرجع عن طريق تحويل بنكي أو محفظة إلكترونية. من فضلك ابعتلنا بياناتك وانت بتقدم الطلب."
         },
         product_returns: {
           title: "حالة المنتج",
-          content: "لازم ترجع المنتج بالعلبة الأصلية، كارت الضمان، الكتالوج، وأي ملحقات. استيكر الحماية ولزق الضمان مينفعش يتشال. أي علامة استعمال ممكن تخلينا نخصم جزء من المبلغ."
+          content: "لازم ترجع المنتج بالعلبة الأصلية، الكتالوج، وأي ملحقات. استيكر الحماية ولزق الفحص مينفعش يتشال. أي علامة استعمال ممكن تخلينا نخصم جزء من المبلغ."
         },
         damaged: {
           title: "منتج تالف أو غلط؟",

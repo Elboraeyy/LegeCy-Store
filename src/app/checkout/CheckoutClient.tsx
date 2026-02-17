@@ -783,8 +783,8 @@ export default function CheckoutClient() {
                             </svg>
                           </div>
                           <div className={styles.paymentInfo}>
-                            <p className={styles.paymentName}>InstaPay</p>
-                            <p className={styles.paymentDesc}>{language === 'ar' ? 'تحويل فوري عبر انستا باي' : 'Instant transfer via InstaPay'}</p>
+                            <p className={styles.paymentName}>{t.checkout.instapay}</p>
+                            <p className={styles.paymentDesc}>{t.checkout.instapay_desc}</p>
                           </div>
                         </div>
 
@@ -848,7 +848,7 @@ export default function CheckoutClient() {
                           </div>
                           <div className={styles.paymentInfo}>
                             <p className={styles.paymentName}>{t.checkout.wallet}</p>
-                            <p className={styles.paymentDesc}>{language === 'ar' ? 'فودافون كاش، اتصالات محفظة' : 'Vodafone Cash, Etisalat Wallet'}</p>
+                            <p className={styles.paymentDesc}>{t.checkout.wallet_desc}</p>
                           </div>
                         </div>
 
