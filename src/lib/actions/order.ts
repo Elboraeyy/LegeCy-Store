@@ -38,12 +38,60 @@ export async function updateOrderStatusAction(
         revalidatePath('/admin/orders');
         revalidatePath('/admin/finance');
         return { success: true };
+        return { success: true };
     } catch (error) {
         console.error('[Action] Order update failed:', error);
         if (error instanceof Error) {
             return { success: false, error: error.message };
         }
         return { success: false, error: 'Unknown system error occurred.' };
+    }
+}
+
+export async function updateOrderAction(orderId: string, data: any) {
+    try {
+        // 1. Try Admin Permission
+        const adminUser = await requireAdminPermission(AdminPermissions.ORDERS.MANAGE).catch(() => null);
+
+        if (!adminUser) {
+            // 2. If not admin, authenticate as Customer
+            const { validateCustomerSession } = await import('@/lib/auth/session');
+            const { user: customerUser } = await validateCustomerSession();
+
+            if (!customerUser) {
+                throw new Error("Unauthorized");
+            }
+
+            // 3. Verify Ownership & Status
+            const order = await prisma.order.findUnique({
+                where: { id: orderId },
+                select: { userId: true, status: true }
+            });
+
+            if (!order) throw new Error("Order not found");
+
+            if (order.userId !== customerUser.id) {
+                throw new Error("Unauthorized access to order");
+            }
+
+            const allowEdit = [OrderStatus.Pending, OrderStatus.Draft, OrderStatus.PaymentPending].includes(order.status as OrderStatus);
+            if (!allowEdit) {
+                throw new Error("Order cannot be edited in current status");
+            }
+        }
+
+        // Validate Data
+        const { updateOrderDetailsSchema } = await import('@/lib/validators/order');
+        const validated = updateOrderDetailsSchema.parse(data);
+
+        await import('@/lib/services/orderService').then(m => m.updateOrder(orderId, validated));
+
+        revalidatePath(`/admin/orders/${orderId}`);
+        revalidatePath(`/orders/${orderId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Update failed", error);
+        return { success: false, error: error instanceof Error ? error.message : "Update failed" };
     }
 }
 
@@ -86,7 +134,7 @@ export async function placeOrder(cartItems: CartItemInput[]): Promise<Order> {
 interface ManualOrderInput {
     customer: 
         | { existingId: string }
-        | { name: string; email?: string; phone: string };
+    | { name: string; email?: string; phone: string; alternativePhone?: string };
     shippingAddress: {
         street: string;
         city: string;
@@ -118,6 +166,7 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
         let userId: string | undefined;
         let customerPhone: string;
         let customerEmail: string | undefined;
+        let alternativePhone: string | undefined;
         let firstName: string | undefined;
         let lastName: string | undefined;
         
@@ -130,6 +179,8 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             if (!existingUser) throw new Error('Customer not found');
             customerPhone = existingUser.phone || '';
             customerEmail = existingUser.email || undefined;
+            // For existing users, we don't currently have a way to pull alternativePhone unless we add it to User model
+            // For now, it stays undefined for existing users in this context
 
             const nameParts = (existingUser.name || '').split(' ');
             firstName = nameParts[0];
@@ -148,6 +199,7 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             userId = newUser.id;
             customerPhone = input.customer.phone;
             customerEmail = input.customer.email;
+            alternativePhone = input.customer.alternativePhone;
 
             const nameParts = (input.customer.name || '').split(' ');
             firstName = nameParts[0];
@@ -189,6 +241,7 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             lastName,
             customerPhone: customerPhone,
             customerEmail: customerEmail,
+            alternativePhone: alternativePhone,
             shippingAddress: input.shippingAddress.street,
             shippingCity: input.shippingAddress.city,
             shippingGovernorate: input.shippingAddress.governorate,

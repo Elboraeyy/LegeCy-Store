@@ -42,6 +42,8 @@ export interface Order {
   orderSource?: string;
   riskScore?: number;
   hasDispute?: boolean;
+  shippingCost?: number;
+  discountAmount?: number;
   items: OrderItem[];
 
   firstName?: string | null;

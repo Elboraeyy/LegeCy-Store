@@ -539,6 +539,14 @@ Thank you for your trust! 🙏
                                 >
                                     🔍 {t.orders.details.actions.track}
                                 </Link>
+                                {['pending', 'payment_pending', 'draft'].includes(order.status) && (
+                                    <Link
+                                        href={`/orders/${orderId}/edit`}
+                                        className="flex-1 text-center py-4 border-2 border-[var(--color-primary)] text-[var(--color-primary)] rounded-2xl font-bold hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)] transition flex items-center justify-center gap-2"
+                                    >
+                                        ✏️ {t.orders.details.actions.edit}
+                                    </Link>
+                                )}
                                 <Link 
                                     href="/shop"
                                     className="flex-1 text-center py-4 bg-[var(--color-primary)] text-[var(--color-secondary)] rounded-2xl font-bold hover:opacity-90 transition flex items-center justify-center gap-2"

@@ -719,6 +719,7 @@ export const dictionary = {
           reorder: "Order Again",
           cancel: "Cancel Order",
           return: "Request Return",
+          edit: "Edit Order",
         },
         help: {
           title: "Need Help?",
@@ -2348,6 +2349,7 @@ export const dictionary = {
           reorder: "اطلب تاني",
           cancel: "إلغاء الطلب",
           return: "طلب استرجاع",
+          edit: "تعديل الطلب",
         },
         help: {
           title: "محتاج مساعدة؟",

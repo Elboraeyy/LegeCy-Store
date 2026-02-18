@@ -112,6 +112,133 @@ export async function updateOrderStatus(
   return mapToOrderType(updated);
 }
 
+export type UpdateOrderServiceParams = z.infer<typeof import('@/lib/validators/order').updateOrderDetailsSchema>;
+
+export async function updateOrder(orderId: string, updates: UpdateOrderServiceParams): Promise<Order> {
+  const { items, ...details } = updates;
+
+  return await prisma.$transaction(async (tx) => {
+    // 1. Fetch current order with items
+    const currentOrder = await tx.order.findUnique({
+      where: { id: orderId },
+      include: { items: true }
+    });
+
+    if (!currentOrder) throw new Error('Order not found');
+
+    const warehouseId = await getDefaultWarehouseId(tx);
+
+    // 2. Handle Item Updates & Inventory
+    // We only process inventory if items are provided in the update
+    if (items) {
+      // Map current items for easy lookup
+      const currentItemsMap = new Map(currentOrder.items.map(i => [i.variantId || 'novar', i]));
+      const newItemsMap = new Map(items.map(i => [i.variantId || 'novar', i]));
+
+      // Calculate Inventory Changes
+      // A. Released items (reduced quantity or removed)
+      for (const currentItem of currentOrder.items) {
+        const key = currentItem.variantId || 'novar';
+        const newItem = newItemsMap.get(key);
+        const newQty = newItem ? newItem.quantity : 0;
+
+        if (newQty < currentItem.quantity) {
+          const diff = currentItem.quantity - newQty;
+          if (currentItem.variantId) {
+            await inventoryService.releaseStock(tx, warehouseId, currentItem.variantId, diff);
+          }
+        }
+      }
+
+      // B. Reserved items (increased quantity or added)
+      for (const newItem of items) {
+        const key = newItem.variantId || 'novar';
+        const currentItem = currentItemsMap.get(key);
+        const currentQty = currentItem ? currentItem.quantity : 0;
+
+        if (newItem.quantity > currentQty) {
+          const diff = newItem.quantity - currentQty;
+          if (newItem.variantId) {
+            await inventoryService.reserveStock(tx, warehouseId, newItem.variantId, diff);
+          }
+        }
+      }
+
+      // C. Update DB Items
+      // Wipe and recreate items is safest to ensure consistency, 
+      // OR upsert. Since we have no unique ID for new items, detailed sync is complex.
+      // Strategy: Delete all and create new.
+      await tx.orderItem.deleteMany({ where: { orderId } });
+
+      if (items.length > 0) {
+        await tx.orderItem.createMany({
+          data: items.map(item => ({
+            orderId,
+            productId: item.productId,
+            variantId: item.variantId,
+            name: item.name,
+            price: new Prisma.Decimal(item.price),
+            quantity: item.quantity
+          }))
+        });
+      }
+    }
+
+    // 3. Recalculate Totals
+    // If items changed, we must recalculate total.
+    // If items didn't change, we keep existing total (unless explicitly updated?)
+    // The calling action should probably calculate the new total.
+    // Let's assume the update logic handles the total calculation based on passed items or we calculate it here.
+
+    let newTotalPrice = currentOrder.totalPrice;
+    if (items) {
+      const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const shipping = details.shippingCost !== undefined ? details.shippingCost : (currentOrder.shippingCost?.toNumber() || 0);
+      const discount = details.discountAmount !== undefined ? details.discountAmount : (currentOrder.discountAmount?.toNumber() || 0);
+      // Points value previously redeemed? That's tricky. We assume pointsRedeemed isn't changing here for now.
+      // If points logic needs update, it's more complex.
+      // Assuming simple calculation:
+      newTotalPrice = new Prisma.Decimal(Math.max(0, subtotal + shipping - discount));
+    } else if (details.shippingCost !== undefined || details.discountAmount !== undefined) {
+      // Items didn't change but costs did
+      const currentSubtotal = currentOrder.items.reduce((sum, item) => sum + (item.price.toNumber() * item.quantity), 0); // Approx since we derived it
+      // Better to just rely on what's passed or stored.
+      // Actually, currentOrder.subtotal might be null in schema? checked schema: subtotal Decimal?
+      // Let's re-sum current items if subtotal is missing.
+      const subtotal = currentOrder.subtotal?.toNumber() || currentOrder.items.reduce((sum, item) => sum + (item.price.toNumber() * item.quantity), 0);
+
+      const shipping = details.shippingCost !== undefined ? details.shippingCost : (currentOrder.shippingCost?.toNumber() || 0);
+      const discount = details.discountAmount !== undefined ? details.discountAmount : (currentOrder.discountAmount?.toNumber() || 0);
+
+      newTotalPrice = new Prisma.Decimal(Math.max(0, subtotal + shipping - discount));
+    }
+
+    // 4. Update Order Details
+    const updatedOrder = await tx.order.update({
+      where: { id: orderId },
+      data: {
+        firstName: details.firstName,
+        lastName: details.lastName,
+        customerPhone: details.customerPhone,
+        customerEmail: details.customerEmail,
+        alternativePhone: details.alternativePhone,
+        shippingAddress: details.shippingAddress,
+        shippingGovernorate: details.shippingGovernorate,
+        shippingCity: details.shippingCity,
+        shippingNotes: details.shippingNotes,
+        shippingCost: details.shippingCost !== undefined ? new Prisma.Decimal(details.shippingCost) : undefined,
+        discountAmount: details.discountAmount !== undefined ? new Prisma.Decimal(details.discountAmount) : undefined,
+        totalPrice: newTotalPrice
+      },
+      include: { items: true }
+    });
+
+    logger.info(`Order updated: ${orderId}`, { prevTotal: currentOrder.totalPrice, newTotal: newTotalPrice });
+    return mapToOrderType(updatedOrder);
+  });
+}
+
+
 export interface GetOrdersParams {
   page?: number;
   limit?: number;

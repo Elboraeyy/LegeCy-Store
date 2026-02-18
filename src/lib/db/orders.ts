@@ -48,6 +48,8 @@ export async function createOrderInDb(data: CreateOrderParams): Promise<Order> {
     })),
     status: order.status as OrderStatus,
     createdAt: order.createdAt.toISOString(),
+    shippingCost: order.shippingCost ? order.shippingCost.toNumber() : undefined,
+    discountAmount: order.discountAmount ? order.discountAmount.toNumber() : undefined,
   };
 }
 
@@ -70,5 +72,7 @@ export async function getOrderFromDb(id: string): Promise<Order | null> {
     })),
     status: order.status as OrderStatus,
     createdAt: order.createdAt.toISOString(),
+    shippingCost: order.shippingCost ? order.shippingCost.toNumber() : undefined,
+    discountAmount: order.discountAmount ? order.discountAmount.toNumber() : undefined,
   };
 }

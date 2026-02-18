@@ -7,6 +7,7 @@ import { Order } from '@/types/order';
 
 import StatusUpdateControl from '@/components/admin/StatusUpdateControl';
 import BackButton from '@/components/admin/BackButton';
+import { useRouter } from 'next/navigation';
 import {
     Package,
     Truck,
@@ -20,7 +21,8 @@ import {
     Mail,
     Phone,
     MapPin,
-    MessageCircle
+    MessageCircle,
+    Pencil
 } from 'lucide-react';
 import styles from '../OrderDetails.module.css';
 
@@ -32,6 +34,7 @@ interface OrderDetailClientProps {
 export default function OrderDetailClient({ order }: OrderDetailClientProps) {
     const { language } = useLanguage();
     const t = adminDictionary[language];
+    const router = useRouter();
     const isRtl = language === 'ar';
 
     const formatCurrency = (amount: number) => {
@@ -142,6 +145,10 @@ export default function OrderDetailClient({ order }: OrderDetailClientProps) {
                     </div>
                 </div>
                 <div className={styles.navActions}>
+                    <button className="admin-btn admin-btn-outline" onClick={() => router.push(`/admin/orders/${order.id}/edit`)}>
+                        <Pencil size={16} />
+                        <span>{isRtl ? 'تعديل' : 'Edit'}</span>
+                    </button>
                     <button className="admin-btn admin-btn-outline">
                         <Printer size={16} />
                         <span>{isRtl ? 'طباعة' : 'Print'}</span>

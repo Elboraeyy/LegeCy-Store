@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { createManualOrder, searchCustomersAction } from '@/lib/actions/order';
+import { createManualOrder, searchCustomersAction, updateOrderAction } from '@/lib/actions/order';
 import { calculateShipping } from '@/lib/actions/shipping';
 import { searchAdminProducts } from '@/lib/actions/product-search-actions';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
-import { OrderStatus } from '@/types/order';
+import { OrderStatus, Order } from '@/types/order';
 
 import { EGYPT_LOCATIONS } from '@/data/egypt-locations';
 
@@ -56,13 +56,15 @@ interface CartItem {
 interface CreateOrderClientProps {
     initialProducts: Product[];
     initialCustomers: Customer[];
+    initialOrder?: Order | null; // New Prop for Edit Mode
 }
 
-export default function CreateOrderClient({ initialProducts, initialCustomers }: CreateOrderClientProps) {
+export default function CreateOrderClient({ initialProducts, initialCustomers, initialOrder }: CreateOrderClientProps) {
     const { language } = useLanguage();
     const t = adminDictionary[language];
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const isEditMode = !!initialOrder;
     
     // Search States
     const [customerQuery, setCustomerQuery] = useState('');
@@ -78,7 +80,10 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
     const [customerName, setCustomerName] = useState('');
     const [customerEmail, setCustomerEmail] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
+    const [alternativePhone, setAlternativePhone] = useState('');
 
+    const [shippingAddress, setShippingAddress] = useState(''); // Use single field for edit compatibility or split
+    // Mapping: initialOrder.shippingAddress -> street
     const [street, setStreet] = useState('');
     const [city, setCity] = useState('');
     const [governorate, setGovernorate] = useState('');
@@ -103,6 +108,80 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
     const [quantities, setQuantities] = useState<Record<string, number>>({});
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 5;
+
+    // Initialize from initialOrder if present
+    useEffect(() => {
+        if (initialOrder) {
+            // Customer Info
+            if (initialOrder.user) {
+                setCustomerMode('existing');
+                // We don't have the full customer object passed in initialOrder.user usually (just name/email), 
+                // but we might want to fetch it or just use the order details.
+                // For simplicity, let's pre-fill the "new" form fields or set as existing if we can match ID?
+                // initialOrder doesn't have userId directly in the Type? Check type.
+                // Type Order has: user?: { name, email } but no ID? 
+                // schema has userId. Type might be mapped. 
+                // Let's rely on the textual fields from the order mostly.
+            }
+
+            setCustomerName(initialOrder.firstName || initialOrder.user?.name || '');
+            setCustomerEmail(initialOrder.customerEmail || initialOrder.user?.email || '');
+            setCustomerPhone(initialOrder.customerPhone || '');
+            setAlternativePhone(initialOrder.alternativePhone || '');
+
+            // Address
+            setStreet(initialOrder.shippingAddress || '');
+            setCity(initialOrder.shippingCity || '');
+            setGovernorate(initialOrder.shippingGovernorate || '');
+
+            // Cart
+            const mappedItems: CartItem[] = initialOrder.items.map(item => ({
+                variantId: item.variantId || 'novar', // logic needs care if null
+                productId: item.productId,
+                productName: item.name,
+                sku: 'N/A', // We might not have SKU in OrderItem, need to fetch? 
+                // Actually OrderItem in CreateOrderClient expects SKU.
+                // The item.name usually contains SKU in brackets from create logic: `${variant.product.name} (${variant.sku})`
+                // Let's try to extract or just leave N/A.
+                quantity: item.quantity,
+                price: item.price,
+                imageUrl: null // We don't have image URL in OrderItem usually unless we fetch product
+            }));
+            setCart(mappedItems);
+
+            setOrderNotes(initialOrder.shippingNotes || '');
+            setOrderSource(initialOrder.orderSource || 'manual');
+            setOrderStatus(initialOrder.status);
+            setPaymentMethod(initialOrder.paymentMethod as any || 'cod');
+
+            // Costs - Assuming we can set them directly
+            setShippingCost(initialOrder.shippingCost || 0); // Need to check if Order type has shippingCost.
+            // Order type in src/types/order.ts DOES NOT have shippingCost?
+            // Let me check the type definition I saw earlier.
+            // src/types/order.ts:
+            // export interface Order { ... shippingCost (not listed?) ... }
+            // Wait, looking at file view earlier:
+            // Order interface has `totalPrice`, `items`... 
+            // I need to check if schema has it. Schema has `shippingCost Decimal?`.
+            // Type might need update or I missed it.
+            // CreateOrderClient uses `shippingCost` state.
+            // Looking at `CreateOrderClient` original code:
+            // `const [shippingCost, setShippingCost] = useState(0);`
+
+            // If I map initialOrder, I need to know where shippingCost is.
+            // I'll assume it's on the object passed from backend (even if not in type strict).
+            // Cast it: (initialOrder as any).shippingCost
+
+            const cost = (initialOrder as any).shippingCost || 0;
+            setShippingCost(Number(cost));
+
+            const discount = (initialOrder as any).discountAmount || 0;
+            setManualDiscountValue(Number(discount));
+            // Assuming fixed for loaded orders to simplify
+            setManualDiscountType('FIXED');
+
+        }
+    }, [initialOrder]);
 
     // Debounced Search Effects
     useEffect(() => {
@@ -144,20 +223,28 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
         }).format(amount);
     };
 
-    // Shipping Rules (Example - in production this would come from settings)
+    // Shipping Rules (Only calc if not editing or explicitly changed governorate? 
+    // Actually if editing, we preserve existing shipping cost unless governorate changes.)
+    // Only run this effect if governorate changes AFTER initial load.
+    // Making it simple: if governorate matches initialOrder's, keep initial cost.
     useEffect(() => {
         async function fetchShipping() {
             if (!governorate) {
                 setShippingCost(0);
                 return;
             }
+
+            // If editing and gov hasn't changed from original, don't overwrite manual shipping cost
+            if (isEditMode && initialOrder && governorate === initialOrder.shippingGovernorate) {
+                // keep existing set by initial effect
+                return;
+            }
+
             try {
-                // Pass subtotal (though currently unused by action) and city for accurate calculation
                 const result = await calculateShipping(governorate, subtotal, city);
                 setShippingCost(result.shippingCost);
             } catch (error) {
                 console.error("Failed to calculate shipping", error);
-                // Fallback to previous logic if fetch fails
                 const lowerGov = governorate.toLowerCase();
                 let cost = 80;
                 if (lowerGov.includes('cairo') || lowerGov.includes('giza')) {
@@ -169,9 +256,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
             }
         }
         fetchShipping();
-    }, [governorate, city, subtotal]);
-
-
+    }, [governorate, city, subtotal, isEditMode, initialOrder]);
 
     const manualDiscountAmount = manualDiscountType === 'PERCENTAGE'
         ? (subtotal * manualDiscountValue) / 100
@@ -205,7 +290,14 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
         const currentQtyInCart = existing ? existing.quantity : 0;
         const totalQty = currentQtyInCart + quantityToAdd;
 
-        if (totalQty > stock) {
+        // For Edit Mode: Need to consider that some stock might already be reserved by THIS order.
+        // If we increased quantity, we check stock.
+        // Doing strict stock check on frontend for edit is tricky without knowing previous quantity.
+        // Let's allow adding, server will validate.
+        // But for UX, try to check.
+
+        if (totalQty > stock && !isEditMode) {
+        // Strict check for new orders
             toast.error(`${t.orders.create.error_stock || 'Insufficient stock'}: ${stock} items available`);
             return;
         }
@@ -233,8 +325,6 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
         setCart(cart.filter(item => item.variantId !== variantId));
     };
 
-
-
     const handleSubmit = async () => {
         if (cart.length === 0) {
             toast.error(t.orders.create.error_items);
@@ -251,25 +341,64 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
 
         setLoading(true);
         try {
-            const result = await createManualOrder({
-                customer: customerMode === 'existing' && selectedCustomer
-                    ? { existingId: selectedCustomer.id }
-                    : { name: customerName, email: customerEmail, phone: customerPhone },
-                shippingAddress: { street, city, governorate },
-                items: cart.map(item => ({ variantId: item.variantId, quantity: item.quantity })),
-                notes: orderNotes,
-                source: orderSource,
-                discountAmount: Number(totalDiscount),
-                shippingCost: shippingCost,
-                paymentMethod,
-                status: orderStatus
-            });
+            if (isEditMode && initialOrder) {
+                // Update Existing Order
+                const result = await updateOrderAction(initialOrder.id, {
+                    firstName: customerName.split(' ')[0],
+                    lastName: customerName.split(' ').slice(1).join(' '),
+                    customerPhone,
+                    alternativePhone,
+                    customerEmail,
+                    shippingAddress: street,
+                    shippingCity: city,
+                    shippingGovernorate: governorate,
+                    shippingNotes: orderNotes,
+                    items: cart.map(item => ({
+                        productId: item.productId,
+                        variantId: item.variantId,
+                        name: item.productName,
+                        price: item.price,
+                        quantity: item.quantity
+                    })),
+                    shippingCost,
+                    discountAmount: totalDiscount,
+                });
 
-            if (result.success) {
-                toast.success(t.orders.create.success);
-                router.push(`/admin/orders/${result.orderId}`);
+                if (result.success) {
+                    // Check for Status Change
+                    if (orderStatus !== initialOrder.status) {
+                        const { updateOrderStatusAction } = await import('@/lib/actions/order');
+                        await updateOrderStatusAction(initialOrder.id, orderStatus, 'Changed via Edit Order Page');
+                    }
+
+                    toast.success("Order updated successfully");
+                    router.push(`/admin/orders/${initialOrder.id}`);
+                    router.refresh();
+                } else {
+                    toast.error(result.error || t.common.error);
+                }
             } else {
-                toast.error(result.error || t.common.error);
+            // Create New Order
+                const result = await createManualOrder({
+                    customer: customerMode === 'existing' && selectedCustomer
+                        ? { existingId: selectedCustomer.id }
+                        : { name: customerName, email: customerEmail, phone: customerPhone, alternativePhone },
+                    shippingAddress: { street, city, governorate },
+                    items: cart.map(item => ({ variantId: item.variantId, quantity: item.quantity })),
+                    notes: orderNotes,
+                    source: orderSource,
+                    discountAmount: Number(totalDiscount),
+                    shippingCost: shippingCost,
+                    paymentMethod,
+                    status: orderStatus
+                });
+
+                if (result.success) {
+                    toast.success(t.orders.create.success);
+                    router.push(`/admin/orders/${result.orderId}`);
+                } else {
+                    toast.error(result.error || t.common.error);
+                }
             }
         } catch {
             toast.error(t.common.error);
@@ -289,22 +418,26 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
             {/* Header */}
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">{t.orders.create.title}</h1>
-                    <p className="admin-subtitle">{t.orders.create.subtitle}</p>
+                    <h1 className="admin-title">{isEditMode ? 'Edit Order' : t.orders.create.title}</h1>
+                    <p className="admin-subtitle">
+                        {isEditMode ? `Editing Order #${initialOrder?.orderNumber}` : t.orders.create.subtitle}
+                    </p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
                     <button onClick={() => router.back()} className="admin-btn admin-btn-outline">
                         ← {t.common.back}
                     </button>
-                    <button 
-                        onClick={() => {
-                            setOrderStatus(OrderStatus.Draft);
-                            handleSubmit();
-                        }}
-                        className="admin-btn admin-btn-outline"
-                    >
-                        💾 {t.orders.create.save_draft || 'Save Draft'}
-                    </button>
+                    {!isEditMode && (
+                        <button
+                            onClick={() => {
+                                setOrderStatus(OrderStatus.Draft);
+                                handleSubmit();
+                            }}
+                            className="admin-btn admin-btn-outline"
+                        >
+                            💾 {t.orders.create.save_draft || 'Save Draft'}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -318,23 +451,25 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
                             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px' }}>
                                 👤 {t.orders.create.customer_info}
                             </h2>
-                            <div className="admin-tabs" style={{ margin: 0 }}>
-                                <button
-                                    className={`admin-tab-item ${customerMode === 'new' ? 'active' : ''}`}
-                                    onClick={() => { setCustomerMode('new'); setSelectedCustomer(null); }}
-                                >
-                                    {t.orders.create.new_customer}
-                                </button>
-                                <button
-                                    className={`admin-tab-item ${customerMode === 'existing' ? 'active' : ''}`}
-                                    onClick={() => setCustomerMode('existing')}
-                                >
-                                    {t.orders.create.existing_customer}
-                                </button>
-                            </div>
+                            {!isEditMode && (
+                                <div className="admin-tabs" style={{ margin: 0 }}>
+                                    <button
+                                        className={`admin-tab-item ${customerMode === 'new' ? 'active' : ''}`}
+                                        onClick={() => { setCustomerMode('new'); setSelectedCustomer(null); }}
+                                    >
+                                        {t.orders.create.new_customer}
+                                    </button>
+                                    <button
+                                        className={`admin-tab-item ${customerMode === 'existing' ? 'active' : ''}`}
+                                        onClick={() => setCustomerMode('existing')}
+                                    >
+                                        {t.orders.create.existing_customer}
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
-                        {customerMode === 'existing' && (
+                        {customerMode === 'existing' && !isEditMode && (
                             <div style={{ marginBottom: '20px' }}>
                                 <div style={{ position: 'relative' }}>
                                     <input
@@ -388,7 +523,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
                             </div>
                         </div>
 
-                        {selectedCustomer && selectedCustomer.orders && selectedCustomer.orders.length > 0 && (
+                        {selectedCustomer && selectedCustomer.orders && selectedCustomer.orders.length > 0 && !isEditMode && (
                             <div style={{ marginTop: '20px', padding: '15px', backgroundColor: 'var(--admin-bg-secondary)', borderRadius: '8px' }}>
                                 <h4 style={{ fontSize: '13px', fontWeight: 600, marginBottom: '10px', color: 'var(--admin-text-muted)' }}>
                                     🕒 {t.orders.create.recent_orders || 'Recent Orders'}
@@ -758,15 +893,13 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
                             </div>
                         </div>
 
-
-
                         <button 
                             className="admin-btn admin-btn-primary" 
                             style={{ width: '100%', marginTop: '32px', padding: '16px' }}
                             disabled={loading || cart.length === 0}
                             onClick={handleSubmit}
                         >
-                            {loading ? t.orders.create.creating : t.orders.create.create_order}
+                            {loading ? (isEditMode ? 'Updating Order...' : t.orders.create.creating) : (isEditMode ? 'Update Order' : t.orders.create.create_order)}
                         </button>
                     </div>
                 </div>

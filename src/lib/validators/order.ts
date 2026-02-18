@@ -35,3 +35,24 @@ export const createOrderSchema = z.object({
 export const updateOrderStatusSchema = z.object({
   status: z.nativeEnum(OrderStatus),
 });
+
+export const updateOrderDetailsSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  customerPhone: z.string().optional(),
+  customerEmail: z.string().email().optional().or(z.literal('')),
+  alternativePhone: z.string().optional().nullable(),
+  shippingAddress: z.string().optional(),
+  shippingGovernorate: z.string().optional(),
+  shippingCity: z.string().optional(),
+  shippingNotes: z.string().optional().nullable(),
+  items: z.array(z.object({
+    productId: z.string(),
+    variantId: z.string().optional().nullable(),
+    name: z.string(),
+    price: z.number().nonnegative(),
+    quantity: z.number().int().nonnegative(), // 0 quantity could mean remove, but typically we filter those out
+  })).optional(),
+  shippingCost: z.number().nonnegative().optional(),
+  discountAmount: z.number().nonnegative().optional(),
+});
