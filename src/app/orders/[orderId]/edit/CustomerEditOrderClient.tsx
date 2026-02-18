@@ -48,9 +48,35 @@ interface CartItem {
     imageUrl?: string | null;
 }
 
+interface OrderItem {
+    productId: string;
+    variantId: string | null;
+    name: string;
+    price: number;
+    quantity: number;
+}
+
+interface InitialOrder {
+    id: string;
+    orderNumber: string | number;
+    createdAt: string | Date;
+    firstName?: string | null;
+    lastName?: string | null;
+    customerEmail?: string | null;
+    customerPhone?: string | null;
+    alternativePhone?: string | null;
+    shippingAddress?: string | null;
+    shippingCity?: string | null;
+    shippingGovernorate?: string | null;
+    shippingNotes?: string | null;
+    shippingCost?: number;
+    discountAmount: number;
+    items: OrderItem[];
+}
+
 interface CustomerEditOrderClientProps {
     initialProducts: Product[];
-    initialOrder: any; // Using simplified type for now
+    initialOrder: InitialOrder;
     currentUser: {
         name: string;
         email: string;
@@ -59,7 +85,7 @@ interface CustomerEditOrderClientProps {
 }
 
 export default function CustomerEditOrderClient({ initialProducts, initialOrder, currentUser }: CustomerEditOrderClientProps) {
-    const { language, t } = useLanguage();
+    const { language } = useLanguage();
     const router = useRouter();
     const isRtl = language === 'ar';
     const currency = 'EGP';
@@ -80,7 +106,7 @@ export default function CustomerEditOrderClient({ initialProducts, initialOrder,
 
     // State - Cart
     const [cart, setCart] = useState<CartItem[]>(() => {
-        return initialOrder.items.map((item: any) => {
+        return initialOrder.items.map((item: OrderItem) => {
             // Try to find SKU from initialProducts
             let sku = 'N/A';
             if (item.productId) {

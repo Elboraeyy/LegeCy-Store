@@ -48,7 +48,7 @@ export async function updateOrderStatusAction(
     }
 }
 
-export async function updateOrderAction(orderId: string, data: any) {
+export async function updateOrderAction(orderId: string, data: unknown) {
     try {
         // 1. Try Admin Permission
         const adminUser = await requireAdminPermission(AdminPermissions.ORDERS.MANAGE).catch(() => null);
@@ -246,7 +246,7 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             shippingCity: input.shippingAddress.city,
             shippingGovernorate: input.shippingAddress.governorate,
             shippingNotes: input.notes ? `[${input.source?.toUpperCase() || 'MANUAL'}] ${input.notes}` : `[${input.source?.toUpperCase() || 'MANUAL'}]`,
-            paymentMethod: (input.paymentMethod as any) || 'cod',
+            paymentMethod: (input.paymentMethod as "cod" | "wallet" | "instapay") || 'cod',
             couponCode: input.couponCode,
             pointsRedeemed: input.pointsRedeemed,
             discountAmount: discount,

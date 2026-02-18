@@ -110,6 +110,15 @@ interface MobileImageCarouselProps {
   language: string;
 }
 
+// Liquid spring configuration moved outside to be stable
+const liquidSpring = {
+  type: "spring",
+  stiffness: 180, // Slightly reduced for smoother flow
+  damping: 25,    // Balanced to avoid too much oscillation
+  mass: 0.6,      // Lower mass for sportier, faster feel
+  restDelta: 0.001
+} as const;
+
 function MobileImageCarousel({
   allImages,
   productName,
@@ -140,14 +149,7 @@ function MobileImageCarousel({
     return () => window.removeEventListener('resize', measure);
   }, []);
 
-  // Liquid spring configuration
-  const liquidSpring = {
-    type: "spring",
-    stiffness: 180, // Slightly reduced for smoother flow
-    damping: 25,    // Balanced to avoid too much oscillation
-    mass: 0.6,      // Lower mass for sportier, faster feel
-    restDelta: 0.001
-  } as const;
+
 
   // Animate to the selected image
   useEffect(() => {
@@ -314,7 +316,6 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   const [notifyLoading, setNotifyLoading] = useState(false);
   const [notifyDone, setNotifyDone] = useState(false);
   const shareMenuRef = React.useRef<HTMLDivElement>(null);
-  const carouselContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Close share menu on click outside
   React.useEffect(() => {

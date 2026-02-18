@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -82,7 +84,6 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
     const [customerPhone, setCustomerPhone] = useState('');
     const [alternativePhone, setAlternativePhone] = useState('');
 
-    const [shippingAddress, setShippingAddress] = useState(''); // Use single field for edit compatibility or split
     // Mapping: initialOrder.shippingAddress -> street
     const [street, setStreet] = useState('');
     const [city, setCity] = useState('');
@@ -152,7 +153,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
             setOrderNotes(initialOrder.shippingNotes || '');
             setOrderSource(initialOrder.orderSource || 'manual');
             setOrderStatus(initialOrder.status);
-            setPaymentMethod(initialOrder.paymentMethod as any || 'cod');
+            setPaymentMethod(initialOrder.paymentMethod as 'cod' | 'paymob' | 'instapay' | 'wallet' || 'cod');
 
             // Costs - Assuming we can set them directly
             setShippingCost(initialOrder.shippingCost || 0); // Need to check if Order type has shippingCost.
@@ -172,10 +173,10 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
             // I'll assume it's on the object passed from backend (even if not in type strict).
             // Cast it: (initialOrder as any).shippingCost
 
-            const cost = (initialOrder as any).shippingCost || 0;
+            const cost = (initialOrder as unknown as { shippingCost?: number }).shippingCost || 0;
             setShippingCost(Number(cost));
 
-            const discount = (initialOrder as any).discountAmount || 0;
+            const discount = (initialOrder as unknown as { discountAmount?: number }).discountAmount || 0;
             setManualDiscountValue(Number(discount));
             // Assuming fixed for loaded orders to simplify
             setManualDiscountType('FIXED');
@@ -575,10 +576,17 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
                                         borderRadius: '8px',
                                         overflow: 'hidden',
                                         backgroundColor: '#f3f4f6',
-                                        flexShrink: 0
+                                        flexShrink: 0,
+                                        position: 'relative'
                                     }}>
                                         {p.imageUrl ? (
-                                            <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <Image
+                                                src={p.imageUrl}
+                                                alt={p.name}
+                                                fill
+                                                style={{ objectFit: 'cover' }}
+                                                sizes="80px"
+                                            />
                                         ) : (
                                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '20px' }}>📦</div>
                                         )}
@@ -779,9 +787,15 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
                             {cart.length === 0 && <div style={{ textAlign: 'center', padding: '20px', color: 'var(--admin-text-muted)' }}>{t.orders.create.no_items}</div>}
                             {cart.map(item => (
                                 <div key={item.variantId} style={{ display: 'flex', gap: '12px', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid var(--admin-border)' }}>
-                                    <div style={{ width: '50px', height: '50px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#f3f4f6', flexShrink: 0 }}>
+                                    <div style={{ width: '50px', height: '50px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#f3f4f6', flexShrink: 0, position: 'relative' }}>
                                         {item.imageUrl ? (
-                                            <img src={item.imageUrl} alt={item.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <Image
+                                                src={item.imageUrl}
+                                                alt={item.productName}
+                                                fill
+                                                style={{ objectFit: 'cover' }}
+                                                sizes="50px"
+                                            />
                                         ) : (
                                             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>📦</div>
                                         )}
@@ -888,7 +902,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
                                         { value: 'paymob', label: 'Credit Card (Link)' }
                                     ]}
                                     value={paymentMethod}
-                                    onChange={(val) => setPaymentMethod(val as any)}
+                                    onChange={(val) => setPaymentMethod(val as 'cod' | 'paymob' | 'instapay' | 'wallet')}
                                 />
                             </div>
                         </div>

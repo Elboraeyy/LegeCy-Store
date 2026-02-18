@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { CustomerProData } from '@/lib/actions/customer-pro';
 import '@/app/admin/admin.css';
@@ -148,12 +149,12 @@ export default function CustomerTableClient({ data, totalPages, currentPage, sea
                                 <td>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                         {customer.image ? (
-                                            <img
+                                            <Image
                                                 src={customer.image}
                                                 alt={customer.name || 'Customer'}
+                                                width={32}
+                                                height={32}
                                                 style={{
-                                                    width: '32px',
-                                                    height: '32px',
                                                     borderRadius: '50%',
                                                     objectFit: 'cover',
                                                     border: '1px solid var(--admin-border)',

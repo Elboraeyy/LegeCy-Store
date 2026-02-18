@@ -94,16 +94,16 @@ const MobileFilters = memo(function MobileFilters({
     priceRange,
     minPrice,
     maxPrice,
-    inStock: _inStock,
-    onSale: _onSale,
-    isNew: _isNew,
+    // inStock, // Removed unused
+    // onSale, // Removed unused
+    // isNew, // Removed unused
     onCategoryChange,
     onBrandChange,
     onMaterialChange,
     onPriceChange,
-    onInStockChange: _onInStockChange,
-    onSaleChange: _onSaleChange,
-    onNewChange: _onNewChange,
+    // onInStockChange, // Removed unused
+    // onSaleChange, // Removed unused
+    // onNewChange, // Removed unused
     onClearAll,
     activeFilterCount,
 }: MobileFiltersProps) {

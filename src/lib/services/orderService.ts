@@ -201,7 +201,6 @@ export async function updateOrder(orderId: string, updates: UpdateOrderServicePa
       newTotalPrice = new Prisma.Decimal(Math.max(0, subtotal + shipping - discount));
     } else if (details.shippingCost !== undefined || details.discountAmount !== undefined) {
       // Items didn't change but costs did
-      const currentSubtotal = currentOrder.items.reduce((sum, item) => sum + (item.price.toNumber() * item.quantity), 0); // Approx since we derived it
       // Better to just rely on what's passed or stored.
       // Actually, currentOrder.subtotal might be null in schema? checked schema: subtotal Decimal?
       // Let's re-sum current items if subtotal is missing.
