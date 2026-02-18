@@ -92,8 +92,11 @@ export async function fetchCustomersPro(params: CustomerFilterParams) {
         prisma.user.findMany({
             where,
             include: {
-                _count: { select: { orders: true } },
+                _count: {
+                    select: { orders: { where: { status: { not: 'cancelled' } } } }
+                },
                 orders: {
+                    where: { status: { not: 'cancelled' } },
                     select: { totalPrice: true, createdAt: true }
                 }
             },
@@ -212,10 +215,12 @@ export async function fetchCustomerDetailsPro(id: string): Promise<CustomerDetai
     const user = await prisma.user.findUnique({
         where: { id },
         include: {
-            _count: { select: { orders: true } },
+            _count: {
+                select: { orders: { where: { status: { not: 'cancelled' } } } }
+            },
             orders: {
                 orderBy: { createdAt: 'desc' },
-                take: 10, // Recent 10 orders
+                take: 10, // Recent 10 orders (Show all including cancelled for history)
                 select: {
                     id: true,
                     orderNumber: true,
@@ -232,14 +237,27 @@ export async function fetchCustomerDetailsPro(id: string): Promise<CustomerDetai
 
 
     
-    // Correct total spend calculation
+    // Correct total spend calculation (Exclude Cancelled)
     const agg = await prisma.order.aggregate({
-        where: { userId: id },
+        where: {
+            userId: id,
+            status: { not: 'cancelled' }
+        },
         _sum: { totalPrice: true }
     });
     const realTotalSpend = Number(agg._sum.totalPrice || 0);
 
-    const lastOrder = user.orders[0]?.createdAt || null;
+    // Get Last Active Date (Exclude Cancelled)
+    const lastActiveOrder = await prisma.order.findFirst({
+        where: {
+            userId: id,
+            status: { not: 'cancelled' }
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { createdAt: true }
+    });
+
+    const lastOrder = lastActiveOrder?.createdAt || null;
 
     // Aggregate all unique phones from User, Addresses, and Orders
     const phonesSet = new Set<string>();
