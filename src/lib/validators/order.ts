@@ -11,6 +11,8 @@ export const createOrderSchema = z.object({
   })).min(1, 'Order must have at least one item'),
   totalPrice: z.number().nonnegative(),
   shippingCost: z.number().nonnegative().optional(),
+  discountAmount: z.number().nonnegative().optional(), // New
+  orderSource: z.string().optional(), // New
   userId: z.string().optional(),
   firstName: z.string().optional(), // New
   lastName: z.string().optional(),  // New

@@ -10,6 +10,7 @@ import prisma from '@/lib/prisma';
 import { analyzeOrderRisk } from '@/lib/services/fraudService';
 import { orderStateService } from '@/lib/services/orders/orderStateService';
 import { validateCoupon } from '@/lib/actions/coupons';
+import { sendOrderConfirmationEmail } from '@/lib/services/emailService';
 
 interface StatusUpdateResult {
     success: boolean;
@@ -97,6 +98,9 @@ interface ManualOrderInput {
     couponCode?: string;
     pointsRedeemed?: number;
     status?: OrderStatus;
+    discountAmount?: number;
+    paymentMethod: string;
+    shippingCost?: number;
 }
 
 interface ManualOrderResult {
@@ -169,12 +173,17 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
         });
 
         const subtotal = serviceItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-        // We'll trust the client for simple calculation for now, but in production we should re-verify
-        // Let's implement a more robust createOrder soon.
+
+        // Calculate Final Total
+        // Total = Subtotal + Shipping - Discount - PointsRedeemed(value)
+        // For manual orders, discountAmount and shippingCost are explicitly provided.
+        const shipping = input.shippingCost || 0;
+        const discount = input.discountAmount || 0;
+        const finalTotal = Math.max(0, subtotal + shipping - discount);
 
         const order = await createOrder({
             items: serviceItems,
-            totalPrice: subtotal,
+            totalPrice: finalTotal,
             userId,
             firstName,
             lastName,
@@ -184,9 +193,12 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             shippingCity: input.shippingAddress.city,
             shippingGovernorate: input.shippingAddress.governorate,
             shippingNotes: input.notes ? `[${input.source?.toUpperCase() || 'MANUAL'}] ${input.notes}` : `[${input.source?.toUpperCase() || 'MANUAL'}]`,
-            paymentMethod: 'cod',
+            paymentMethod: (input.paymentMethod as any) || 'cod',
             couponCode: input.couponCode,
             pointsRedeemed: input.pointsRedeemed,
+            discountAmount: discount,
+            shippingCost: shipping,
+            orderSource: input.source || 'manual',
             options: {
                 skipReservation: false,
                 status: input.status
@@ -198,6 +210,33 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             await analyzeOrderRisk(order.id);
         } catch (e) {
             console.error('[ManualOrder] Fraud analysis failed:', e);
+        }
+
+        // 4. Send Order Confirmation Email
+        if (customerEmail) {
+            // Run in background to avoid blocking response
+            (async () => {
+                try {
+                    await sendOrderConfirmationEmail({
+                        orderId: order.id,
+                        orderNumber: order.orderNumber || 0,
+                        customerName: [firstName, lastName].filter(Boolean).join(' ') || 'Customer',
+                        customerEmail: customerEmail!,
+                        items: serviceItems.map(i => ({
+                            name: i.name,
+                            quantity: i.quantity,
+                            price: i.price
+                        })),
+                        subtotal: subtotal,
+                        shipping: shipping,
+                        total: finalTotal,
+                        shippingAddress: `${input.shippingAddress.street}, ${input.shippingAddress.city}, ${input.shippingAddress.governorate || ''}`,
+                        paymentMethod: input.paymentMethod || 'cod'
+                    });
+                } catch (emailError) {
+                    console.error('[ManualOrder] Start email failed:', emailError);
+                }
+            })();
         }
 
         revalidatePath('/admin/orders');

@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { createManualOrder, searchCustomersAction, validateCouponAction } from '@/lib/actions/order';
+import { createManualOrder, searchCustomersAction } from '@/lib/actions/order';
+import { calculateShipping } from '@/lib/actions/shipping';
 import { searchAdminProducts } from '@/lib/actions/product-search-actions';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import { useLanguage } from '@/context/LanguageContext';
 import { adminDictionary } from '@/lib/dictionaries/admin';
 import { OrderStatus } from '@/types/order';
-import { CouponData } from '@/lib/actions/coupons';
+
+import { EGYPT_LOCATIONS } from '@/data/egypt-locations';
 
 interface Variant {
     id: string;
@@ -87,10 +89,20 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
     const [orderStatus, setOrderStatus] = useState<OrderStatus>(OrderStatus.Pending);
 
     // Coupon & Shipping
-    const [couponCode, setCouponCode] = useState('');
-    const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
-    const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+    // Shipping
     const [shippingCost, setShippingCost] = useState(0);
+
+    // Manual Discount
+    const [manualDiscountType, setManualDiscountType] = useState<'FIXED' | 'PERCENTAGE'>('FIXED');
+    const [manualDiscountValue, setManualDiscountValue] = useState<number>(0);
+
+    // Payment Method
+    const [paymentMethod, setPaymentMethod] = useState<'cod' | 'paymob' | 'instapay' | 'wallet'>('cod');
+
+    // Product Selection State
+    const [quantities, setQuantities] = useState<Record<string, number>>({});
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 5;
 
     // Debounced Search Effects
     useEffect(() => {
@@ -108,6 +120,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
     }, [customerQuery, initialCustomers]);
 
     useEffect(() => {
+        setCurrentPage(1); // Reset page on search
         if (productQuery.length < 2) {
             if (productQuery === '') setProducts(initialProducts);
             return;
@@ -121,19 +134,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
         return () => clearTimeout(timer);
     }, [productQuery, initialProducts]);
 
-    // Shipping Rules (Example - in production this would come from settings)
-    useEffect(() => {
-        const rates: Record<string, number> = {
-            'Cairo': 50,
-            'Giza': 50,
-            'Alexandria': 65,
-            'Delta': 75,
-            'Upper Egypt': 100
-        };
-        // Simplified mapping for demo
-        const regionCost = rates[governorate] || (governorate ? 80 : 0);
-        setShippingCost(regionCost);
-    }, [governorate]);
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
@@ -143,11 +144,41 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
         }).format(amount);
     };
 
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discountAmount = appliedCoupon ? (appliedCoupon.discountType === 'PERCENTAGE'
-        ? (subtotal * appliedCoupon.discountValue) / 100
-        : appliedCoupon.discountValue) : 0;
-    const finalTotal = subtotal - discountAmount + shippingCost;
+    // Shipping Rules (Example - in production this would come from settings)
+    useEffect(() => {
+        async function fetchShipping() {
+            if (!governorate) {
+                setShippingCost(0);
+                return;
+            }
+            try {
+                // Pass subtotal (though currently unused by action) and city for accurate calculation
+                const result = await calculateShipping(governorate, subtotal, city);
+                setShippingCost(result.shippingCost);
+            } catch (error) {
+                console.error("Failed to calculate shipping", error);
+                // Fallback to previous logic if fetch fails
+                const lowerGov = governorate.toLowerCase();
+                let cost = 80;
+                if (lowerGov.includes('cairo') || lowerGov.includes('giza')) {
+                    cost = 50;
+                } else if (lowerGov.includes('alexandria')) {
+                    cost = 65;
+                }
+                setShippingCost(cost);
+            }
+        }
+        fetchShipping();
+    }, [governorate, city, subtotal]);
+
+
+
+    const manualDiscountAmount = manualDiscountType === 'PERCENTAGE'
+        ? (subtotal * manualDiscountValue) / 100
+        : manualDiscountValue;
+
+    const totalDiscount = manualDiscountAmount;
+    const finalTotal = Math.max(0, subtotal - totalDiscount + shippingCost);
 
     // Handlers
     const handleCustomerSelect = (customerId: string) => {
@@ -163,27 +194,38 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
 
     const handleAddToCart = (product: Product, variant: Variant) => {
         const stock = variant.warehouseStock.reduce((sum, i) => sum + i.available, 0);
-        const existing = cart.find(i => i.variantId === variant.id);
-        const currentQty = existing ? existing.quantity : 0;
+        const quantityToAdd = quantities[variant.id] || 1;
 
-        if (currentQty + 1 > stock) {
+        if (quantityToAdd <= 0) {
+            toast.error("Quantity must be at least 1");
+            return;
+        }
+
+        const existing = cart.find(i => i.variantId === variant.id);
+        const currentQtyInCart = existing ? existing.quantity : 0;
+        const totalQty = currentQtyInCart + quantityToAdd;
+
+        if (totalQty > stock) {
             toast.error(`${t.orders.create.error_stock || 'Insufficient stock'}: ${stock} items available`);
             return;
         }
 
         if (existing) {
-            setCart(cart.map(i => i.variantId === variant.id ? { ...i, quantity: i.quantity + 1 } : i));
+            setCart(cart.map(i => i.variantId === variant.id ? { ...i, quantity: totalQty } : i));
         } else {
             setCart([...cart, {
                 variantId: variant.id,
                 productId: product.id,
                 productName: product.name,
                 sku: variant.sku,
-                quantity: 1,
+                quantity: quantityToAdd,
                 price: Number(variant.price),
                 imageUrl: product.imageUrl
             }]);
         }
+
+        // Reset quantity input
+        setQuantities(prev => ({ ...prev, [variant.id]: 1 }));
         toast.success(t.orders.create.added_to_cart);
     };
 
@@ -191,24 +233,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
         setCart(cart.filter(item => item.variantId !== variantId));
     };
 
-    const handleApplyCoupon = async () => {
-        if (!couponCode) return;
-        setIsValidatingCoupon(true);
-        try {
-            const result = await validateCouponAction(couponCode, subtotal);
-            if (result.isValid) {
-                setAppliedCoupon(result.coupon || null);
-                toast.success(result.message || 'Coupon applied!');
-            } else {
-                setAppliedCoupon(null);
-                toast.error(('error' in result ? result.error : result.message) || 'Invalid coupon');
-            }
-        } catch {
-            toast.error('Failed to validate coupon');
-        } finally {
-            setIsValidatingCoupon(false);
-        }
-    };
+
 
     const handleSubmit = async () => {
         if (cart.length === 0) {
@@ -234,7 +259,9 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
                 items: cart.map(item => ({ variantId: item.variantId, quantity: item.quantity })),
                 notes: orderNotes,
                 source: orderSource,
-                couponCode: appliedCoupon?.code,
+                discountAmount: Number(totalDiscount),
+                shippingCost: shippingCost,
+                paymentMethod,
                 status: orderStatus
             });
 
@@ -251,13 +278,11 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
         }
     };
 
-    const egyptGovernorates = [
-        'Cairo', 'Giza', 'Alexandria', 'Dakahlia', 'Red Sea', 'Beheira', 
-        'Fayoum', 'Gharbiya', 'Ismailia', 'Menofia', 'Minya', 'Qaliubiya',
-        'New Valley', 'Suez', 'Aswan', 'Assiut', 'Beni Suef', 'Port Said',
-        'Damietta', 'Sharkia', 'South Sinai', 'Kafr el-Sheikh', 'Matrouh',
-        'Luxor', 'Qena', 'North Sinai', 'Sohag'
-    ];
+    const selectedGov = EGYPT_LOCATIONS.find(g => g.en === governorate);
+    const citiesOptions = selectedGov ? selectedGov.cities.map(c => ({
+        value: c.en,
+        label: language === 'ar' ? c.ar : c.en
+    })) : [];
 
     return (
         <div style={{ paddingBottom: '100px' }}>
@@ -399,56 +424,182 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {products.map(p => (
-                                <div key={p.id} style={{ border: '1px solid var(--admin-border)', borderRadius: '8px', padding: '12px' }}>
-                                    <div style={{ fontWeight: 600, marginBottom: '8px' }}>{p.name}</div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '8px' }}>
-                                        {p.variants.map(v => {
-                                            const stock = v.warehouseStock.reduce((sum, i) => sum + i.available, 0);
-                                            return (
-                                                <button
-                                                    key={v.id}
-                                                    onClick={() => handleAddToCart(p, v)}
-                                                    disabled={stock === 0}
-                                                    className="admin-btn admin-btn-outline"
-                                                    style={{
+                            {products.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map(p => (
+                                <div key={p.id} style={{
+                                    border: '1px solid var(--admin-border)',
+                                    borderRadius: '8px',
+                                    padding: '12px',
+                                    display: 'flex',
+                                    gap: '16px',
+                                    backgroundColor: 'var(--admin-bg-surface)'
+                                }}>
+                                    {/* Product Image */}
+                                    <div style={{
+                                        width: '80px',
+                                        height: '80px',
+                                        borderRadius: '8px',
+                                        overflow: 'hidden',
+                                        backgroundColor: '#f3f4f6',
+                                        flexShrink: 0
+                                    }}>
+                                        {p.imageUrl ? (
+                                            <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '20px' }}>📦</div>
+                                        )}
+                                    </div>
+
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: 600, marginBottom: '12px', fontSize: '15px' }}>{p.name}</div>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {p.variants.map(v => {
+                                                const stock = v.warehouseStock.reduce((sum, i) => sum + i.available, 0);
+                                                const currentQty = quantities[v.id] || 1;
+                                                const isOutOfStock = stock <= 0;
+
+                                                return (
+                                                    <div key={v.id} style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
                                                         justifyContent: 'space-between',
-                                                        padding: '8px 12px',
-                                                        fontSize: '12px',
-                                                        opacity: stock === 0 ? 0.5 : 1
-                                                    }}
-                                                >
-                                                    <span>{v.sku}</span>
-                                                    <span style={{ fontWeight: 600 }}>{formatCurrency(Number(v.price))} ({stock})</span>
-                                                </button>
-                                            );
-                                        })}
+                                                        padding: '8px',
+                                                        backgroundColor: 'var(--admin-bg-secondary)',
+                                                        borderRadius: '6px',
+                                                        opacity: isOutOfStock ? 0.6 : 1
+                                                    }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                            <span style={{ fontSize: '13px', fontWeight: 500 }}>{v.sku}</span>
+                                                            <span style={{ fontSize: '11px', color: isOutOfStock ? '#ef4444' : '#166534' }}>
+                                                                {isOutOfStock ? 'Out of Stock' : `${stock} in stock`}
+                                                            </span>
+                                                        </div>
+
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                            <span style={{ fontWeight: 600, fontSize: '13px' }}>{formatCurrency(Number(v.price))}</span>
+
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+                                                                <button 
+                                                                    disabled={isOutOfStock || currentQty <= 1}
+                                                                    onClick={() => setQuantities({ ...quantities, [v.id]: Math.max(1, currentQty - 1) })}
+                                                                    className="admin-btn-outline"
+                                                                    style={{ padding: '4px 8px', borderRadius: '4px 0 0 4px', borderRight: 'none', height: '32px' }}
+                                                                >
+                                                                    -
+                                                                </button>
+                                                                <input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    max={stock}
+                                                                    value={currentQty}
+                                                                    onChange={(e) => {
+                                                                        const val = parseInt(e.target.value) || 0;
+                                                                        if (val >= 0 && val <= stock) {
+                                                                            setQuantities({ ...quantities, [v.id]: val });
+                                                                        }
+                                                                    }}
+                                                                    style={{ 
+                                                                        width: '40px',
+                                                                        textAlign: 'center',
+                                                                        border: '1px solid var(--admin-border)',
+                                                                        height: '32px',
+                                                                        fontSize: '13px'
+                                                                    }}
+                                                                />
+                                                                <button
+                                                                    disabled={isOutOfStock || currentQty >= stock}
+                                                                    onClick={() => setQuantities({ ...quantities, [v.id]: Math.min(stock, currentQty + 1) })}
+                                                                    className="admin-btn-outline"
+                                                                    style={{ padding: '4px 8px', borderRadius: '0 4px 4px 0', borderLeft: 'none', height: '32px' }}
+                                                                >
+                                                                    +
+                                                                </button>
+                                                            </div>
+
+                                                            <button
+                                                                onClick={() => handleAddToCart(p, v)}
+                                                                disabled={isOutOfStock}
+                                                                className="admin-btn admin-btn-primary"
+                                                                style={{ padding: '6px 12px', fontSize: '12px', height: '32px' }}
+                                                            >
+                                                                {t.orders.create.add}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
+
+                        {/* Pagination Controls */}
+                        {products.length > ITEMS_PER_PAGE && (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '20px' }}>
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="admin-btn admin-btn-outline"
+                                    style={{ padding: '8px 16px' }}
+                                >
+                                    ← {t.common.back || 'Previous'}
+                                </button>
+                                <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                                    Page {currentPage} of {Math.ceil(products.length / ITEMS_PER_PAGE)}
+                                </span>
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(products.length / ITEMS_PER_PAGE), prev + 1))}
+                                    disabled={currentPage >= Math.ceil(products.length / ITEMS_PER_PAGE)}
+                                    className="admin-btn admin-btn-outline"
+                                    style={{ padding: '8px 16px' }}
+                                >
+                                    {t.common.next || 'Next'} →
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Shipping & Meta */}
                     <div className="admin-card">
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                            <div className="admin-form-group" style={{ gridColumn: 'span 2' }}>
-                                <label>📍 {t.orders.create.street} *</label>
-                                <input type="text" className="form-input" value={street} onChange={(e) => setStreet(e.target.value)} />
-                            </div>
-                            <div className="admin-form-group">
-                                <label>{t.orders.create.city} *</label>
-                                <input type="text" className="form-input" value={city} onChange={(e) => setCity(e.target.value)} />
-                            </div>
                             <div className="admin-form-group">
                                 <label>{t.orders.create.governorate} *</label>
                                 <AdminDropdown
                                     options={[
-                                        { value: '', label: 'Select Governorate...' },
-                                        ...egyptGovernorates.map(gov => ({ value: gov, label: (t.governorates as Record<string, string>)?.[gov] || gov }))
+                                        { value: '', label: t.orders.create.optional || 'Select Governorate...' },
+                                        ...EGYPT_LOCATIONS.map(gov => ({
+                                            value: gov.en,
+                                            label: language === 'ar' ? gov.ar : gov.en
+                                        }))
                                     ]}
                                     value={governorate}
-                                    onChange={setGovernorate}
+                                    onChange={(val) => {
+                                        setGovernorate(val);
+                                        setCity(''); // Reset city when governorate changes
+                                    }}
+                                />
+                            </div>
+                            <div className="admin-form-group">
+                                <label>{t.orders.create.city} *</label>
+                                <AdminDropdown
+                                    options={[
+                                        { value: '', label: t.orders.create.optional || 'Select City...' },
+                                        ...citiesOptions
+                                    ]}
+                                    value={city}
+                                    onChange={setCity}
+                                    disabled={!governorate}
+                                />
+                            </div>
+                            <div className="admin-form-group" style={{ gridColumn: 'span 2' }}>
+                                <label>📍 {t.orders.create.street} *</label>
+                                <textarea
+                                    className="form-input"
+                                    value={street}
+                                    onChange={(e) => setStreet(e.target.value)}
+                                    rows={3}
+                                    placeholder={t.orders.create.shipping_address}
                                 />
                             </div>
                         </div>
@@ -492,13 +643,20 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
                             {cart.length === 0 && <div style={{ textAlign: 'center', padding: '20px', color: 'var(--admin-text-muted)' }}>{t.orders.create.no_items}</div>}
                             {cart.map(item => (
-                                <div key={item.variantId} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                <div key={item.variantId} style={{ display: 'flex', gap: '12px', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid var(--admin-border)' }}>
+                                    <div style={{ width: '50px', height: '50px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#f3f4f6', flexShrink: 0 }}>
+                                        {item.imageUrl ? (
+                                            <img src={item.imageUrl} alt={item.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>📦</div>
+                                        )}
+                                    </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: 600, fontSize: '13px' }}>{item.productName}</div>
                                         <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)' }}>{item.sku} × {item.quantity}</div>
                                     </div>
                                     <div style={{ fontWeight: 600 }}>{formatCurrency(item.price * item.quantity)}</div>
-                                    <button onClick={() => handleRemoveFromCart(item.variantId)} style={{ color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer' }}>✕</button>
+                                    <button onClick={() => handleRemoveFromCart(item.variantId)} style={{ color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer', padding: '4px' }}>✕</button>
                                 </div>
                             ))}
                         </div>
@@ -508,9 +666,70 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
                                 <span>{t.orders.create.subtotal || 'Subtotal'}</span>
                                 <span>{formatCurrency(subtotal)}</span>
                             </div>
+
+                            {/* Manual Discount UI */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px', backgroundColor: 'var(--admin-bg-secondary)', borderRadius: '8px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: 600 }}>Manual Discount</label>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <div style={{ display: 'flex', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--admin-border)' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setManualDiscountType('FIXED')}
+                                            style={{
+                                                padding: '4px 12px',
+                                                fontSize: '12px',
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                                backgroundColor: manualDiscountType === 'FIXED' ? '#12403C' : 'transparent',
+                                                color: manualDiscountType === 'FIXED' ? 'white' : 'var(--admin-text)',
+                                                border: 'none',
+                                                transition: 'all 0.2s',
+                                                height: '32px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                            className={manualDiscountType !== 'FIXED' ? "hover-bg" : ""}
+                                        >
+                                            EGP
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setManualDiscountType('PERCENTAGE')}
+                                            style={{
+                                                padding: '4px 12px',
+                                                fontSize: '12px',
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                                backgroundColor: manualDiscountType === 'PERCENTAGE' ? '#12403C' : 'transparent',
+                                                color: manualDiscountType === 'PERCENTAGE' ? 'white' : 'var(--admin-text)',
+                                                border: 'none',
+                                                borderLeft: '1px solid var(--admin-border)',
+                                                transition: 'all 0.2s',
+                                                height: '32px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                            className={manualDiscountType !== 'PERCENTAGE' ? "hover-bg" : ""}
+                                        >
+                                            %
+                                        </button>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        style={{ height: '32px', padding: '4px 8px' }}
+                                        value={manualDiscountValue}
+                                        onChange={(e) => setManualDiscountValue(Number(e.target.value))}
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#166534' }}>
-                                <span>{t.orders.create.discount || 'Discount'}</span>
-                                <span>-{formatCurrency(discountAmount)}</span>
+                                <span>{t.orders.create.discount || 'Total Discount'}</span>
+                                <span>-{formatCurrency(totalDiscount)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>{t.orders.create.shipping || 'Shipping'}</span>
@@ -522,26 +741,24 @@ export default function CreateOrderClient({ initialProducts, initialCustomers }:
                             </div>
                         </div>
 
-                        {/* Coupon Section */}
+                        {/* Payment Method Section */}
                         <div style={{ marginTop: '24px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>🎟️ {t.orders.create.coupon_code || 'Coupon Code'}</label>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={couponCode}
-                                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                    placeholder="PROMO20..."
+                            <div className="admin-form-group">
+                                <label>💳 {t.orders.create.payment_method || 'Payment Method'}</label>
+                                <AdminDropdown
+                                    options={[
+                                        { value: 'cod', label: 'Cash on Delivery (COD)' },
+                                        { value: 'instapay', label: 'InstaPay' },
+                                        { value: 'wallet', label: 'E-Wallet' },
+                                        { value: 'paymob', label: 'Credit Card (Link)' }
+                                    ]}
+                                    value={paymentMethod}
+                                    onChange={(val) => setPaymentMethod(val as any)}
                                 />
-                                <button 
-                                    className="admin-btn admin-btn-outline"
-                                    onClick={handleApplyCoupon}
-                                    disabled={isValidatingCoupon || !couponCode}
-                                >
-                                    {isValidatingCoupon ? '...' : t.orders.create.apply || 'Apply'}
-                                </button>
                             </div>
                         </div>
+
+
 
                         <button 
                             className="admin-btn admin-btn-primary" 

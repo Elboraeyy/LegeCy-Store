@@ -60,10 +60,12 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
             customerPhone: data.customerPhone,
             customerEmail: data.customerEmail,
             alternativePhone: data.alternativePhone,
-            shippingAddress: data.shippingAddress,
             shippingGovernorate: data.shippingGovernorate,
             shippingCity: data.shippingCity,
             shippingNotes: data.shippingNotes,
+            discountAmount: data.discountAmount ? new Prisma.Decimal(data.discountAmount) : undefined,
+            shippingCost: data.shippingCost ? new Prisma.Decimal(data.shippingCost) : undefined,
+            orderSource: data.orderSource || 'online',
                 items: {
                     create: data.items.map(item => ({
                         productId: item.productId,
