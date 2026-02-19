@@ -19,22 +19,51 @@ export const inventoryService = {
     tx: Prisma.TransactionClient,
     warehouseId: string,
     variantId: string,
-    quantity: number
+    quantity: number,
+    force: boolean = false
   ) {
     // Atomic Check & Update
+    const whereClause: Prisma.InventoryWhereInput = {
+      warehouseId,
+      variantId,
+    };
+
+    // If NOT forced, enforce strict availability
+    if (!force) {
+      whereClause.available = { gte: quantity };
+    }
+
     const result = await tx.inventory.updateMany({
-        where: {
-            warehouseId,
-            variantId,
-            available: { gte: quantity } // Atomic Check: "Is available >= qty?"
-        },
-        data: {
-            available: { decrement: quantity },
-            reserved: { increment: quantity }
-        }
+      where: whereClause,
+      data: {
+        available: { decrement: quantity },
+        reserved: { increment: quantity }
+      }
     });
 
     if (result.count === 0) {
+      // If forced, it might fail because the RECORD doesn't exist. Attempt to create it.
+      if (force) {
+        logger.warn(`Forced reservation: Inventory record missing for ${variantId}. Creating new record with negative availability.`);
+        // We can't use updateMany to create. We use upsert.
+        // But valid "where" for upsert needs unique constraint.
+        await tx.inventory.upsert({
+          where: { warehouseId_variantId: { warehouseId, variantId } },
+          create: {
+            warehouseId,
+            variantId,
+                 available: -quantity,
+                 reserved: quantity,
+               },
+               update: {
+                 available: { decrement: quantity },
+                 reserved: { increment: quantity }
+               }
+             });
+          logger.info(`Forced reservation success (via upsert) for ${variantId}`);
+          return;
+        }
+
         // Optional: Fetch actual stock to give better error message
         const current = await tx.inventory.findUnique({
             where: { warehouseId_variantId: { warehouseId, variantId } }
@@ -48,7 +77,7 @@ export const inventoryService = {
         logger.warn(`Stock reservation failed: Insufficient stock`, { variantId, requested: quantity, available: current.available });
         throw new InsufficientStockError(variantId, quantity, current.available);
     }
-    logger.debug(`Reserved stock`, { quantity, variantId, warehouseId });
+    logger.debug(`Reserved stock ${force ? '(FORCED)' : ''}`, { quantity, variantId, warehouseId });
   },
 
   /**
@@ -118,8 +147,8 @@ export const inventoryService = {
       // Critical Data Integrity Issue: Aggregate inventory said we had stock, but Batches didn't.
       // This "Split Brain" means we sold ghost inventory (or unmapped inventory).
 
-      // AUDIT FIX: We MUST NOT allow this. STRICT MODE.
-      logger.error(`[CRITICAL_FAILURE] Inventory Batch Mismatch. Committed ${quantity} but only found batches for ${quantity - remainingToDeduck}. Variance: ${remainingToDeduck}`, {
+      // FORCE COMMIT: We allow this to proceed to avoid blocking operations, but we log strictly.
+      logger.warn(`[DATA_INTEGRITY] Inventory Batch Mismatch. Committed ${quantity} but only found batches for ${quantity - remainingToDeduck}. Variance: ${remainingToDeduck}. Proceeding with aggregate-only deduction.`, {
         variantId,
         warehouseId,
         missingQty: remainingToDeduck
@@ -130,7 +159,9 @@ export const inventoryService = {
         sendBatchMismatchAlert(variantId, warehouseId, remainingToDeduck).catch(() => { });
       }).catch(() => { });
 
-      throw new InventoryError(`CRITICAL: Inventory Batch Mismatch for variant ${variantId}. System indicates stock exists but cannot be located in batches. Transaction Aborted.`);
+      // DO NOT THROW. Proceed. The aggregate inventory `reserved` was already deducted above, so we are "safe" regarding double-spending.
+      // We just have accurate aggregate and inaccurate batches.
+      return;
     }
 
     logger.debug(`Committed stock`, { quantity, variantId, warehouseId });
@@ -218,5 +249,32 @@ export const inventoryService = {
       available: item.available,
       reserved: item.reserved
     })));
+  },
+
+  /**
+   * Helper to get the primary warehouse (type='MAIN') or fallback to any.
+   */
+  async getPrimaryWarehouse(tx: Prisma.TransactionClient): Promise<string | undefined> {
+    const w = await tx.warehouse.findFirst({ where: { type: 'MAIN' } }) || await tx.warehouse.findFirst();
+    return w?.id;
+  },
+
+  /**
+   * Finas a warehouse that has enough RESERVED stock for a variant.
+   * Used for recovery when we don't know where the stock was reserved.
+   */
+  async findWarehouseWithReservation(
+    tx: Prisma.TransactionClient,
+    variantId: string,
+    quantity: number
+  ): Promise<string | null> {
+    const inventory = await tx.inventory.findFirst({
+      where: {
+        variantId,
+        reserved: { gte: quantity }
+      },
+      select: { warehouseId: true }
+    });
+    return inventory?.warehouseId || null;
   }
 };

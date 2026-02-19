@@ -147,14 +147,14 @@ export default function StatusUpdateControl({ orderId, currentStatus, paymentMet
           <button 
             onClick={handleUpdate} 
             disabled={isPending}
-            className="admin-btn admin-btn-primary"
+          className={`admin-btn admin-btn-primary ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
           style={{
             padding: '10px 20px',
             fontSize: '12px',
             boxShadow: '0 4px 12px rgba(18, 64, 60, 0.2)'
           }}
           >
-          {isPending ? '...' : 'Confirm'}
+          {isPending ? 'Updating...' : 'Confirm'}
           </button>
       )}
 

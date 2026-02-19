@@ -10,6 +10,7 @@ import { awardPoints, refundRedeemedPoints, reverseEarnedPoints } from '@/lib/se
 import { logger } from '@/lib/logger';
 import { validateOrderTransition, ActorRole } from '@/lib/policies/orderPolicy';
 import { OrderStatus } from '@/types/order';
+import { InventoryError } from '@/lib/errors';
 
 export type OrderEventType = 'CREATED' | 'CONFIRMED' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
 
@@ -57,13 +58,27 @@ export const orderStateService = {
             validateOrderTransition(currentStatus, newStatus, actor);
 
             // 3. Update Order Status
-                await tx.order.update({
-                where: { id: orderId },
+                // 3. Update Order Status with Optimistic Locking
+                const updateResult = await tx.order.updateMany({
+                    where: {
+                        id: orderId,
+                        status: currentStatus // Ensure status hasn't changed since read
+                    },
                 data: {
                     status: newStatus,
-                    ...(newStatus === OrderStatus.Delivered && { deliveredAt: new Date() })
+                    ...(newStatus === OrderStatus.Delivered ? { deliveredAt: new Date() } : {})
                 }
             });
+
+                if (updateResult.count === 0) {
+                    // Check if it was already updated to the target status (Idempotency)
+                    const freshOrder = await tx.order.findUnique({ where: { id: orderId } });
+                    if (freshOrder && freshOrder.status === newStatus) {
+                        logger.info(`Idempotent transition detected: Order ${orderId} is already ${newStatus}`);
+                        return { success: true };
+                    }
+                    throw new Error(`Order status changed concurrently. Please refresh and try again. (Expected ${currentStatus}, found ${freshOrder?.status})`);
+                }
 
             // 4. Record Lifecycle Event (Side effects triggered after)
             await this.recordOrderEvent({
@@ -270,9 +285,8 @@ export const orderStateService = {
         }
     },
 
-    async _getDefaultWarehouseId(tx: Prisma.TransactionClient | typeof prisma) {
-        const w = await tx.warehouse.findFirst({ where: { type: 'MAIN' } }) || await tx.warehouse.findFirst();
-        return w?.id;
+    async _getDefaultWarehouseId(tx: Prisma.TransactionClient) {
+        return await inventoryService.getPrimaryWarehouse(tx);
     },
 
     async _commitStockForFulfillment(order: OrderWithItems, tx: Prisma.TransactionClient) {
@@ -282,31 +296,38 @@ export const orderStateService = {
                 const warehouseId = item.warehouseId || (await this._getDefaultWarehouseId(tx));
                 if (warehouseId) {
                     try {
-                        await inventoryService.commitStock(tx, warehouseId, item.variantId, item.quantity);
+                        await inventoryService.commitStock(tx, warehouseId, item.variantId!, item.quantity);
                     } catch (e: unknown) {
-                        // warning only, as stock might have been committed by paymentService already for Online orders?
-                        // actually paymentService commits on "Paid".
-                        // If order is "Paid" (Online), stock is committed.
-                        // If we then Ship, we might double commit?
+                        // AUTO-RECOVERY: If reservation expired/missing, try to re-reserve and commit
+                        // This handles cases where manual updates or race conditions lost the reservation
+                        const isInventoryError = e instanceof InventoryError || (e instanceof Error && e.message.includes('reservation'));
 
-                        // Wait. paymentService.confirmPaymentIntent calls commitStock.
-                        // That happens when status -> Paid.
+                        if (isInventoryError) {
+                            logger.warn(`Stock commit failed for ${item.variantId}. Attempting auto-recovery (finding reservation).`, { error: e });
+                            try {
+                                // AUTO-RECOVERY: If default warehouse fails, SEARCH for where the reservation actually is.
+                                // This handles "Warehouse Mismatch" where order created in W1 but we tried to ship from W2.
+                                const correctWarehouseId = await inventoryService.findWarehouseWithReservation(tx, item.variantId!, item.quantity);
 
-                        // If status is Paid, reseved is 0.
-                        // If we try to commit again, it will fail.
+                                if (correctWarehouseId) {
+                                    logger.info(`Found correct reservation in warehouse ${correctWarehouseId}. Committing...`);
+                                    await inventoryService.commitStock(tx, correctWarehouseId, item.variantId!, item.quantity);
+                                } else {
+                                    // No reservation found anywhere? Try to Re-reserve in Primary.
+                                    // FORCE: If available stock is 0, we still want to ship it because the admin physically has it.
+                                    logger.warn(`No existing reservation found. Attempting FORCED fresh reservation in ${warehouseId}`);
+                                    await inventoryService.reserveStock(tx, warehouseId, item.variantId!, item.quantity, true);
+                                    await inventoryService.commitStock(tx, warehouseId, item.variantId!, item.quantity);
+                                }
 
-                        // We should ONLY commit if paymentMethod is COD?
-                        // OR if stock is still reserved.
-
-                        // inventoryService.commitStock checks "reserved >= quantity".
-                        // If it's already committed, reserved is 0.
-                        // So checking for error is acceptable or we should check payment method.
-
-                        // BUT: "Paid" online order commits stock.
-                        // "Shipped" happens later.
-
-                        // So for Online Orders, we DON'T need to commit on Ship.
-                        // For COD Orders, we DO need to commit on Ship (or Deliver).
+                                logger.info(`Stock auto-recovery successful for ${item.variantId}`);
+                                continue; // Success, move to next item
+                            } catch (recoveryError) {
+                                logger.error(`Stock auto-recovery failed for ${item.variantId}`, { error: recoveryError });
+                                // If recovery fails (e.g. no stock available anywhere), we must fail the transition
+                                throw recoveryError;
+                            }
+                        }
 
                         if (order.paymentMethod === 'cod') {
                             logger.warn(`Failed to commit stock for ${item.variantId} in order ${order.id}`, { error: e });

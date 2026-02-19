@@ -230,10 +230,12 @@ export async function processZombieOrders() {
         where: {
             status: OrderStatus.Pending,
             createdAt: { lt: threshold },
-            paymentIntent: { is: null }, // Prisma syntax for checking null relation
+            // paymentIntent: { is: null }, // Prisma syntax for checking null relation
             // CRITICAL: Exclude COD orders - they should not be auto-cancelled
             // COD orders don't have PaymentIntent but are valid orders
-            paymentMethod: { not: 'cod' }
+            paymentMethod: { not: 'cod' },
+            // CRITICAL: Exclude manual orders (Bank Transfer, Wallet, etc)
+            orderSource: { not: 'manual' }
         },
         select: { id: true }
     });

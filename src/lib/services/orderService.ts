@@ -13,12 +13,12 @@ export type CreateOrderServiceParams = z.infer<typeof createOrderSchema>;
 
 // Helper to get default warehouse.
 export async function getDefaultWarehouseId(tx: Prisma.TransactionClient) {
-    const warehouse = await tx.warehouse.findFirst();
-    if (!warehouse) {
+  const warehouseId = await inventoryService.getPrimaryWarehouse(tx);
+  if (!warehouseId) {
       logger.error('No warehouse configured in database');
       throw new InventoryError("No warehouse configured.");
     }
-    return warehouse.id;
+  return warehouseId;
 }
 
 /**
@@ -72,7 +72,8 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
                         variantId: item.variantId,
                         name: item.name,
                         price: new Prisma.Decimal(item.price),
-                        quantity: item.quantity
+                      quantity: item.quantity,
+                      warehouseId: warehouseId // Track where stock was reserved
                     }))
                 }
             },
