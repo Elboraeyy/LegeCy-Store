@@ -3,7 +3,7 @@ import ShopClient from "./ShopClient";
 import { fetchAllCategories } from "@/lib/actions/category";
 import { fetchAllBrands } from "@/lib/actions/brand";
 import { fetchAllMaterials } from "@/lib/actions/material";
-import prisma from "@/lib/prisma";
+import { fetchShopProducts } from "@/lib/actions/shop";
 
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
 
@@ -30,59 +30,36 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Shop() {
   // Fetch server-side data for SEO and initial render
-  const [categories, brands, materials, products] = await Promise.all([
+  // fetchShopProducts already shuffles the products for random display
+  const [categories, brands, materials, shopProducts] = await Promise.all([
     fetchAllCategories(),
     fetchAllBrands(),
     fetchAllMaterials(),
-    prisma.product.findMany({
-      where: { status: 'active' },
-      include: {
-        variants: {
-          take: 1,
-          orderBy: { createdAt: 'asc' },
-          include: {
-            inventory: true
-          }
-        },
-        categoryRel: { select: { slug: true, name: true } },
-        brand: { select: { name: true } },
-      },
-    }),
+    fetchShopProducts(),
   ]);
-
-  const shuffledProducts = [...products].sort(() => Math.random() - 0.5);
 
   return (
     <ShopClient
-      initialProducts={shuffledProducts.map(p => {
-        const firstVariant = p.variants[0];
-        const price = firstVariant ? Number(firstVariant.price) : 0;
-        const totalStock = firstVariant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ?? 0;
-
-        return {
-          id: p.id,
-          name: p.name,
-          description: p.description || undefined,
-          price,
-          compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : undefined,
-          imageUrl: p.imageUrl || undefined,
-          img: p.imageUrl || undefined,
-          inStock: totalStock > 0,
-          totalStock,
-          isNew: false, // Can be enhanced with metadata later
-          createdAt: p.createdAt.toISOString(),
-          // Filter fields
-          categoryId: p.categoryId,
-          brandId: p.brandId,
-          materialId: p.materialId,
-          categorySlug: p.categoryRel?.slug,
-
-          // Search fields
-          sku: firstVariant?.sku,
-          brandName: p.brand?.name,
-          categoryName: p.categoryRel?.name,
-        };
-      })}
+      initialProducts={shopProducts.map(p => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        compareAtPrice: p.compareAtPrice || undefined,
+        imageUrl: p.imageUrl || undefined,
+        img: p.imageUrl || undefined,
+        inStock: p.inStock,
+        totalStock: p.variants?.reduce((sum, v) => sum + v.stock, 0) ?? 0,
+        isNew: p.isNew ?? false,
+        createdAt: new Date().toISOString(),
+        category: p.category,
+        categoryId: undefined,
+        brandId: undefined,
+        materialId: undefined,
+        categorySlug: p.category,
+        sku: p.variants?.[0]?.sku,
+        brandName: p.brand,
+        categoryName: p.category,
+      }))}
       categories={categories.map(c => ({
         id: c.id,
         name: c.name,
