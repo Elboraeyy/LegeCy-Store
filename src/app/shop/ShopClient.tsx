@@ -68,6 +68,11 @@ export default function ShopClient({
         setCurrentPage(1);
     }, [searchParams, absoluteMinPrice, absoluteMaxPrice]);
 
+    // Scroll to top when page changes
+    React.useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [currentPage]);
+
     // Update URL asynchronously with a small debounce to avoid history flooding
     React.useEffect(() => {
         const timer = setTimeout(() => {
@@ -125,7 +130,7 @@ export default function ShopClient({
         setCurrentPage(1);
     }, []);
 
-    // Products are already randomized server-side in shop.ts
+    // Products are already randomized server-side in fetchShopProducts
     const randomizedInitialProducts = initialProducts;
 
     // CLIENT-SIDE FILTERING LOGIC - Optimized for instant filtering

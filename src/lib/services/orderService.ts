@@ -137,6 +137,8 @@ export async function updateOrder(orderId: string, updates: UpdateOrderServicePa
       const newItemsMap = new Map(items.map(i => [i.variantId || 'novar', i]));
 
       // Calculate Inventory Changes
+      const isStockCommitted = [OrderStatus.Shipped, OrderStatus.Delivered].includes(currentOrder.status as OrderStatus);
+
       // A. Released items (reduced quantity or removed)
       for (const currentItem of currentOrder.items) {
         const key = currentItem.variantId || 'novar';
@@ -146,7 +148,17 @@ export async function updateOrder(orderId: string, updates: UpdateOrderServicePa
         if (newQty < currentItem.quantity) {
           const diff = currentItem.quantity - newQty;
           if (currentItem.variantId) {
-            await inventoryService.releaseStock(tx, warehouseId, currentItem.variantId, diff);
+            // Use specific warehouse from the item, fall back to default if null
+            const targetWarehouseId = currentItem.warehouseId || warehouseId;
+
+            if (isStockCommitted) {
+              // If order is shipped, "Releasing" means putting it back in Available stock (Restock)
+              // because it was already deducted from Reserved.
+              await inventoryService.increaseStock(tx, targetWarehouseId, currentItem.variantId, diff);
+            } else {
+              // Normal flow: Release reservation
+              await inventoryService.releaseStock(tx, targetWarehouseId, currentItem.variantId, diff);
+            }
           }
         }
       }
@@ -160,7 +172,17 @@ export async function updateOrder(orderId: string, updates: UpdateOrderServicePa
         if (newItem.quantity > currentQty) {
           const diff = newItem.quantity - currentQty;
           if (newItem.variantId) {
-            await inventoryService.reserveStock(tx, warehouseId, newItem.variantId, diff);
+            // For new items/added qty, we use the transaction's default warehouse (or we could try to use currentItem.warehouseId if it exists? 
+            // currentItem might be null if it's a new line item. If it exists, better to pull from same warehouse to keep line items clean.)
+            const targetWarehouseId = currentItem?.warehouseId || warehouseId;
+
+            // 1. Reserve
+            await inventoryService.reserveStock(tx, targetWarehouseId, newItem.variantId, diff);
+
+            // 2. Commit immediately if order is already shipped
+            if (isStockCommitted) {
+              await inventoryService.commitStock(tx, targetWarehouseId, newItem.variantId, diff);
+            }
           }
         }
       }
@@ -179,7 +201,10 @@ export async function updateOrder(orderId: string, updates: UpdateOrderServicePa
             variantId: item.variantId,
             name: item.name,
             price: new Prisma.Decimal(item.price),
-            quantity: item.quantity
+            quantity: item.quantity,
+            // Persist the warehouseId. Try to find it from old items, or default for new ones.
+            // This ensures we continue tracking where this item lies.
+            warehouseId: currentItemsMap.get(item.variantId || 'novar')?.warehouseId || warehouseId
           }))
         });
       }

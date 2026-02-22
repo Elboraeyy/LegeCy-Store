@@ -255,12 +255,12 @@ function MobileImageCarousel({
       {/* Badges Mobile */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
         {isOnSale && (
-          <span className="product-badge sale-badge relative top-0 left-0">
+          <span className="product-badge sale-badge !relative !top-auto !left-auto rounded-full">
             -{salePercent}%
           </span>
         )}
         {isOutOfStock && (
-          <span className="product-badge stock-badge out relative top-0 left-0">
+          <span className="product-badge stock-badge out !relative !top-auto !left-auto !bottom-auto bg-red-600 rounded-full">
             {soldOutLabel}
           </span>
         )}

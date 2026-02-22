@@ -35,7 +35,6 @@ export default async function Shop() {
     fetchAllBrands(),
     fetchAllMaterials(),
     prisma.product.findMany({
-      orderBy: { createdAt: 'desc' },
       where: { status: 'active' },
       include: {
         variants: {
@@ -51,9 +50,11 @@ export default async function Shop() {
     }),
   ]);
 
+  const shuffledProducts = [...products].sort(() => Math.random() - 0.5);
+
   return (
     <ShopClient
-      initialProducts={products.map(p => {
+      initialProducts={shuffledProducts.map(p => {
         const firstVariant = p.variants[0];
         const price = firstVariant ? Number(firstVariant.price) : 0;
         const totalStock = firstVariant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ?? 0;

@@ -66,20 +66,20 @@ export default React.memo(function ProductCard({ product, priority = false, hide
         </Link>
 
         {/* Badges */}
-        <div className="absolute top-3 inset-inline-start-3 flex flex-col gap-1.5 z-10">
+        <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">
           {isOutOfStock ? (
-            <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-slate-500 rounded-sm tracking-wider uppercase">
+            <span className="px-3 py-1.5 text-[10px] md:text-xs font-bold text-white bg-red-600 rounded-full tracking-wider uppercase">
               {t.product.sold_out}
             </span>
           ) : (
             <>
                 {isOnSale && (
-                  <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-[#d4af37] rounded-sm tracking-wider uppercase">
+                  <span className="px-3 py-1.5 text-[10px] md:text-xs font-bold text-white bg-[#d4af37] rounded-full tracking-wider uppercase">
                     -{salePercent}%
                   </span>
                 )}
                 {isNew && !isOnSale && !hideNewBadge && (
-                  <span className="px-2 py-1 text-[10px] md:text-xs font-bold text-white bg-[#12403C] rounded-sm tracking-wider uppercase">
+                  <span className="px-3 py-1.5 text-[10px] md:text-xs font-bold text-white bg-[#12403C] rounded-full tracking-wider uppercase">
                     {t.product.new_arrival}
                   </span>
                 )}

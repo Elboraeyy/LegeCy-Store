@@ -44,7 +44,9 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
         }
     });
 
-    return products.map(product => {
+    const shuffledProducts = [...products].sort(() => Math.random() - 0.5);
+
+    return shuffledProducts.map(product => {
         const mainVariant = product.variants[0];
         const totalStock = product.variants.reduce((acc, v) => 
             acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0

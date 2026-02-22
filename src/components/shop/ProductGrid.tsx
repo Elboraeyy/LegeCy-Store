@@ -175,7 +175,6 @@ export default function ProductGrid({
                 `}</style>
                 <div className="space-y-10">
                     {categoriesWithProducts.map(({ category, products: categoryProducts }) => {
-                        const formatPrice = (p: number) => `${t.common.currency} ${p.toLocaleString()}`;
                         
                         return (
                             <div key={category.slug} className="space-y-5">
@@ -203,32 +202,11 @@ export default function ProductGrid({
                                         }}
                                     >
                                         <div className="flex gap-3 md:gap-6 pb-4">
-                                            {categoryProducts.map((product) => {
-                                                const productImage = optimizeCloudinaryUrl(product.imageUrl || product.img || '/placeholder.jpg', 300);
-                                                return (
+                                            {categoryProducts.map((product) => (
                                                     <div key={product.id} className="w-[45%] md:w-[240px] flex-none" style={{ scrollSnapAlign: 'start' }}>
-                                                        <Link href={`/product/${product.id}`} className="block space-y-2">
-                                                            <div className="aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 relative">
-                                                                <Image
-                                                                    src={productImage}
-                                                                    alt={getLocalized(product, language, 'name')}
-                                                                    fill
-                                                                    className="object-cover"
-                                                                    sizes="140px"
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1">
-                                                                <h3 className="text-xs font-medium text-gray-900 line-clamp-1">
-                                                                    {getLocalized(product, language, 'name')}
-                                                                </h3>
-                                                                <p className="text-xs font-bold text-[#12403C]">
-                                                                    {formatPrice(product.price)}
-                                                                </p>
-                                                            </div>
-                                                        </Link>
-                                                    </div>
-                                                );
-                                            })}
+                                                    <ProductCard product={product} />
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
@@ -312,13 +290,13 @@ function ProductListCard({ product }: { product: Product }) {
                         onError={() => setImgSrc('/placeholder.jpg')}
                     />
                     {isOnSale && (
-                        <span className="absolute top-2 left-2 px-2 py-1 text-xs font-bold text-white bg-[#d4af37] rounded">
+                        <span className="absolute top-2 left-2 px-3 py-1.5 text-xs font-bold text-white bg-[#d4af37] rounded-full">
                             -{salePercent}%
                         </span>
                     )}
                     {isOutOfStock && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <span className="px-3 py-1 text-sm font-bold text-white bg-[#d4af37] rounded">
+                            <span className="px-3 py-1.5 text-sm font-bold text-white bg-red-600 rounded-full">
                                 {t.product.sold_out}
                             </span>
                         </div>

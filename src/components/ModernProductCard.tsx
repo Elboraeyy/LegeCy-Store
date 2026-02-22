@@ -43,7 +43,7 @@ export default function ModernProductCard({ product, priority = false, compact =
         : 0;
 
     return (
-        <div className="group modern-card relative w-full bg-white rounded-lg overflow-hidden border border-gray-100/50 shadow-sm">
+        <div className={`group modern-card relative w-full bg-white rounded-lg overflow-hidden border border-gray-100/50 shadow-sm ${isOutOfStock ? 'opacity-60 grayscale-[20%]' : ''}`}>
             {/* 1. Image Container */}
             <div className="relative aspect-[4/5] w-full bg-gray-50 overflow-hidden">
                 <Link href={`/product/${product.id}`} className="block w-full h-full">
@@ -59,7 +59,7 @@ export default function ModernProductCard({ product, priority = false, compact =
                 </Link>
 
                 {/* Badges (Top Left) */}
-                <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                <div className="absolute top-4 left-4 flex flex-col gap-1 z-10">
                     {isOnSale && (
                         <span className="px-2 py-0.5 text-[10px] font-bold text-white bg-[#d4af37] rounded-full uppercase shadow-sm">
                             -{salePercent}%
@@ -71,7 +71,7 @@ export default function ModernProductCard({ product, priority = false, compact =
                         </span>
                     )}
                     {isOutOfStock && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold text-white bg-slate-500 rounded-full uppercase shadow-sm">
+                        <span className="px-2 py-0.5 text-[10px] font-bold text-white bg-red-600 rounded-full uppercase shadow-sm">
                             {t.product.sold_out}
                         </span>
                     )}
