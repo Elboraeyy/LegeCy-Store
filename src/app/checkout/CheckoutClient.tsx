@@ -245,7 +245,7 @@ export default function CheckoutClient() {
       }
     }
     loadShipping();
-  }, [form.shippingGovernorate, form.shippingCity, subtotal, appliedCoupon?.freeShipping]);
+  }, [form.shippingGovernorate, form.shippingCity, subtotal, appliedCoupon?.freeShipping, appliedCoupon?.code, cart]);
 
   // Calculate totals - Discount applies to products only
   const actualShipping = shippingCost ?? 0;

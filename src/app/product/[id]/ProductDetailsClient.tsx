@@ -418,7 +418,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
       setLoading(false);
     }
     loadData();
-  }, [id]);
+  }, [id, language]);
 
   // Sticky bar scroll handler
   useEffect(() => {

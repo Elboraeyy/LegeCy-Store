@@ -11,7 +11,6 @@ import { Product } from "@/types/product";
 import { useLanguage } from "@/context/LanguageContext";
 import { trackGAEvent } from "@/components/GoogleAnalytics";
 import { trackMetaSearch } from "@/components/MetaPixel";
-import { getLocalized } from "@/types/product";
 
 interface ShopClientProps {
     initialProducts?: Product[];

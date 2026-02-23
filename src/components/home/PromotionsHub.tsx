@@ -64,7 +64,7 @@ export function PromotionsHub({ flashSales, bogos, bundles }: Props) {
                     promotion_name: deal.name,
                     creative_name: 'BOGO Card',
                     creative_slot: 'Homepage Promotions Hub',
-                    items: deal.products.map(p => ({
+                    items: deal.products.map(() => ({
                         item_id: 'bogo_' + deal.id,
                         item_name: deal.name
                     }))
