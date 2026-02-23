@@ -15,9 +15,12 @@ export default function MetaPixel() {
         if ((window as any).fbq) return;
 
         /* eslint-disable @typescript-eslint/no-explicit-any */
-        const n: any = function () {
-            // eslint-disable-next-line prefer-rest-params
-            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+        const n: any = function (...args: any[]) {
+            if (n.callMethod) {
+                n.callMethod(...args);
+            } else {
+                n.queue.push(args);
+            }
         };
         n.push = n;
         n.loaded = !0;
@@ -51,6 +54,7 @@ export default function MetaPixel() {
 
     return (
         <noscript>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
                 height="1"
                 width="1"
