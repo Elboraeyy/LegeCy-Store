@@ -94,7 +94,7 @@ export async function getPublicFlashSaleById(id: string) {
              );
              
              // Calculate isNew
-             const isNew = (new Date().getTime() - product.createdAt.getTime()) < (30 * 24 * 60 * 60 * 1000);
+            const isNew = (new Date().getTime() - product.createdAt.getTime()) < (5 * 24 * 60 * 60 * 1000);
 
             return {
                 id: product.id,

@@ -72,7 +72,7 @@ export default React.memo(function ProductCard({ product, priority = false, hide
               {t.product.sold_out}
             </span>
           ) : (
-            <>
+              <>
                 {isOnSale && (
                   <span className="px-3 py-1.5 text-[10px] md:text-xs font-bold text-white bg-[#d4af37] rounded-full tracking-wider uppercase">
                     -{salePercent}%

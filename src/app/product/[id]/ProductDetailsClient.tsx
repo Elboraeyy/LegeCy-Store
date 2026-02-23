@@ -43,6 +43,7 @@ interface ProductData {
   material: { id: string; name: string; nameAr?: string } | null;
   totalStock: number;
   sku: string | null;
+  createdAt?: string;
   specs?: {
     dialSize?: string;
     dialColor?: string;
@@ -106,7 +107,9 @@ interface MobileImageCarouselProps {
   isOnSale: boolean;
   salePercent: number;
   isOutOfStock: boolean;
+  isNew: boolean;
   soldOutLabel: string;
+  newLabel: string;
   language: string;
 }
 
@@ -128,7 +131,9 @@ function MobileImageCarousel({
   isOnSale,
   salePercent,
   isOutOfStock,
+  isNew,
   soldOutLabel,
+  newLabel,
   language,
 }: MobileImageCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -257,6 +262,11 @@ function MobileImageCarousel({
         {isOnSale && (
           <span className="product-badge sale-badge !relative !top-auto !left-auto rounded-full">
             -{salePercent}%
+          </span>
+        )}
+        {isNew && !isOnSale && !isOutOfStock && (
+          <span className="product-badge !relative !top-auto !left-auto rounded-full" style={{ backgroundColor: '#12403C', color: 'white' }}>
+            {newLabel}
           </span>
         )}
         {isOutOfStock && (
@@ -404,6 +414,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     : 0;
   const savedAmount = isOnSale ? product!.compareAtPrice! - product!.price : 0;
   const isOutOfStock = product ? product.totalStock <= 0 : false;
+  const isNew = product?.createdAt
+    ? (new Date().getTime() - new Date(product.createdAt).getTime()) < (5 * 24 * 60 * 60 * 1000)
+    : false;
 
 
   // Average rating
@@ -594,6 +607,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 {isOnSale && (
                   <span className="product-badge sale-badge">-{salePercent}%</span>
                 )}
+                  {isNew && !isOnSale && !isOutOfStock && (
+                    <span className="product-badge" style={{ backgroundColor: '#12403C', color: 'white' }}>{t.product.new_arrival}</span>
+                  )}
                 {isOutOfStock && (
                   <span className="product-badge stock-badge out">{t.product.sold_out}</span>
                 )}
@@ -618,7 +634,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 isOnSale={!!isOnSale}
                 salePercent={salePercent}
                 isOutOfStock={isOutOfStock}
+                isNew={isNew}
                 soldOutLabel={t.product.sold_out}
+                newLabel={t.product.new_arrival}
                 language={language}
               />
 

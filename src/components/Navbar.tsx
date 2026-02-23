@@ -559,7 +559,7 @@ export default function Navbar({
       {/* Mobile Sidebar */}
       {/* ALWAYS RENDERED, HIDDEN VIA CSS FOR PERFORMANCE */}
       <div
-        className={`fixed inset-0 z-[60] transition-all duration-[400ms] ease-out ${isOpen ? 'visible' : 'invisible delay-[400ms]'
+        className={`fixed inset-0 z-[200] transition-all duration-[400ms] ease-out ${isOpen ? 'visible' : 'invisible delay-[400ms]'
           }`}
       >
         {/* Backdrop */}
@@ -573,7 +573,7 @@ export default function Navbar({
         {/* Drawer */}
         <div
           className={`
-            fixed top-0 bottom-0 w-[85%] max-w-[320px] bg-[#FCF8F3] z-[70] shadow-2xl flex flex-col touch-pan-y 
+            fixed top-0 bottom-0 w-[85%] max-w-[320px] bg-[#FCF8F3] z-[210] shadow-2xl flex flex-col touch-pan-y 
             transition-transform duration-[400ms] cubic-bezier(0.4, 0, 0.2, 1) overscroll-contain
             ${isRTL ? 'left-0 rounded-r-[20px]' : 'right-0 rounded-l-[20px]'}
             ${isOpen ? 'translate-x-0' : (isRTL ? '-translate-x-full' : 'translate-x-full')}

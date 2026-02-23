@@ -306,7 +306,6 @@ export const orderStateService = {
                             logger.warn(`Stock commit failed for ${item.variantId}. Attempting auto-recovery (finding reservation).`, { error: e });
                             try {
                                 // AUTO-RECOVERY: If default warehouse fails, SEARCH for where the reservation actually is.
-                                // This handles "Warehouse Mismatch" where order created in W1 but we tried to ship from W2.
                                 const correctWarehouseId = await inventoryService.findWarehouseWithReservation(tx, item.variantId!, item.quantity);
 
                                 if (correctWarehouseId) {
@@ -323,19 +322,20 @@ export const orderStateService = {
                                 logger.info(`Stock auto-recovery successful for ${item.variantId}`);
                                 continue; // Success, move to next item
                             } catch (recoveryError) {
-                                logger.error(`Stock auto-recovery failed for ${item.variantId}`, { error: recoveryError });
-                                // If recovery fails (e.g. no stock available anywhere), we must fail the transition
-                                throw recoveryError;
+                                // GRACEFUL DEGRADATION: Do NOT block the order transition.
+                                // The admin physically has the product and is shipping it.
+                                // Log the discrepancy for manual inventory reconciliation.
+                                logger.error(`[INVENTORY_MISMATCH] Stock auto-recovery failed for variant ${item.variantId} in order ${order.id}. ` +
+                                    `Proceeding with fulfillment despite inventory discrepancy. Manual reconciliation required.`,
+                                    { error: recoveryError, orderId: order.id, variantId: item.variantId, quantity: item.quantity });
+                                continue; // Proceed to next item
                             }
                         }
 
-                        if (order.paymentMethod === 'cod') {
-                            logger.warn(`Failed to commit stock for ${item.variantId} in order ${order.id}`, { error: e });
-                            throw e; // Fail the transition if COD stock can't be committed
-                        } else {
-                            // Online order, likely already committed.
-                            logger.info(`Stock commit skipped/failed for ${item.variantId} (likely already committed)`, { error: e instanceof Error ? e.message : String(e) });
-                        }
+                        // For any other (non-inventory) error, log and proceed gracefully
+                        logger.warn(`Stock commit skipped for ${item.variantId} in order ${order.id}. ` +
+                            `Reason: ${e instanceof Error ? e.message : String(e)}`, { error: e });
+                        // Do NOT throw — allow the order transition to proceed
                     }
                 }
             }
