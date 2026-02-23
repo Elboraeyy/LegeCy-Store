@@ -58,6 +58,8 @@ interface StoreContextType {
   showToast: (msg: string, type?: "success" | "danger") => void;
   isLoading: boolean;
     isLoggedIn: boolean;
+    buyNowItem: CartItem | null;
+    setBuyNowItem: (item: CartItem | null) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -69,8 +71,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [fav, setFav] = useState<ProductId[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [buyNowItem, setBuyNowItem] = useState<CartItem | null>(null);
 
   const hasInitialized = useRef(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const savedBuyNow = sessionStorage.getItem('buyNowItem');
+            if (savedBuyNow) {
+                try {
+                    setBuyNowItem(JSON.parse(savedBuyNow));
+                } catch (e) {
+                    console.error("Failed to parse buyNowItem", e);
+                }
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if (buyNowItem) {
+                sessionStorage.setItem('buyNowItem', JSON.stringify(buyNowItem));
+            } else {
+                sessionStorage.removeItem('buyNowItem');
+            }
+        }
+    }, [buyNowItem]);
 
   // Initial Load: Products & Session Logic
   useEffect(() => {
@@ -526,7 +552,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     <StoreContext.Provider value={{
       cart, fav, addToCart, removeFromCart, decFromCart,
       toggleFav, isFav, clearCart, isCartOpen, openCart, closeCart,
-          products, showToast, isLoading, isLoggedIn
+          products, showToast, isLoading, isLoggedIn,
+          buyNowItem, setBuyNowItem
     }}>
       {children}
     </StoreContext.Provider>

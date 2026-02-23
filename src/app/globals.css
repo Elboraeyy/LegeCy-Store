@@ -6307,6 +6307,21 @@ html.dark .skeleton {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
+/* Buy it Now Button Refinements */
+.buy-now-button {
+  height: 44px !important;
+  font-size: 15px !important;
+}
+
+@media (max-width: 768px) {
+  .buy-now-button {
+    height: 36px !important;
+    font-size: 14px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: normal !important;
+  }
+}
 @keyframes skeleton-pulse {
 
   0%,

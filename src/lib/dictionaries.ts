@@ -126,7 +126,7 @@ export const dictionary = {
     },
     product: {
       add_to_cart: "Add to Cart",
-      buy_now: "Buy Now",
+      buy_now: "Buy it Now",
       out_of_stock: "Out of Stock",
       in_stock: "In Stock",
       description: "Description",
@@ -1478,7 +1478,7 @@ export const dictionary = {
     },
     product: {
       add_to_cart: "ضيف للسلة",
-      buy_now: "اشتري دلوقتي",
+      buy_now: "اشتريه دلوقتي",
       out_of_stock: "خلصان دلوقتي",
       in_stock: "متاح",
       description: "التفاصيل",

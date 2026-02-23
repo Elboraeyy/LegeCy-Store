@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 export default function CartClient() {
-  const { cart, addToCart, decFromCart, removeFromCart, isLoading: storeLoading, isLoggedIn } = useStore();
+  const { cart, addToCart, decFromCart, removeFromCart, isLoading: storeLoading, isLoggedIn, setBuyNowItem } = useStore();
   const isClient = useIsClient();
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -268,6 +268,7 @@ export default function CartClient() {
                     <Link
                     href={isLoggedIn ? "/checkout" : "/login?redirect=/cart"}
                       className="group relative block w-full py-[14px] px-[24px] text-[13px] font-semibold tracking-[0.8px] uppercase bg-gradient-to-br from-[#12403C] to-[#1a5450] text-white border-none rounded-full cursor-pointer transition-all duration-300 hover:shadow-[0_8px_24px_rgba(18,64,60,0.2)] hover:-translate-y-[2px] overflow-hidden text-center"
+                    onClick={() => setBuyNowItem(null)}
                     >
                     <span className="relative z-10">{isLoggedIn ? t.cart.proceed_to_checkout : t.cart.login_to_checkout}</span>
                       <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-500 group-hover:left-[100%]"></div>

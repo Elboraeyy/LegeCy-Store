@@ -39,7 +39,11 @@ interface ShippingForm {
 // Locations are imported from @/data/egypt-locations
 
 export default function CheckoutClient() {
-  const { cart, clearCart, isLoading: storeLoading } = useStore();
+  const { cart, clearCart, removeFromCart, isLoading: storeLoading, buyNowItem, setBuyNowItem } = useStore();
+
+  // Use buyNowItem if present, otherwise fall back to regular cart
+  const checkoutItems = buyNowItem ? [buyNowItem] : cart;
+
   const { t, language } = useLanguage();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -118,20 +122,20 @@ export default function CheckoutClient() {
 
   // Meta Pixel: InitiateCheckout when page loads with items
   useEffect(() => {
-    if (!storeLoading && cart.length > 0) {
+    if (!storeLoading && checkoutItems.length > 0) {
       trackMetaEvent('InitiateCheckout', {
-        content_ids: cart.map(item => item.id),
+        content_ids: checkoutItems.map(item => item.id),
         content_type: 'product',
-        value: cart.reduce((sum, item) => sum + item.price * item.qty, 0),
+        value: checkoutItems.reduce((sum, item) => sum + item.price * item.qty, 0),
         currency: 'EGP',
-        num_items: cart.reduce((sum, item) => sum + item.qty, 0),
+        num_items: checkoutItems.reduce((sum, item) => sum + item.qty, 0),
       });
 
       // GA4: Track begin_checkout event
       trackGAEvent('begin_checkout', {
         currency: 'EGP',
-        value: cart.reduce((sum, item) => sum + item.price * item.qty, 0),
-        items: cart.map(item => ({
+        value: checkoutItems.reduce((sum, item) => sum + item.price * item.qty, 0),
+        items: checkoutItems.map(item => ({
           item_id: item.id,
           item_name: item.name,
           price: item.price,
@@ -140,7 +144,7 @@ export default function CheckoutClient() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storeLoading]);
+  }, [storeLoading, buyNowItem]);
 
   // Shipping State
   const [shippingCost, setShippingCost] = useState<number | null>(null);
@@ -178,7 +182,7 @@ export default function CheckoutClient() {
   }, [loadingPaymentMethods, paymentMethods, form.paymentMethod, setForm]);
 
   // Calculate totals
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const subtotal = checkoutItems.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   // Calculate shipping when city changes
   useEffect(() => {
@@ -199,22 +203,7 @@ export default function CheckoutClient() {
             value: subtotal,
             coupon: appliedCoupon?.code || undefined,
             shipping_tier: "Free Shipping (Coupon)",
-            items: cart.map(item => ({
-              item_id: item.id,
-              item_name: item.name,
-              price: item.price,
-              quantity: item.qty,
-            })),
-          });
-        } else {
-          setShippingCost(result.shippingCost);
-          setShippingZone(result.zoneName);
-          trackGAEvent('add_shipping_info', {
-            currency: 'EGP',
-            value: subtotal,
-            coupon: appliedCoupon?.code || undefined,
-            shipping_tier: result.zoneName,
-            items: cart.map(item => ({
+            items: checkoutItems.map(item => ({
               item_id: item.id,
               item_name: item.name,
               price: item.price,
@@ -233,7 +222,7 @@ export default function CheckoutClient() {
           value: subtotal,
           coupon: appliedCoupon?.code || undefined,
           shipping_tier: "Standard Shipping",
-          items: cart.map(item => ({
+          items: checkoutItems.map(item => ({
             item_id: item.id,
             item_name: item.name,
             price: item.price,
@@ -245,7 +234,7 @@ export default function CheckoutClient() {
       }
     }
     loadShipping();
-  }, [form.shippingGovernorate, form.shippingCity, subtotal, appliedCoupon?.freeShipping, appliedCoupon?.code, cart]);
+  }, [form.shippingGovernorate, form.shippingCity, subtotal, appliedCoupon?.freeShipping, appliedCoupon?.code, checkoutItems]);
 
   // Calculate totals - Discount applies to products only
   const actualShipping = shippingCost ?? 0;
@@ -285,7 +274,7 @@ export default function CheckoutClient() {
     setAppliedCoupon(null);
 
     try {
-      const result = await validateCoupon(couponCode, subtotal, undefined, undefined, cart);
+      const result = await validateCoupon(couponCode, subtotal, undefined, undefined, checkoutItems);
       if (result.isValid) {
         setAppliedCoupon({
           code: couponCode,
@@ -354,7 +343,7 @@ export default function CheckoutClient() {
       return;
     }
 
-    if (cart.length === 0) {
+    if (checkoutItems.length === 0) {
       toast.error(t.cart.empty_cart);
       return;
     }
@@ -367,7 +356,7 @@ export default function CheckoutClient() {
       value: finalTotal,
       coupon: appliedCoupon?.code || undefined,
       payment_type: form.paymentMethod,
-      items: cart.map(item => ({
+      items: checkoutItems.map(item => ({
         item_id: item.id,
         item_name: item.name,
         price: item.price,
@@ -377,7 +366,7 @@ export default function CheckoutClient() {
 
     // Meta Pixel: Track AddPaymentInfo event
     trackMetaEvent('AddPaymentInfo', {
-      content_ids: cart.map(item => item.id),
+      content_ids: checkoutItems.map(item => item.id),
       content_type: 'product',
       value: finalTotal,
       currency: 'EGP',
@@ -394,7 +383,7 @@ export default function CheckoutClient() {
         saveCheckoutProfile(profileData as any).catch(e => console.error("Failed to save profile", e));
       }
 
-      const cartItems = cart.map((item) => ({
+      const cartItems = checkoutItems.map((item) => ({
         id: item.id,
         name: item.name,
         price: item.price,
@@ -444,7 +433,16 @@ export default function CheckoutClient() {
         sessionStorage.setItem('order_redirect_home', 'true');
         
         // Clear cart and form immediately
-        clearCart();
+        if (buyNowItem) {
+          // Also remove this product from the main cart if it exists there
+          const existsInCart = cart.find(item => item.id === buyNowItem.id);
+          if (existsInCart) {
+            removeFromCart(buyNowItem.id, buyNowItem.variantId);
+          }
+          setBuyNowItem(null);
+        } else {
+          clearCart();
+        }
         clearFormStorage();
         localStorage.removeItem('cart'); // Ensure cart is cleared from localStorage
         
@@ -492,8 +490,8 @@ export default function CheckoutClient() {
   };
 
 
-  // Empty cart state
-  if (!storeLoading && cart.length === 0 && !isRedirecting) {
+  // Empty checkout state
+  if (!storeLoading && checkoutItems.length === 0 && !isRedirecting) {
 
     return (
       <main className={styles.checkoutPage}>
@@ -1036,12 +1034,12 @@ export default function CheckoutClient() {
           <aside className={styles.orderSummary}>
             <div className={styles.summaryHeader}>
               <h3 className={styles.summaryTitle}>{t.checkout.order_summary}</h3>
-              <span className={styles.summaryItemCount}>{t.cart.items_count.replace('{count}', cart.reduce((sum, i) => sum + i.qty, 0).toString())}</span>
+              <span className={styles.summaryItemCount}>{t.cart.items_count.replace('{count}', checkoutItems.reduce((sum, i) => sum + i.qty, 0).toString())}</span>
             </div>
 
             {/* Cart Items */}
             <div className={styles.summaryItems}>
-              {cart.map((item, idx) => (
+              {checkoutItems.map((item, idx) => (
                 <div key={idx} className={styles.summaryItem}>
                   <div className={styles.itemImage}>
                     {item.img && (

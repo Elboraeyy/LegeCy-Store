@@ -10,7 +10,7 @@ import { trackGAEvent } from "./GoogleAnalytics";
 import styles from "./CartDrawer.module.css";
 
 export default function CartDrawer() {
-  const { cart, isCartOpen, closeCart, removeFromCart, addToCart, decFromCart, isLoggedIn } = useStore();
+  const { cart, isCartOpen, closeCart, removeFromCart, addToCart, decFromCart, isLoggedIn, setBuyNowItem } = useStore();
   const drawerRef = useRef<HTMLDivElement>(null);
   const isClient = useIsClient();
   const { t, language } = useLanguage();
@@ -217,7 +217,7 @@ export default function CartDrawer() {
                 <Link
                   href="/checkout"
                   className={styles.checkoutBtn}
-                  onClick={closeCart}
+                  onClick={() => { setBuyNowItem(null); closeCart(); }}
                 >
                   {t.cart.checkout}
                 </Link>

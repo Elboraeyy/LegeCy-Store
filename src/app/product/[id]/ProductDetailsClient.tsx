@@ -62,6 +62,14 @@ interface ProductData {
   };
   detailTags?: string[];
   similarProducts?: Product[];
+  defaultVariantId?: string | null;
+  variants?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    stock: number;
+    sku: string;
+  }>;
 }
 
 interface ProductDetailsClientProps {
@@ -300,7 +308,7 @@ function MobileImageCarousel({
 
 export default function ProductDetailsClient({ id }: ProductDetailsClientProps) {
   const router = useRouter();
-  const { addToCart, toggleFav, isFav } = useStore();
+  const { addToCart, toggleFav, isFav, setBuyNowItem } = useStore();
   const { addToCompare, isInComparison } = useComparison();
   const isClient = useIsClient();
   const { t, language } = useLanguage();
@@ -466,6 +474,39 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     addToCart(product.id, undefined, true, quantity);
     await new Promise(r => setTimeout(r, 500));
     setAddingToCart(false);
+  };
+
+  const handleBuyNow = async () => {
+    if (!product || isOutOfStock) return;
+
+    // GA4: Track begin_checkout event for Buy Now
+    trackGAEvent('begin_checkout', {
+      currency: 'EGP',
+      value: product.price * quantity,
+      items: [{
+        item_id: product.id,
+        item_name: product.name,
+        price: product.price,
+        quantity: quantity,
+      }],
+    });
+
+    const vId = product.defaultVariantId || "";
+    const variant = product.variants?.find((v) => v.id === vId);
+    const stock = variant?.stock ?? product.totalStock;
+
+    setBuyNowItem({
+      id: product.id,
+      variantId: vId,
+      qty: quantity,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.imageUrl || '',
+      img: product.imageUrl || '',
+      stock: stock
+    });
+
+    router.push('/checkout');
   };
 
   const handleQuantityChange = (delta: number) => {
@@ -808,6 +849,27 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 )}
               </button>
             </div>
+
+              {/* Buy It Now Button */}
+              {!isOutOfStock && (
+                <div className="mt-3">
+                  <motion.button
+                    className="btn btn-outline w-full buy-now-button"
+                    onClick={handleBuyNow}
+                    initial={{ backgroundColor: 'transparent', color: '#12403C' }}
+                    whileHover={{ backgroundColor: '#12403C', color: '#ffffff' }}
+                    transition={{ duration: 0.08 }}
+                    style={{
+                      borderColor: '#12403C',
+                      fontWeight: '600',
+                      fontSize: '15px',
+                      height: '44px'
+                    }}
+                  >
+                    {t.product.buy_now}
+                  </motion.button>
+                </div>
+              )}
 
             {/* Notify Me When Available - Out of Stock */}
             {isOutOfStock && (
@@ -1580,10 +1642,10 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               </div>
               <button
                 className="sticky-cart-btn"
-                onClick={handleAddToCart}
-                disabled={isOutOfStock || addingToCart}
+                onClick={handleBuyNow}
+                disabled={isOutOfStock}
               >
-                {addingToCart ? t.common.loading : t.product.add_to_cart}
+                {t.product.buy_now}
               </button>
             </div>
           </motion.div>
