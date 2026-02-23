@@ -239,6 +239,13 @@ export const dictionary = {
         invalid_whatsapp: "Please enter a valid Egyptian number",
         invalid_email: "Please enter a valid email address",
       },
+      quick_view: {
+        title: "Quick View",
+        view_details: "View Full Details",
+        add_to_cart: "Add to Cart",
+        out_of_stock: "Out of Stock",
+        close: "Close",
+      },
     },
     checkout: {
       checkout: "Checkout",
@@ -1597,6 +1604,13 @@ export const dictionary = {
         error: "حصل مشكلة. حاول تاني.",
         invalid_whatsapp: "ادخل رقم مصري صحيح",
         invalid_email: "ادخل إيميل صحيح",
+      },
+      quick_view: {
+        title: "نظرة سريعة",
+        view_details: "عرض كل التفاصيل",
+        add_to_cart: "أضف للسلة",
+        out_of_stock: "نفذت الكمية",
+        close: "إغلاق",
       },
     },
     shop: {
