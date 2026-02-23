@@ -29,24 +29,26 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
     const [justAdded, setJustAdded] = useState(false);
     const [quantity, setQuantity] = useState(1);
 
+    // Reset state during render when product changes to avoid cascading renders
+    const [prevProductId, setPrevProductId] = useState(product.id);
+    if (product.id !== prevProductId) {
+        setPrevProductId(product.id);
+        setSelectedImageIndex(0);
+        setJustAdded(false);
+        setQuantity(1);
+    }
+
     // Build gallery images
     const allImages = React.useMemo(() => {
         const imgs: string[] = [];
         const mainImg = product.imageUrl || product.img;
         if (mainImg) imgs.push(mainImg);
         const gallery = product.gallery || product.images || [];
-        gallery.forEach((img) => {
+        gallery.forEach((img: string) => {
             if (img && !imgs.includes(img)) imgs.push(img);
         });
         return imgs.length > 0 ? imgs : ["/placeholder.jpg"];
     }, [product]);
-
-    // Reset image index when product changes
-    useEffect(() => {
-        setSelectedImageIndex(0);
-        setJustAdded(false);
-        setQuantity(1);
-    }, [product.id]);
 
     // Lock body scroll when open
     useEffect(() => {

@@ -42,7 +42,7 @@ export default function CheckoutClient() {
   const { cart, clearCart, removeFromCart, isLoading: storeLoading, buyNowItem, setBuyNowItem } = useStore();
 
   // Use buyNowItem if present, otherwise fall back to regular cart
-  const checkoutItems = buyNowItem ? [buyNowItem] : cart;
+  const checkoutItems = React.useMemo(() => buyNowItem ? [buyNowItem] : cart, [buyNowItem, cart]);
 
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -203,6 +203,21 @@ export default function CheckoutClient() {
             value: subtotal,
             coupon: appliedCoupon?.code || undefined,
             shipping_tier: "Free Shipping (Coupon)",
+            items: checkoutItems.map(item => ({
+              item_id: item.id,
+              item_name: item.name,
+              price: item.price,
+              quantity: item.qty,
+            })),
+          });
+        } else {
+          setShippingCost(result.shippingCost);
+          setShippingZone(result.zoneName);
+          trackGAEvent('add_shipping_info', {
+            currency: 'EGP',
+            value: subtotal,
+            coupon: appliedCoupon?.code || undefined,
+            shipping_tier: result.zoneName,
             items: checkoutItems.map(item => ({
               item_id: item.id,
               item_name: item.name,
