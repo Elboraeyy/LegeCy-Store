@@ -40,6 +40,13 @@ export const dictionary = {
       recent_searches: "Recent Searches",
       clear_all: "Clear All",
     },
+    notFound: {
+      title: "Time Has Stopped Here.",
+      subtitle: "The page you are looking for seems to have been lost in time.",
+      description: "It seems the moment you were looking for has passed, or the path has been moved. But don't worry, your legacy continues.",
+      goHome: "Return to Present",
+      lostText: "404"
+    },
     nav: {
       home: "Home",
       shop: "Shop",
@@ -1218,6 +1225,13 @@ export const dictionary = {
       free_shipping_orders_over: "شحن مجاني للطلبات فوق",
       recent_searches: "اخر عمليات بحث",
       clear_all: "مسح الكل"
+    },
+    notFound: {
+      title: "توقف الزمن هنا..",
+      subtitle: "يبدو أن الصفحة التي تبحث عنها قد تاهت في غياهب الزمن.",
+      description: "باين كدة إن اللحظة اللي كنت بتدور عليها عدت، أو الطريق اتغير. بس متقلقش، إرثك لسه مكمل.",
+      goHome: "العودة إلى الحاضر",
+      lostText: "٤٠٤"
     },
     nav: {
       home: "الرئيسية",
