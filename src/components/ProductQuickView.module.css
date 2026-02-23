@@ -8,6 +8,7 @@
     -webkit-backdrop-filter: blur(6px);
     z-index: 9998;
     cursor: pointer;
+    touch-action: none;
 }
 
 .modal {
@@ -39,9 +40,9 @@
     .modal {
         inset: 0;
         margin: auto;
-        width: 94vw;
+        width: 82vw;
         height: fit-content;
-        max-height: 88vh;
+        max-height: 92vh;
         border-radius: 20px;
     }
 }
@@ -102,14 +103,32 @@
 @media (max-width: 767px) {
     .imageSection {
         width: 100%;
-        height: 280px;
+        height: 340px;
     }
 }
 
+.sliderContainer {
+    display: flex;
+    height: 100%;
+    cursor: grab;
+    touch-action: pan-y;
+}
+
+.sliderContainer:active {
+    cursor: grabbing;
+}
+
+.slideItem {
+    flex: 0 0 100%;
+    height: 100%;
+    position: relative;
+}
 .mainImage {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    pointer-events: none;
+        user-select: none;
 }
 
 /* ===== Badges on Image ===== */
@@ -195,7 +214,9 @@
 
 @media (max-width: 767px) {
     .content {
-        padding: 20px 20px 24px;
+        padding: 14px 18px 16px;
+            text-align: center;
+            align-items: center;
     }
 }
 
@@ -214,6 +235,11 @@
     margin-bottom: 6px;
 }
 
+@media (max-width: 767px) {
+    .brand {
+        margin-bottom: 2px;
+    }
+}
 .productName {
     font-size: 20px;
     font-weight: 600;
@@ -241,6 +267,20 @@
     gap: 10px;
     margin-bottom: 16px;
     flex-wrap: wrap;
+    justify-content: inherit;
+        /* Allow parent centering to take over or override locally */
+    }
+    
+    @media (max-width: 767px) {
+        .priceRow {
+            margin-bottom: 10px;
+        }
+    }
+    
+    @media (max-width: 767px) {
+        .priceRow {
+            justify-content: center;
+        }
 }
 
 .price {
@@ -277,6 +317,11 @@
     margin: 4px 0 14px;
 }
 
+@media (max-width: 767px) {
+    .divider {
+        margin: 2px 0 8px;
+    }
+}
 /* ===== Description ===== */
 .description {
     font-size: 13.5px;
@@ -290,6 +335,13 @@
     overflow: hidden;
 }
 
+@media (max-width: 767px) {
+    .description {
+        margin-bottom: 10px;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+}
 /* ===== Stock Status ===== */
 .stockRow {
     display: flex;
@@ -299,6 +351,11 @@
     gap: 12px;
 }
 
+@media (max-width: 767px) {
+    .stockRow {
+        margin-bottom: 14px;
+    }
+}
 .stockStatus {
     display: flex;
     align-items: center;
@@ -379,29 +436,48 @@
     padding-top: 8px;
 }
 
+@media (max-width: 767px) {
+    .actions {
+        padding-top: 0;
+        gap: 8px;
+    }
+}
 .addToCartRow {
     display: flex;
     gap: 10px;
     align-items: stretch;
 }
 
+@media (max-width: 767px) {
+    .addToCartRow {
+        gap: 8px;
+    }
+}
 .secondaryActionsRow {
     display: flex;
     gap: 10px;
     align-items: stretch;
 }
 
+@media (max-width: 767px) {
+    .secondaryActionsRow {
+        gap: 8px;
+    }
+}
 .secondaryActionsRow>* {
     flex: 1;
+    white-space: nowrap;
 }
 
 .addToCartBtn {
-    flex: 1;
+    flex: 1.4;
+        /* Give Add to Cart slightly more weight if needed to keep text on one line */
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 12px 20px;
+    padding: 12px 14px;
+        /* Slightly reduced horizontal padding to help fit on mobile */
     border-radius: 999px;
     border: none;
     background: #12403C;
@@ -476,11 +552,13 @@
 }
 
 .viewDetailsBtn {
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 12px 20px;
+    padding: 12px 14px;
+        /* Balanced padding */
     border-radius: 999px;
     border: 1.5px solid #12403C;
     background: transparent;
@@ -490,6 +568,7 @@
     cursor: pointer;
     transition: all 0.25s ease;
     text-decoration: none;
+    white-space: nowrap;
 }
 
 .viewDetailsBtn:hover {
@@ -524,4 +603,20 @@
     .shortText {
         display: block;
     }
+/* Centering Overrides */
+.stockRow {
+    justify-content: space-between;
+    flex-direction: row;
+    gap: 12px;
+    width: 100%;
+}
+
+.actions {
+    width: 100%;
+}
+
+.addToCartRow,
+.secondaryActionsRow {
+    justify-content: center;
+}
 }

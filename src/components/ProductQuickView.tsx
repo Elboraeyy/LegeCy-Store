@@ -53,12 +53,20 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
     // Lock body scroll when open
     useEffect(() => {
         if (isOpen) {
+            const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
             document.body.style.overflow = "hidden";
+            document.body.style.paddingRight = `${scrollBarWidth}px`;
+            // Prevent scroll on html as well for better mobile support
+            document.documentElement.style.overflow = "hidden";
         } else {
             document.body.style.overflow = "";
+            document.body.style.paddingRight = "";
+            document.documentElement.style.overflow = "";
         }
         return () => {
             document.body.style.overflow = "";
+            document.body.style.paddingRight = "";
+            document.documentElement.style.overflow = "";
         };
     }, [isOpen]);
 
@@ -175,7 +183,7 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
                         initial={{ opacity: 0, scale: 0.92, y: 40 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.92, y: 40 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 28, mass: 0.8 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30, mass: 0.6 }}
                         role="dialog"
                         aria-modal="true"
                         aria-label={t.product.quick_view?.title || "Quick View"}
@@ -190,14 +198,35 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
 
                         {/* Image Section */}
                         <div className={styles.imageSection}>
-                            <Image
-                                src={currentImage}
-                                alt={productName}
-                                fill
-                                className={styles.mainImage}
-                                sizes="(max-width: 767px) 100vw, 45vw"
-                                priority
-                            />
+                            <motion.div
+                                className={styles.sliderContainer}
+                                drag="x"
+                                dragConstraints={{ left: 0, right: 0 }}
+                                dragElastic={0.2}
+                                onDragEnd={(_, info) => {
+                                    const threshold = 50;
+                                    if (info.offset.x < -threshold && selectedImageIndex < allImages.length - 1) {
+                                        setSelectedImageIndex(prev => prev + 1);
+                                    } else if (info.offset.x > threshold && selectedImageIndex > 0) {
+                                        setSelectedImageIndex(prev => prev - 1);
+                                    }
+                                }}
+                                animate={{ x: `-${selectedImageIndex * 100}%` }}
+                                transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
+                            >
+                                {allImages.map((img, idx) => (
+                                    <div key={idx} className={styles.slideItem}>
+                                        <Image
+                                            src={optimizeCloudinaryUrl(img, 700)}
+                                            alt={`${productName} ${idx + 1}`}
+                                            fill
+                                            className={styles.mainImage}
+                                            sizes="(max-width: 767px) 100vw, 45vw"
+                                            priority={idx === 0}
+                                        />
+                                    </div>
+                                ))}
+                            </motion.div>
 
                             {/* Badges */}
                             <div className={styles.badges}>
@@ -240,9 +269,8 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
                         {/* Content Section */}
                         <div className={styles.content}>
                             <div className={styles.header}>
-                                {productBrand && <span className={styles.brand}>{productBrand}</span>}
+                                {productCategory && <span className={styles.brand}>{productCategory}</span>}
                                 <h2 className={styles.productName}>{productName}</h2>
-                                {productCategory && <span className={styles.category}>{productCategory}</span>}
                             </div>
 
                             {/* Price */}

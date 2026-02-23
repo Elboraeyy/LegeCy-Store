@@ -20,6 +20,7 @@ export async function getPublicFlashSales() {
                             id: true,
                             name: true,
                             imageUrl: true,
+                            categoryRel: { select: { name: true, nameAr: true } },
                             variants: {
                                 take: 1,
                                 select: { price: true }
@@ -42,6 +43,8 @@ export async function getPublicFlashSales() {
             id: p.product.id,
             name: p.product.name,
             image: p.product.imageUrl,
+            category: p.product.categoryRel?.name || null,
+            categoryAr: p.product.categoryRel?.nameAr || null,
             originalPrice: Number(p.product.variants[0]?.price || 0),
             salePrice: Number(p.salePrice)
         }))
@@ -59,6 +62,7 @@ export async function getPublicFlashSaleById(id: string) {
                 include: {
                     product: {
                         include: {
+                            categoryRel: true,
                             variants: {
                                 include: {
                                     inventory: true
@@ -100,6 +104,8 @@ export async function getPublicFlashSaleById(id: string) {
                 id: product.id,
                 name: product.name,
                 image: product.imageUrl,
+                category: product.categoryRel?.name || null,
+                categoryAr: product.categoryRel?.nameAr || null,
                 originalPrice: Number(product.variants[0]?.price || 0),
                 salePrice: Number(p.salePrice),
                 inStock: totalStock > 0,
@@ -259,6 +265,7 @@ export async function getPublicBOGO() {
                             id: true,
                             name: true,
                             imageUrl: true,
+                            categoryRel: { select: { name: true, nameAr: true } },
                             variants: { take: 1, select: { price: true } }
                         }
                     }
@@ -278,6 +285,8 @@ export async function getPublicBOGO() {
             id: p.product.id,
             name: p.product.name,
             image: p.product.imageUrl,
+            category: p.product.categoryRel?.name || null,
+            categoryAr: p.product.categoryRel?.nameAr || null,
             price: Number(p.product.variants[0]?.price || 0)
         }))
     }));

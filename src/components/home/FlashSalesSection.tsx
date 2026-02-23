@@ -16,6 +16,8 @@ type FlashSale = {
         id: string;
         name: string;
         image: string | null;
+        category: string | null;
+        categoryAr: string | null;
         originalPrice: number;
         salePrice: number;
     }[];
@@ -98,7 +100,9 @@ export function FlashSalesSection({ sales }: { sales: FlashSale[] }) {
                     price: p.salePrice,
                     compareAtPrice: p.originalPrice,
                     imageUrl: p.image,
-                    img: p.image || '/placeholder.jpg'
+                    img: p.image || '/placeholder.jpg',
+                    category: p.category,
+                    categoryAr: p.categoryAr
                 }));
 
                 return (

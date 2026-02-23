@@ -16,6 +16,8 @@ export interface FlashSale {
         id: string;
         name: string;
         image: string | null;
+        category: string | null;
+        categoryAr: string | null;
         originalPrice: number;
         salePrice: number;
     }[];

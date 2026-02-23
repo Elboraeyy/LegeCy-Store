@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
           },
         },
         brand: { select: { name: true } },
-        categoryRel: { select: { name: true, slug: true } },
+        categoryRel: { select: { name: true, nameAr: true, slug: true } },
       },
     });
 
@@ -99,6 +99,7 @@ export async function GET(request: NextRequest) {
         inStock: inStockStatus,
         isNew: false,
         category: p.categoryRel?.name || p.category,
+        categoryAr: p.categoryRel?.nameAr || null,
         categorySlug: p.categoryRel?.slug,
         brand: p.brand?.name,
         totalStock,

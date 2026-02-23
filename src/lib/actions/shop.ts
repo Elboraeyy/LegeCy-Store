@@ -58,7 +58,8 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
             price: mainVariant ? Number(mainVariant.price) : 0,
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
             // Prioritize category relation slug, fallback to legacy string
-            category: product.categoryRel?.slug || product.category,
+            category: product.categoryRel?.name || product.category,
+            categoryAr: product.categoryRel?.nameAr || null,
             brand: product.brand?.slug || null,
             material: product.material?.slug || null, // Map to slug for filtering
             imageUrl: product.imageUrl,
@@ -158,7 +159,8 @@ export async function fetchRelatedProducts(productId: string, category: string |
                     inventory: true
                 }
             },
-            images: true
+            images: true,
+            categoryRel: true
         }
     });
 
@@ -177,7 +179,8 @@ export async function fetchRelatedProducts(productId: string, category: string |
                         inventory: true
                     }
                 },
-                images: true
+                images: true,
+                categoryRel: true
             }
         });
         products.push(...additionalProducts);
@@ -194,7 +197,8 @@ export async function fetchRelatedProducts(productId: string, category: string |
             name: product.name,
             price: mainVariant ? Number(mainVariant.price) : 0,
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
-            category: product.category,
+            category: product.categoryRel?.name || product.category,
+            categoryAr: product.categoryRel?.nameAr || null,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: null, 
@@ -229,6 +233,7 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProd
             },
             images: true,
             brand: true,
+            categoryRel: true,
             material: true
         }
     });
@@ -244,7 +249,8 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProd
             name: product.name,
             price: mainVariant ? Number(mainVariant.price) : 0,
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
-            category: product.category,
+            category: product.categoryRel?.name || product.category,
+            categoryAr: product.categoryRel?.nameAr || null,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: product.brand?.slug || null,
@@ -287,6 +293,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             },
             images: true,
             brand: true,
+            categoryRel: true,
             material: true
         }
     });
@@ -301,7 +308,8 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             name: product.name,
             price: mainVariant ? Number(mainVariant.price) : 0,
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
-            category: product.category,
+            category: product.categoryRel?.name || product.category,
+            categoryAr: product.categoryRel?.nameAr || null,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: product.brand?.slug || null,
@@ -340,6 +348,7 @@ export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduc
             },
             images: true,
             brand: true,
+            categoryRel: true,
             material: true
         }
     });
@@ -355,7 +364,8 @@ export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduc
             name: product.name,
             price: mainVariant ? Number(mainVariant.price) : 0,
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
-            category: product.category,
+            category: product.categoryRel?.name || product.category,
+            categoryAr: product.categoryRel?.nameAr || null,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: product.brand?.slug || null,
@@ -402,6 +412,7 @@ export async function fetchRandomProducts(limit: number = 8): Promise<ShopProduc
             },
             images: true,
             brand: true,
+            categoryRel: true,
             material: true
         }
     });
@@ -420,7 +431,8 @@ export async function fetchRandomProducts(limit: number = 8): Promise<ShopProduc
             name: product.name,
             price: mainVariant ? Number(mainVariant.price) : 0,
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
-            category: product.category,
+            category: product.categoryRel?.name || product.category,
+            categoryAr: product.categoryRel?.nameAr || null,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: product.brand?.slug || null,
