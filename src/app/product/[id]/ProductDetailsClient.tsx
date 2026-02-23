@@ -22,6 +22,8 @@ import { CompareIcon } from "@/components/icons/CompareIcon";
 import { Product, getLocalized } from "@/types/product";
 import { Truck, RefreshCw, Package } from "lucide-react";
 import { trackMetaEvent } from "@/components/MetaPixel";
+import { trackGAEvent } from "@/components/GoogleAnalytics";
+import { setClarityTag } from "@/components/Clarity";
 
 // Types
 interface ProductData {
@@ -392,6 +394,25 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
           currency: 'EGP',
           content_category: productData.category || undefined,
         });
+
+        // GA4: Track view_item event
+        trackGAEvent('view_item', {
+          currency: 'EGP',
+          value: productData.price,
+          items: [{
+            item_id: productData.id,
+            item_name: productData.name,
+            item_category: productData.category || undefined,
+            price: productData.price,
+            quantity: 1,
+          }],
+        });
+
+        // Clarity: Set custom tags
+        setClarityTag('Language', language);
+        if (productData.category) {
+          setClarityTag('Category', productData.category);
+        }
       }
 
       setLoading(false);
@@ -865,11 +886,24 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                             }),
                           });
 
-                          const data = await res.json();
-                          if (data.message === 'already_subscribed') {
-                            toast.info(t.product.notify_me.already_subscribed);
+                          if (res.ok) {
+                            if (notifyChannel === 'whatsapp') {
+                              // Track Lead
+                              const { trackGALead } = await import('@/components/GoogleAnalytics');
+                              const { trackMetaContact } = await import('@/components/MetaPixel');
+                              trackGALead('WhatsApp');
+                              trackMetaContact('NotifyMe');
+                            }
+                            setNotifyDone(true);
+                          } else {
+                            const data = await res.json();
+                            if (data.message === 'already_subscribed') {
+                              toast.info(t.product.notify_me.already_subscribed);
+                              setNotifyDone(true);
+                            } else {
+                              toast.error(t.product.notify_me.error);
+                            }
                           }
-                          setNotifyDone(true);
                         } catch {
                           toast.error(t.product.notify_me.error);
                         } finally {

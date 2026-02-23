@@ -12,7 +12,7 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { sendVerificationEmail } from '@/lib/services/emailService';
 
-export type ActionState = { error?: string } | null;
+export type ActionState = { error?: string, success?: boolean } | null;
 
 const signupSchema = z.object({
     email: z.string().email(),

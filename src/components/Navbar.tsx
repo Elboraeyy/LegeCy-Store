@@ -16,6 +16,7 @@ import { useComparison } from "@/context/ComparisonContext";
 import { CartIcon } from "@/components/icons/CartIcon";
 import { CompareIcon } from "@/components/icons/CompareIcon";
 import { useLanguage } from "@/context/LanguageContext";
+import { setClarityTag } from "@/components/Clarity";
 
 interface NavbarProps {
   generalSettings?: GeneralSettings;
@@ -88,6 +89,20 @@ export default function Navbar({
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Clarity: Track user state and language
+  useEffect(() => {
+    setClarityTag('User_State', user ? 'Logged In' : 'Guest');
+  }, [user]);
+
+  useEffect(() => {
+    setClarityTag('Language_Pref', language);
+  }, [language]);
+
+  useEffect(() => {
+    const cartValue = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+    setClarityTag('Active_Cart_Value', cartValue.toString());
+  }, [cart]);
 
   // Lock body scroll when sidebar is open
   React.useEffect(() => {

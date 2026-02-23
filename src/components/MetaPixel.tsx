@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-const META_PIXEL_ID = "1441171770973511";
+const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "";
 
 export default function MetaPixel() {
     const pathname = usePathname();
@@ -85,4 +85,26 @@ export function trackMetaEvent(
             }
         }
     }
+}
+
+
+/**
+ * Track Search on Meta Pixel
+ */
+export function trackMetaSearch(searchString: string) {
+    trackMetaEvent('Search', { search_string: searchString });
+}
+
+/**
+ * Track Registration Completion
+ */
+export function trackMetaRegistration(method: string) {
+    trackMetaEvent('CompleteRegistration', { content_name: method });
+}
+
+/**
+ * Track Contact (WhatsApp/Phone)
+ */
+export function trackMetaContact(type: string) {
+    trackMetaEvent('Contact', { content_category: type });
 }

@@ -18,6 +18,7 @@ import CustomSelect from "@/components/ui/CustomSelect";
 import ManualPaymentInstructions from "@/components/shop/ManualPaymentInstructions"; // New Import
 import { CheckoutSkeleton } from "@/components/skeletons/checkout-skeleton";
 import { trackMetaEvent } from "@/components/MetaPixel";
+import { trackGAEvent } from "@/components/GoogleAnalytics";
 import styles from "./Checkout.module.css";
 
 interface ShippingForm {
@@ -125,6 +126,18 @@ export default function CheckoutClient() {
         currency: 'EGP',
         num_items: cart.reduce((sum, item) => sum + item.qty, 0),
       });
+
+      // GA4: Track begin_checkout event
+      trackGAEvent('begin_checkout', {
+        currency: 'EGP',
+        value: cart.reduce((sum, item) => sum + item.price * item.qty, 0),
+        items: cart.map(item => ({
+          item_id: item.id,
+          item_name: item.name,
+          price: item.price,
+          quantity: item.qty,
+        })),
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeLoading]);
@@ -181,14 +194,52 @@ export default function CheckoutClient() {
         if (appliedCoupon?.freeShipping) {
           setShippingCost(0);
           setShippingZone("Free Shipping (Coupon)");
+          trackGAEvent('add_shipping_info', {
+            currency: 'EGP',
+            value: subtotal,
+            coupon: appliedCoupon?.code || undefined,
+            shipping_tier: "Free Shipping (Coupon)",
+            items: cart.map(item => ({
+              item_id: item.id,
+              item_name: item.name,
+              price: item.price,
+              quantity: item.qty,
+            })),
+          });
         } else {
           setShippingCost(result.shippingCost);
           setShippingZone(result.zoneName);
+          trackGAEvent('add_shipping_info', {
+            currency: 'EGP',
+            value: subtotal,
+            coupon: appliedCoupon?.code || undefined,
+            shipping_tier: result.zoneName,
+            items: cart.map(item => ({
+              item_id: item.id,
+              item_name: item.name,
+              price: item.price,
+              quantity: item.qty,
+            })),
+          });
         }
       } catch (error) {
         console.error("Failed to calculate shipping:", error);
         setShippingCost(50);
         setShippingZone("Standard Shipping");
+
+        // GA4: Track add_shipping_info event (fallback)
+        trackGAEvent('add_shipping_info', {
+          currency: 'EGP',
+          value: subtotal,
+          coupon: appliedCoupon?.code || undefined,
+          shipping_tier: "Standard Shipping",
+          items: cart.map(item => ({
+            item_id: item.id,
+            item_name: item.name,
+            price: item.price,
+            quantity: item.qty,
+          })),
+        });
       } finally {
         setLoadingShipping(false);
       }
@@ -310,6 +361,28 @@ export default function CheckoutClient() {
 
     setIsLoading(true);
 
+    // GA4: Track add_payment_info event
+    trackGAEvent('add_payment_info', {
+      currency: 'EGP',
+      value: finalTotal,
+      coupon: appliedCoupon?.code || undefined,
+      payment_type: form.paymentMethod,
+      items: cart.map(item => ({
+        item_id: item.id,
+        item_name: item.name,
+        price: item.price,
+        quantity: item.qty,
+      })),
+    });
+
+    // Meta Pixel: Track AddPaymentInfo event
+    trackMetaEvent('AddPaymentInfo', {
+      content_ids: cart.map(item => item.id),
+      content_type: 'product',
+      value: finalTotal,
+      currency: 'EGP',
+    });
+
     try {
       if (saveInfo) {
         // Fire and forget save profile
@@ -350,6 +423,20 @@ export default function CheckoutClient() {
           value: finalTotal,
           currency: 'EGP',
           num_items: cartItems.reduce((sum, i) => sum + i.qty, 0),
+        });
+
+        // GA4: Track purchase event
+        trackGAEvent('purchase', {
+          transaction_id: result.orderId,
+          currency: 'EGP',
+          value: finalTotal,
+          shipping: actualShipping || 0,
+          items: cartItems.map(i => ({
+            item_id: i.id,
+            item_name: i.name,
+            price: i.price,
+            quantity: i.qty,
+          })),
         });
 
         // Set flag to prevent cart from showing after order

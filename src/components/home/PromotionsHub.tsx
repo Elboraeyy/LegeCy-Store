@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
-import { FlashSalesSection } from './FlashSalesSection'; // We reuse the robust internal logic or adapt it
+import { FlashSalesSection } from './FlashSalesSection';
 import { useLanguage } from '@/context/LanguageContext';
+import { trackGAEvent } from '@/components/GoogleAnalytics';
+import { useEffect } from 'react';
 
 export interface FlashSale {
     id: string;
@@ -52,6 +54,39 @@ type Props = {
 
 export function PromotionsHub({ flashSales, bogos, bundles }: Props) {
     const { t } = useLanguage();
+
+    useEffect(() => {
+        // Track view_promotion for BOGOs
+        if (bogos?.length) {
+            bogos.forEach(deal => {
+                trackGAEvent('view_promotion', {
+                    promotion_id: deal.id,
+                    promotion_name: deal.name,
+                    creative_name: 'BOGO Card',
+                    creative_slot: 'Homepage Promotions Hub',
+                    items: deal.products.map(p => ({
+                        item_id: 'bogo_' + deal.id,
+                        item_name: deal.name
+                    }))
+                });
+            });
+        }
+        // Track view_promotion for Bundles
+        if (bundles?.length) {
+            bundles.forEach(bundle => {
+                trackGAEvent('view_promotion', {
+                    promotion_id: bundle.id,
+                    promotion_name: bundle.name,
+                    creative_name: 'Bundle Card',
+                    creative_slot: 'Homepage Promotions Hub',
+                    items: [{
+                        item_id: bundle.id,
+                        item_name: bundle.name
+                    }]
+                });
+            });
+        }
+    }, [bogos, bundles]);
 
     // If no promotions at all, don't render
     if (!flashSales?.length && !bogos?.length && !bundles?.length) return null;
@@ -153,7 +188,19 @@ function BogoCard({ deal }: { deal: BOGODeal }) {
                         {t.home.promotions.buy} {deal.buy}, {t.home.promotions.get} {deal.get} {deal.type === 'BUY_X_GET_Y_FREE' ? t.home.promotions.free : t.home.promotions.discounted}
                      </p>
                      
-                     <Link href={`/bogo/${deal.id}`} className="w-full block py-3 bg-white text-[#12403C] text-center font-bold uppercase tracking-widest text-xs rounded hover:bg-[#d4af37] hover:text-white transition-colors">
+
+                    <Link
+                        href={`/bogo/${deal.id}`}
+                        onClick={() => {
+                            trackGAEvent('select_promotion', {
+                                promotion_id: deal.id,
+                                promotion_name: deal.name,
+                                creative_name: 'BOGO Card',
+                                creative_slot: 'Homepage Promotions Hub'
+                            });
+                        }}
+                        className="w-full block py-3 bg-white text-[#12403C] text-center font-bold uppercase tracking-widest text-xs rounded hover:bg-[#d4af37] hover:text-white transition-colors"
+                    >
                         {t.home.promotions.shop_deal}
                      </Link>
                  </div>
@@ -215,6 +262,14 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
 
                  <Link 
                     href={bundle.type === 'MIX_AND_MATCH' ? `/bundles/build/${bundle.slug}` : `/bundles/${bundle.slug}`}
+                    onClick={() => {
+                        trackGAEvent('select_promotion', {
+                            promotion_id: bundle.id,
+                            promotion_name: bundle.name,
+                            creative_name: 'Bundle Card',
+                            creative_slot: 'Homepage Promotions Hub'
+                        });
+                    }}
                     className="w-full py-4 bg-[#12403C] text-[#FCF8F3] text-center font-bold uppercase tracking-widest text-sm rounded-lg hover:bg-[#d4af37] hover:text-[#12403C] transition-all duration-300 shadow-md transform group-hover:translate-y-[-2px]"
                  >
                     {bundle.type === 'MIX_AND_MATCH' ? t.home.promotions.build_this_bundle : t.home.promotions.view_bundle}

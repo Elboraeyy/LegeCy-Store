@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { setClarityTag } from "@/components/Clarity";
 
 export default function Error({
   error,
@@ -20,6 +21,9 @@ export default function Error({
         stack: error.stack,
       });
     }
+
+    // Clarity: Track error for debugging
+    setClarityTag('Last_Error_Seen', error.message);
   }, [error]);
 
   return (

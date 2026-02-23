@@ -123,10 +123,14 @@ export default function ComingSoon() {
                         </a>
 
                         {/* WhatsApp */}
-                        <a
-                            href={socialLinks.whatsapp}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <button
+                            onClick={async () => {
+                                const { trackGALead } = await import('@/components/GoogleAnalytics');
+                                const { trackMetaContact } = await import('@/components/MetaPixel');
+                                trackGALead('WhatsApp', 'ComingSoon');
+                                trackMetaContact('ComingSoonInterest');
+                                window.open(socialLinks.whatsapp, '_blank');
+                            }}
                             className="flex items-center justify-center w-11 h-11 rounded-full border border-white/20 hover:border-[#d4af37]/50 hover:bg-white/5 transition-all duration-300"
                             aria-label="WhatsApp"
                         >

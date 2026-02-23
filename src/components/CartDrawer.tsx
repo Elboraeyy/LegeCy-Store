@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useStore } from "@/context/StoreContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useIsClient } from "@/hooks/useIsClient";
+import { trackGAEvent } from "./GoogleAnalytics";
 import styles from "./CartDrawer.module.css";
 
 export default function CartDrawer() {
@@ -36,6 +37,22 @@ export default function CartDrawer() {
       document.body.style.overflow = "";
     };
   }, [isCartOpen]);
+
+  // GA4: Track view_cart when opened
+  useEffect(() => {
+    if (isCartOpen && cart.length > 0) {
+      trackGAEvent('view_cart', {
+        currency: 'EGP',
+        value: cart.reduce((acc, item) => acc + item.price * item.qty, 0),
+        items: cart.map(item => ({
+          item_id: item.id,
+          item_name: item.name,
+          price: item.price,
+          quantity: item.qty,
+        })),
+      });
+    }
+  }, [isCartOpen, cart]);
 
   if (!isClient) return null;
 
@@ -121,7 +138,22 @@ export default function CartDrawer() {
                         <span className={styles.itemPrice}>{formatPrice(item.price)}</span>
                       </div>
                       <button 
-                        onClick={() => removeFromCart(item.id)} 
+                        onClick={() => {
+                          const itemToRemove = cart.find(i => i.id === item.id);
+                          if (itemToRemove) {
+                            trackGAEvent('remove_from_cart', {
+                              currency: 'EGP',
+                              value: itemToRemove.price * itemToRemove.qty,
+                              items: [{
+                                item_id: itemToRemove.id,
+                                item_name: itemToRemove.name,
+                                price: itemToRemove.price,
+                                quantity: itemToRemove.qty,
+                              }],
+                            });
+                          }
+                          removeFromCart(item.id);
+                        }} 
                         className={styles.removeBtn}
                         aria-label="Remove item"
                         title="Remove"

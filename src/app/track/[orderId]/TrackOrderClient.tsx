@@ -367,14 +367,18 @@ export default function TrackOrderClient({ order, isLoyaltyEnabled }: Props) {
         <div className={styles.helpCard}>
           <h4 className={styles.helpTitle}>{t.orders.details.help.title}</h4>
           <div className={styles.helpActions}>
-            <a
-              href={`https://wa.me/201515205073?text=Hi, I need help with order %23${order.id.slice(0, 8).toUpperCase()}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={async () => {
+                const { trackGALead } = await import('@/components/GoogleAnalytics');
+                const { trackMetaContact } = await import('@/components/MetaPixel');
+                trackGALead('WhatsApp', `Order: ${order.orderNumber}`);
+                trackMetaContact('OrderSupport');
+                window.open(`https://wa.me/201515205073?text=Hi, I need help with order %23${order.id.slice(0, 8).toUpperCase()}`, '_blank');
+              }}
               className={`${styles.helpBtn} ${styles.helpBtnWhatsapp}`}
             >
               💬 {t.orders.details.help.whatsapp}
-            </a>
+            </button>
             <Link href="/help" className={`${styles.helpBtn} ${styles.helpBtnEmail}`}>
               ✉️ {t.orders.details.help.contact}
             </Link>

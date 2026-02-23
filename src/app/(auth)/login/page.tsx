@@ -7,6 +7,8 @@ import { useSearchParams } from 'next/navigation';
 import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
 import { useLanguage } from '@/context/LanguageContext';
 import PasswordInput from '@/components/ui/PasswordInput';
+import { trackGAAuth } from '@/components/GoogleAnalytics';
+import { useEffect } from 'react';
 
 function SubmitButton() {
     const { t } = useLanguage();
@@ -53,6 +55,12 @@ export default function LoginPage() {
     const { t } = useLanguage();
     const searchParams = useSearchParams();
     const redirectTo = searchParams.get('redirect') || '';
+
+    useEffect(() => {
+        if (state?.success) {
+            trackGAAuth('email', 'login');
+        }
+    }, [state]);
 
     return (
         <div className="auth-container" style={{ 

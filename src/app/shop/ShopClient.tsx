@@ -9,6 +9,9 @@ import SortDropdown from "@/components/shop/SortDropdown";
 import ActiveFilters from "@/components/shop/ActiveFilters";
 import { Product } from "@/types/product";
 import { useLanguage } from "@/context/LanguageContext";
+import { trackGAEvent } from "@/components/GoogleAnalytics";
+import { trackMetaSearch } from "@/components/MetaPixel";
+import { getLocalized } from "@/types/product";
 
 interface ShopClientProps {
     initialProducts?: Product[];
@@ -129,6 +132,36 @@ export default function ShopClient({
         setFilters(prev => ({ ...prev, ...updates }));
         setCurrentPage(1);
     }, []);
+
+    // GA4 & Meta: Track search queries (debounced)
+    React.useEffect(() => {
+        if (deferredSearchQuery && deferredSearchQuery.length >= 2) {
+            trackGAEvent('search', {
+                search_term: deferredSearchQuery,
+            });
+            trackMetaSearch(deferredSearchQuery);
+        }
+    }, [deferredSearchQuery]);
+
+    // GA4: Track view_item_list when products are displayed
+    React.useEffect(() => {
+        if (filteredAndSortedProducts.length > 0) {
+            trackGAEvent('view_item_list', {
+                item_list_name: filters.selectedCategories.length > 0
+                    ? `Category: ${filters.selectedCategories.join(', ')}`
+                    : 'All Products',
+                items: filteredAndSortedProducts.slice(0, 12).map((p, index) => ({
+                    item_id: p.id,
+                    item_name: p.name,
+                    item_category: p.categoryName || undefined,
+                    item_brand: p.brandName || undefined,
+                    price: p.price,
+                    index: index,
+                })),
+            });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.selectedCategories, deferredSearchQuery]);
 
     // Products are already randomized server-side in fetchShopProducts
     const randomizedInitialProducts = initialProducts;

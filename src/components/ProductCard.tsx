@@ -10,6 +10,7 @@ import AddToCompareButton from "./AddToCompareButton";
 import { CartIcon } from "@/components/icons/CartIcon";
 import { useLanguage } from "@/context/LanguageContext";
 import { optimizeCloudinaryUrl } from "@/lib/utils/image";
+import { trackGAEvent } from "@/components/GoogleAnalytics";
 
 interface ProductCardProps {
   product: Product;
@@ -53,7 +54,22 @@ export default React.memo(function ProductCard({ product, priority = false, hide
     >
       {/* 1. Image Area - Aspect 3:4 */}
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-gray-50">
-        <Link href={`/product/${product.id}`} className="block w-full h-full">
+        <Link
+          href={`/product/${product.id}`}
+          className="block w-full h-full"
+          onClick={() => {
+            trackGAEvent('select_item', {
+              item_list_id: "product_grid",
+              item_list_name: "Product Grid",
+              items: [{
+                item_id: product.id,
+                item_name: product.name,
+                price: product.price,
+                quantity: 1
+              }]
+            });
+          }}
+        >
           <Image
             src={imgSrc}
             alt={product.name}
@@ -161,7 +177,21 @@ export default React.memo(function ProductCard({ product, priority = false, hide
       {/* 2. Content Area */}
       <div className="p-2.5 sm:p-3 md:p-4 bg-white">
         <div className="mb-1">
-           <Link href={`/product/${product.id}`}>
+          <Link
+            href={`/product/${product.id}`}
+            onClick={() => {
+              trackGAEvent('select_item', {
+                item_list_id: "product_grid",
+                item_list_name: "Product Grid",
+                items: [{
+                  item_id: product.id,
+                  item_name: product.name,
+                  price: product.price,
+                  quantity: 1
+                }]
+              });
+            }}
+          >
             <h3 className="text-xs sm:text-[13px] md:text-[15px] font-medium text-gray-900 leading-tight line-clamp-2 min-h-[2.5em] group-hover:text-[#d4af37] transition-colors">
                {product.name}
              </h3>

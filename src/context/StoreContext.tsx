@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner';
 import { getCurrentUser } from "@/lib/actions/auth";
 import { trackMetaEvent } from "@/components/MetaPixel";
+import { trackGAEvent } from "@/components/GoogleAnalytics";
 
 // Flag used to signal cart should be cleared after payment success
 export const CART_CLEARED_FLAG = 'cart_cleared_on_payment';
@@ -339,7 +340,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
   };
 
-  const openCart = () => setIsCartOpen(true);
+    const openCart = () => {
+        setIsCartOpen(true);
+        // GA4: Track view_cart event
+        trackGAEvent('view_cart', {
+            currency: 'EGP',
+            value: cart.reduce((sum, item) => sum + item.price * item.qty, 0),
+            items: cart.map(item => ({
+                item_id: item.id,
+                item_name: item.name,
+                price: item.price,
+                quantity: item.qty,
+            })),
+        });
+    };
   const closeCart = () => setIsCartOpen(false);
 
   // Add Item
@@ -394,6 +408,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             currency: 'EGP',
         });
 
+        // GA4: Track add_to_cart event
+        trackGAEvent('add_to_cart', {
+            currency: 'EGP',
+            value: (product?.price || 0) * qty,
+            items: [{
+                item_id: id,
+                item_name: product?.name || 'Item',
+                price: product?.price || 0,
+                quantity: qty,
+            }],
+        });
+
         // Server Sync
       if (isLoggedIn && vId) {
           addToCartAction(id, vId, qty).catch(err => {
@@ -413,7 +439,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
            }
            return prev.filter(i => !(i.id === id && (i.variantId || "") === vId));
        });
-       
+
+      // GA4: Track remove_from_cart event if item is (potentially) removed
+      trackGAEvent('remove_from_cart', {
+          currency: 'EGP',
+          value: product?.price || 0,
+          items: [{
+              item_id: id,
+              item_name: product?.name || 'Item',
+              price: product?.price || 0,
+              quantity: 1,
+          }],
+      });
+
        if (isLoggedIn) {
            const item = cart.find(i => i.id === id && (i.variantId || "") === vId);
            if (item && item.qty > 1) {
@@ -427,6 +465,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const removeFromCart = (id: string, variantId?: string) => {
       const product = products.find(p => p.id === id);
       const vId = variantId || product?.defaultVariantId || "";
+
+      // GA4: Track remove_from_cart event
+      trackGAEvent('remove_from_cart', {
+          currency: 'EGP',
+          value: product?.price || 0,
+          items: [{
+              item_id: id,
+              item_name: product?.name || 'Item',
+              price: product?.price || 0,
+              quantity: 1,
+          }],
+      });
+
       setCart(prev => prev.filter(i => !(i.id === id && (i.variantId || "") === vId)));
       showToast("Removed", "danger");
       
@@ -453,6 +504,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } else {
       setFav(prev => [...prev, id]);
       showToast("Added to Favorites");
+
+        // GA4: Track add_to_wishlist event
+        const favProduct = products.find(p => p.id === id);
+        trackGAEvent('add_to_wishlist', {
+            currency: 'EGP',
+            value: favProduct?.price || 0,
+            items: [{
+                item_id: id,
+                item_name: favProduct?.name || 'Item',
+                price: favProduct?.price || 0,
+                quantity: 1,
+            }],
+        });
     }
   };
 

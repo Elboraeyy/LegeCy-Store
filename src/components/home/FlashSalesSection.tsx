@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ProductCarousel from '@/components/ProductCarousel';
 import ModernProductCarousel from '@/components/ModernProductCarousel';
+import { trackGAEvent } from '@/components/GoogleAnalytics';
 import { Product } from '@/types/product';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -68,6 +69,24 @@ function Countdown({ endDate }: { endDate: Date }) {
 
 export function FlashSalesSection({ sales }: { sales: FlashSale[] }) {
     const { t } = useLanguage();
+
+    useEffect(() => {
+        if (sales && sales.length > 0) {
+            sales.forEach(sale => {
+                trackGAEvent('view_promotion', {
+                    promotion_id: sale.id,
+                    promotion_name: sale.name,
+                    creative_name: 'Flash Sale Section',
+                    creative_slot: 'Homepage Flash Sales',
+                    items: sale.products.map(p => ({
+                        item_id: p.id,
+                        item_name: p.name
+                    }))
+                });
+            });
+        }
+    }, [sales]);
+
     if (!sales || sales.length === 0) return null;
 
     return (

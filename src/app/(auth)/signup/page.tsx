@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { useUncontrolledFormPersistence } from '@/hooks/useFormPersistence';
 import { useLanguage } from '@/context/LanguageContext';
 import PasswordInput from '@/components/ui/PasswordInput';
+import { trackGAAuth } from '@/components/GoogleAnalytics';
+import { trackMetaRegistration } from '@/components/MetaPixel';
+import { useEffect } from 'react';
 
 function SubmitButton() {
     const { t } = useLanguage();
@@ -49,6 +52,13 @@ export default function SignupPage() {
     const [state, formAction] = useActionState(signup, null);
     const { containerRef } = useUncontrolledFormPersistence('signup_form');
     const { t } = useLanguage();
+
+    useEffect(() => {
+        if (state?.success) {
+            trackGAAuth('email', 'sign_up');
+            trackMetaRegistration('email');
+        }
+    }, [state]);
 
     return (
         <div className="auth-container" style={{ 
