@@ -21,6 +21,7 @@ import { CartIcon } from "@/components/icons/CartIcon";
 import { CompareIcon } from "@/components/icons/CompareIcon";
 import { Product, getLocalized } from "@/types/product";
 import { Truck, RefreshCw, Package } from "lucide-react";
+import { trackMetaEvent } from "@/components/MetaPixel";
 
 // Types
 interface ProductData {
@@ -379,6 +380,18 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
       setShowFreeShipping(settings['FREE_SHIPPING_ENABLED'] === 'true');
       if (settings['FREE_SHIPPING_THRESHOLD']) {
         setShippingThreshold(settings['FREE_SHIPPING_THRESHOLD']);
+      }
+
+      // Meta Pixel: Track ViewContent event
+      if (productData) {
+        trackMetaEvent('ViewContent', {
+          content_ids: [productData.id],
+          content_name: productData.name,
+          content_type: 'product',
+          value: productData.price,
+          currency: 'EGP',
+          content_category: productData.category || undefined,
+        });
       }
 
       setLoading(false);

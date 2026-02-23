@@ -5,6 +5,7 @@ import "./mobile-fixes.css";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import Footer from "@/components/Footer";
 import ClientLayout from "@/components/ClientLayout";
+import MetaPixel from "@/components/MetaPixel";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { getGeneralSettings, getSEOSettings, getCSSVariables, getAppearanceSettings } from "@/lib/settings";
 
@@ -75,6 +76,7 @@ export default async function RootLayout({
         <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: cssVars }} />
       </head>
       <body className={`${geistSans.variable} ${inter.variable} ${playfair.variable} ${cairo.variable}`}>
+        <MetaPixel />
         <LanguageProvider>
           <ClientLayout navbar={<NavbarWrapper />} footer={<Footer />}>
             {children}

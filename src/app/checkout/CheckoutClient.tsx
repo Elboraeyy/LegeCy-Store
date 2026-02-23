@@ -17,6 +17,7 @@ import { EGYPT_LOCATIONS } from "@/data/egypt-locations";
 import CustomSelect from "@/components/ui/CustomSelect";
 import ManualPaymentInstructions from "@/components/shop/ManualPaymentInstructions"; // New Import
 import { CheckoutSkeleton } from "@/components/skeletons/checkout-skeleton";
+import { trackMetaEvent } from "@/components/MetaPixel";
 import styles from "./Checkout.module.css";
 
 interface ShippingForm {
@@ -113,6 +114,20 @@ export default function CheckoutClient() {
     loadProfile();
   }, [setForm]);
 
+
+  // Meta Pixel: InitiateCheckout when page loads with items
+  useEffect(() => {
+    if (!storeLoading && cart.length > 0) {
+      trackMetaEvent('InitiateCheckout', {
+        content_ids: cart.map(item => item.id),
+        content_type: 'product',
+        value: cart.reduce((sum, item) => sum + item.price * item.qty, 0),
+        currency: 'EGP',
+        num_items: cart.reduce((sum, item) => sum + item.qty, 0),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeLoading]);
 
   // Shipping State
   const [shippingCost, setShippingCost] = useState<number | null>(null);
@@ -328,6 +343,15 @@ export default function CheckoutClient() {
       });
 
       if (result.success && result.orderId) {
+        // Meta Pixel: Track Purchase event
+        trackMetaEvent('Purchase', {
+          content_ids: cartItems.map(i => i.id),
+          content_type: 'product',
+          value: finalTotal,
+          currency: 'EGP',
+          num_items: cartItems.reduce((sum, i) => sum + i.qty, 0),
+        });
+
         // Set flag to prevent cart from showing after order
         sessionStorage.setItem('order_just_placed', result.orderId);
         sessionStorage.setItem('order_redirect_home', 'true');

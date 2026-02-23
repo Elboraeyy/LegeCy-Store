@@ -14,6 +14,7 @@ import {
 } from '@/lib/actions/cart';
 import { toast } from 'sonner';
 import { getCurrentUser } from "@/lib/actions/auth";
+import { trackMetaEvent } from "@/components/MetaPixel";
 
 // Flag used to signal cart should be cleared after payment success
 export const CART_CLEARED_FLAG = 'cart_cleared_on_payment';
@@ -383,6 +384,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       
         showToast(qty > 1 ? `Added ${qty} items to Cart` : "Added to Cart");
       if (openDrawer) openCart();
+
+        // Meta Pixel: Track AddToCart event
+        trackMetaEvent('AddToCart', {
+            content_ids: [id],
+            content_name: product?.name || 'Item',
+            content_type: 'product',
+            value: (product?.price || 0) * qty,
+            currency: 'EGP',
+        });
 
         // Server Sync
       if (isLoggedIn && vId) {
