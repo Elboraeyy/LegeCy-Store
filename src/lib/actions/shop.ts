@@ -10,6 +10,8 @@ export interface ShopProduct {
     price: number;
     compareAtPrice: number | null;
     category: string | null;
+    categoryAr?: string | null;
+    categorySlug?: string | null;
     imageUrl: string | null;
     images: string[];
     brand: string | null;
@@ -60,6 +62,7 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
             // Prioritize category relation slug, fallback to legacy string
             category: product.categoryRel?.name || product.category,
             categoryAr: product.categoryRel?.nameAr || null,
+            categorySlug: product.categoryRel?.slug || null,
             brand: product.brand?.slug || null,
             material: product.material?.slug || null, // Map to slug for filtering
             imageUrl: product.imageUrl,
@@ -91,7 +94,8 @@ export async function fetchProductById(id: string) {
                     inventory: true
                 }
             },
-            images: true
+            images: true,
+            categoryRel: true
         }
     });
 
@@ -108,7 +112,9 @@ export async function fetchProductById(id: string) {
         description: product.description,
         price: mainVariant ? Number(mainVariant.price) : 0,
         compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
-        category: product.category,
+        category: product.categoryRel?.name || product.category,
+        categoryAr: product.categoryRel?.nameAr || null,
+        categorySlug: product.categoryRel?.slug || null,
         imageUrl: product.imageUrl,
         images: product.images.map(img => img.url),
         variants: product.variants.map(v => ({
@@ -199,6 +205,7 @@ export async function fetchRelatedProducts(productId: string, category: string |
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
             category: product.categoryRel?.name || product.category,
             categoryAr: product.categoryRel?.nameAr || null,
+            categorySlug: product.categoryRel?.slug || null,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: null, 
@@ -251,6 +258,7 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProd
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
             category: product.categoryRel?.name || product.category,
             categoryAr: product.categoryRel?.nameAr || null,
+            categorySlug: product.categoryRel?.slug || null,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: product.brand?.slug || null,
@@ -310,6 +318,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
             category: product.categoryRel?.name || product.category,
             categoryAr: product.categoryRel?.nameAr || null,
+            categorySlug: product.categoryRel?.slug || null,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: product.brand?.slug || null,
@@ -366,6 +375,7 @@ export async function fetchForYouProducts(limit: number = 8): Promise<ShopProduc
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
             category: product.categoryRel?.name || product.category,
             categoryAr: product.categoryRel?.nameAr || null,
+            categorySlug: product.categoryRel?.slug || null,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: product.brand?.slug || null,
@@ -433,6 +443,7 @@ export async function fetchRandomProducts(limit: number = 8): Promise<ShopProduc
             compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
             category: product.categoryRel?.name || product.category,
             categoryAr: product.categoryRel?.nameAr || null,
+            categorySlug: product.categoryRel?.slug || null,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: product.brand?.slug || null,

@@ -55,7 +55,7 @@ export default async function Shop() {
         categoryId: undefined,
         brandId: undefined,
         materialId: undefined,
-        categorySlug: p.category,
+        categorySlug: p.categorySlug || p.category,
         sku: p.variants?.[0]?.sku,
         brandName: p.brand,
         categoryName: p.category,
