@@ -356,7 +356,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
                     shippingNotes: orderNotes,
                     items: cart.map(item => ({
                         productId: item.productId,
-                        variantId: item.variantId,
+                        variantId: item.variantId === 'novar' ? null : item.variantId,
                         name: item.productName,
                         price: item.price,
                         quantity: item.quantity
