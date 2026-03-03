@@ -14,6 +14,11 @@ export interface BrandInput {
 
 export async function fetchAllBrands() {
     return await prisma.brand.findMany({
+        where: {
+            products: {
+                some: { status: 'active' }
+            }
+        },
         orderBy: { name: 'asc' },
         include: {
             _count: { select: { products: true } }

@@ -18,6 +18,11 @@ export interface CategoryInput {
 
 export async function fetchAllCategories() {
     const categories = await prisma.category.findMany({
+        where: {
+            products: {
+                some: { status: 'active' }
+            }
+        },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
         include: {
             _count: { select: { products: true } },

@@ -13,6 +13,11 @@ export interface MaterialInput {
 
 export async function fetchAllMaterials() {
     return await prisma.material.findMany({
+        where: {
+            products: {
+                some: { status: 'active' }
+            }
+        },
         orderBy: { name: 'asc' },
         include: {
             _count: { select: { products: true } }

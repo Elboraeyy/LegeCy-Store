@@ -291,7 +291,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
             status: 'active',
             showInNewArrivals: true
         },
-        take: 50, // Fetch a larger pool for better randomization
+        take: limit, // Fetch exactly what's needed since it's sorted by date descending
         orderBy: { createdAt: 'desc' },
         include: {
             variants: {
@@ -337,7 +337,7 @@ export async function fetchNewArrivals(limit: number = 8): Promise<ShopProduct[]
                 stock: v.inventory.reduce((sum, i) => sum + i.available, 0)
             }))
         };
-    }).sort(() => Math.random() - 0.5).slice(0, limit);
+    });
 }
 
 // Fetch "For You" products (Curated list)
