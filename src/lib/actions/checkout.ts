@@ -138,10 +138,10 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
     const variantMap = new Map(variantsForPriceCheck.map(v => [v.id, v]));
     // Map productId -> first variant price (for items without variantId)
     // Group by productId and take first variant for each
-    const productFirstVariantMap = new Map<string, number>();
+    const productFirstVariantMap = new Map<string, { id: string; price: number }>();
     for (const variant of allProductVariants) {
       if (!productFirstVariantMap.has(variant.productId)) {
-        productFirstVariantMap.set(variant.productId, Number(variant.price));
+        productFirstVariantMap.set(variant.productId, { id: variant.id, price: Number(variant.price) });
       }
     }
 
@@ -166,11 +166,13 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
         }
         dbPrice = Number(variant.price);
       } else {
-        const firstVariantPrice = productFirstVariantMap.get(item.id);
-        if (firstVariantPrice === undefined) {
+        const firstVariant = productFirstVariantMap.get(item.id);
+        if (firstVariant === undefined) {
           return { success: false, error: `Product "${item.name}" has no variant configured` };
         }
-        dbPrice = firstVariantPrice;
+        dbPrice = firstVariant.price;
+        // Assign the correct variant ID so stock deduction passes:
+        item.variantId = firstVariant.id;
       }
       
       // Verify client price matches DB price (within 1 cent tolerance for rounding)
