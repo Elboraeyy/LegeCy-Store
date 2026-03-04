@@ -66,12 +66,12 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
             onClick={() => setIsOpen(false)}
             className="fixed inset-0 z-10"
           />
-          <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+          <div className="absolute ltr:right-0 rtl:left-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden origin-top-right rtl:origin-top-left">
             {SORT_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 onClick={() => handleSelect(option)}
-                className={`w-full text-left px-4 py-3 text-sm transition-colors ${
+                className={`w-full text-start px-4 py-3 text-sm transition-colors flex items-center justify-between ${
                   option.value === value
                     ? "bg-[#FCF8F3] text-[#12403C] font-semibold"
                     : "text-gray-700 hover:bg-gray-50"
@@ -80,7 +80,7 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
                 {option.label}
                 {option.value === value && (
                   <svg
-                    className="inline ml-2 w-4 h-4 text-[#d4af37]"
+                    className="w-4 h-4 text-[#d4af37] flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
