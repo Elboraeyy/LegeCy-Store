@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -163,7 +164,7 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
 
     if (!isClient) return null;
 
-    return (
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -420,4 +421,6 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
             )}
         </AnimatePresence>
     );
+
+    return createPortal(modalContent, document.body);
 }
