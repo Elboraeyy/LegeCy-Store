@@ -554,13 +554,13 @@ export default function Navbar({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowMobileSearch(false)}
-              className="fixed inset-0 z-[54] lg:hidden"
+              className="fixed inset-0 z-[54] lg:hidden pointer-events-auto"
             />
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="fixed left-0 right-0 z-[55] bg-[#FCF8F3] shadow-lg border-b border-[rgba(18,64,60,0.1)] p-4 lg:hidden"
+              className="fixed left-0 right-0 z-[55] bg-[#FCF8F3] shadow-lg border-b border-[rgba(18,64,60,0.1)] p-4 lg:hidden pointer-events-auto"
               style={{ top: headerSettings?.announcementEnabled ? '110px' : '70px' }}
             >
               <SearchBar onProductSelect={() => setShowMobileSearch(false)} />
@@ -572,7 +572,7 @@ export default function Navbar({
       {/* Mobile Sidebar */}
       {/* ALWAYS RENDERED, HIDDEN VIA CSS FOR PERFORMANCE */}
       <div
-        className={`fixed inset-0 z-[200] transition-all duration-[400ms] ease-out ${isOpen ? 'visible' : 'invisible delay-[400ms]'
+        className={`fixed inset-0 z-[200] transition-all duration-[400ms] ease-out pointer-events-auto ${isOpen ? 'visible' : 'invisible delay-[400ms]'
           }`}
       >
         {/* Backdrop */}
