@@ -8,7 +8,7 @@ export default async function MaterialsPage() {
     const { user } = await validateAdminSession();
     if (!user) redirect('/admin/login');
 
-    const materials = await fetchAllMaterials();
+    const materials = await fetchAllMaterials(true);
 
     // Serialize dates for Client Component
     const serializedMaterials = materials.map(m => ({

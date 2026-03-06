@@ -16,13 +16,15 @@ export interface CategoryInput {
     sortOrder?: number;
 }
 
-export async function fetchAllCategories() {
+export async function fetchAllCategories(includeEmpty: boolean = false) {
+    const filter = includeEmpty ? {} : {
+        products: {
+            some: { status: 'active' }
+        }
+    };
+
     const categories = await prisma.category.findMany({
-        where: {
-            products: {
-                some: { status: 'active' }
-            }
-        },
+        where: filter,
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
         include: {
             _count: { select: { products: true } },

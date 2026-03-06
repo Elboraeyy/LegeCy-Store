@@ -11,9 +11,9 @@ export default async function CategoriesPage() {
     if (!user) redirect('/admin/login');
 
     const [categories, brands, materials] = await Promise.all([
-        fetchAllCategories(),
-        fetchAllBrands(),
-        fetchAllMaterials()
+        fetchAllCategories(true),
+        fetchAllBrands(true),
+        fetchAllMaterials(true)
     ]);
 
     return (

@@ -8,7 +8,7 @@ export default async function BrandsPage() {
     const { user } = await validateAdminSession();
     if (!user) redirect('/admin/login');
 
-    const brands = await fetchAllBrands();
+    const brands = await fetchAllBrands(true);
 
     // Map Prisma objects to Component Interface manually if needed, 
     // or let TS infer if types match. 

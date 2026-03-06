@@ -12,13 +12,15 @@ export interface BrandInput {
     imageUrl?: string;
 }
 
-export async function fetchAllBrands() {
+export async function fetchAllBrands(includeEmpty: boolean = false) {
+    const filter = includeEmpty ? {} : {
+        products: {
+            some: { status: 'active' }
+        }
+    };
+
     return await prisma.brand.findMany({
-        where: {
-            products: {
-                some: { status: 'active' }
-            }
-        },
+        where: filter,
         orderBy: { name: 'asc' },
         include: {
             _count: { select: { products: true } }

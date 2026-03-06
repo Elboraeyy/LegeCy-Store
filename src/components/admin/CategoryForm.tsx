@@ -35,7 +35,7 @@ export default function CategoryForm({ initialData }: CategoryFormProps) {
     const [sortOrder, setSortOrder] = useState(initialData?.sortOrder?.toString() || "0");
 
     useEffect(() => {
-        fetchAllCategories().then(cats => {
+        fetchAllCategories(true).then(cats => {
             // Filter out current category to prevent self-reference
             setCategories(cats.filter(c => c.id !== initialData?.id).map(c => ({ id: c.id, name: c.name, sortOrder: c.sortOrder })));
         });

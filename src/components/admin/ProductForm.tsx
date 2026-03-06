@@ -84,8 +84,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             try {
                  const [cats, brs, mats, whs] = await Promise.all([
                      fetchCategories(),
-                     fetchAllBrands(),
-                     fetchAllMaterials(),
+                     fetchAllBrands(true),
+                     fetchAllMaterials(true),
                      fetchWarehouses()
                  ]);
                  setCategories(cats);

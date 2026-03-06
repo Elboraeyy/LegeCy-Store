@@ -11,13 +11,15 @@ export interface MaterialInput {
     slug: string;
 }
 
-export async function fetchAllMaterials() {
+export async function fetchAllMaterials(includeEmpty: boolean = false) {
+    const filter = includeEmpty ? {} : {
+        products: {
+            some: { status: 'active' }
+        }
+    };
+
     return await prisma.material.findMany({
-        where: {
-            products: {
-                some: { status: 'active' }
-            }
-        },
+        where: filter,
         orderBy: { name: 'asc' },
         include: {
             _count: { select: { products: true } }

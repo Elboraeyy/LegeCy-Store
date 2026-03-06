@@ -45,6 +45,8 @@ export default function Navbar({
   const [visible, setVisible] = useState(true);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const lastScrollY = React.useRef(0); // Use ref to track scroll without re-rendering effect
+  const headerRef = React.useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -87,7 +89,22 @@ export default function Navbar({
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    // ResizeObserver to track dynamic header height (like text wrapping on mobile)
+    let observer: ResizeObserver;
+    if (headerRef.current) {
+      observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          setHeaderHeight(entry.contentRect.height);
+        }
+      });
+      observer.observe(headerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (observer) observer.disconnect();
+    };
   }, []);
 
   // Clarity: Track user state and language
@@ -140,10 +157,11 @@ export default function Navbar({
   // Gold: #d4af37
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] flex flex-col pointer-events-none">
-      {/* Announcement Bar - ALWAYS VISIBLE */}
-      <div 
-        className="z-[110] relative w-full pointer-events-auto"
+    <>
+      <div ref={headerRef} className="fixed top-0 left-0 right-0 z-[100] flex flex-col pointer-events-none">
+        {/* Announcement Bar - ALWAYS VISIBLE */}
+        <div
+          className="z-[110] relative w-full pointer-events-auto"
         style={{
           backgroundColor: headerSettings?.announcementBgColor || "#12403C",
         }}
@@ -537,11 +555,12 @@ export default function Navbar({
           </nav>
         </div>
       </header>
+      </div>
 
       {/* Spacer to prevent content overlap - Adjusted for fixed elements */}
       <div 
-        className="w-full relative -z-50 pointer-events-none" 
-        style={{ height: headerSettings?.announcementEnabled ? '110px' : '70px' }} 
+        className="w-full relative -z-50 pointer-events-none shrink-0"
+        style={{ height: headerHeight ? `${headerHeight}px` : (headerSettings?.announcementEnabled ? '110px' : '70px') }} 
       />
 
       {/* Mobile Search Dropdown */}
@@ -561,7 +580,7 @@ export default function Navbar({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               className="fixed left-0 right-0 z-[55] bg-[#FCF8F3] shadow-lg border-b border-[rgba(18,64,60,0.1)] p-4 lg:hidden pointer-events-auto"
-              style={{ top: headerSettings?.announcementEnabled ? '110px' : '70px' }}
+              style={{ top: headerHeight ? `${headerHeight}px` : (headerSettings?.announcementEnabled ? '110px' : '70px') }}
             >
               <SearchBar onProductSelect={() => setShowMobileSearch(false)} />
             </motion.div>
@@ -774,7 +793,7 @@ export default function Navbar({
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
