@@ -18,7 +18,7 @@ export interface CartItemForDiscount {
 }
 
 export interface ApplicableDiscount {
-    type: 'FLASH_SALE' | 'BOGO' | 'BUNDLE' | 'PRODUCT_OFFER';
+    type: 'FLASH_SALE' | 'BOGO' | 'BUNDLE' | 'PRODUCT_OFFER' | 'SITEWIDE_OFFER';
     name: string;
     amount: number; // Total discount amount for this type
     details: string; // Human-readable description for receipt
@@ -100,9 +100,27 @@ export async function calculateCartDiscounts(cartItems: CartItemForDiscount[]): 
     }
 
     // ---------------------------------------------------------
-    // 2. Apply Product Offers (Only to Standard Items)
+    // 2. Apply Site-Wide Offer (Only to Standard Items, BEFORE other offers)
     // ---------------------------------------------------------
+    let sitewideOfferApplied = false;
     if (standardItems.length > 0) {
+        const sitewideDiscount = await calculateSitewideOfferDiscount(standardItems);
+        if (sitewideDiscount.amount > 0) {
+            totalDiscount += sitewideDiscount.amount;
+            appliedDiscounts.push({
+                type: 'SITEWIDE_OFFER',
+                name: sitewideDiscount.label,
+                amount: sitewideDiscount.amount,
+                details: sitewideDiscount.details
+            });
+            sitewideOfferApplied = true;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 3. Apply Product Offers (Only to Standard Items, skip if sitewide applied)
+    // ---------------------------------------------------------
+    if (standardItems.length > 0 && !sitewideOfferApplied) {
         const productOfferDiscount = await calculateProductOfferDiscounts(standardItems, now);
         if (productOfferDiscount.amount > 0) {
             totalDiscount += productOfferDiscount.amount;
@@ -115,11 +133,8 @@ export async function calculateCartDiscounts(cartItems: CartItemForDiscount[]): 
         }
 
         // ---------------------------------------------------------
-        // 3. Apply BOGO Deals (Only to Standard Items)
+        // 4. Apply BOGO Deals (Only to Standard Items)
         // ---------------------------------------------------------
-        // Note: BOGO logic needs to know which items were already discounted by offers?
-        // Typically BOGO stacks with Offers OR excludes. 
-        // Let's assume Stacking if defined, or BOGO operates on Final Price.
         const bogoDiscount = await calculateBogoDiscounts(standardItems, now);
         if (bogoDiscount.amount > 0) {
             totalDiscount += bogoDiscount.amount;
@@ -295,6 +310,102 @@ async function calculateBogoDiscounts(
         amount: discount,
         details: appliedBogos.length > 0 ? appliedBogos.join(', ') : ''
     };
+}
+
+// ==========================================
+// Site-Wide Offer Calculation
+// ==========================================
+
+interface SitewideOfferResult {
+    amount: number;
+    label: string;
+    details: string;
+}
+
+// Public server action for Checkout client to preview the discount
+export async function previewSitewideDiscount(
+    items: { price: number; quantity: number }[]
+): Promise<SitewideOfferResult> {
+    const cartItems: CartItemForDiscount[] = items.map((item, i) => ({
+        productId: `preview-${i}`,
+        price: item.price,
+        quantity: item.quantity,
+    }));
+    return calculateSitewideOfferDiscount(cartItems);
+}
+
+async function calculateSitewideOfferDiscount(
+    cartItems: CartItemForDiscount[]
+): Promise<SitewideOfferResult> {
+    const noDiscount: SitewideOfferResult = { amount: 0, label: '', details: '' };
+
+    try {
+        // Fetch settings
+        const config = await prisma.storeConfig.findUnique({
+            where: { key: 'sitewide_offer_settings' }
+        });
+
+        if (!config?.value) return noDiscount;
+
+        const settings = config.value as Record<string, unknown>;
+        if (!settings.enabled) return noDiscount;
+
+        // Expand cart items into individual units sorted by price DESCENDING
+        // e.g. item with qty=3, price=100 becomes 3 separate entries of 100
+        const unitPrices: number[] = [];
+        for (const item of cartItems) {
+            for (let i = 0; i < item.quantity; i++) {
+                unitPrices.push(item.price);
+            }
+        }
+        unitPrices.sort((a, b) => b - a); // Most expensive first
+
+        const totalUnits = unitPrices.length;
+
+        // Tier 3: 3+ items → cheapest free
+        if (totalUnits >= 3 && settings.tier3Enabled) {
+            // Customer pays for everything EXCEPT the cheapest item.
+            // The cheapest item is the last one after sorting desc.
+            const cheapestPrice = unitPrices[unitPrices.length - 1];
+            const label = (settings.tier3Label as string) || 'Buy 2 Get 1 Free';
+            return {
+                amount: cheapestPrice,
+                label,
+                details: `Cheapest item free (-${cheapestPrice} EGP)`
+            };
+        }
+
+        // Tier 2: 2 items → cheapest at X% off
+        if (totalUnits >= 2 && settings.tier2Enabled) {
+            const discountPercent = (settings.tier2DiscountPercent as number) || 50;
+            const cheapestPrice = unitPrices[unitPrices.length - 1];
+            const discountAmount = Math.round(cheapestPrice * discountPercent / 100);
+            const label = (settings.tier2Label as string) || `2nd item at ${discountPercent}% off`;
+            return {
+                amount: discountAmount,
+                label,
+                details: `${discountPercent}% off cheapest item (-${discountAmount} EGP)`
+            };
+        }
+
+        // Tier 1: 1 item → X% off
+        if (totalUnits >= 1 && settings.tier1Enabled) {
+            const discountPercent = (settings.tier1DiscountPercent as number) || 20;
+            const itemPrice = unitPrices[0];
+            const discountAmount = Math.round(itemPrice * discountPercent / 100);
+            const label = (settings.tier1Label as string) || `${discountPercent}% off`;
+            return {
+                amount: discountAmount,
+                label,
+                details: `${discountPercent}% off (-${discountAmount} EGP)`
+            };
+        }
+
+        return noDiscount;
+    } catch (error) {
+        console.error('Failed to calculate sitewide offer:', error);
+        return noDiscount;
+    }
 }
 
 // ==========================================

@@ -55,12 +55,14 @@ import FlashSalesSection from './_components/FlashSalesSection';
 import BOGOSection from './_components/BOGOSection';
 import BundlesSection from './_components/BundlesSection';
 import ProductOffersSection from './_components/ProductOffersSection';
+import AnnouncementSection from './_components/AnnouncementSection';
+import SitewideOfferSection from './_components/SitewideOfferSection';
 
 // ==========================================
 // Types
 // ==========================================
 
-type MainPromoType = 'coupons' | 'flash-sales' | 'bogo' | 'bundles' | 'product-offers' | 'shipping' | 'loyalty';
+type MainPromoType = 'coupons' | 'flash-sales' | 'bogo' | 'bundles' | 'product-offers' | 'shipping' | 'loyalty' | 'announcement' | 'sitewide-offer';
 type TabType = 'all' | 'active' | 'scheduled' | 'expired' | 'inactive';
 type ModalType = 'create' | 'edit' | 'bulk' | 'flash-sale' | 'bogo' | 'bundle' | 'product-offer' | null;
 
@@ -428,6 +430,20 @@ export default function PromosPage() {
                     <span className="tab-icon">⭐</span>
                     <span className="tab-label">{tp.tabs.loyalty}</span>
                 </button>
+                <button
+                    className={`main-promo-tab ${mainPromoType === 'announcement' ? 'active' : ''}`}
+                    onClick={() => setMainPromoType('announcement')}
+                >
+                    <span className="tab-icon">📢</span>
+                    <span className="tab-label">{language === 'ar' ? 'شريط الإعلانات' : 'Announcement Bar'}</span>
+                </button>
+                <button
+                    className={`main-promo-tab ${mainPromoType === 'sitewide-offer' ? 'active' : ''}`}
+                    onClick={() => setMainPromoType('sitewide-offer')}
+                >
+                    <span className="tab-icon">🎯</span>
+                    <span className="tab-label">{language === 'ar' ? 'العرض الشامل' : 'Site-Wide Offer'}</span>
+                </button>
             </div>
 
             {/* Shipping Configuration Section */}
@@ -592,6 +608,16 @@ export default function PromosPage() {
             {/* Loyalty Section */}
             {mainPromoType === 'loyalty' && (
                 <LoyaltySection />
+            )}
+
+            {/* Announcement Section */}
+            {mainPromoType === 'announcement' && (
+                <AnnouncementSection />
+            )}
+
+            {/* Site-Wide Offer Section */}
+            {mainPromoType === 'sitewide-offer' && (
+                <SitewideOfferSection />
             )}
 
             {/* Coupons Section */}

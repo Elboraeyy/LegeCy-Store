@@ -245,4 +245,5 @@ export type HeaderSettings = {
   announcementEnabled: boolean;
   announcementText: string;
   announcementBgColor: string;
+  announcementTextColor: string;
 };

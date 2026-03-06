@@ -13,6 +13,7 @@ import { validateCoupon } from "@/lib/actions/coupons";
 import { getPaymentMethodsStatus } from "@/lib/actions/killswitches";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
 import { calculateShipping } from "@/lib/actions/shipping";
+import { previewSitewideDiscount } from "@/lib/services/discountService";
 import { EGYPT_LOCATIONS } from "@/data/egypt-locations";
 import CustomSelect from "@/components/ui/CustomSelect";
 import ManualPaymentInstructions from "@/components/shop/ManualPaymentInstructions"; // New Import
@@ -253,8 +254,32 @@ export default function CheckoutClient() {
 
   // Calculate totals - Discount applies to products only
   const actualShipping = shippingCost ?? 0;
-  const discountAmount = appliedCoupon?.discount || 0;
-  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+  const couponDiscount = appliedCoupon?.discount || 0;
+
+  // Site-wide offer state
+  const [sitewideDiscount, setSitewideDiscount] = useState<{ amount: number; label: string } | null>(null);
+
+  useEffect(() => {
+    async function loadSitewideDiscount() {
+      try {
+        const items = checkoutItems.map(item => ({ price: item.price, quantity: item.qty }));
+        if (items.length === 0) { setSitewideDiscount(null); return; }
+        const result = await previewSitewideDiscount(items);
+        if (result.amount > 0) {
+          setSitewideDiscount({ amount: result.amount, label: result.label });
+        } else {
+          setSitewideDiscount(null);
+        }
+      } catch {
+        setSitewideDiscount(null);
+      }
+    }
+    loadSitewideDiscount();
+  }, [checkoutItems]);
+
+  const sitewideDiscountAmount = sitewideDiscount?.amount || 0;
+  const totalDiscounts = couponDiscount + sitewideDiscountAmount;
+  const discountedSubtotal = Math.max(0, subtotal - totalDiscounts);
   const finalTotal = discountedSubtotal + actualShipping;
 
 
@@ -1109,6 +1134,15 @@ export default function CheckoutClient() {
                 <span className={styles.pricingLabel}>{t.checkout.subtotal}</span>
                 <span className={styles.pricingValue}>{formatPrice(subtotal)}</span>
               </div>
+
+              {sitewideDiscount && sitewideDiscount.amount > 0 && (
+                <div className={styles.pricingRow}>
+                  <span className={styles.pricingLabel}>
+                    🎯 {sitewideDiscount.label}
+                  </span>
+                  <span className={`${styles.pricingValue} ${styles.pricingDiscount}`}>-{formatPrice(sitewideDiscount.amount)}</span>
+                </div>
+              )}
 
               {appliedCoupon && appliedCoupon.discount > 0 && (
                 <div className={styles.pricingRow}>

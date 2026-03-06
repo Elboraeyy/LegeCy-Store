@@ -60,6 +60,7 @@ export default function ProductsPage() {
     // Selection
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [showBulkMenu, setShowBulkMenu] = useState(false);
+    const [statusDropdownId, setStatusDropdownId] = useState<string | null>(null);
 
     const loadData = useCallback(async () => {
         try {
@@ -178,6 +179,18 @@ export default function ProductsPage() {
         setShowBulkMenu(false);
         setLoading(true);
         loadData();
+    };
+
+    const handleSingleStatusChange = async (productId: string, newStatus: string) => {
+        setStatusDropdownId(null);
+        try {
+            await bulkUpdateStatus([productId], newStatus);
+            // Optimistic update
+            setProducts(prev => prev.map(p => p.id === productId ? { ...p, status: newStatus } : p));
+            toast.success(`Status updated to ${newStatus}`);
+        } catch {
+            toast.error('Failed to update status');
+        }
     };
 
     if (permLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>{t.common.loading}</div>;
@@ -460,21 +473,85 @@ export default function ProductsPage() {
                                                 {product.totalStock > 0 ? `${product.totalStock} ${t.products.table.in_stock}` : t.products.stats.out_of_stock}
                                             </span>
                                         </td>
-                                        <td>
-                                            <span style={{
-                                                display: 'inline-block',
-                                                padding: '4px 10px',
-                                                borderRadius: 'var(--admin-radius)',
-                                                fontSize: '11px',
-                                                fontWeight: 600,
-                                                textTransform: 'uppercase',
-                                                background: product.status === 'active' ? 'rgba(22, 101, 52, 0.1)' :
-                                                    product.status === 'draft' ? 'rgba(100, 116, 139, 0.1)' : 'rgba(153, 27, 27, 0.1)',
-                                                color: product.status === 'active' ? '#166534' :
-                                                    product.status === 'draft' ? '#64748b' : '#991b1b'
-                                            }}>
+                                        <td style={{ position: 'relative' }}>
+                                            <span
+                                                onClick={() => setStatusDropdownId(statusDropdownId === product.id ? null : product.id)}
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    padding: '4px 10px',
+                                                    borderRadius: 'var(--admin-radius)',
+                                                    fontSize: '11px',
+                                                    fontWeight: 600,
+                                                    textTransform: 'uppercase',
+                                                    cursor: 'pointer',
+                                                    transition: 'opacity 0.15s',
+                                                    background: product.status === 'active' ? 'rgba(22, 101, 52, 0.1)' :
+                                                        product.status === 'draft' ? 'rgba(100, 116, 139, 0.1)' : 'rgba(153, 27, 27, 0.1)',
+                                                    color: product.status === 'active' ? '#166534' :
+                                                        product.status === 'draft' ? '#64748b' : '#991b1b'
+                                                }}
+                                            >
                                                 {product.status}
+                                                <span style={{ fontSize: '8px', opacity: 0.7 }}>▼</span>
                                             </span>
+                                            {statusDropdownId === product.id && (
+                                                <>
+                                                    <div
+                                                        onClick={() => setStatusDropdownId(null)}
+                                                        style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                                                    />
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '100%',
+                                                        left: 0,
+                                                        marginTop: '4px',
+                                                        background: 'var(--admin-surface)',
+                                                        border: '1px solid var(--admin-border)',
+                                                        borderRadius: 'var(--admin-radius-sm)',
+                                                        boxShadow: 'var(--shadow-lg)',
+                                                        zIndex: 100,
+                                                        minWidth: '130px',
+                                                        overflow: 'hidden'
+                                                    }}>
+                                                        {[
+                                                            { value: 'active', label: 'Active', color: '#166534', bg: 'rgba(22, 101, 52, 0.08)' },
+                                                            { value: 'draft', label: 'Draft', color: '#64748b', bg: 'rgba(100, 116, 139, 0.08)' },
+                                                            { value: 'archived', label: 'Archived', color: '#991b1b', bg: 'rgba(153, 27, 27, 0.08)' },
+                                                        ].map(opt => (
+                                                            <button
+                                                                key={opt.value}
+                                                                onClick={() => handleSingleStatusChange(product.id, opt.value)}
+                                                                style={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '8px',
+                                                                    width: '100%',
+                                                                    padding: '9px 14px',
+                                                                    textAlign: 'left',
+                                                                    border: 'none',
+                                                                    background: product.status === opt.value ? opt.bg : 'none',
+                                                                    cursor: product.status === opt.value ? 'default' : 'pointer',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: product.status === opt.value ? 700 : 500,
+                                                                    color: opt.color,
+                                                                    opacity: product.status === opt.value ? 1 : 0.85,
+                                                                }}
+                                                                disabled={product.status === opt.value}
+                                                            >
+                                                                <span style={{
+                                                                    width: '7px',
+                                                                    height: '7px',
+                                                                    borderRadius: '50%',
+                                                                    background: opt.color,
+                                                                }} />
+                                                                {opt.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )}
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
                                             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>

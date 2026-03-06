@@ -452,18 +452,18 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
               }
 
               // Get cost price for COGS tracking (CRITICAL for refund reversals)
-              const costAtPurchase = item.variantId ? variantCostMap[item.variantId] : null;
+              const costAtPurchase = item.variantId ? (variantCostMap[item.variantId] ?? null) : null;
 
               return {
                 productId: item.id,
                 variantId: item.variantId,
                 name: item.name,
-                sku: item.variantId ? variantSkuMap[item.variantId] : null, // SKU snapshot
+                sku: item.variantId ? (variantSkuMap[item.variantId] ?? null) : null, // SKU snapshot
                 price: new Prisma.Decimal(item.price),
-                discountedPrice: discountedPricePerUnit !== null
+                discountedPrice: discountedPricePerUnit != null
                   ? new Prisma.Decimal(discountedPricePerUnit)
                   : null,
-                costAtPurchase: costAtPurchase !== null
+                costAtPurchase: costAtPurchase != null
                   ? new Prisma.Decimal(costAtPurchase)
                   : null, // COGS snapshot for accurate reversal
                 quantity: item.qty,
@@ -505,36 +505,21 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
           name: item.name
         });
 
-        if (input.paymentMethod === 'cod') {
-          // COD: Deduct immediately from available (no reservation)
-          inventoryUpdates.push(
-            tx.inventory.updateMany({
-              where: {
-                warehouseId: warehouse.id,
-                variantId: item.variantId,
-                available: { gte: item.qty }
-              },
-              data: {
-                available: { decrement: item.qty }
-              }
-            })
-          );
-        } else {
-          // Online payment: Reserve stock until payment confirmed
-          inventoryUpdates.push(
-            tx.inventory.updateMany({
-              where: {
-                warehouseId: warehouse.id,
-                variantId: item.variantId,
-                available: { gte: item.qty }
-              },
-              data: {
-                available: { decrement: item.qty },
-                reserved: { increment: item.qty }
-              }
-            })
-          );
-        }
+        // Always Reserve stock until order is shipped or cancelled
+        // This prevents double-deduction during fulfillment auto-recovery
+        inventoryUpdates.push(
+          tx.inventory.updateMany({
+            where: {
+              warehouseId: warehouse.id,
+              variantId: item.variantId,
+              available: { gte: item.qty }
+            },
+            data: {
+              available: { decrement: item.qty },
+              reserved: { increment: item.qty }
+            }
+          })
+        );
       }
 
       // Execute all inventory updates in parallel
@@ -613,9 +598,9 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
               data: {
                 warehouseId: warehouse.id,
                 variantId: item.variantId,
-                action: input.paymentMethod === 'cod' ? 'ORDER_FULFILL' : 'ORDER_RESERVE',
+                action: 'ORDER_RESERVE',
                 quantity: -item.qty,
-                reason: `${input.paymentMethod === 'cod' ? 'COD' : 'Online'} Order Created: ${order.id}`,
+                reason: `${input.paymentMethod === 'cod' ? 'COD' : 'Online'} Order Created (Reserved): ${order.id}`,
                 referenceId: order.id,
               }
             }).catch(err => logger.error('Failed to create inventory log', { orderId: order.id, error: err }));
