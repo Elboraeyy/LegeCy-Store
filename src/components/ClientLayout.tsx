@@ -44,6 +44,7 @@ export default function ClientLayout({
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import ScrollToTop from "./ScrollToTop";
+import FloatingCart from "./FloatingCart";
 
 function ClientLayoutContent({ children, navbar, footer }: { children: React.ReactNode; navbar: React.ReactNode; footer: React.ReactNode }) {
     const pathname = usePathname();
@@ -112,6 +113,7 @@ function ClientLayoutContent({ children, navbar, footer }: { children: React.Rea
         >
             {navbar}
             <CartDrawer />
+          <FloatingCart />
             <main className="flex-grow">
               {children}
             </main>
