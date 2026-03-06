@@ -7,18 +7,15 @@ import { usePathname } from "next/navigation";
 import { ShoppingBag, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { previewSitewideDiscount } from "@/lib/services/discountService";
+import { useIsClient } from "@/hooks/useIsClient";
 import Link from "next/link";
 
 export default function FloatingCart() {
   const { cart } = useStore();
   const { t, language } = useLanguage();
   const pathname = usePathname();
+  const isClient = useIsClient();
   const [sitewideDiscount, setSitewideDiscount] = useState<number>(0);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   // Calculate items and subtotal
   const itemCount = cart.reduce((a, c) => a + c.qty, 0);
