@@ -101,7 +101,6 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
     const productName = getLocalized(product, language as "en" | "ar", "name");
     const productDesc = getLocalized(product, language as "en" | "ar", "description");
     const productCategory = getLocalized(product, language as "en" | "ar", "category");
-    const productBrand = product.brand || "";
 
     const handleQuantityChange = (delta: number) => {
         setQuantity((prevQty) => {
@@ -159,8 +158,6 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
     const handleToggleFav = () => {
         toggleFav(String(product.id));
     };
-
-    const currentImage = optimizeCloudinaryUrl(allImages[selectedImageIndex], 700);
 
     if (!isClient) return null;
 

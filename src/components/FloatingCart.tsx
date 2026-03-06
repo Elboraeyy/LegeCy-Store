@@ -14,7 +14,11 @@ export default function FloatingCart() {
   const { t, language } = useLanguage();
   const pathname = usePathname();
   const [sitewideDiscount, setSitewideDiscount] = useState<number>(0);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Calculate items and subtotal
   const itemCount = cart.reduce((a, c) => a + c.qty, 0);
@@ -39,15 +43,13 @@ export default function FloatingCart() {
   }, [cart]);
 
   // Visibility logic
-  useEffect(() => {
-    const isExcludedPage = 
-      pathname === "/cart" || 
-      pathname === "/checkout" || 
-      pathname?.startsWith("/admin") || 
-      pathname?.startsWith("/pos");
-    
-    setIsVisible(!isExcludedPage && itemCount > 0);
-  }, [pathname, itemCount]);
+  const isExcludedPage =
+    pathname === "/cart" ||
+    pathname === "/checkout" ||
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/pos");
+
+  const isVisible = isClient && !isExcludedPage && itemCount > 0;
 
   const total = Math.max(0, subtotal - sitewideDiscount);
 
