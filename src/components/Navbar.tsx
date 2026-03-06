@@ -140,38 +140,36 @@ export default function Navbar({
   // Gold: #d4af37
 
   return (
-    <div className="flex flex-col w-full z-[100] relative">
-      {/* Announcement Bar - Hides on Scroll Down */}
+    <div className="fixed top-0 left-0 right-0 z-[100] flex flex-col pointer-events-none">
+      {/* Announcement Bar - ALWAYS VISIBLE */}
       <div 
-        className={`transition-transform duration-300 ${!visible ? '-translate-y-full absolute' : 'translate-y-0 relative'} z-[100] w-full`}
+        className="z-[110] relative w-full pointer-events-auto"
+        style={{
+          backgroundColor: headerSettings?.announcementBgColor || "#12403C",
+        }}
       >
         {headerSettings?.announcementEnabled && (
           <div
             className="w-full py-2 text-center text-xs font-medium tracking-wider uppercase"
             style={{
-              backgroundColor: headerSettings.announcementBgColor || "#12403C",
               color: headerSettings.announcementTextColor || "#ffffff",
             }}
           >
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4 text-center">
               {headerSettings.announcementText}
             </div>
           </div>
         )}
       </div>
 
-      {/* Main Navbar */}
+      {/* Main Navbar - Hides on Scroll Down, Shows on Scroll Up */}
       <header
-        className={`w-full fixed top-0 left-0 right-0 z-[90] transition-all duration-300 ${
-          visible ? 'translate-y-0' : '-translate-y-full'
+        className={`w-full relative z-[100] pointer-events-auto transition-all duration-300 ${visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
         } ${
           scrolled
             ? "bg-[#FCF8F3]/95 backdrop-blur-md border-b border-[rgba(18,64,60,0.08)] shadow-sm py-2"
             : "bg-[#FCF8F3] border-b border-transparent py-3"
-        }`}
-        style={{
-           marginTop: (visible && scrolled) ? 0 : (visible && headerSettings?.announcementEnabled ? 0 : 0) // Reset margin logic handling
-        } as React.CSSProperties}
+          }`}
       >
         <div className="container mx-auto px-4 lg:px-8">
           <nav className="flex items-center justify-between">
@@ -540,10 +538,10 @@ export default function Navbar({
         </div>
       </header>
 
-      {/* Spacer to prevent content overlap */}
+      {/* Spacer to prevent content overlap - Adjusted for fixed elements */}
       <div 
         className="w-full relative -z-50 pointer-events-none" 
-        style={{ height: headerSettings?.announcementEnabled ? '80px' : '56px' }} 
+        style={{ height: headerSettings?.announcementEnabled ? '110px' : '70px' }} 
       />
 
       {/* Mobile Search Dropdown */}
@@ -563,7 +561,7 @@ export default function Navbar({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               className="fixed left-0 right-0 z-[55] bg-[#FCF8F3] shadow-lg border-b border-[rgba(18,64,60,0.1)] p-4 lg:hidden"
-              style={{ top: headerSettings?.announcementEnabled ? '80px' : '56px' }}
+              style={{ top: headerSettings?.announcementEnabled ? '110px' : '70px' }}
             >
               <SearchBar onProductSelect={() => setShowMobileSearch(false)} />
             </motion.div>
