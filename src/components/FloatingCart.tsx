@@ -7,9 +7,10 @@ import { usePathname } from "next/navigation";
 import { ShoppingBag, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { previewSitewideDiscount } from "@/lib/services/discountService";
+import Link from "next/link";
 
 export default function FloatingCart() {
-  const { cart, openCart } = useStore();
+  const { cart } = useStore();
   const { t, language } = useLanguage();
   const pathname = usePathname();
   const [sitewideDiscount, setSitewideDiscount] = useState<number>(0);
@@ -65,8 +66,8 @@ export default function FloatingCart() {
           exit={{ y: 100, opacity: 0 }}
           className="fixed bottom-6 left-4 right-4 z-[90] lg:hidden"
         >
-          <button
-            onClick={openCart}
+          <Link
+            href="/cart"
             className="w-full bg-[#12403C] text-[#FCF8F3] p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-[rgba(255,255,255,0.1)] flex items-center justify-between group active:scale-[0.98] transition-all"
           >
             <div className="flex items-center gap-4">
@@ -80,9 +81,16 @@ export default function FloatingCart() {
                 <span className="text-[10px] uppercase tracking-wider opacity-70 font-bold">
                   {t.cart.your_cart}
                 </span>
-                <span className="text-sm font-bold">
-                  {formatPrice(total)}
-                </span>
+                <div className="flex items-center gap-2">
+                  {sitewideDiscount > 0 && (
+                    <span className="text-xs line-through opacity-60">
+                      {formatPrice(subtotal)}
+                    </span>
+                  )}
+                  <span className="text-sm font-bold">
+                    {formatPrice(total)}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -92,7 +100,7 @@ export default function FloatingCart() {
               </span>
               <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${language === 'ar' ? 'rotate-180 group-hover:-translate-x-1' : ''}`} />
             </div>
-          </button>
+          </Link>
         </motion.div>
       )}
     </AnimatePresence>
