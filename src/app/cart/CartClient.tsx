@@ -11,6 +11,7 @@ import { useIsClient } from "@/hooks/useIsClient";
 import { useLanguage } from "@/context/LanguageContext";
 import CartRecommendations from "@/components/cart/CartRecommendations";
 import { CartSkeleton } from "@/components/skeletons/cart-skeleton";
+import { previewSitewideDiscount } from "@/lib/services/discountService";
 import {
   Trash2,
   Minus,
@@ -46,7 +47,29 @@ export default function CartClient() {
   }, [router]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const total = subtotal;
+
+  // Site-wide offer state
+  const [sitewideDiscount, setSitewideDiscount] = React.useState<{ amount: number; label: string } | null>(null);
+
+  useEffect(() => {
+    async function loadSitewideDiscount() {
+      try {
+        const items = cart.map(item => ({ price: item.price, quantity: item.qty }));
+        if (items.length === 0) { setSitewideDiscount(null); return; }
+        const result = await previewSitewideDiscount(items);
+        if (result.amount > 0) {
+          setSitewideDiscount({ amount: result.amount, label: result.label });
+        } else {
+          setSitewideDiscount(null);
+        }
+      } catch {
+        setSitewideDiscount(null);
+      }
+    }
+    loadSitewideDiscount();
+  }, [cart]);
+
+  const total = Math.max(0, subtotal - (sitewideDiscount?.amount || 0));
 
   const formatPrice = (p: number) => {
     return language === 'ar'
@@ -249,6 +272,15 @@ export default function CartClient() {
                       <span className="text-gray-600">{t.cart.subtotal}</span>
                       <span className="font-medium text-[#12403C]">{formatPrice(subtotal)}</span>
                     </div>
+
+                  {sitewideDiscount && sitewideDiscount.amount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 font-medium flex items-center gap-1">
+                        <span className="text-sm">🎯</span> {sitewideDiscount.label}
+                      </span>
+                      <span className="font-bold text-green-600">-{formatPrice(sitewideDiscount.amount)}</span>
+                    </div>
+                  )}
 
 
 

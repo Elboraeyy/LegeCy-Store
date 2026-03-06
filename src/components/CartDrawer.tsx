@@ -7,6 +7,7 @@ import { useStore } from "@/context/StoreContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useIsClient } from "@/hooks/useIsClient";
 import { trackGAEvent } from "./GoogleAnalytics";
+import { previewSitewideDiscount } from "@/lib/services/discountService";
 import styles from "./CartDrawer.module.css";
 
 export default function CartDrawer() {
@@ -14,6 +15,27 @@ export default function CartDrawer() {
   const drawerRef = useRef<HTMLDivElement>(null);
   const isClient = useIsClient();
   const { t, language } = useLanguage();
+
+  // Site-wide offer state
+  const [sitewideDiscount, setSitewideDiscount] = React.useState<{ amount: number; label: string } | null>(null);
+
+  useEffect(() => {
+    async function loadSitewideDiscount() {
+      try {
+        const items = cart.map(item => ({ price: item.price, quantity: item.qty }));
+        if (items.length === 0) { setSitewideDiscount(null); return; }
+        const result = await previewSitewideDiscount(items);
+        if (result.amount > 0) {
+          setSitewideDiscount({ amount: result.amount, label: result.label });
+        } else {
+          setSitewideDiscount(null);
+        }
+      } catch {
+        setSitewideDiscount(null);
+      }
+    }
+    loadSitewideDiscount();
+  }, [cart]);
 
   // Close on ESC key
   useEffect(() => {
@@ -58,7 +80,8 @@ export default function CartDrawer() {
 
   const itemCount = cart.reduce((a, c) => a + c.qty, 0);
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
-  const total = subtotal;
+
+  const total = Math.max(0, subtotal - (sitewideDiscount?.amount || 0));
 
   const formatPrice = (p: number) => {
     return language === 'ar'
@@ -204,8 +227,25 @@ export default function CartDrawer() {
 
               <div className={styles.totalRow}>
                 <span className={styles.totalLabel}>{t.cart.subtotal}</span>
-                <span className={styles.totalAmount}>{formatPrice(total)}</span>
+                <span className={styles.totalAmount}>{formatPrice(subtotal)}</span>
               </div>
+
+              {sitewideDiscount && sitewideDiscount.amount > 0 && (
+                <div className={styles.totalRow} style={{ marginTop: '4px' }}>
+                  <span className={styles.totalLabel} style={{ fontSize: '13px', fontWeight: '500' }}>
+                    🎯 {sitewideDiscount.label}
+                  </span>
+                  <span className={styles.totalAmount} style={{ color: '#16a34a', fontSize: '14px' }}>
+                    -{formatPrice(sitewideDiscount.amount)}
+                  </span>
+                </div>
+              )}
+
+              <div className={styles.totalRow} style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed var(--border-color)' }}>
+                <span className={styles.totalLabel} style={{ fontSize: '18px', fontWeight: 'bold' }}>{t.cart.total}</span>
+                <span className={styles.totalAmount} style={{ fontSize: '20px', fontWeight: 'bold' }}>{formatPrice(total)}</span>
+              </div>
+
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'center' }}>
                 {t.cart.shipping_calculated_checkout}
               </p>
