@@ -449,12 +449,34 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     ...(product.images || [])
   ].filter(Boolean) : ['/placeholder.jpg'];
 
+  // Check sitewide offer
+  const { sitewideConfig } = useStore();
+  const isSitewideEnabled = sitewideConfig?.enabled === true;
+  const sitewideTier1Percent = (sitewideConfig?.tier1DiscountPercent as number) || 20;
+
   // Calculations
-  const isOnSale = product?.compareAtPrice && product.compareAtPrice > product.price;
-  const salePercent = isOnSale
+  const isIndividuallyOnSale = product?.compareAtPrice && product.compareAtPrice > product.price;
+
+  const applySitewideVisual = isSitewideEnabled && !isIndividuallyOnSale && !!product;
+
+  const displayPrice = applySitewideVisual && product
+    ? product.price - (product.price * (sitewideTier1Percent / 100))
+    : product?.price || 0;
+
+  const displayComparePrice = applySitewideVisual && product
+    ? product.price
+    : product?.compareAtPrice;
+
+  const isOnSale = isIndividuallyOnSale || applySitewideVisual;
+
+  const salePercent = isIndividuallyOnSale
     ? Math.round(((product!.compareAtPrice! - product!.price) / product!.compareAtPrice!) * 100)
-    : 0;
-  const savedAmount = isOnSale ? product!.compareAtPrice! - product!.price : 0;
+    : applySitewideVisual ? sitewideTier1Percent : 0;
+
+  const savedAmount = isIndividuallyOnSale
+    ? product!.compareAtPrice! - product!.price
+    : applySitewideVisual && product ? product.price - displayPrice : 0;
+
   const isOutOfStock = product ? product.totalStock <= 0 : false;
   const isNew = product?.createdAt
     ? (new Date().getTime() - new Date(product.createdAt).getTime()) < (5 * 24 * 60 * 60 * 1000)
@@ -789,10 +811,10 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
 
             {/* Price */}
             <div className="detail-price-block">
-              <span className="detail-price-large">{formatPrice(product.price)}</span>
-              {isOnSale && (
+                <span className="detail-price-large">{formatPrice(displayPrice)}</span>
+                {isOnSale && displayComparePrice && (
                 <>
-                  <span className="detail-price-original">{formatPrice(product.compareAtPrice!)}</span>
+                    <span className="detail-price-original">{formatPrice(displayComparePrice)}</span>
                   <span className="detail-price-save">{t.product.sale} {formatPrice(savedAmount)}</span>
                 </>
               )}

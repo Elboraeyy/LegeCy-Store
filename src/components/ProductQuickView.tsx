@@ -22,7 +22,7 @@ interface ProductQuickViewProps {
 }
 
 export default function ProductQuickView({ product, isOpen, onClose }: ProductQuickViewProps) {
-    const { addToCart, toggleFav, isFav, setBuyNowItem } = useStore();
+    const { addToCart, toggleFav, isFav, setBuyNowItem, sitewideConfig } = useStore();
     const isClient = useIsClient();
     const { t, language } = useLanguage();
     const router = useRouter();
@@ -90,13 +90,30 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
             currency: "EGP",
         }).format(p);
     };
+    // Check sitewide offer
+    const isSitewideEnabled = sitewideConfig?.enabled === true;
+    const sitewideTier1Percent = (sitewideConfig?.tier1DiscountPercent as number) || 20;
 
-    const isOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
+    // Badges & Pricing
+    const isIndividuallyOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
     const isOutOfStock = product.inStock === false;
     const isNew = product.isNew;
-    const salePercent = isOnSale
+
+    const applySitewideVisual = isSitewideEnabled && !isIndividuallyOnSale;
+
+    const displayPrice = applySitewideVisual
+        ? product.price - (product.price * (sitewideTier1Percent / 100))
+        : product.price;
+
+    const displayComparePrice = applySitewideVisual
+        ? product.price
+        : product.compareAtPrice;
+
+    const isOnSale = isIndividuallyOnSale || applySitewideVisual;
+
+    const salePercent = isIndividuallyOnSale
         ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
-        : 0;
+        : applySitewideVisual ? sitewideTier1Percent : 0;
 
     const productName = getLocalized(product, language as "en" | "ar", "name");
     const productDesc = getLocalized(product, language as "en" | "ar", "description");
@@ -273,10 +290,10 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
 
                             {/* Price */}
                             <div className={styles.priceRow}>
-                                <span className={styles.price}>{formatPrice(product.price)}</span>
-                                {isOnSale && (
+                                <span className={styles.price}>{formatPrice(displayPrice)}</span>
+                                {isOnSale && displayComparePrice && (
                                     <>
-                                        <span className={styles.comparePrice}>{formatPrice(product.compareAtPrice!)}</span>
+                                        <span className={styles.comparePrice}>{formatPrice(displayComparePrice)}</span>
                                         <span className={styles.saleBadge}>{t.product.sale} -{salePercent}%</span>
                                     </>
                                 )}

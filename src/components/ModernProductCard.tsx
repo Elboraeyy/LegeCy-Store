@@ -19,7 +19,7 @@ interface ModernProductCardProps {
 }
 
 export default function ModernProductCard({ product, priority = false, compact = false, hideNewBadge = false }: ModernProductCardProps) {
-    const { addToCart, toggleFav, isFav } = useStore();
+    const { addToCart, toggleFav, isFav, sitewideConfig } = useStore();
     const isClient = useIsClient();
     const { t, language } = useLanguage();
     const [showQuickView, setShowQuickView] = useState(false);
@@ -35,13 +35,31 @@ export default function ModernProductCard({ product, priority = false, compact =
     const productImage = product.imageUrl || product.img || '/placeholder.jpg';
     const [imgSrc, setImgSrc] = React.useState(productImage);
 
+    // Check sitewide offer
+    const isSitewideEnabled = sitewideConfig?.enabled === true;
+    const sitewideTier1Percent = (sitewideConfig?.tier1DiscountPercent as number) || 20;
+
     // Status badges
-    const isOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
+    const isIndividuallyOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
     const isOutOfStock = product.inStock === false;
     const isNew = product.isNew;
-    const salePercent = isOnSale
-        ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
-        : 0;
+
+    // "Mihslsh khasm fo2 el khasm"
+    const applySitewideVisual = isSitewideEnabled && !isIndividuallyOnSale;
+
+    const displayPrice = applySitewideVisual
+        ? product.price - (product.price * (sitewideTier1Percent / 100))
+        : product.price;
+
+    const displayComparePrice = applySitewideVisual
+        ? product.price
+        : product.compareAtPrice;
+
+    const isOnSale = isIndividuallyOnSale || applySitewideVisual;
+
+    const salePercent = isIndividuallyOnSale
+        ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100) 
+        : applySitewideVisual ? sitewideTier1Percent : 0;
 
     const handleCardClick = () => {
         setShowQuickView(true);
@@ -67,7 +85,7 @@ export default function ModernProductCard({ product, priority = false, compact =
                     {/* Badges (Top Left) */}
                     <div className="absolute top-4 left-4 flex flex-col gap-1 z-10">
                         {isOnSale && (
-                            <span className="px-2 py-0.5 text-[10px] font-bold text-white bg-[#d4af37] rounded-full uppercase shadow-sm">
+                            <span className="px-2 py-0.5 text-[10px] font-bold text-[#12403C] bg-[#FCF8F3] rounded-full uppercase shadow-sm">
                                 -{salePercent}%
                             </span>
                         )}
@@ -132,13 +150,13 @@ export default function ModernProductCard({ product, priority = false, compact =
                     <h3 className="text-[11px] md:text-[13px] font-medium text-[#12403C] leading-snug line-clamp-2 min-h-[2.5em] mb-1 cursor-pointer">
                         {product.name}
                     </h3>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-[12px] md:text-[14px] font-bold text-[#12403C]">
-                            {formatPrice(product.price)}
+                    <div className="flex items-baseline gap-1.5 md:gap-2 flex-wrap">
+                        <span className="text-[14px] md:text-[16px] font-bold text-[#12403C]">
+                            {formatPrice(displayPrice)}
                         </span>
-                        {isOnSale && (
-                            <span className="text-[11px] text-gray-400 line-through">
-                                {formatPrice(product.compareAtPrice!)}
+                        {isOnSale && displayComparePrice && (
+                            <span className="text-[11px] md:text-[12px] text-gray-400 line-through">
+                                {formatPrice(displayComparePrice)}
                             </span>
                         )}
                     </div>

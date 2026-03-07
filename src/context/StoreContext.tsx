@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { getCurrentUser } from "@/lib/actions/auth";
 import { trackMetaEvent } from "@/components/MetaPixel";
 import { trackGAEvent } from "@/components/GoogleAnalytics";
+import { getSitewideOfferConfig } from "@/lib/services/discountService";
 
 // Flag used to signal cart should be cleared after payment success
 export const CART_CLEARED_FLAG = 'cart_cleared_on_payment';
@@ -60,6 +61,7 @@ interface StoreContextType {
     isLoggedIn: boolean;
     buyNowItem: CartItem | null;
     setBuyNowItem: (item: CartItem | null) => void;
+    sitewideConfig: Record<string, unknown> | null;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -72,6 +74,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [buyNowItem, setBuyNowItem] = useState<CartItem | null>(null);
+    const [sitewideConfig, setSitewideConfig] = useState<Record<string, unknown> | null>(null);
 
   const hasInitialized = useRef(false);
 
@@ -146,6 +149,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             const user = await getCurrentUser();
             const userLoggedIn = !!user;
             if (mounted) setIsLoggedIn(userLoggedIn);
+
+            // Fetch Sitewide Config directly via Server Action
+            try {
+                const config = await getSitewideOfferConfig();
+                if (mounted && config) setSitewideConfig(config);
+            } catch (err) {
+                console.error("Failed to load sitewide config", err);
+            }
 
             // 1. ALWAYS restore from localStorage first (for instant UX)
             const localStr = localStorage.getItem("cart");
@@ -553,9 +564,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       cart, fav, addToCart, removeFromCart, decFromCart,
       toggleFav, isFav, clearCart, isCartOpen, openCart, closeCart,
           products, showToast, isLoading, isLoggedIn,
-          buyNowItem, setBuyNowItem
-    }}>
-      {children}
+          buyNowItem,
+          setBuyNowItem,
+          sitewideConfig,
+      }}
+      >  {children}
     </StoreContext.Provider>
   );
 }

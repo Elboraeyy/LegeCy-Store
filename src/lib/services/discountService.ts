@@ -429,3 +429,16 @@ export async function enrichCartItemsWithCategories(
         categoryId: categoryMap.get(item.productId) || undefined
     }));
 }
+
+export async function getSitewideOfferConfig() {
+    try {
+        const config = await prisma.storeConfig.findUnique({
+            where: { key: 'sitewide_offer_settings' }
+        });
+        if (!config?.value) return null;
+        return config.value as Record<string, unknown>;
+    } catch (error) {
+        console.error("Error fetching sitewide config:", error);
+        return null;
+    }
+}

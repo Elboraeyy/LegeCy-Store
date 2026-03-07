@@ -289,7 +289,7 @@ function ProductListCard({ product }: { product: Product }) {
                         onError={() => setImgSrc('/placeholder.jpg')}
                     />
                     {isOnSale && (
-                        <span className="absolute top-2 left-2 px-3 py-1.5 text-xs font-bold text-white bg-[#d4af37] rounded-full">
+                        <span className="absolute top-2 left-2 px-3 py-1.5 text-xs font-bold text-[#12403C] bg-[#FCF8F3] rounded-full">
                             -{salePercent}%
                         </span>
                     )}

@@ -39,14 +39,32 @@ export default React.memo(function ProductCard({ product, priority = false, hide
     setImgSrc(productImage);
   }, [productImage]);
 
+  // Check sitewide offer
+  const { sitewideConfig } = useStore();
+  const isSitewideEnabled = sitewideConfig?.enabled === true;
+  const sitewideTier1Percent = (sitewideConfig?.tier1DiscountPercent as number) || 20;
+
   // Badges logic
-  const isOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
+  const isIndividuallyOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
   const isOutOfStock = product.inStock === false;
   const isNew = product.isNew;
 
-  const salePercent = isOnSale 
+  // "Mihslsh khasm fo2 el khasm" - Don't apply sitewide if it's already on sale
+  const applySitewideVisual = isSitewideEnabled && !isIndividuallyOnSale;
+
+  const displayPrice = applySitewideVisual
+    ? product.price - (product.price * (sitewideTier1Percent / 100))
+    : product.price;
+
+  const displayComparePrice = applySitewideVisual
+    ? product.price
+    : product.compareAtPrice;
+
+  const isOnSale = isIndividuallyOnSale || applySitewideVisual;
+
+  const salePercent = isIndividuallyOnSale 
     ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100) 
-    : 0;
+    : applySitewideVisual ? sitewideTier1Percent : 0;
 
   const handleCardClick = () => {
     trackGAEvent('select_item', {
@@ -97,7 +115,7 @@ export default React.memo(function ProductCard({ product, priority = false, hide
             ) : (
               <>
                 {isOnSale && (
-                  <span className="px-3 py-1.5 text-[10px] md:text-xs font-bold text-white bg-[#d4af37] rounded-full tracking-wider uppercase">
+                    <span className="px-3 py-1.5 text-[10px] md:text-xs font-bold text-[#12403C] bg-[#FCF8F3] rounded-full tracking-wider uppercase">
                     -{salePercent}%
                   </span>
                 )}
@@ -192,13 +210,13 @@ export default React.memo(function ProductCard({ product, priority = false, hide
             </h3>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 mt-1.5 sm:mt-2">
-            <span className="text-sm sm:text-[14px] md:text-[16px] font-bold text-[#12403C]">
-              {formatPrice(product.price)}
+          <div className="flex flex-row items-baseline gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 flex-wrap">
+            <span className="text-[15px] sm:text-[16px] md:text-[17px] font-bold text-[#12403C]">
+              {formatPrice(displayPrice)}
             </span>
-            {isOnSale && (
-              <span className="text-[10px] sm:text-[11px] md:text-[13px] text-gray-400 line-through decoration-gray-400">
-                {formatPrice(product.compareAtPrice!)}
+            {isOnSale && displayComparePrice && (
+              <span className="text-[11px] sm:text-[12px] md:text-[13px] text-gray-400 line-through decoration-gray-400">
+                {formatPrice(displayComparePrice)}
               </span>
             )}
           </div>
