@@ -150,12 +150,12 @@ export default function ModernProductCard({ product, priority = false, compact =
                     <h3 className="text-[11px] md:text-[13px] font-medium text-[#12403C] leading-snug line-clamp-2 min-h-[2.5em] mb-1 cursor-pointer">
                         {product.name}
                     </h3>
-                    <div className="flex items-baseline gap-1.5 md:gap-2 flex-wrap">
-                        <span className="text-[14px] md:text-[16px] font-bold text-[#12403C]">
+                    <div className="flex flex-row items-baseline gap-1 md:gap-1.5 flex-nowrap overflow-hidden w-full">
+                        <span className="text-[clamp(12px,4vw,15px)] md:text-[16px] font-bold text-[#12403C] whitespace-nowrap flex-shrink-0">
                             {formatPrice(displayPrice)}
                         </span>
                         {isOnSale && displayComparePrice && (
-                            <span className="text-[11px] md:text-[12px] text-gray-400 line-through">
+                            <span className="text-[clamp(10px,2.8vw,12px)] md:text-[12px] text-gray-400 line-through whitespace-nowrap truncate min-w-0">
                                 {formatPrice(displayComparePrice)}
                             </span>
                         )}

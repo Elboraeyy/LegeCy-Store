@@ -210,12 +210,12 @@ export default React.memo(function ProductCard({ product, priority = false, hide
             </h3>
           </div>
 
-          <div className="flex flex-row items-baseline gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 flex-wrap">
-            <span className="text-[15px] sm:text-[16px] md:text-[17px] font-bold text-[#12403C]">
+          <div className="flex flex-row items-baseline gap-1 sm:gap-1.5 md:gap-2 mt-1.5 sm:mt-2 flex-nowrap overflow-hidden w-full">
+            <span className="text-[clamp(12px,4vw,16px)] md:text-[17px] font-bold text-[#12403C] whitespace-nowrap flex-shrink-0">
               {formatPrice(displayPrice)}
             </span>
             {isOnSale && displayComparePrice && (
-              <span className="text-[11px] sm:text-[12px] md:text-[13px] text-gray-400 line-through decoration-gray-400">
+              <span className="text-[clamp(10px,3vw,12px)] md:text-[13px] text-gray-400 line-through decoration-gray-400 whitespace-nowrap truncate min-w-0">
                 {formatPrice(displayComparePrice)}
               </span>
             )}
