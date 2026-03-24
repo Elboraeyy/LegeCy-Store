@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import OrderPageClient from './OrderPageClient';
+import { requireAuth } from '@/lib/auth/guards';
 
 interface Props {
     params: Promise<{ orderId: string }>;
@@ -17,6 +18,15 @@ export default async function OrderTrackingPage({ params }: Props) {
     });
     
     if (!order) {
+        notFound();
+    }
+
+    const user = await requireAuth();
+    
+    // Security check: Ensure the order belongs to the logged-in user
+    const isOwner = order.userId === user.id || (!order.userId && order.customerEmail === user.email);
+    if (!isOwner) {
+        // 404 is safer to not leak order existence.
         notFound();
     }
 

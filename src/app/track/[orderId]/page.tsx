@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import TrackOrderClient from "./TrackOrderClient";
 import prisma from "@/lib/prisma";
 import { getLoyaltySettings } from "@/lib/services/loyaltyService";
+import { requireAuth } from '@/lib/auth/guards';
 
 interface Props {
   params: Promise<{ orderId: string }>;
@@ -69,6 +70,7 @@ async function getOrder(orderId: string) {
 
   return {
     id: order.id,
+    userId: order.userId,
     orderNumber: order.orderNumber,
     status: order.status,
     createdAt: order.createdAt.toISOString(),
@@ -120,6 +122,14 @@ export default async function TrackOrderPage({ params }: Props) {
 
   if (!order) {
     notFound();
+  }
+
+  const user = await requireAuth();
+
+  // Security check: Ensure the order belongs to the logged-in user
+  const isOwner = order.userId === user.id || (!order.userId && order.customerEmail === user.email);
+  if (!isOwner) {
+      notFound();
   }
 
   return <TrackOrderClient order={order} isLoyaltyEnabled={loyaltySettings.enabled} />;

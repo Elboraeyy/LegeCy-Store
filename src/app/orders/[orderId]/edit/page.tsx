@@ -46,7 +46,8 @@ export default async function CustomerEditOrderPage({ params }: PageProps) {
     }
 
     // Security check: Ensure the order belongs to the logged-in user
-    if (order.userId !== user.id) {
+    const isOwner = order.userId === user.id || (!order.userId && order.customerEmail === user.email);
+    if (!isOwner) {
         // If not the owner, redirect or 404. 
         // 404 is safer to not leak order existence.
         return notFound();
