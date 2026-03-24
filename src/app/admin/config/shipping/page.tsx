@@ -102,7 +102,7 @@ export default function ShippingSettingsPage() {
         updateZoneCities(index, [...currentCities, {
             governorate: selection.governorate,
             city: selection.city,
-            rate: selection.rate || zone.rate // Use zone rate as default if not specified
+            rate: selection.rate ?? zone.rate // Use zone rate as default if not specified
         }]);
 
         // Reset adding state for this zone
