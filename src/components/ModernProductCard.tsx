@@ -85,7 +85,7 @@ export default function ModernProductCard({ product, priority = false, compact =
                     {/* Badges (Top Left) */}
                     <div className="absolute top-4 left-4 flex flex-col gap-1 z-10">
                         {isOnSale && (
-                            <span className="px-2 py-0.5 text-[10px] font-bold text-[#12403C] bg-[#FCF8F3] rounded-full uppercase shadow-sm">
+                            <span className="px-2.5 py-1 text-[10px] font-extrabold text-[#12403C] bg-[#FCF8F3] rounded-full uppercase shadow-sm tracking-tight border border-[#12403C]/5">
                                 -{salePercent}%
                             </span>
                         )}
@@ -150,12 +150,12 @@ export default function ModernProductCard({ product, priority = false, compact =
                     <h3 className="text-[11px] md:text-[13px] font-medium text-[#12403C] leading-snug line-clamp-2 min-h-[2.5em] mb-1 cursor-pointer">
                         {product.name}
                     </h3>
-                    <div className="flex flex-row items-baseline gap-1 md:gap-1.5 flex-nowrap overflow-hidden w-full">
-                        <span className="text-[clamp(12px,4vw,15px)] md:text-[16px] font-bold text-[#12403C] whitespace-nowrap flex-shrink-0">
+                    <div className="flex flex-row items-baseline gap-1.5 md:gap-2 flex-nowrap overflow-hidden w-full mt-0.5">
+                        <span className="text-[clamp(13px,4.5vw,16px)] md:text-[17px] font-bold text-[#12403C] whitespace-nowrap flex-shrink-0 tracking-tight">
                             {formatPrice(displayPrice)}
                         </span>
                         {isOnSale && displayComparePrice && (
-                            <span className="text-[clamp(10px,2.8vw,12px)] md:text-[12px] text-gray-400 line-through whitespace-nowrap truncate min-w-0">
+                            <span className="text-[clamp(10px,3vw,12px)] md:text-[13px] text-gray-400 line-through decoration-gray-400/50 whitespace-nowrap underline-offset-[3px] truncate min-w-0">
                                 {formatPrice(displayComparePrice)}
                             </span>
                         )}

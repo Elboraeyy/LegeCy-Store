@@ -269,9 +269,9 @@ function MobileImageCarousel({
       </motion.div>
 
       {/* Badges Mobile */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2.5 pointer-events-none">
         {isOnSale && (
-          <span className="product-badge sale-badge !relative !top-auto !left-auto rounded-full">
+          <span className="px-3 py-1.5 bg-[#FCF8F3] text-[#12403C] text-xs font-extrabold rounded-full shadow-md uppercase tracking-tight border border-[#12403C]/5">
             -{salePercent}%
           </span>
         )}
@@ -702,7 +702,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
 
                 {/* Badges Desktop */}
                 {isOnSale && (
-                  <span className="product-badge sale-badge">-{salePercent}%</span>
+                  <span className="absolute top-6 left-6 z-10 px-3.5 py-1.5 bg-[#FCF8F3] text-[#12403C] text-[13px] font-extrabold rounded-full shadow-lg uppercase tracking-tight border border-[#12403C]/10">
+                    -{salePercent}%
+                  </span>
                 )}
                   {isNew && !isOnSale && !isOutOfStock && (
                     <span className="product-badge" style={{ backgroundColor: '#12403C', color: 'white' }}>{t.product.new_arrival}</span>
@@ -809,14 +811,27 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               </div>
             )}
 
-            {/* Price */}
-            <div className="detail-price-block">
-                <span className="detail-price-large">{formatPrice(displayPrice)}</span>
+            {/* Price Block: Restored original font sizes with professional layout */}
+            <div className="flex flex-wrap items-center gap-3 mb-6 bg-gray-50/50 p-4 rounded-2xl border border-gray-100/50">
+                <div className="flex flex-col">
+                  <span className="text-[28px] md:text-[36px] font-medium text-[#12403C] tracking-tight">
+                    {formatPrice(displayPrice)}
+                  </span>
+                </div>
                 {isOnSale && displayComparePrice && (
-                <>
-                    <span className="detail-price-original">{formatPrice(displayComparePrice)}</span>
-                  <span className="detail-price-save">{t.product.sale} {formatPrice(savedAmount)}</span>
-                </>
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base md:text-lg text-gray-400 line-through decoration-gray-400/60 underline-offset-[4px]">
+                      {formatPrice(displayComparePrice)}
+                    </span>
+                    <span className="px-1.5 py-0.5 bg-[#12403C] text-white text-[10px] font-bold rounded uppercase tracking-wider">
+                      {salePercent}% OFF
+                    </span>
+                  </div>
+                  <span className="text-[12px] font-medium text-[#12403C] flex items-center gap-1">
+                    {t.product.save} {formatPrice(savedAmount)}
+                  </span>
+                </div>
               )}
             </div>
 

@@ -15,7 +15,9 @@ export interface ShopProduct {
     imageUrl: string | null;
     images: string[];
     brand: string | null;
+    brandId?: string | null;
     material: string | null; // Added material slug
+    materialId?: string | null;
     strap: string | null;
     status: string;
     variantCount: number;
@@ -64,7 +66,9 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
             categoryAr: product.categoryRel?.nameAr || null,
             categorySlug: product.categoryRel?.slug || null,
             brand: product.brand?.slug || null,
+            brandId: product.brandId,
             material: product.material?.slug || null, // Map to slug for filtering
+            materialId: product.materialId,
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             // Legacy fields mapped below or handled above
@@ -262,7 +266,9 @@ export async function fetchFeaturedProducts(limit: number = 8): Promise<ShopProd
             imageUrl: product.imageUrl,
             images: product.images.map(img => img.url),
             brand: product.brand?.slug || null,
+            brandId: product.brandId,
             material: product.material?.slug || null,
+            materialId: product.materialId,
             strap: product.material?.name || null,
             status: 'active',
             variantCount: product.variants.length,

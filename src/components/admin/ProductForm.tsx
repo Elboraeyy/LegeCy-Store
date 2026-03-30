@@ -110,10 +110,18 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const [detailedDescription, setDetailedDescription] = useState(initialData?.detailedDescription || "");
     const [detailedDescriptionAr, setDetailedDescriptionAr] = useState(initialData?.detailedDescriptionAr || "");
     
-    // --- Pricing & core ---
+    // --- Pricing & core (Swap Logic: Basic Price & Discounted Price) ---
     const [sku, setSku] = useState(defaultVariant?.sku || "");
-    const [price, setPrice] = useState(defaultVariant?.price?.toString() || "");
-    const [compareAtPrice, setCompareAtPrice] = useState(initialData?.compareAtPrice?.toString() || "");
+    
+    // Intuitive Mapping:
+    // 如果有 compareAtPrice, 則 originalPrice = compareAtPrice, salePrice = price
+    // 如果没有 compareAtPrice, 則 originalPrice = price, salePrice = ""
+    const initialValues = initialData?.compareAtPrice 
+        ? { original: initialData.compareAtPrice.toString(), sale: initialData.variants?.[0]?.price?.toString() || "" }
+        : { original: initialData?.variants?.[0]?.price?.toString() || "", sale: "" };
+
+    const [originalPrice, setOriginalPrice] = useState(initialValues.original);
+    const [salePrice, setSalePrice] = useState(initialValues.sale);
     const [status, setStatus] = useState(initialData?.status || "active");
     const [categoryId, setCategoryId] = useState(initialData?.categoryId || "");
     const [brandId, setBrandId] = useState(initialData?.brandId || "");
@@ -177,8 +185,12 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         // Validation
         if (!name.trim()) { toast.error("Product name is required"); setLoading(false); return; }
         if (!sku.trim()) { toast.error("SKU is required"); setLoading(false); return; }
-        if (!price || parseFloat(price) <= 0) { toast.error("Price must be > 0"); setLoading(false); return; }
-        if (!imageUrl) { toast.error("Main image is required"); setLoading(false); return; }
+        if (!originalPrice || parseFloat(originalPrice) <= 0) { toast.error("Price must be > 0"); setLoading(false); return; }
+        if (salePrice && parseFloat(salePrice) >= parseFloat(originalPrice)) {
+            toast.error("Discounted price must be lower than original price");
+            setLoading(false);
+            return;
+        }
 
         try {
             // Prepare Common Payload
@@ -190,8 +202,9 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 detailedDescription: detailedDescription || undefined,
                 detailedDescriptionAr: detailedDescriptionAr || undefined,
                 sku,
-                price: parseFloat(price),
-                compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
+                // Resulting mapping for DB:
+                price: salePrice ? parseFloat(salePrice) : parseFloat(originalPrice),
+                compareAtPrice: salePrice ? parseFloat(originalPrice) : null,
                 costPrice: unitCost ? parseFloat(unitCost) : undefined,
                 imageUrl,
                 gallery,
@@ -521,12 +534,38 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                             <input className="form-input" value={sku} onChange={e => setSku(e.target.value)} required style={{ fontFamily: 'monospace' }} />
                         </div>
                          <div className="admin-form-group">
-                             <label className="stat-label" style={{ fontSize: '11px' }}>Selling Price (EGP)</label>
-                             <input className="form-input" type="number" value={price} onChange={e => setPrice(e.target.value)} required />
+                             <label className="stat-label" style={{ fontSize: '11px' }}>Selling Price / السعر الأساسي (EGP)</label>
+                             <input className="form-input" type="number" value={originalPrice} onChange={e => setOriginalPrice(e.target.value)} required />
                         </div>
                         <div className="admin-form-group">
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Compare At Price (Optional)</label>
-                            <input className="form-input" type="number" value={compareAtPrice} onChange={e => setCompareAtPrice(e.target.value)} />
+                            <label className="stat-label" style={{ fontSize: '11px' }}>Sale Price / السعر بعد الخصم (Optional)</label>
+                            <input className="form-input" type="number" value={salePrice} onChange={e => setSalePrice(e.target.value)} placeholder="0.00" />
+                            
+                            {/* Live Discount Preview */}
+                            {salePrice && originalPrice && parseFloat(salePrice) < parseFloat(originalPrice) && (
+                                <div className="mt-3 p-3 bg-[#FCF8F3] border border-[#12403C]/10 rounded-lg shadow-sm animate-in fade-in slide-in-from-top-1 duration-300">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[10px] font-extrabold text-[#12403C] uppercase tracking-widest">Storefront Preview</span>
+                                        <span className="px-2 py-0.5 bg-[#12403C] text-white text-[10px] font-bold rounded shadow-sm">
+                                            -{Math.round(((parseFloat(originalPrice) - parseFloat(salePrice)) / parseFloat(originalPrice)) * 100)}% OFF
+                                        </span>
+                                    </div>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-xl font-bold text-[#12403C]">
+                                            {new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(parseFloat(salePrice))}
+                                        </span>
+                                        <span className="text-sm text-gray-400 line-through decoration-gray-400/60">
+                                            {new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(parseFloat(originalPrice))}
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] text-[#12403C] font-medium mt-1.5 flex items-center gap-1">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                            <path d="M20 6L9 17l-5-5" />
+                                        </svg>
+                                        Customer saves {new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(parseFloat(originalPrice) - parseFloat(salePrice))}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                         <div className="admin-form-group">
                             <label className="stat-label" style={{ fontSize: '11px' }}>Purchase Price / سعر الشراء</label>

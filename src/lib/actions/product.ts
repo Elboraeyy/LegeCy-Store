@@ -15,7 +15,7 @@ export interface ProductInput {
     detailedDescription?: string;
     detailedDescriptionAr?: string;
     price: number;
-    compareAtPrice?: number;
+    compareAtPrice?: number | null;
     sku: string;
     imageUrl?: string; 
     gallery?: string[]; 
@@ -180,6 +180,7 @@ export async function updateProductAction(id: string, data: ProductInput) {
             brandId: data.brandId || null,
             materialId: data.materialId || null,
             supplierId: data.supplierId || null,
+            compareAtPrice: data.compareAtPrice !== undefined ? (data.compareAtPrice ? new Decimal(data.compareAtPrice) : null) : undefined,
             costPrice: data.costPrice ? new Decimal(data.costPrice) : undefined,
 
             // New Fields

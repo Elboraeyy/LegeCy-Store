@@ -115,6 +115,10 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
         ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
         : applySitewideVisual ? sitewideTier1Percent : 0;
 
+    const savedAmount = isIndividuallyOnSale
+        ? product.compareAtPrice! - product.price
+        : applySitewideVisual ? (product.price * (sitewideTier1Percent / 100)) : 0;
+
     const productName = getLocalized(product, language as "en" | "ar", "name");
     const productDesc = getLocalized(product, language as "en" | "ar", "description");
     const productCategory = getLocalized(product, language as "en" | "ar", "category");
@@ -250,7 +254,9 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
                                 ) : (
                                     <>
                                         {isOnSale && (
-                                            <span className={`${styles.badge} ${styles.badgeSale}`}>-{salePercent}%</span>
+                                            <span className="absolute top-4 left-4 z-10 px-2.5 py-1 bg-[#FCF8F3] text-[#12403C] text-[11px] font-extrabold rounded-full shadow-md uppercase tracking-tight border border-[#12403C]/5">
+                                                -{salePercent}%
+                                            </span>
                                         )}
                                         {isNew && !isOnSale && (
                                             <span className={`${styles.badge} ${styles.badgeNew}`}>{t.product.new_arrival}</span>
@@ -288,14 +294,25 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
                                 <h2 className={styles.productName}>{productName}</h2>
                             </div>
 
-                            {/* Price */}
-                            <div className={styles.priceRow}>
-                                <span className={styles.price}>{formatPrice(displayPrice)}</span>
+                            {/* Price Block: Restored original font sizes with professional layout */}
+                            <div className="flex flex-wrap items-baseline gap-2.5 mb-4 mt-1">
+                                <span className="text-[19px] md:text-[22px] font-bold text-[#12403C] tracking-tight">
+                                    {formatPrice(displayPrice)}
+                                </span>
                                 {isOnSale && displayComparePrice && (
-                                    <>
-                                        <span className={styles.comparePrice}>{formatPrice(displayComparePrice)}</span>
-                                        <span className={styles.saleBadge}>{t.product.sale} -{salePercent}%</span>
-                                    </>
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[13px] md:text-[15px] text-gray-400 line-through decoration-gray-400/60 underline-offset-[3px]">
+                                                {formatPrice(displayComparePrice)}
+                                            </span>
+                                            <span className="px-1.5 py-0.5 bg-[#12403C] text-white text-[9px] font-bold rounded uppercase tracking-wider">
+                                                {salePercent}%
+                                            </span>
+                                        </div>
+                                        <span className="text-[10px] font-medium text-[#12403C] mt-0.5">
+                                            {t.product.save} {formatPrice(savedAmount)}
+                                        </span>
+                                    </div>
                                 )}
                             </div>
 

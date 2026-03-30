@@ -115,7 +115,7 @@ export default React.memo(function ProductCard({ product, priority = false, hide
             ) : (
               <>
                 {isOnSale && (
-                    <span className="px-3 py-1.5 text-[10px] md:text-xs font-bold text-[#12403C] bg-[#FCF8F3] rounded-full tracking-wider uppercase">
+                  <span className="px-2.5 py-1 text-[10px] md:text-[11px] font-extrabold text-[#12403C] bg-[#FCF8F3] rounded-full tracking-tight uppercase shadow-sm border border-[#12403C]/5">
                     -{salePercent}%
                   </span>
                 )}
@@ -210,12 +210,12 @@ export default React.memo(function ProductCard({ product, priority = false, hide
             </h3>
           </div>
 
-          <div className="flex flex-row items-baseline gap-1 sm:gap-1.5 md:gap-2 mt-1.5 sm:mt-2 flex-nowrap overflow-hidden w-full">
-            <span className="text-[clamp(12px,4vw,16px)] md:text-[17px] font-bold text-[#12403C] whitespace-nowrap flex-shrink-0">
+          <div className="flex flex-row items-baseline gap-1.5 sm:gap-2 md:gap-2.5 mt-2 sm:mt-2.5 flex-nowrap overflow-hidden w-full">
+            <span className="text-[clamp(13px,4.5vw,16px)] md:text-[18px] font-bold text-[#12403C] whitespace-nowrap flex-shrink-0 tracking-tight">
               {formatPrice(displayPrice)}
             </span>
             {isOnSale && displayComparePrice && (
-              <span className="text-[clamp(10px,3vw,12px)] md:text-[13px] text-gray-400 line-through decoration-gray-400 whitespace-nowrap truncate min-w-0">
+              <span className="text-[clamp(10px,3vw,12px)] md:text-[14px] text-gray-400 line-through decoration-gray-400/50 whitespace-nowrap underline-offset-[3px] truncate min-w-0">
                 {formatPrice(displayComparePrice)}
               </span>
             )}
