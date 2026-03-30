@@ -651,10 +651,6 @@ body {
   position: relative !important;
   z-index: 50 !important;
 }
-
-.sticky-add-to-cart {
-  z-index: 40 !important;
-}
 }
 
 /* Override: Perfect Desktop Match Pill Qty (Semi-Circular) */

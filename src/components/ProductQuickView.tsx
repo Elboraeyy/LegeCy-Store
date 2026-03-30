@@ -294,13 +294,13 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
                                 <h2 className={styles.productName}>{productName}</h2>
                             </div>
 
-                            {/* Price Block: Restored original font sizes with professional layout */}
-                            <div className="flex flex-wrap items-baseline gap-2.5 mb-4 mt-1">
+                            {/* Price Block: Centered on mobile per user request */}
+                            <div className="flex flex-wrap items-baseline justify-center md:justify-start gap-2.5 mb-4 mt-1">
                                 <span className="text-[19px] md:text-[22px] font-bold text-[#12403C] tracking-tight">
                                     {formatPrice(displayPrice)}
                                 </span>
                                 {isOnSale && displayComparePrice && (
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col items-center md:items-start">
                                         <div className="flex items-center gap-2">
                                             <span className="text-[13px] md:text-[15px] text-gray-400 line-through decoration-gray-400/60 underline-offset-[3px]">
                                                 {formatPrice(displayComparePrice)}

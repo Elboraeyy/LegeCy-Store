@@ -39,7 +39,7 @@ export default function FloatingCart() {
     loadDiscount();
   }, [cart]);
 
-  // Visibility logic
+  const [bottomOffset, setBottomOffset] = useState(24); // Default bottom-6 = 24px
   const isExcludedPage =
     pathname === "/cart" ||
     pathname === "/checkout" ||
@@ -47,6 +47,32 @@ export default function FloatingCart() {
     pathname?.startsWith("/pos");
 
   const isVisible = isClient && !isExcludedPage && itemCount > 0;
+
+  // Scroll listener to avoid footer overlap
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const handleScroll = () => {
+      const footer = document.getElementById('site-footer');
+      if (footer) {
+        const footerTop = footer.getBoundingClientRect().top;
+        const windowHeight = window.innerHeight;
+        // Total distance the footer has entered the viewport from the bottom
+        const footerVisibleHeight = windowHeight - footerTop;
+        
+        // If footer is visible, push the cart up by footerVisibleHeight + 24px (original margin)
+        if (footerVisibleHeight > 0) {
+          setBottomOffset(footerVisibleHeight + 24);
+        } else {
+          setBottomOffset(24);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isVisible]);
 
   const total = Math.max(0, subtotal - sitewideDiscount);
 
@@ -63,7 +89,8 @@ export default function FloatingCart() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-6 left-4 right-4 z-[90] lg:hidden"
+          className="fixed left-4 right-4 z-[90] lg:hidden"
+          style={{ bottom: `${bottomOffset}px` }}
         >
           <Link
             href="/cart"

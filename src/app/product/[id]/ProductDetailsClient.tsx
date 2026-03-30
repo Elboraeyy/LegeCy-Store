@@ -329,7 +329,6 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewForm, setReviewForm] = useState({ name: "", rating: 5, text: "" });
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [showStickyBar, setShowStickyBar] = useState(false);
   const [showFreeShipping, setShowFreeShipping] = useState(false);
   const [shippingThreshold, setShippingThreshold] = useState("1000");
   const [notifyChannel, setNotifyChannel] = useState<'whatsapp' | 'email'>('whatsapp');
@@ -428,20 +427,6 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     loadData();
   }, [id, language]);
 
-  // Sticky bar scroll handler
-  useEffect(() => {
-    const handleScroll = () => {
-      const addToCartBtn = document.getElementById('main-add-to-cart');
-      if (addToCartBtn) {
-        const rect = addToCartBtn.getBoundingClientRect();
-        setShowStickyBar(rect.bottom < 0);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // All images
   const allImages = product ? [
@@ -811,15 +796,15 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
               </div>
             )}
 
-            {/* Price Block: Restored original font sizes with professional layout */}
-            <div className="flex flex-wrap items-center gap-3 mb-6 bg-gray-50/50 p-4 rounded-2xl border border-gray-100/50">
-                <div className="flex flex-col">
+            {/* Price Block: Centered on mobile per user request */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6 bg-gray-50/50 p-4 rounded-2xl border border-gray-100/50">
+                <div className="flex flex-col items-center md:items-start">
                   <span className="text-[28px] md:text-[36px] font-medium text-[#12403C] tracking-tight">
                     {formatPrice(displayPrice)}
                   </span>
                 </div>
                 {isOnSale && displayComparePrice && (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col items-center md:items-start gap-1">
                   <div className="flex items-center gap-2">
                     <span className="text-base md:text-lg text-gray-400 line-through decoration-gray-400/60 underline-offset-[4px]">
                       {formatPrice(displayComparePrice)}
@@ -1630,64 +1615,6 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
         )}
       </AnimatePresence>
 
-      {/* Mobile Sticky Add to Cart */}
-      <AnimatePresence>
-        {showStickyBar && (
-          <motion.div
-            className="sticky-add-to-cart"
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            exit={{ y: 100 }}
-            transition={{ type: 'spring', damping: 25 }}
-          >
-            <div className="sticky-product-info">
-              <Image
-                src={allImages[0]}
-                alt={product.name}
-                width={48}
-                height={48}
-                quality={60}
-                style={{ borderRadius: '8px', objectFit: 'cover' }}
-                loading="eager"
-              />
-              <div>
-                <span className="sticky-product-name">{product.name.length > 25 ? product.name.slice(0, 25) + '...' : product.name}</span>
-                <span className="sticky-product-price">{formatPrice(product.price)}</span>
-              </div>
-            </div>
-            <div className="sticky-actions">
-              <div className="qty-selector">
-                <button
-                  onClick={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1}
-                  className="qty-btn"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M5 12h14" />
-                  </svg>
-                </button>
-                <span className="qty-value">{quantity}</span>
-                <button
-                  onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= (product?.totalStock || 0)}
-                  className="qty-btn"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                </button>
-              </div>
-              <button
-                className="sticky-cart-btn"
-                onClick={handleBuyNow}
-                disabled={isOutOfStock}
-              >
-                {t.product.buy_now}
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }
