@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { validateAdminSession } from '@/lib/auth/session';
+import { getLowStockThreshold } from '@/lib/utils/inventory-utils';
 
 export async function GET() {
     try {
@@ -37,7 +38,8 @@ export async function GET() {
         const transformed = products.map(p => ({
             ...p,
             category: p.categoryRel,
-            categoryId: p.categoryRel?.id || p.categoryId
+            categoryId: p.categoryRel?.id || p.categoryId,
+            threshold: getLowStockThreshold(p.specs)
         }));
 
         console.log(`[Products API] Fetched ${products.length} products`);

@@ -31,6 +31,7 @@ interface ProductWithStock {
         price: number;
     }[];
     totalStock: number;
+    threshold: number;
 }
 
 const formatCurrency = (amount: number) => {
@@ -89,7 +90,8 @@ export default function ProductsPage() {
                 categoryName: p.category?.name || null,
                 variants: p.variants.map(v => ({ id: v.id, sku: v.sku, price: Number(v.price) })),
                 totalStock: p.variants.reduce((acc, v) => 
-                    acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0)
+                    acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0),
+                threshold: (p as any).threshold ?? 3
             }));
             
             setProducts(transformed);
@@ -115,7 +117,7 @@ export default function ProductsPage() {
         
         let matchesStock = true;
         if (stockFilter === 'in_stock') matchesStock = product.totalStock > 0;
-        else if (stockFilter === 'low_stock') matchesStock = product.totalStock > 0 && product.totalStock < 10;
+        else if (stockFilter === 'low_stock') matchesStock = product.totalStock > 0 && product.totalStock <= product.threshold;
         else if (stockFilter === 'out_of_stock') matchesStock = product.totalStock === 0;
 
         const matchesCategory = !categoryFilter || product.categoryId === categoryFilter;
@@ -464,10 +466,10 @@ export default function ProductsPage() {
                                                 fontSize: '12px',
                                                 fontWeight: 600,
                                                 background: product.totalStock > 0 
-                                                    ? (product.totalStock < 10 ? 'rgba(183, 110, 0, 0.1)' : 'rgba(22, 101, 52, 0.1)') 
+                                                    ? (product.totalStock <= product.threshold ? 'rgba(183, 110, 0, 0.1)' : 'rgba(22, 101, 52, 0.1)') 
                                                     : 'rgba(153, 27, 27, 0.1)',
                                                 color: product.totalStock > 0 
-                                                    ? (product.totalStock < 10 ? '#b76e00' : '#166534') 
+                                                    ? (product.totalStock <= product.threshold ? '#b76e00' : '#166534') 
                                                     : '#991b1b'
                                             }}>
                                                 {product.totalStock > 0 ? `${product.totalStock} ${t.products.table.in_stock}` : t.products.stats.out_of_stock}
