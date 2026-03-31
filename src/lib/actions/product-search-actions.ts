@@ -16,6 +16,10 @@ export async function searchAdminProducts(query: string) {
             id: true,
             name: true,
             imageUrl: true,
+            images: {
+                take: 1,
+                select: { url: true }
+            },
             variants: {
                 select: {
                     id: true,
@@ -45,6 +49,10 @@ export async function searchAdminProducts(query: string) {
             id: true,
             name: true,
             imageUrl: true,
+            images: {
+                take: 1,
+                select: { url: true }
+            },
             variants: {
                 select: {
                     id: true,

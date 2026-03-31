@@ -54,6 +54,15 @@ export interface ProductInput {
         waterResistance?: string;
         case?: string;
         hourMarkers?: string;
+        
+        // Sourcing metrics
+        supplierPrice?: number;
+        additionalCosts?: number;
+        purchaseDate?: string;
+        invoiceNumber?: string;
+        warehouseId?: string;
+        lowStockThreshold?: number;
+        videoUrl?: string;
     };
 }
 
@@ -64,6 +73,18 @@ export async function fetchCategories(): Promise<{ id: string; name: string }[]>
         select: { id: true, name: true }
     });
     return categories;
+}
+
+export async function checkSkuAvailability(sku: string, ignoreVariantId?: string): Promise<boolean> {
+    if (!sku) return true;
+    const exists = await prisma.variant.findFirst({
+        where: {
+            sku: sku,
+            ...(ignoreVariantId ? { id: { not: ignoreVariantId } } : {})
+        },
+        select: { id: true }
+    });
+    return !exists;
 }
 
 import { auditService } from '@/lib/services/auditService';

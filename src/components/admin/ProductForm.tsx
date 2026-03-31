@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ImageUpload from "@/components/admin/ImageUpload";
-import { createProductAction, updateProductAction, ProductInput, fetchCategories } from "@/lib/actions/product";
+import { createProductAction, updateProductAction, ProductInput, fetchCategories, checkSkuAvailability } from "@/lib/actions/product";
 import { fetchAllBrands } from "@/lib/actions/brand";
 import { fetchAllMaterials } from "@/lib/actions/material";
 import { fetchWarehouses } from "@/lib/actions/warehouse-actions";
@@ -31,7 +31,7 @@ interface ProductFormProps {
         detailedDescriptionAr?: string | null;
         imageUrl: string | null;
         images: { url: string }[];
-        variants: { sku: string; price: number }[]; 
+        variants: { id?: string; sku: string; price: number }[]; 
         stock?: number;
         compareAtPrice?: number | null;
         costPrice?: number | null;
@@ -40,10 +40,13 @@ interface ProductFormProps {
         brandId?: string | null;
         materialId?: string | null;
         supplierId?: string | null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        supplier?: any | null;
         showInNewArrivals?: boolean;
         showInForYou?: boolean;
         detailTags?: string[];
-        similarProducts?: { id: string }[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        similarProducts?: any[];
 
         // SEO
         slug?: string | null;
@@ -64,6 +67,13 @@ interface ProductFormProps {
             waterResistance?: string;
             case?: string;
             hourMarkers?: string;
+            supplierPrice?: number;
+            additionalCosts?: number;
+            purchaseDate?: string;
+            invoiceNumber?: string;
+            warehouseId?: string;
+            lowStockThreshold?: number;
+            videoUrl?: string;
         };
     } | null;
 }
@@ -167,14 +177,40 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     // For 'Create': we can support full procurement.
     
     const [stock, setStock] = useState(initialData?.stock?.toString() || ""); // Initial stock count
-    const [warehouseId, setWarehouseId] = useState("");
+    const [warehouseId, setWarehouseId] = useState(initialData?.specs?.warehouseId || "");
     
-    // Procurement Fields
+    // Procurement & Cost Fields
     const [supplierId, setSupplierId] = useState(initialData?.supplierId || "");
-    const [invoiceNumber, setInvoiceNumber] = useState("");
-    const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
-    const [unitCost, setUnitCost] = useState(initialData?.costPrice?.toString() || ""); 
+    const [invoiceNumber, setInvoiceNumber] = useState(initialData?.specs?.invoiceNumber || "");
+    const [supplierPrice, setSupplierPrice] = useState(initialData?.specs?.supplierPrice?.toString() || "");
+    const [additionalCosts, setAdditionalCosts] = useState(initialData?.specs?.additionalCosts?.toString() || "");
+    const [purchaseDate, setPurchaseDate] = useState(initialData?.specs?.purchaseDate || new Date().toISOString().split('T')[0]);
     
+    // SKU Validation State
+    const [skuError, setSkuError] = useState("");
+    const [isCheckingSku, setIsCheckingSku] = useState(false);
+    
+    // New Features state
+    const [lowStockThreshold, setLowStockThreshold] = useState(initialData?.specs?.lowStockThreshold?.toString() || "5");
+
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (!sku || sku === (initialData?.variants?.[0]?.sku || "")) {
+                setSkuError("");
+                return;
+            }
+            setIsCheckingSku(true);
+            const isAvailable = await checkSkuAvailability(sku, initialData?.variants?.[0]?.id);
+            if (!isAvailable) {
+                setSkuError("هذا الـ SKU مستخدم بالفعل، الرجاء اختيار واحد آخر");
+            } else {
+                setSkuError("");
+            }
+            setIsCheckingSku(false);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [sku, initialData]);
+
     const title = initialData ? "Edit Product" : "Create Product";
     const action = initialData ? "Save Changes" : "Create Product";
 
@@ -183,6 +219,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         setLoading(true);
 
         // Validation
+        if (skuError) { toast.error("Please provide a unique SKU"); setLoading(false); return; }
         if (!name.trim()) { toast.error("Product name is required"); setLoading(false); return; }
         if (!sku.trim()) { toast.error("SKU is required"); setLoading(false); return; }
         if (!originalPrice || parseFloat(originalPrice) <= 0) { toast.error("Price must be > 0"); setLoading(false); return; }
@@ -205,7 +242,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 // Resulting mapping for DB:
                 price: salePrice ? parseFloat(salePrice) : parseFloat(originalPrice),
                 compareAtPrice: salePrice ? parseFloat(originalPrice) : null,
-                costPrice: unitCost ? parseFloat(unitCost) : undefined,
+                costPrice: (parseFloat(supplierPrice || "0") + parseFloat(additionalCosts || "0")) > 0 ? (parseFloat(supplierPrice || "0") + parseFloat(additionalCosts || "0")) : undefined,
                 imageUrl,
                 gallery,
                 stock: stock ? parseInt(stock) : undefined,
@@ -242,7 +279,13 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                     glass: specs.glass || undefined,
                     waterResistance: specs.waterResistance || undefined,
                     case: specs.case || undefined,
-                    hourMarkers: specs.hourMarkers || undefined
+                    hourMarkers: specs.hourMarkers || undefined,
+                    supplierPrice: supplierPrice ? parseFloat(supplierPrice) : undefined,
+                    additionalCosts: additionalCosts ? parseFloat(additionalCosts) : undefined,
+                    purchaseDate: purchaseDate || undefined,
+                    invoiceNumber: invoiceNumber || undefined,
+                    warehouseId: warehouseId || undefined,
+                    lowStockThreshold: lowStockThreshold ? parseInt(lowStockThreshold) : undefined
                 }
             };
 
@@ -310,7 +353,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                     <Link href="/admin/products" className="admin-btn admin-btn-outline">
                         Cancel
                     </Link>
-                    <button type="submit" disabled={loading} className="admin-btn admin-btn-primary">
+                    <button type="submit" disabled={loading || !!skuError} className="admin-btn admin-btn-primary">
                         {loading ? "Saving..." : action}
                     </button>
                 </div>
@@ -344,272 +387,431 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 </button>
             </div>
 
-            <div className="admin-grid" style={{ gridTemplateColumns: '2fr 1fr', alignItems: 'start', display: activeTab === 'basic' ? 'grid' : 'none' }}>
-                {/* Basic Info Tab */}
-                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div className="admin-grid" style={{ gridTemplateColumns: '2fr 1fr', alignItems: 'start', gap: '24px', display: activeTab === 'basic' ? 'grid' : 'none', maxWidth: '1200px' }}>
+                {/* Left Column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    
+                    {/* Basic Details Card */}
                     <div className="admin-card">
-                        <h3 className="stat-label" style={{ marginBottom: '20px' }}>Product Details</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#f5f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--admin-text)' }}>Product Details</h3>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginTop: '2px' }}>Core information displayed on the storefront</p>
+                            </div>
+                        </div>
                         
                         <div className="admin-form-group">
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Product Name (English)</label>
-                            <input className="form-input" value={name} onChange={e => setName(e.target.value)} required />
+                            <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Product Name</label>
+                            <input className="form-input" value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. Classic Two-Tone Watch" style={{ fontSize: '14px', padding: '10px 14px' }} />
                         </div>
 
-                        <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px', direction: 'rtl' }}>اسم المنتج (عربي)</label>
-                            <input className="form-input" value={nameAr} onChange={e => setNameAr(e.target.value)} dir="rtl" />
+                        <div className="admin-form-group" style={{ marginTop: '20px' }}>
+                            <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Short Description</label>
+                            <textarea className="form-input" value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="A brief summary for product cards and quick views..." style={{ resize: 'vertical' }} />
                         </div>
 
-                        <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Short Description</label>
-                            <textarea className="form-input" value={description} onChange={e => setDescription(e.target.value)} rows={2} />
+                        <div className="admin-form-group" style={{ marginTop: '20px' }}>
+                            <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Detailed Description</label>
+                            <textarea className="form-input" value={detailedDescription} onChange={e => setDetailedDescription(e.target.value)} rows={8} placeholder="Full product features, inspiration, and details..." style={{ resize: 'vertical' }} />
                         </div>
-                        <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px', direction: 'rtl' }}>وصف قصير (عربي)</label>
-                            <textarea className="form-input" value={descriptionAr} onChange={e => setDescriptionAr(e.target.value)} rows={2} dir="rtl" />
+                    </div>
+
+                    {/* Specifications Card */}
+                    <div className="admin-card">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#f5f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--admin-text)' }}>Technical Specifications</h3>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginTop: '2px' }}>Detailed material and sizing properties</p>
+                            </div>
                         </div>
 
-                        <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Detailed Description</label>
-                            <textarea className="form-input" value={detailedDescription} onChange={e => setDetailedDescription(e.target.value)} rows={6} />
+                        <div style={{ padding: '0 0 16px 0', borderBottom: '1px dashed #e5e7eb', marginBottom: '20px' }}>
+                            <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#12403C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>Dial & Case</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Dial Size (mm)</label>
+                                    <input className="form-input" placeholder="e.g. 40mm" value={specs.dialSize} onChange={e => setSpecs({ ...specs, dialSize: e.target.value })} />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Dial Color</label>
+                                    <input className="form-input" placeholder="e.g. Blue" value={specs.dialColor} onChange={e => setSpecs({ ...specs, dialColor: e.target.value })} />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Case Material (Detail)</label>
+                                    <input className="form-input" placeholder="e.g. 316L Stainless Steel" value={specs.case} onChange={e => setSpecs({ ...specs, case: e.target.value })} />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Case Color</label>
+                                    <input className="form-input" placeholder="e.g. Silver" value={specs.caseColor} onChange={e => setSpecs({ ...specs, caseColor: e.target.value })} />
+                                </div>
+                            </div>
                         </div>
-                         <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px', direction: 'rtl' }}>وصف تفصيلي (عربي)</label>
-                            <textarea className="form-input" value={detailedDescriptionAr} onChange={e => setDetailedDescriptionAr(e.target.value)} rows={6} dir="rtl" />
+
+                        <div style={{ padding: '0 0 16px 0', borderBottom: '1px dashed #e5e7eb', marginBottom: '20px' }}>
+                            <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#12403C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>Strap</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Strap Material</label>
+                                    <input className="form-input" placeholder="e.g. Genuine Leather" value={specs.strapMaterial} onChange={e => setSpecs({ ...specs, strapMaterial: e.target.value })} />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Strap Color</label>
+                                    <input className="form-input" placeholder="e.g. Brown" value={specs.strapColor} onChange={e => setSpecs({ ...specs, strapColor: e.target.value })} />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Strap Width</label>
+                                    <input className="form-input" placeholder="e.g. 20mm" value={specs.strapWidth} onChange={e => setSpecs({ ...specs, strapWidth: e.target.value })} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#12403C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>Hardware & Functionality</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Movement</label>
+                                    <input className="form-input" placeholder="e.g. Quartz" value={specs.movement} onChange={e => setSpecs({ ...specs, movement: e.target.value })} />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Glass Type</label>
+                                    <input className="form-input" placeholder="e.g. Sapphire Crystal" value={specs.glass} onChange={e => setSpecs({ ...specs, glass: e.target.value })} />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Water Resistance</label>
+                                    <input className="form-input" placeholder="e.g. 5 ATM" value={specs.waterResistance} onChange={e => setSpecs({ ...specs, waterResistance: e.target.value })} />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Hour Markers</label>
+                                    <input className="form-input" placeholder="e.g. Roman Numerals" value={specs.hourMarkers} onChange={e => setSpecs({ ...specs, hourMarkers: e.target.value })} />
+                                </div>
+                            </div>
                         </div>
                     </div>
                  </div>
 
+                 {/* Right Column */}
                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    
                     <div className="admin-card">
-                        <h3 className="stat-label" style={{ marginBottom: '20px' }}>Media</h3>
-                        <div className="admin-form-group">
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Main Image</label>
-                            <ImageUpload value={imageUrl ? [imageUrl] : []} onChange={setImageUrl} onRemove={() => setImageUrl("")} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#f5f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--admin-text)' }}>Media</h3>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginTop: '2px' }}>Photos of the product</p>
+                            </div>
                         </div>
-                        <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Gallery</label>
-                            <ImageUpload value={gallery} onChange={url => setGallery(c => [...c, url])} onRemove={url => setGallery(c => c.filter(i => i !== url))} />
+
+                        <div className="admin-form-group">
+                            <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Main Thumbnail Image</label>
+                            <div style={{ marginTop: '8px' }}>
+                                <ImageUpload value={imageUrl ? [imageUrl] : []} onChange={setImageUrl} onRemove={() => setImageUrl("")} />
+                            </div>
+                        </div>
+                        <div className="admin-form-group" style={{ marginTop: '24px' }}>
+                            <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Gallery Images</label>
+                            <p className="text-[11px] text-gray-500 mb-2">Drag and drop to reorder</p>
+                            <ImageUpload value={gallery} onChange={url => setGallery(c => [...c, url])} onRemove={url => setGallery(c => c.filter(i => i !== url))} onReorder={setGallery} />
                         </div>
                     </div>
 
                     <div className="admin-card">
-                         <h3 className="stat-label" style={{ marginBottom: '20px' }}>Organization</h3>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#f5f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--admin-text)' }}>Organization</h3>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginTop: '2px' }}>Categorize and classify</p>
+                            </div>
+                        </div>
+
                          <div className="admin-form-group">
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Status</label>
-                            <AdminDropdown value={status} onChange={setStatus} options={[{ value: 'active', label: 'Active' }, { value: 'draft', label: 'Draft' }, { value: 'archived', label: 'Archived' }]} />
+                            <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Visibility Status</label>
+                            <AdminDropdown value={status} onChange={setStatus} options={[{ value: 'active', label: 'Active (Public)' }, { value: 'draft', label: 'Draft (Hidden)' }, { value: 'archived', label: 'Archived' }]} />
                          </div>
                          <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Category</label>
-                            <AdminDropdown value={categoryId} onChange={setCategoryId} options={[{ value: '', label: 'None' }, ...categories.map(c => ({ value: c.id, label: c.name }))]} />
+                            <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Primary Category</label>
+                            <AdminDropdown value={categoryId} onChange={setCategoryId} options={[{ value: '', label: 'Uncategorized' }, ...categories.map(c => ({ value: c.id, label: c.name }))]} />
                          </div>
                          <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Brand</label>
-                             <AdminDropdown value={brandId} onChange={setBrandId} options={[{ value: '', label: 'None' }, ...brands.map(b => ({ value: b.id, label: b.name }))]} />
+                            <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Brand</label>
+                             <AdminDropdown value={brandId} onChange={setBrandId} options={[{ value: '', label: 'Unbranded' }, ...brands.map(b => ({ value: b.id, label: b.name }))]} />
                          </div>
                          <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Material</label>
+                            <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Material Flag</label>
                              <AdminDropdown value={materialId} onChange={setMaterialId} options={[{ value: '', label: 'None' }, ...materials.map(m => ({ value: m.id, label: m.name }))]} />
                          </div>
-                    </div>
-
-                    <div className="admin-card">
-                        <h3 className="stat-label" style={{ marginBottom: '20px' }}>Specifications</h3>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            {/* Dial Specs */}
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Dial Size (mm)</label>
-                                <input className="form-input" placeholder="e.g. 40mm" value={specs.dialSize} onChange={e => setSpecs({ ...specs, dialSize: e.target.value })} />
-                            </div>
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Dial Color</label>
-                                <input className="form-input" placeholder="e.g. Blue" value={specs.dialColor} onChange={e => setSpecs({ ...specs, dialColor: e.target.value })} />
-                            </div>
-
-                            {/* Case Specs */}
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Case Material (Detail)</label>
-                                <input className="form-input" placeholder="e.g. 316L Stainless Steel" value={specs.case} onChange={e => setSpecs({ ...specs, case: e.target.value })} />
-                            </div>
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Case Color</label>
-                                <input className="form-input" placeholder="e.g. Silver" value={specs.caseColor} onChange={e => setSpecs({ ...specs, caseColor: e.target.value })} />
-                            </div>
-
-                            {/* Strap Specs */}
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Strap Material</label>
-                                <input className="form-input" placeholder="e.g. Genuine Leather" value={specs.strapMaterial} onChange={e => setSpecs({ ...specs, strapMaterial: e.target.value })} />
-                            </div>
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Strap Color</label>
-                                <input className="form-input" placeholder="e.g. Brown" value={specs.strapColor} onChange={e => setSpecs({ ...specs, strapColor: e.target.value })} />
-                            </div>
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Strap Width</label>
-                                <input className="form-input" placeholder="e.g. 20mm" value={specs.strapWidth} onChange={e => setSpecs({ ...specs, strapWidth: e.target.value })} />
-                            </div>
-
-                            {/* Technical Specs */}
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Movement</label>
-                                <input className="form-input" placeholder="e.g. Quartz" value={specs.movement} onChange={e => setSpecs({ ...specs, movement: e.target.value })} />
-                            </div>
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Glass Type</label>
-                                <input className="form-input" placeholder="e.g. Sapphire Crystal" value={specs.glass} onChange={e => setSpecs({ ...specs, glass: e.target.value })} />
-                            </div>
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Water Resistance</label>
-                                <input className="form-input" placeholder="e.g. 5 ATM" value={specs.waterResistance} onChange={e => setSpecs({ ...specs, waterResistance: e.target.value })} />
-                            </div>
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Hour Markers</label>
-                                <input className="form-input" placeholder="e.g. Roman Numerals" value={specs.hourMarkers} onChange={e => setSpecs({ ...specs, hourMarkers: e.target.value })} />
-                            </div>
-                        </div>
                     </div>
                  </div>
             </div>
 
             {/* Merchandising Tab */}
-            <div style={{ display: activeTab === 'merchandising' ? 'block' : 'none', maxWidth: '800px' }}>
+            <div style={{ display: activeTab === 'merchandising' ? 'grid' : 'none', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '24px', alignItems: 'start' }}>
                 <div className="admin-card">
-                    <h3 className="stat-label" style={{ marginBottom: '20px' }}>Visibility & Recommendation</h3>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                        <label className="admin-checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', border: '1px solid var(--admin-border)', borderRadius: '8px' }}>
-                            <input type="checkbox" checked={showInNewArrivals} onChange={e => setShowInNewArrivals(e.target.checked)} />
+                    <h3 className="stat-label flex items-center gap-2 mb-6" style={{ marginBottom: '24px' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                        Platform Visibility
+                    </h3>
+
+                    <div className="space-y-4" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '16px', border: '1px solid var(--admin-border)', borderRadius: '12px', cursor: 'pointer', background: 'var(--admin-card-bg)', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+                            <div style={{ marginTop: '2px' }}>
+                                <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: '#12403C' }} checked={showInNewArrivals} onChange={e => setShowInNewArrivals(e.target.checked)} />
+                            </div>
                             <div>
-                                <div style={{ fontWeight: 600 }}>Show in New Arrivals</div>
-                                <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)' }}>Boost visibility on homepage</div>
+                                <div style={{ fontWeight: 600, color: 'var(--admin-text)', marginBottom: '4px' }}>Show in New Arrivals</div>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', margin: 0, lineHeight: 1.4 }}>Boost product visibility by pinning it to the Homepage New Arrivals section.</p>
                             </div>
                         </label>
 
-                        <label className="admin-checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', border: '1px solid var(--admin-border)', borderRadius: '8px' }}>
-                            <input type="checkbox" checked={showInForYou} onChange={e => setShowInForYou(e.target.checked)} />
+                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '16px', border: '1px solid var(--admin-border)', borderRadius: '12px', cursor: 'pointer', background: 'var(--admin-card-bg)', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+                            <div style={{ marginTop: '2px' }}>
+                                <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: '#12403C' }} checked={showInForYou} onChange={e => setShowInForYou(e.target.checked)} />
+                            </div>
                             <div>
-                                <div style={{ fontWeight: 600 }}>Show in &quot;For You&quot;</div>
-                                <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)' }}>Include in personalized scroll</div>
+                                <div style={{ fontWeight: 600, color: 'var(--admin-text)', marginBottom: '4px' }}>Show in &quot;For You&quot;</div>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', margin: 0, lineHeight: 1.4 }}>Include this product in the personalized recommendation algorithm.</p>
                             </div>
                         </label>
                     </div>
+                </div>
 
-                    <div className="admin-form-group" style={{ marginTop: '24px' }}>
-                        <label className="stat-label" style={{ fontSize: '11px' }}>Detail Page Tags</label>
-                        <input 
-                            className="form-input" 
-                            placeholder="e.g. Best Seller, Limited Edition, 100% Cotton" 
-                            value={detailTagsInput}
-                            onChange={e => setDetailTagsInput(e.target.value)}
-                        />
-                        <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
-                            Comma separated tags displayed on product details page.
-                        </div>
-                    </div>
+                <div className="admin-card">
+                    <h3 className="stat-label flex items-center gap-2 mb-6" style={{ marginBottom: '24px' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+                        Cross-Selling Strategy
+                    </h3>
 
-                    <div className="admin-form-group" style={{ marginTop: '24px' }}>
-                        <label className="stat-label" style={{ fontSize: '11px' }}>Similar Products (Manual Override)</label>
+                    <div className="admin-form-group">
+                        <label className="stat-label" style={{ fontSize: '11px', marginBottom: '8px', display: 'block' }}>Manually Link Similar Products</label>
+                        <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
+                            Override the automated recommendation engine. Hand-pick products that pair well to increase the average order value.
+                        </p>
+                        
                         <ProductPicker 
                             value={similarProductIds}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            initialOptions={initialData?.similarProducts?.map((p: any) => ({ label: p.name, value: p.id, image: p.imageUrl || p.images?.[0]?.url })) || []}
                             onChange={setSimilarProductIds} 
                             isMulti={true}
                         />
-                        <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
-                            Manually select related products. If empty, system will auto-recommend based on category.
-                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Sourcing Tab */}
-            <div style={{ display: activeTab === 'sourcing' ? 'block' : 'none', maxWidth: '800px' }}>
-                 <div className="admin-card">
-                    <h3 className="stat-label" style={{ marginBottom: '20px' }}>Sourcing & Pricing</h3>
+            <div style={{ display: activeTab === 'sourcing' ? 'block' : 'none', maxWidth: '1000px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                        <div className="admin-form-group">
-                            <label className="stat-label" style={{ fontSize: '11px' }}>SKU</label>
-                            <input className="form-input" value={sku} onChange={e => setSku(e.target.value)} required style={{ fontFamily: 'monospace' }} />
+                    {/* Panel 1: Inventory & Identifiers */}
+                    <div className="admin-card">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#f5f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--admin-text)' }}>Inventory & Identifiers</h3>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginTop: '2px' }}>Track stock, SKU, and physical locations</p>
+                            </div>
                         </div>
-                         <div className="admin-form-group">
-                             <label className="stat-label" style={{ fontSize: '11px' }}>Selling Price / السعر الأساسي (EGP)</label>
-                             <input className="form-input" type="number" value={originalPrice} onChange={e => setOriginalPrice(e.target.value)} required />
-                        </div>
-                        <div className="admin-form-group">
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Sale Price / السعر بعد الخصم (Optional)</label>
-                            <input className="form-input" type="number" value={salePrice} onChange={e => setSalePrice(e.target.value)} placeholder="0.00" />
-                            
-                            {/* Live Discount Preview */}
-                            {salePrice && originalPrice && parseFloat(salePrice) < parseFloat(originalPrice) && (
-                                <div className="mt-3 p-3 bg-[#FCF8F3] border border-[#12403C]/10 rounded-lg shadow-sm animate-in fade-in slide-in-from-top-1 duration-300">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-[10px] font-extrabold text-[#12403C] uppercase tracking-widest">Storefront Preview</span>
-                                        <span className="px-2 py-0.5 bg-[#12403C] text-white text-[10px] font-bold rounded shadow-sm">
-                                            -{Math.round(((parseFloat(originalPrice) - parseFloat(salePrice)) / parseFloat(originalPrice)) * 100)}% OFF
-                                        </span>
-                                    </div>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-xl font-bold text-[#12403C]">
-                                            {new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(parseFloat(salePrice))}
-                                        </span>
-                                        <span className="text-sm text-gray-400 line-through decoration-gray-400/60">
-                                            {new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(parseFloat(originalPrice))}
-                                        </span>
-                                    </div>
-                                    <p className="text-[10px] text-[#12403C] font-medium mt-1.5 flex items-center gap-1">
-                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                            <path d="M20 6L9 17l-5-5" />
-                                        </svg>
-                                        Customer saves {new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(parseFloat(originalPrice) - parseFloat(salePrice))}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                        <div className="admin-form-group">
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Purchase Price / سعر الشراء</label>
-                            <input className="form-input" type="number" placeholder="0.00" value={unitCost} onChange={e => setUnitCost(e.target.value)} />
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '24px' }}>
+                            <div className="admin-form-group" style={{ position: 'relative' }}>
+                                <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>Stock Keeping Unit (SKU)</span>
+                                    {isCheckingSku && <span style={{ color: 'var(--admin-primary)', fontSize: '10px' }}>Checking...</span>}
+                                    {!isCheckingSku && skuError && <span style={{ color: '#ef4444', fontSize: '10px' }}>{skuError}</span>}
+                                </label>
+                                <input 
+                                    className={`form-input ${skuError ? 'border-red-500 bg-red-50' : ''}`}
+                                    value={sku} 
+                                    onChange={e => setSku(e.target.value)} 
+                                    required 
+                                    placeholder="e.g., LGC-WTCH-001"
+                                    style={{ fontFamily: 'monospace', textTransform: 'uppercase', borderColor: skuError ? '#fca5a5' : undefined }} 
+                                />
+                            </div>
+
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Initial Stock Count</label>
+                                <input className="form-input" type="number" placeholder="0" value={stock} onChange={e => setStock(e.target.value)} />
+                            </div>
+
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    Low Stock Alert Threshold
+                                    <span title="System will flag the product when stock drops below this number" style={{ cursor: 'help', color: 'var(--admin-text-muted)' }}>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                                    </span>
+                                </label>
+                                <input className="form-input" type="number" placeholder="5" value={lowStockThreshold} onChange={e => setLowStockThreshold(e.target.value)} />
+                            </div>
+
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Target Warehouse</label>
+                                <AdminDropdown 
+                                    value={warehouseId} 
+                                    onChange={setWarehouseId} 
+                                    options={[{ value: '', label: 'Default Warehouse' }, ...warehouses.map(w => ({ value: w.id, label: w.name }))]} 
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Integrated Procurement Inputs */}
-                    <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid var(--admin-border)' }}>
-                        <h4 style={{ fontSize: '14px', marginBottom: '15px', color: 'var(--admin-secondary)' }}>Supplier & Costing (Optional)</h4>
-                        
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                            <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Supplier</label>
-                                <SupplierSelect value={supplierId} onChange={setSupplierId} />
+                    {/* Panel 2: Sourcing Details */}
+                    <div className="admin-card">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#f5f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="2"><path d="M12 2s-8 2-8 2v6c0 5 4 10 8 11 4-1 8-6 8-11V4s-8-2-8-2z"></path></svg>
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--admin-text)' }}>Sourcing & Procurement</h3>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginTop: '2px' }}>Where and when was this item acquired?</p>
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '24px' }}>
                             <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Invoice Number</label>
-                                <input className="form-input" placeholder="INV-001" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} />
+                                <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Supplier Origin</label>
+                                <SupplierSelect 
+                                    value={supplierId} 
+                                    initialOption={initialData?.supplier || null}
+                                    onChange={setSupplierId} 
+                                />
                             </div>
                             <div className="admin-form-group">
-                                <label className="stat-label" style={{ fontSize: '11px' }}>Purchase Date</label>
+                                <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Purchase Date</label>
                                 <input className="form-input" type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} />
                             </div>
                         </div>
-
-                         <div className="admin-form-group" style={{ marginTop: '20px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Initial Stock / Quantity Received</label>
-                            <input className="form-input" type="number" placeholder="0" value={stock} onChange={e => setStock(e.target.value)} />
-                        </div>
-                        
-                         <div className="admin-form-group" style={{ marginTop: '16px' }}>
-                            <label className="stat-label" style={{ fontSize: '11px' }}>Target Warehouse</label>
-                            <AdminDropdown 
-                                value={warehouseId} 
-                                onChange={setWarehouseId} 
-                                options={[{ value: '', label: 'Default' }, ...warehouses.map(w => ({ value: w.id, label: w.name }))]} 
-                            />
-                        </div>
                     </div>
-                 </div>
+
+                    {/* Panel 3: Pricing Strategies & Margins */}
+                    <div className="admin-card" style={{ borderTop: '4px solid var(--admin-primary)', background: '#fafafa' }}>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#fff', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12403C" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--admin-text)' }}>Pricing Strategy & Margin</h3>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginTop: '2px' }}>Configure costs and customer prices to compute profitability</p>
+                            </div>
+                        </div>
+
+                        {/* Cost Split */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '24px', paddingBottom: '24px', borderBottom: '1px dashed #e5e7eb', marginBottom: '24px' }}>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Wholesale Price</label>
+                                <div style={{ position: 'relative' }}>
+                                    <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '13px' }}>EGP</span>
+                                    <input className="form-input" style={{ paddingLeft: '40px' }} type="number" placeholder="0.00" value={supplierPrice} onChange={e => setSupplierPrice(e.target.value)} />
+                                </div>
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Additional Costs</label>
+                                <div style={{ position: 'relative' }}>
+                                    <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '13px' }}>EGP</span>
+                                    <input className="form-input" style={{ paddingLeft: '40px' }} type="number" placeholder="0.00" value={additionalCosts} onChange={e => setAdditionalCosts(e.target.value)} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Revenue Split */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '24px' }}>
+                             <div className="admin-form-group">
+                                 <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Selling Price (Original)</label>
+                                 <div style={{ position: 'relative' }}>
+                                    <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '13px' }}>EGP</span>
+                                    <input className="form-input" style={{ paddingLeft: '40px' }} type="number" value={originalPrice} onChange={e => setOriginalPrice(e.target.value)} required />
+                                 </div>
+                            </div>
+                            <div className="admin-form-group">
+                                <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Discounted Sale Price</label>
+                                <div style={{ position: 'relative' }}>
+                                    <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '13px' }}>EGP</span>
+                                    <input className="form-input" style={{ paddingLeft: '40px' }} type="number" value={salePrice} onChange={e => setSalePrice(e.target.value)} placeholder="0.00" />
+                                </div>
+                                
+                                {/* Live Discount Preview */}
+                                {salePrice && originalPrice && parseFloat(salePrice) < parseFloat(originalPrice) && (
+                                    <div className="mt-3 p-3 bg-[#FCF8F3] border border-[#12403C]/10 rounded-lg shadow-sm animate-in fade-in slide-in-from-top-1 duration-300">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-[10px] font-extrabold text-[#12403C] uppercase tracking-widest">Storefront Preview</span>
+                                            <span className="px-2 py-0.5 bg-[#12403C] text-white text-[10px] font-bold rounded shadow-sm">
+                                                -{Math.round(((parseFloat(originalPrice) - parseFloat(salePrice)) / parseFloat(originalPrice)) * 100)}% OFF
+                                            </span>
+                                        </div>
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-xl font-bold text-[#12403C]">
+                                                {new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(parseFloat(salePrice))}
+                                            </span>
+                                            <span className="text-sm text-gray-400 line-through decoration-gray-400/60">
+                                                {new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(parseFloat(originalPrice))}
+                                            </span>
+                                        </div>
+                                        <p className="text-[10px] text-[#12403C] font-medium mt-1.5 flex items-center gap-1">
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                                <path d="M20 6L9 17l-5-5" />
+                                            </svg>
+                                            Customer saves {new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', maximumFractionDigits: 0 }).format(parseFloat(originalPrice) - parseFloat(salePrice))}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Margin Calculator widget */}
+                        {(() => {
+                            const cSP = parseFloat(supplierPrice || "0");
+                            const cAC = parseFloat(additionalCosts || "0");
+                            const totalCost = cSP + cAC;
+                            const currentPrice = salePrice ? parseFloat(salePrice) : parseFloat(originalPrice || "0");
+                            const profit = currentPrice - totalCost;
+                            const margin = currentPrice > 0 ? (profit / currentPrice) * 100 : 0;
+                            
+                            return (totalCost > 0 || currentPrice > 0) ? (
+                                <div className="mt-8 p-5 bg-white border border-[#e5e7eb] rounded-xl shadow-sm">
+                                    <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-4">Profitability Summary</h4>
+                                    
+                                    <div className="flex flex-wrap items-center justify-between gap-4">
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-medium">Total Cost</p>
+                                            <p className="text-lg font-bold text-gray-900">{totalCost.toLocaleString('en-EG', { style: 'currency', currency: 'EGP' })}</p>
+                                        </div>
+                                        <div className="h-8 w-px bg-gray-200"></div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-medium">Est. Revenue</p>
+                                            <p className="text-lg font-bold text-[#12403C]">{currentPrice.toLocaleString('en-EG', { style: 'currency', currency: 'EGP' })}</p>
+                                        </div>
+                                        <div className="h-8 w-px bg-gray-200"></div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-medium">{profit >= 0 ? "Net Profit" : "Loss"}</p>
+                                            <p className={`text-xl font-black ${profit >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                                {profit >= 0 ? "+" : ""}{profit.toLocaleString('en-EG', { style: 'currency', currency: 'EGP' })}
+                                            </p>
+                                        </div>
+                                        <div className="h-8 w-px bg-gray-200"></div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-medium">Margin</p>
+                                            <p className={`text-lg font-bold ${margin >= 20 ? 'text-green-600' : margin >= 0 ? 'text-amber-500' : 'text-red-500'}`}>
+                                                {margin.toFixed(1)}%
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null;
+                        })()}
+
+                    </div>
+                </div>
             </div>
 
             {/* SEO Tab */}
@@ -666,7 +868,6 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                     </div>
                 </div>
             </div>
-
         </form>
     );
 }

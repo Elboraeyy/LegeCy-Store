@@ -25,12 +25,14 @@ export default function EquityClient({ investors }: { investors: Investor[] }) {
 
   const totalCapital = investors.reduce((sum, inv) => sum + Number(inv.netContributed), 0);
 
+  const getShare = (inv: Investor) => totalCapital > 0 ? (Number(inv.netContributed) / totalCapital) * 100 : 0;
+
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
   // Generate Conic Gradient
   let currentAngle = 0;
   const pieSegments = investors.map((inv: Investor, idx: number) => {
-    const share = Number(inv.currentShare);
+    const share = getShare(inv);
     const start = currentAngle;
     const end = currentAngle + share;
     currentAngle = end;
@@ -113,7 +115,7 @@ export default function EquityClient({ investors }: { investors: Investor[] }) {
           </div>
           <div className="text-xl font-bold text-purple-600">
             {investors.length > 0 
-              ? `${Math.max(...investors.map(i => Number(i.currentShare))).toFixed(1)}%`
+              ? `${Math.max(...investors.map(i => getShare(i))).toFixed(1)}%`
               : '0%'
             }
           </div>
@@ -159,7 +161,7 @@ export default function EquityClient({ investors }: { investors: Investor[] }) {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <span className="font-bold text-[#12403C]">
-                      {Number(inv.currentShare).toFixed(2)}%
+                      {getShare(inv).toFixed(2)}%
                     </span>
                   </td>
                 </tr>
@@ -200,7 +202,7 @@ export default function EquityClient({ investors }: { investors: Investor[] }) {
                   />
                   <span className="text-gray-700">{inv.name}</span>
                 </div>
-                <span className="font-medium">{Number(inv.currentShare).toFixed(2)}%</span>
+                <span className="font-medium">{getShare(inv).toFixed(2)}%</span>
               </div>
             ))}
           </div>

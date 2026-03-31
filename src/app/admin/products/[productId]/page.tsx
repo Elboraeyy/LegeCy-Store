@@ -22,9 +22,12 @@ export default async function EditProductPage({ params }: PageProps) {
                     inventory: true
                 }
             },
+            supplier: {
+                select: { id: true, name: true }
+            },
             images: true,
             similarProducts: {
-                select: { id: true }
+                select: { id: true, name: true, imageUrl: true, images: { take: 1, select: { url: true } } }
             }
         }
     });
@@ -53,6 +56,7 @@ export default async function EditProductPage({ params }: PageProps) {
         brandId: product.brandId,
         materialId: product.materialId,
         supplierId: product.supplierId,
+        supplier: product.supplier || null,
         images: product.images || [],
         stock: currentStock,
         showInNewArrivals: product.showInNewArrivals,

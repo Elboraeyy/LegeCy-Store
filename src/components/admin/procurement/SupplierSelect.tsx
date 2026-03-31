@@ -1,16 +1,9 @@
 "use client";
 
-// import { useState, useEffect } from "react";
-import AsyncSelect from "react-select/async";
-import { searchSuppliers } from "@/lib/actions/supplier-actions";
-// import { toast } from "sonner";
-
-interface SupplierSelectProps {
-    value: string;
-    onChange: (value: string) => void;
-    isDisabled?: boolean;
-}
-
+import { useState, useEffect } from "react";
+import AsyncCreatableSelect from "react-select/async-creatable";
+import { searchSuppliers, createQuickSupplier } from "@/lib/actions/supplier-actions";
+import { toast } from "sonner";
 import { StylesConfig, GroupBase } from "react-select";
 
 interface OptionType {
@@ -18,80 +11,101 @@ interface OptionType {
     value: string;
 }
 
-export default function SupplierSelect({ onChange, isDisabled }: SupplierSelectProps) {
-    // Value prop is unused for now as we don't have the initial label object.
-    // In a real implementation we would fetch it or pass it.
+interface SupplierSelectProps {
+    value?: string;
+    initialOption?: { id: string; name: string } | null;
+    onChange: (value: string) => void;
+    isDisabled?: boolean;
+}
+
+export default function SupplierSelect({ value, onChange, isDisabled, initialOption }: SupplierSelectProps) {
+    const formattedInitial = initialOption ? { label: initialOption.name, value: initialOption.id } : null;
+    const [selected, setSelected] = useState<OptionType | null>(formattedInitial);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (!value) setSelected(null);
+    }, [value]);
 
     const loadOptions = async (inputValue: string) => {
         const suppliers = await searchSuppliers(inputValue);
         return suppliers.map(s => ({ label: s.name, value: s.id }));
     };
 
-    /*
     const handleCreate = async (inputValue: string) => {
+        setIsLoading(true);
         try {
             const newSupplier = await createQuickSupplier(inputValue);
-            toast.success(`Supplier "${newSupplier.name}" created`);
+            toast.success(`Supplier "${newSupplier.name}" created successfully`);
+            const newlyCreatedOption = { label: newSupplier.name, value: newSupplier.id };
+            setSelected(newlyCreatedOption);
             onChange(newSupplier.id);
-            return { label: newSupplier.name, value: newSupplier.id };
         } catch (error) {
             toast.error("Failed to create supplier");
-            return null;
+        } finally {
+            setIsLoading(false);
         }
     };
-    */
 
-    // simplified styles to match admin theme
     const customStyles: StylesConfig<OptionType, false, GroupBase<OptionType>> = {
         control: (base) => ({
             ...base,
-            background: 'var(--admin-card-bg)',
-            borderColor: 'var(--admin-border)',
-            color: 'var(--admin-text)',
+            background: '#fff',
+            borderColor: '#e5e7eb',
+            borderRadius: '0.5rem',
+            padding: '4px',
+            boxShadow: 'none',
+            '&:hover': {
+                borderColor: '#12403C'
+            },
+            color: '#111827',
             fontSize: '13px'
         }),
         menu: (base) => ({
             ...base,
-            background: 'var(--admin-card-bg)',
-            border: '1px solid var(--admin-border)',
+            background: '#fff',
+            border: '1px solid #e5e7eb',
+            borderRadius: '0.5rem',
+            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+            overflow: 'hidden',
+            zIndex: 9999
         }),
         option: (base, state) => ({
             ...base,
-            backgroundColor: state.isFocused ? 'var(--admin-hover)' : 'transparent',
-            color: 'var(--admin-text)'
+            backgroundColor: state.isFocused ? '#f3f4f6' : 'transparent',
+            color: state.isFocused ? '#12403C' : '#374151',
+            cursor: 'pointer',
+            padding: '10px 14px'
         }),
         input: (base) => ({
             ...base,
-            color: 'var(--admin-text)'
+            color: '#111827'
         }),
         singleValue: (base) => ({
             ...base,
-            color: 'var(--admin-text)'
+            color: '#111827'
         })
     };
 
     return (
         <div style={{ position: 'relative' }}>
-            <AsyncSelect
+            <AsyncCreatableSelect
                 cacheOptions
                 defaultOptions
                 loadOptions={loadOptions}
+                isDisabled={isDisabled || isLoading}
+                isLoading={isLoading}
+                value={selected}
                 onChange={(newValue) => {
-                    const option = newValue as unknown as OptionType;
+                    const option = newValue as OptionType | null;
+                    setSelected(option);
                     onChange(option?.value || "");
                 }}
-                isDisabled={isDisabled}
+                onCreateOption={handleCreate}
                 styles={customStyles}
                 placeholder="Search or Select Supplier..."
-            // Note: Creatable logic requires CreatableSelect, using simpler AsyncSelect for now with assumption:
-            // If we want "Add New", we should strictly use `react-select/async-creatable`.
-            // For this step I'll stick to AsyncSelect to minimize dependencies if creatable isn't installed.
-            // If user wants to create, they probably need a button or we switch to Creatable.
+                formatCreateLabel={(inputValue) => `+ Create new supplier "${inputValue}"`}
             />
-            {/* 
-                Feature improvement: Add a small "+ New" button execution if requested. 
-                For now, simple search.
-            */}
         </div>
     );
 }

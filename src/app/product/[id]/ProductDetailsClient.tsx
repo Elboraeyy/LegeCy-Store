@@ -251,6 +251,9 @@ function MobileImageCarousel({
             className="relative h-full flex-shrink-0"
             style={{ width: `${100 / allImages.length}%` }}
           >
+            {img.match(/\.(mp4|webm|mov)$/i) || img.includes('/video/') ? (
+                <video src={img} className="object-cover w-full h-full" muted autoPlay loop playsInline onClick={onImageClick} />
+            ) : (
             <Image
               src={img}
               alt={`${productName} ${idx + 1}`}
@@ -264,6 +267,7 @@ function MobileImageCarousel({
               onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
               onClick={onImageClick}
             />
+            )}
           </div>
         ))}
       </motion.div>
@@ -667,6 +671,24 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 onMouseMove={handleMouseMove}
                 onClick={() => setShowLightbox(true)}
               >
+                {allImages[selectedImageIndex].match(/\.(mp4|webm|mov)$/i) || allImages[selectedImageIndex].includes('/video/') ? (
+                    <video
+                        src={allImages[selectedImageIndex]}
+                        className="main-product-image"
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                            transform: isZoomed ? 'scale(1.5)' : 'scale(1)',
+                            transition: isZoomed ? 'none' : 'transform 0.3s ease'
+                        }}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                    />
+                ) : (
                 <Image
                   src={allImages[selectedImageIndex]}
                   alt={getLocalized(product, language, 'name')}
@@ -684,6 +706,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                     loading="eager"
                     onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                 />
+                )}
 
                 {/* Badges Desktop */}
                 {isOnSale && (
@@ -733,6 +756,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                     className={`thumbnail-btn ${selectedImageIndex === idx ? 'active' : ''}`}
                     onClick={() => setSelectedImageIndex(idx)}
                   >
+                    {img.match(/\.(mp4|webm|mov)$/i) || img.includes('/video/') ? (
+                        <video src={img} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted playsInline />
+                    ) : (
                     <Image
                       src={img}
                       alt={`${getLocalized(product, language, 'name')} ${idx + 1}`}
@@ -743,6 +769,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                       loading="eager"
                       onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                     />
+                    )}
                   </button>
                 ))}
               </div>
@@ -1498,6 +1525,15 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
               </button>
+              {allImages[selectedImageIndex].match(/\.(mp4|webm|mov)$/i) || allImages[selectedImageIndex].includes('/video/') ? (
+                  <video
+                      src={allImages[selectedImageIndex]}
+                      style={{ objectFit: 'contain', maxHeight: '80vh', maxWidth: '100%' }}
+                      controls
+                      autoPlay
+                      playsInline
+                  />
+              ) : (
               <Image
                 src={allImages[selectedImageIndex]}
                 alt={product.name}
@@ -1508,6 +1544,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 loading="eager"
                 onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
               />
+              )}
               <button
                 className="lightbox-arrow right"
                 onClick={() => setSelectedImageIndex(Math.min(allImages.length - 1, selectedImageIndex + 1))}
@@ -1525,7 +1562,11 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                   className={`lightbox-thumb ${selectedImageIndex === idx ? 'active' : ''}`}
                   onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(idx); }}
                 >
+                  {img.match(/\.(mp4|webm|mov)$/i) || img.includes('/video/') ? (
+                      <video src={img} style={{ width: '60px', height: '60px', objectFit: 'cover' }} muted playsInline />
+                  ) : (
                   <Image src={img} alt="" width={60} height={60} quality={50} style={{ objectFit: 'cover' }} loading="eager" />
+                  )}
                 </button>
               ))}
             </div>
