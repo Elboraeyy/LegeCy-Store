@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { requireAdminPermission } from '@/lib/auth/guards';
 import { AdminPermissions } from '@/lib/auth/permissions';
+import { getLowStockProductsCount } from '@/lib/utils/inventory-utils';
 
 export interface AnalyticsData {
     // Core KPIs
@@ -178,10 +179,8 @@ export async function getAnalyticsSummary(
             orderBy: { _sum: { quantity: 'desc' } },
             take: 10
         }),
-        // Low stock count
-        prisma.inventory.count({
-            where: { available: { lt: 5 } }
-        }),
+        // Low stock count (computed separately)
+        prisma.product.count({ where: { id: 'dummy' } }),
         // Orders by status
         prisma.order.groupBy({
             by: ['status'],
@@ -604,7 +603,7 @@ export async function getAnalyticsSummary(
         recentActivity,
         
         // Alerts
-        lowStockCount,
+        lowStockCount: await getLowStockProductsCount(),
         pendingReturns,
         
         // Period comparison

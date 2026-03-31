@@ -3,6 +3,7 @@
 import prismaClient from '@/lib/prisma';
 import { validateAdminSession } from '@/lib/auth/session';
 import { revalidatePath } from 'next/cache';
+import { getLowStockThreshold } from '@/lib/utils/inventory-utils';
 
 const prisma = prismaClient!;
 
@@ -211,15 +212,17 @@ export async function generateStockAlerts() {
         const session = await validateAdminSession();
         if (!session.user) return { error: 'Unauthorized' };
 
-        // Find all inventory items below threshold
-        const lowStockItems = await prisma.inventory.findMany({
-            where: {
-                available: { lte: prisma.inventory.fields.minStock }
-            },
+        // Find all inventory items to evaluate
+        const allStockItems = await prisma.inventory.findMany({
             include: {
                 warehouse: true,
-                variant: true
+                variant: { include: { product: { select: { specs: true } } } }
             }
+        });
+
+        const lowStockItems = allStockItems.filter(inv => {
+            const threshold = getLowStockThreshold((inv.variant.product as any).specs);
+            return inv.available <= threshold;
         });
 
         let created = 0;
@@ -235,6 +238,7 @@ export async function generateStockAlerts() {
             });
 
             if (!existingAlert) {
+                const threshold = getLowStockThreshold((inv.variant.product as any).specs);
                 const alertType = inv.available === 0 ? 'OUT_OF_STOCK' : 'LOW_STOCK';
                 
                 await prisma.stockAlert.create({
@@ -242,7 +246,7 @@ export async function generateStockAlerts() {
                         warehouseId: inv.warehouseId,
                         variantId: inv.variantId,
                         alertType,
-                        threshold: inv.minStock,
+                        threshold: threshold,
                         currentStock: inv.available,
                         status: 'NEW'
                     }

@@ -3,6 +3,7 @@
 import prismaClient from '@/lib/prisma';
 import { validateAdminSession } from '@/lib/auth/session';
 import { Decimal } from '@prisma/client/runtime/library';
+import { getLowStockThreshold } from '@/lib/utils/inventory-utils';
 
 const prisma = prismaClient!;
 
@@ -172,33 +173,40 @@ export async function getLowStockReport(): Promise<LowStockItem[]> {
     try {
         await validateAdminSession();
 
-        const lowStock = await prisma.inventory.findMany({
+        const allStock = await prisma.inventory.findMany({
             where: {
-                available: { lte: prisma.inventory.fields.minStock },
+                available: { gt: 0 },
                 warehouse: { isActive: true }
             },
             include: {
                 warehouse: { select: { name: true } },
                 variant: {
                     include: {
-                        product: { select: { name: true } }
+                        product: { select: { name: true, specs: true } }
                     }
                 }
             },
-            orderBy: { available: 'asc' },
-            take: 50
+            orderBy: { available: 'asc' }
         });
 
-        return lowStock.map(inv => ({
-            variantId: inv.variantId,
-            sku: inv.variant.sku,
-            productName: inv.variant.product.name,
-            warehouseId: inv.warehouseId,
-            warehouseName: inv.warehouse.name,
-            available: inv.available,
-            minStock: inv.minStock,
-            percentage: inv.minStock > 0 ? Math.round((inv.available / inv.minStock) * 100) : 0
-        }));
+        const lowStock = allStock.filter(inv => {
+            const threshold = getLowStockThreshold((inv as any).variant.product.specs);
+            return inv.available <= threshold;
+        }).slice(0, 50);
+
+        return lowStock.map(inv => {
+            const minStock = getLowStockThreshold((inv as any).variant.product.specs);
+            return {
+                variantId: inv.variantId,
+                sku: inv.variant.sku,
+                productName: inv.variant.product.name,
+                warehouseId: inv.warehouseId,
+                warehouseName: inv.warehouse.name,
+                available: inv.available,
+                minStock,
+                percentage: minStock > 0 ? Math.round((inv.available / minStock) * 100) : 0
+            };
+        });
     } catch (error) {
         console.error('Failed to get low stock report:', error);
         return [];
@@ -214,7 +222,7 @@ export async function getWarehouseComparison(): Promise<WarehouseComparison[]> {
             include: {
                 inventory: {
                     include: {
-                        variant: { select: { price: true } }
+                        variant: { select: { price: true, product: { select: { specs: true } } } }
                     }
                 }
             }
@@ -228,7 +236,10 @@ export async function getWarehouseComparison(): Promise<WarehouseComparison[]> {
                     : Number(inv.variant.price);
                 return sum + (inv.available * price);
             }, 0);
-            const lowStockCount = wh.inventory.filter(inv => inv.available > 0 && inv.available <= inv.minStock).length;
+            const lowStockCount = wh.inventory.filter(inv => {
+                const threshold = getLowStockThreshold((inv as any).variant?.product?.specs);
+                return inv.available > 0 && inv.available <= threshold;
+            }).length;
             const outOfStockCount = wh.inventory.filter(inv => inv.available === 0).length;
             
             // Utilization score: higher = better (based on stock health)

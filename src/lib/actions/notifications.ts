@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { requireAdminPermission } from '@/lib/auth/guards';
 import { AdminPermissions } from '@/lib/auth/permissions';
+import { getLowStockProductsCount } from '@/lib/utils/inventory-utils';
 
 export interface NotificationItem {
     id: string;
@@ -23,14 +24,16 @@ export async function getNotifications(): Promise<{
 }> {
     await requireAdminPermission(AdminPermissions.ORDERS.READ);
 
-    const [pendingOrders, lowStockItems, recentOrders] = await prisma.$transaction([
+    const lowStockItems = await getLowStockProductsCount();
+
+    const [pendingOrders, _dummyLowStockItems, recentOrders] = await prisma.$transaction([
         // Count pending orders
         prisma.order.count({
             where: { status: 'pending' }
         }),
-        // Count low stock items
-        prisma.inventory.count({
-            where: { available: { lt: 5 } }
+        // Dummy count low stock items to keep transaction indices matching
+        prisma.product.count({
+            where: { id: 'dummy' }
         }),
         // Get recent pending orders for notification items
         prisma.order.findMany({

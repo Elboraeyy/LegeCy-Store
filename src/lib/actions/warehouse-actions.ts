@@ -3,6 +3,7 @@
 import prismaClient from '@/lib/prisma';
 import { validateAdminSession } from '@/lib/auth/session';
 import { revalidatePath } from 'next/cache';
+import { getLowStockThreshold } from '@/lib/utils/inventory-utils';
 
 const prisma = prismaClient!;
 
@@ -54,7 +55,12 @@ export async function fetchWarehouses(): Promise<WarehouseWithStats[]> {
             where: { isActive: true },
             include: {
                 manager: { select: { name: true } },
-                inventory: { select: { available: true, minStock: true } }
+                inventory: { 
+                    select: { 
+                        available: true, 
+                        variant: { select: { product: { select: { specs: true } } } } 
+                    } 
+                }
             },
             orderBy: { name: 'asc' }
         });
@@ -62,7 +68,10 @@ export async function fetchWarehouses(): Promise<WarehouseWithStats[]> {
         return warehouses.map(wh => {
             const totalItems = wh.inventory.length;
             const totalQuantity = wh.inventory.reduce((sum, inv) => sum + inv.available, 0);
-            const lowStockCount = wh.inventory.filter(inv => inv.available > 0 && inv.available <= inv.minStock).length;
+            const lowStockCount = wh.inventory.filter(inv => {
+                const threshold = getLowStockThreshold((inv as any).variant?.product?.specs);
+                return inv.available > 0 && inv.available <= threshold;
+            }).length;
             const outOfStockCount = wh.inventory.filter(inv => inv.available === 0).length;
 
             return {
@@ -101,7 +110,12 @@ export async function fetchWarehouseById(id: string): Promise<WarehouseWithStats
             where: { id },
             include: {
                 manager: { select: { name: true } },
-                inventory: { select: { available: true, minStock: true } }
+                inventory: { 
+                    select: { 
+                        available: true, 
+                        variant: { select: { product: { select: { specs: true } } } } 
+                    } 
+                }
             }
         });
 
@@ -109,7 +123,10 @@ export async function fetchWarehouseById(id: string): Promise<WarehouseWithStats
 
         const totalItems = wh.inventory.length;
         const totalQuantity = wh.inventory.reduce((sum, inv) => sum + inv.available, 0);
-        const lowStockCount = wh.inventory.filter(inv => inv.available > 0 && inv.available <= inv.minStock).length;
+        const lowStockCount = wh.inventory.filter(inv => {
+            const threshold = getLowStockThreshold((inv as any).variant?.product?.specs);
+            return inv.available > 0 && inv.available <= threshold;
+        }).length;
         const outOfStockCount = wh.inventory.filter(inv => inv.available === 0).length;
 
         return {

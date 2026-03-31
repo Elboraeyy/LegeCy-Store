@@ -6,6 +6,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { requireAdminPermission } from '@/lib/auth/guards';
 import { AdminPermissions } from '@/lib/auth/permissions';
 import { getDefaultWarehouseId } from '@/lib/services/orderService'; // Reusing helper
+import { getLowStockThreshold } from '@/lib/utils/inventory-utils';
 
 export interface ProductInput {
     name: string;
@@ -410,8 +411,9 @@ export async function fetchProductStats(): Promise<ProductStats> {
                     productStock += inv.available;
                 }
             }
+            const threshold = getLowStockThreshold(product.specs);
             if (productStock === 0) outOfStockCount++;
-            else if (productStock < 10) lowStockCount++;
+            else if (productStock <= threshold) lowStockCount++;
         }
 
         return {

@@ -191,7 +191,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const [isCheckingSku, setIsCheckingSku] = useState(false);
     
     // New Features state
-    const [lowStockThreshold, setLowStockThreshold] = useState(initialData?.specs?.lowStockThreshold?.toString() || "5");
+    const [lowStockThreshold, setLowStockThreshold] = useState(initialData?.specs?.lowStockThreshold?.toString() || "3");
 
     useEffect(() => {
         const timer = setTimeout(async () => {

@@ -1,6 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+import { getLowStockProductsCount } from '@/lib/utils/inventory-utils';
 
 /**
  * Decision Log Service
@@ -225,14 +226,12 @@ export async function getCEODailyBrief(): Promise<CEOBriefData> {
   const alerts: CEOBriefData['alerts'] = [];
   
   // Low stock alert
-  const lowStock = await prisma.inventory.count({
-    where: { available: { lte: 5 }, reserved: { gte: 0 } }
-  });
+  const lowStock = await getLowStockProductsCount();
   if (lowStock > 0) {
     alerts.push({
       type: 'warning',
       title: 'مخزون منخفض',
-      message: `${lowStock} منتج بمخزون 5 قطع أو أقل`
+      message: `يوجد ${lowStock} منتجات بمخزون منخفض يحتاج تدخل`
     });
   }
   
