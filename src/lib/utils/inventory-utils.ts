@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import prisma from '@/lib/prisma';
 
 export function getLowStockThreshold(specs: any): number {

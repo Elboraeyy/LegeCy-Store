@@ -81,6 +81,7 @@ export default function ProductsPage() {
                 categoryId: string | null;
                 category?: { name: string } | null;
                 variants: { id: string; sku: string; price: number; inventory: { available: number }[] }[];
+                threshold?: number;
             }) => ({
                 id: p.id,
                 name: p.name,
@@ -91,7 +92,7 @@ export default function ProductsPage() {
                 variants: p.variants.map(v => ({ id: v.id, sku: v.sku, price: Number(v.price) })),
                 totalStock: p.variants.reduce((acc, v) => 
                     acc + v.inventory.reduce((sum, i) => sum + i.available, 0), 0),
-                threshold: (p as any).threshold ?? 3
+                threshold: p.threshold ?? 3
             }));
             
             setProducts(transformed);
