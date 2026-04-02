@@ -203,14 +203,14 @@ export default React.memo(function ProductCard({ product, priority = false, hide
         </div>
 
         {/* 2. Content Area */}
-        <div className="p-2.5 sm:p-3 md:p-4 bg-white" onClick={handleCardClick}>
-          <div className="mb-1">
-            <h3 className="text-xs sm:text-[13px] md:text-[15px] font-medium text-gray-900 leading-tight line-clamp-2 min-h-[2.5em] group-hover:text-[#d4af37] transition-colors cursor-pointer">
+        <div className="p-2.5 sm:p-3 md:p-4 bg-white text-center" onClick={handleCardClick}>
+          <div className="mb-1 flex items-center justify-center min-h-[2.5em]">
+            <h3 className="text-xs sm:text-[13px] md:text-[15px] font-medium text-gray-900 leading-tight line-clamp-2 group-hover:text-[#d4af37] transition-colors cursor-pointer">
               {product.name}
             </h3>
           </div>
 
-          <div className="flex flex-row items-baseline gap-1.5 sm:gap-2 md:gap-2.5 mt-2 sm:mt-2.5 flex-nowrap overflow-hidden w-full">
+          <div className="flex flex-row items-baseline justify-center gap-1.5 sm:gap-2 md:gap-2.5 mt-2 sm:mt-2.5 flex-nowrap overflow-hidden w-full">
             <span className="text-[clamp(13px,4.5vw,16px)] md:text-[18px] font-bold text-[#12403C] whitespace-nowrap flex-shrink-0 tracking-tight">
               {formatPrice(displayPrice)}
             </span>

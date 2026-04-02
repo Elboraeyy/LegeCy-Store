@@ -146,11 +146,13 @@ export default function ModernProductCard({ product, priority = false, compact =
                 </div>
 
                 {/* 2. Info Area */}
-                <div className="p-2 md:p-3" onClick={handleCardClick}>
-                    <h3 className="text-[11px] md:text-[13px] font-medium text-[#12403C] leading-snug line-clamp-2 min-h-[2.5em] mb-1 cursor-pointer">
-                        {product.name}
-                    </h3>
-                    <div className="flex flex-row items-baseline gap-1.5 md:gap-2 flex-nowrap overflow-hidden w-full mt-0.5">
+                <div className="p-2 md:p-3 text-center" onClick={handleCardClick}>
+                    <div className="flex items-center justify-center min-h-[2.5em] mb-1">
+                        <h3 className="text-[11px] md:text-[13px] font-medium text-[#12403C] leading-snug line-clamp-2 cursor-pointer">
+                            {product.name}
+                        </h3>
+                    </div>
+                    <div className="flex flex-row items-baseline justify-center gap-1.5 md:gap-2 flex-nowrap overflow-hidden w-full mt-0.5">
                         <span className="text-[clamp(13px,4.5vw,16px)] md:text-[17px] font-bold text-[#12403C] whitespace-nowrap flex-shrink-0 tracking-tight">
                             {formatPrice(displayPrice)}
                         </span>

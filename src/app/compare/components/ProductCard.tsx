@@ -70,14 +70,15 @@ export default function ProductCard({ product, onRemove, onReplace, addToCart }:
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: "vertical",
-                    color: "var(--text)"
+                    color: "var(--text)",
+                    textAlign: "center"
                 }}>
                     <Link href={`/product/${product.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                         {product.name}
                     </Link>
                 </h3>
 
-                <div style={{ marginBottom: "16px" }}>
+                <div style={{ marginBottom: "16px", textAlign: "center" }}>
                     <p style={{ fontSize: "18px", fontWeight: "600", color: "var(--primary)", fontFamily: "var(--font-body)" }}>
                         {formatPrice(product.price)}
                     </p>
