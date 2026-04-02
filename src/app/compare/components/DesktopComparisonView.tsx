@@ -112,11 +112,13 @@ export default function DesktopComparisonView({
         return false;
     };
 
+    const internalKeysToSkip = ["additionalCosts", "lowStockThreshold", "purchaseDate", "supplierPrice", "warehouseId", "stockReorderPoint", "totalCost", "margin", "wholesalePrice"];
+
     const specKeysSet = new Set<string>();
     products.forEach(p => {
         const s = p?.specs || {};
         Object.keys(s).forEach(k => {
-            if (s[k as keyof typeof s]) specKeysSet.add(k);
+            if (s[k as keyof typeof s] && !internalKeysToSkip.includes(k)) specKeysSet.add(k);
         });
     });
     const dynamicSpecKeys = Array.from(specKeysSet);
