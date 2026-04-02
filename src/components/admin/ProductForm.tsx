@@ -10,10 +10,13 @@ import { fetchWarehouses } from "@/lib/actions/warehouse-actions";
 // import { createPurchaseInvoiceAction } from "@/lib/actions/procurement-actions"; 
 import { toast } from "sonner";
 import Link from 'next/link';
+import NextImage from "next/image";
 import '@/app/admin/admin.css';
 import AdminDropdown from '@/components/admin/ui/AdminDropdown';
 import SupplierSelect from "@/components/admin/procurement/SupplierSelect";
 import ProductPicker from "@/components/admin/ProductPicker";
+import { Reorder } from "framer-motion";
+import { GripVertical, Trash2 } from "lucide-react";
 
 interface Category {
     id: string;
@@ -47,6 +50,7 @@ interface ProductFormProps {
         detailTags?: string[];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         similarProducts?: any[];
+        orderedSimilarIds?: string[];
 
         // SEO
         slug?: string | null;
@@ -142,7 +146,17 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const [showInForYou, setShowInForYou] = useState(initialData?.showInForYou ?? true);
     // Detail tags as comma separated string for input
     const [detailTagsInput, setDetailTagsInput] = useState((initialData?.detailTags || []).join(", "));
-    const [similarProductIds, setSimilarProductIds] = useState<string[]>(initialData?.similarProducts?.map(p => p.id) || []);
+    const [similarProductIds, setSimilarProductIds] = useState<string[]>(initialData?.orderedSimilarIds && initialData.orderedSimilarIds.length > 0 ? initialData.orderedSimilarIds : (initialData?.similarProducts?.map(p => p.id) || []));
+    
+    // We need the full objects to display them in the reorderable list
+    const [similarProducts, setSimilarProducts] = useState<any[]>(() => {
+        const initial = initialData?.similarProducts || [];
+        const order = initialData?.orderedSimilarIds || [];
+        if (order && order.length > 0) {
+            return order.map((id: string) => initial.find((p: any) => p.id === id)).filter(Boolean);
+        }
+        return initial;
+    });
 
     // --- Media ---
     const [imageUrl, setImageUrl] = useState<string>(initialData?.imageUrl || "");
@@ -257,6 +271,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 showInForYou,
                 detailTags: detailTagsInput.split(",").map(t => t.trim()).filter(Boolean),
                 similarProductIds,
+                orderedSimilarIds: similarProductIds,
 
                 // SEO Fields
                 slug: slug || undefined,
@@ -600,9 +615,78 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                             value={similarProductIds}
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             initialOptions={initialData?.similarProducts?.map((p: any) => ({ label: p.name, value: p.id, image: p.imageUrl || p.images?.[0]?.url })) || []}
-                            onChange={setSimilarProductIds} 
+                            onChange={(ids) => {
+                                setSimilarProductIds(ids);
+                                // The picker doesn't give us the objects, so we need to filter/manage them
+                                // If a new ID is added, we might not have the object immediately for the list
+                                // but we can show a placeholder or wait for a fetch. 
+                                // However, usually the user just picked it, so they know what it is.
+                                // For simplicity, we'll just keep the ones we have objects for.
+                            }} 
                             isMulti={true}
                         />
+
+                        {similarProductIds.length > 0 && (
+                            <div style={{ marginTop: '24px' }}>
+                                <label className="stat-label" style={{ fontSize: '11px', marginBottom: '12px', display: 'block', color: 'var(--admin-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Adjust Display Order
+                                </label>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '16px' }}>
+                                    Drag the items below to set the exact order they appear in the &quot;Similar Products&quot; carousel.
+                                </p>
+                                
+                                <Reorder.Group 
+                                    axis="y" 
+                                    values={similarProductIds} 
+                                    onReorder={setSimilarProductIds}
+                                    style={{ display: 'flex', flexDirection: 'column', gap: '8px', listStyle: 'none', padding: 0 }}
+                                >
+                                    {similarProductIds.map((id) => {
+                                        const p = similarProducts.find(sp => sp.id === id);
+                                        return (
+                                            <Reorder.Item 
+                                                key={id} 
+                                                value={id}
+                                                style={{ 
+                                                    background: 'white', 
+                                                    border: '1px solid var(--admin-border)', 
+                                                    borderRadius: '8px', 
+                                                    padding: '10px 12px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '12px',
+                                                    cursor: 'grab'
+                                                }}
+                                                whileDrag={{ scale: 1.02, boxShadow: '0 8px 20px rgba(0,0,0,0.1)', border: '1px solid var(--admin-primary)' }}
+                                            >
+                                                <GripVertical size={16} style={{ color: '#9ca3af' }} />
+                                                {p?.imageUrl || p?.images?.[0]?.url ? (
+                                                    <div style={{ width: '32px', height: '32px', position: 'relative', borderRadius: '4px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                                                        <NextImage src={p.imageUrl || p.images[0].url} alt={p.name} fill sizes="32px" style={{ objectFit: 'cover' }} />
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ width: '32px', height: '32px', borderRadius: '4px', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                                    </div>
+                                                )}
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--admin-text)' }}>{p?.name || `Product ID: ${id.slice(0,8)}...`}</div>
+                                                </div>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSimilarProductIds(prev => prev.filter(item => item !== id));
+                                                    }}
+                                                    style={{ padding: '4px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </Reorder.Item>
+                                        );
+                                    })}
+                                </Reorder.Group>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

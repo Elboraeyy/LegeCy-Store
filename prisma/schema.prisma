@@ -305,6 +305,7 @@ model Product {
   metaTitle             String?
   metaTitleAr           String?
   slug                  String?               @unique
+  orderedSimilarIds     String[]              @default([])
   specs                 Json?
   bogoDeals             BOGOProduct[]
   bundleOptions         BundleItemProduct[]

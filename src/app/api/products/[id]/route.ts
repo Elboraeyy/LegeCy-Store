@@ -77,18 +77,33 @@ export async function GET(_: NextRequest, { params }: Params) {
       inStock: totalStock > 0,
       createdAt: product.createdAt.toISOString(),
       detailTags: product.detailTags,
+      orderedSimilarIds: (product as any).orderedSimilarIds || [],
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       specs: (product as any).specs as any, // Cast to any to avoid strict type checks on Json type
-      similarProducts: product.similarProducts.map(p => ({
-        id: p.id,
-        name: p.name,
-        imageUrl: p.imageUrl,
-        price: p.variants?.[0]?.price ? Number(p.variants[0].price) : 0,
-        compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
-        category: p.category,
-        brand: p.brand?.name,
-        detailTags: p.detailTags
-      })),
+      similarProducts: ((product as any).orderedSimilarIds && (product as any).orderedSimilarIds.length > 0)
+        ? (product as any).orderedSimilarIds
+            .map((id: string) => product.similarProducts.find(p => p.id === id))
+            .filter((p: any): p is typeof product.similarProducts[0] => !!p)
+            .map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                imageUrl: p.imageUrl,
+                price: p.variants?.[0]?.price ? Number(p.variants[0].price) : 0,
+                compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+                category: p.category,
+                brand: p.brand?.name,
+                detailTags: p.detailTags
+            }))
+        : product.similarProducts.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            imageUrl: p.imageUrl,
+            price: p.variants?.[0]?.price ? Number(p.variants[0].price) : 0,
+            compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+            category: p.category,
+            brand: p.brand?.name,
+            detailTags: p.detailTags
+          })),
     };
 
     return NextResponse.json(transformedProduct);

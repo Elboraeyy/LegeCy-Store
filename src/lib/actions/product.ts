@@ -34,6 +34,7 @@ export interface ProductInput {
     showInForYou?: boolean;
     detailTags?: string[];
     similarProductIds?: string[];
+    orderedSimilarIds?: string[];
 
     // SEO Fields
     slug?: string;
@@ -133,11 +134,12 @@ export async function createProductAction(data: ProductInput) {
                 similarProducts: data.similarProductIds ? {
                     connect: data.similarProductIds.map(id => ({ id }))
                 } : undefined,
+                orderedSimilarIds: data.orderedSimilarIds || [],
 
                 images: {
                     create: data.gallery?.map(url => ({ url })) || []
                 }
-            }
+            } as any
         });
 
 
@@ -225,12 +227,13 @@ export async function updateProductAction(id: string, data: ProductInput) {
             similarProducts: data.similarProductIds ? {
                 set: data.similarProductIds.map(sid => ({ id: sid }))
             } : undefined,
+            orderedSimilarIds: data.orderedSimilarIds || [],
 
             images: {
                 deleteMany: {},
                 create: data.gallery?.map(url => ({ url })) || []
             }
-        }
+        } as any
     });
 
     // 2. Update Default Variant
