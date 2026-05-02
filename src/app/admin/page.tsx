@@ -217,16 +217,12 @@ export default async function AdminDashboard() {
             <AdminHomeClient stats={stats} />
             
             {/* Executive Widgets */}
-            <div style={{ padding: '24px 32px 32px' }}>
+            <div className="p-4 md:p-6 lg:p-8">
                 <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 600 }}>
                     📊 Executive Overview
                 </h2>
                 
-                <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                    gap: '24px' 
-                }}>
+                <div className="admin-grid">
                     {/* Cash Position */}
                     <Link href="/admin/finance/equity" className="exec-widget" style={{ textDecoration: 'none' }}>
                         <div className="admin-card" style={{ padding: '24px', height: '100%' }}>
@@ -402,16 +398,12 @@ export default async function AdminDashboard() {
             </div>
 
             {/* Operational Insights - New Widgets */}
-            <div style={{ padding: '0 32px 32px' }}>
+            <div className="p-4 md:p-6 lg:p-8 pt-0 md:pt-0 lg:pt-0">
                 <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 600 }}>
                     🔍 Operational Insights
                 </h2>
 
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                    gap: '24px'
-                }}>
+                <div className="admin-grid">
                     <SystemHealthWidget />
                     <BatchExpiryWidget />
                     <CustomerRiskWidget />

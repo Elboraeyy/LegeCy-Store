@@ -222,12 +222,7 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
             </div>
 
             {/* Stats Cards */}
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(4, 1fr)', 
-                gap: '16px', 
-                marginBottom: '24px' 
-            }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div style={{
                     background: '#fff',
                     borderRadius: '12px',
@@ -333,7 +328,7 @@ export default function DailyOrdersClient({ orders, stats, currentDate, dateRang
             {/* Source Breakdown */}
             <div className="admin-card" style={{ marginBottom: '24px', padding: '20px' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>{t.daily?.orders_by_source || 'Orders by Source'}</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' }}>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     {Object.entries(SOURCE_CONFIG).filter(([k]) => k !== 'all').map(([key, config]) => {
                         const data = stats.sourceCounts[key] || { count: 0, revenue: 0 };
                         return (

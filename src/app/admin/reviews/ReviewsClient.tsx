@@ -111,7 +111,7 @@ export default function ReviewsClient({ reviews: initialReviews, products }: Rev
                 <div className="admin-card" style={{ marginBottom: '24px' }}>
                     <h3 className="stat-label" style={{ marginBottom: '20px' }}>{t.reviews.add_new_review || 'Add New Review'}</h3>
                     <form onSubmit={handleSubmit}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="admin-form-group">
                                 <label className="stat-label" style={{ fontSize: '11px' }}>{t.reviews.reviewer_name || 'Reviewer Name'}</label>
                                 <input
@@ -150,7 +150,7 @@ export default function ReviewsClient({ reviews: initialReviews, products }: Rev
                             />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div className="admin-form-group">
                                 <label className="stat-label" style={{ fontSize: '11px' }}>{t.reviews.product_optional || 'Product (Optional)'}</label>
                                 <AdminDropdown

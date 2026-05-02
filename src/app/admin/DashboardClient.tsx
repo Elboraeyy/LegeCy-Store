@@ -54,24 +54,14 @@ export default function DashboardClient({ initialStats, searchParams }: Dashboar
             </div>
 
             {/* Smart Insights (Static for now, could be dynamic) */}
-            <div style={{ 
-                background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', 
-                borderRadius: '12px', 
-                padding: '20px', 
-                color: 'white',
-                marginBottom: '32px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.4)'
-            }}>
+            <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl p-5 text-white mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-lg">
                 <div>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>🚀 Business Update</h3>
-                    <p style={{ margin: '8px 0 0 0', opacity: 0.9, fontSize: '14px' }}>
-                        Revenue is up <strong style={{ color: '#a5f3fc' }}>{stats.kpi.revenue.change.toFixed(1)}%</strong> compared to the previous period. Great job!
+                    <h3 className="m-0 text-lg font-semibold">🚀 Business Update</h3>
+                    <p className="m-0 mt-2 opacity-90 text-sm leading-relaxed">
+                        Revenue is up <strong className="text-cyan-200">{stats.kpi.revenue.change.toFixed(1)}%</strong> compared to the previous period. Great job!
                     </p>
                 </div>
-                <Link href="/admin/marketing" className="admin-btn" style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', backdropFilter: 'blur(10px)' }}>
+                <Link href="/admin/marketing" className="admin-btn bg-white/20 border-none text-white backdrop-blur-md whitespace-nowrap">
                     View Campaigns
                 </Link>
             </div>
@@ -80,7 +70,7 @@ export default function DashboardClient({ initialStats, searchParams }: Dashboar
 
             <ChartsSection charts={stats.charts} />
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', marginTop: '24px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                 <TopProducts products={stats.lists.topProducts} />
                 <ActivityFeed initialActivity={stats.lists.recentActivity} />
             </div>

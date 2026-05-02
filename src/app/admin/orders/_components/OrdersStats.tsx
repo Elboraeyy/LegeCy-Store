@@ -28,7 +28,7 @@ export default function OrdersStats({ stats }: OrdersStatsProps) {
     };
 
     return (
-        <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
             {/* Total Orders */}
             <div className="admin-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div className="admin-stat-card">

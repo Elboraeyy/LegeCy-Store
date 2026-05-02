@@ -800,7 +800,7 @@ function ReturnModal({
                 <div style={{ padding: '24px' }}>
                     {/* Order Info */}
                     <div style={{ marginBottom: '24px', padding: '16px', background: '#f9f9f9', borderRadius: '12px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
                                 <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase' }}>Order</div>
                                 <div style={{ fontWeight: 600 }}>#{returnItem.orderId.slice(0, 8)}</div>
@@ -821,7 +821,7 @@ function ReturnModal({
                     </div>
 
                     {/* Return Type */}
-                    <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                         <div>
                             <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', marginBottom: '8px' }}>Return Type</div>
                             <div style={{ padding: '8px 12px', background: '#e0f2f1', borderRadius: '8px', color: '#00695c', fontWeight: 600, display: 'inline-block' }}>

@@ -442,7 +442,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '32px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8">
                 {/* Left Side: Forms */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
@@ -509,7 +509,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
                             </div>
                         )}
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="admin-form-group">
                                 <label>{t.orders.create.name} *</label>
                                 <input type="text" className="form-input" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
@@ -705,7 +705,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
 
                     {/* Shipping & Meta */}
                     <div className="admin-card">
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="admin-form-group">
                                 <label>{t.orders.create.governorate} *</label>
                                 <AdminDropdown
@@ -747,7 +747,7 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
                             </div>
                         </div>
 
-                        <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
                             <div className="admin-form-group">
                                 <label>📢 {t.orders.create.order_source}</label>
                                 <AdminDropdown

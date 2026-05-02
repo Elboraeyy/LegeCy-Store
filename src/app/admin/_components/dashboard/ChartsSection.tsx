@@ -16,7 +16,7 @@ export function ChartsSection({ charts }: { charts: DashboardStats['charts'] }) 
     const statusData = useMemo(() => charts.status, [charts.status]);
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginTop: '24px' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 mt-6">
             <div className="admin-card">
                 <div className="stat-label" style={{ marginBottom: '20px' }}>Revenue Trend</div>
                 <div style={{ height: '300px', width: '100%' }}>

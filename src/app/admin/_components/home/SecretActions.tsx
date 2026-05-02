@@ -128,7 +128,7 @@ export default function SecretActions({ isOpen, onClose }: SecretActionsProps) {
                 </div>
 
                 {/* Actions Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '24px' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     {actions.map(action => (
                         <button
                             key={action.id}

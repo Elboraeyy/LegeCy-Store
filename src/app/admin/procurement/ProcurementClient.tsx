@@ -17,7 +17,7 @@ export default function ProcurementClient() {
                 </div>
             </div>
 
-            <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <Link href="/admin/procurement/suppliers" className="admin-card hover:border-accent transition-colors">
                     <h3 className="text-lg font-bold mb-2">{t.procurement?.suppliers || 'Suppliers'}</h3>
                     <p className="text-muted text-sm">{t.procurement?.suppliers_desc || 'Manage supplier database and contacts'}</p>

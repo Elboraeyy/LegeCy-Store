@@ -62,7 +62,7 @@ export function StatCard({ label, value, change, prefix = '', suffix = '', descr
 
 export function StatsGrid({ stats }: { stats: DashboardStats }) {
     return (
-        <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <StatCard 
                 label="Total Revenue" 
                 value={stats.kpi.revenue.value} 

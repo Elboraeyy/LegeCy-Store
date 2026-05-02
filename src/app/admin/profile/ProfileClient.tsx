@@ -132,7 +132,7 @@ export default function ProfileClient({ adminUser, session, stats }: ProfileClie
             </div>
 
             {/* Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <StatCard icon="🛍️" label={tp?.total_orders || 'Total Orders'} value={stats.totalOrders.toLocaleString()} />
                 <StatCard icon="📦" label={tp?.today_orders || "Today's Orders"} value={stats.todayOrders.toLocaleString()} />
                 <StatCard icon="💰" label={tp?.total_revenue || 'Total Revenue'} value={`${stats.revenueValue}K EGP`} />
@@ -140,7 +140,7 @@ export default function ProfileClient({ adminUser, session, stats }: ProfileClie
             </div>
 
             {/* Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
                 
                 {/* Left Column */}
                 <div>
@@ -150,7 +150,7 @@ export default function ProfileClient({ adminUser, session, stats }: ProfileClie
                             <span style={{ fontSize: '18px' }}>👤</span> {tp?.account_info || 'Account Information'}
                         </h3>
                         
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <InfoItem label={tp?.full_name || "Full Name"} value={adminUser.name || (tp?.not_set || 'Not set')} />
                             <InfoItem label={tp?.email_address || "Email Address"} value={adminUser.email} />
                             <InfoItem label={tp?.role || "Role"} value={roleName} />

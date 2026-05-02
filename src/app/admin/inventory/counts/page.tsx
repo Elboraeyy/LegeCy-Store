@@ -167,7 +167,7 @@ export default function StockCountsPage() {
 
             {/* Stats Dashboard */}
             {stats && (
-                <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '32px' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div className="admin-card" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
                         <div style={{ position: 'absolute', top: '16px', right: '16px', fontSize: '32px', opacity: 0.15 }}>📋</div>
                         <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>

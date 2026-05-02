@@ -59,12 +59,7 @@ export default function AdminLoginPage() {
     const message = loginState?.message;
 
     return (
-        <div className="admin-auth-container" style={{ 
-            minHeight: '100vh', 
-            display: 'grid', 
-            gridTemplateColumns: '1fr 2fr',
-            background: '#FCF8F3'
-        }}>
+        <div className="admin-auth-container grid grid-cols-1 md:grid-cols-[1fr_2fr] min-h-screen bg-[#FCF8F3]">
             {/* Mobile Responsive Styles */}
             <style jsx global>{`
                 @keyframes fadeIn {

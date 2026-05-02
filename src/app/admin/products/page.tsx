@@ -214,7 +214,7 @@ export default function ProductsPage() {
 
             {/* Stats Dashboard */}
             {stats && (
-                <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '28px' }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-7">
                     <div className="admin-card" style={{ padding: '22px' }}>
                         <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                             {t.products.stats.total_products}

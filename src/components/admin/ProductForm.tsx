@@ -403,7 +403,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 </button>
             </div>
 
-            <div className="admin-grid" style={{ gridTemplateColumns: '2fr 1fr', alignItems: 'start', gap: '24px', display: activeTab === 'basic' ? 'grid' : 'none', maxWidth: '1200px' }}>
+            <div className={`grid grid-cols-1 lg:grid-cols-[2fr_1fr] items-start gap-6 max-w-[1200px] ${activeTab === 'basic' ? '' : 'hidden'}`}>
                 {/* Left Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     
@@ -449,7 +449,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
                         <div style={{ padding: '0 0 16px 0', borderBottom: '1px dashed #e5e7eb', marginBottom: '20px' }}>
                             <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#12403C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>Dial & Case</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="admin-form-group">
                                     <label className="stat-label" style={{ fontSize: '11px' }}>Dial Size (mm)</label>
                                     <input className="form-input" placeholder="e.g. 40mm" value={specs.dialSize} onChange={e => setSpecs({ ...specs, dialSize: e.target.value })} />
@@ -471,7 +471,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
                         <div style={{ padding: '0 0 16px 0', borderBottom: '1px dashed #e5e7eb', marginBottom: '20px' }}>
                             <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#12403C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>Strap</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 <div className="admin-form-group">
                                     <label className="stat-label" style={{ fontSize: '11px' }}>Strap Material</label>
                                     <input className="form-input" placeholder="e.g. Genuine Leather" value={specs.strapMaterial} onChange={e => setSpecs({ ...specs, strapMaterial: e.target.value })} />
@@ -489,7 +489,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
                         <div>
                             <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#12403C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>Hardware & Functionality</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="admin-form-group">
                                     <label className="stat-label" style={{ fontSize: '11px' }}>Movement</label>
                                     <input className="form-input" placeholder="e.g. Quartz" value={specs.movement} onChange={e => setSpecs({ ...specs, movement: e.target.value })} />
@@ -570,7 +570,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             </div>
 
             {/* Merchandising Tab */}
-            <div style={{ display: activeTab === 'merchandising' ? 'grid' : 'none', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '24px', alignItems: 'start' }}>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 items-start ${activeTab === 'merchandising' ? '' : 'hidden'}`}>
                 <div className="admin-card">
                     <h3 className="stat-label flex items-center gap-2 mb-6" style={{ marginBottom: '24px' }}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
@@ -708,7 +708,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '24px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="admin-form-group" style={{ position: 'relative' }}>
                                 <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
                                     <span>Stock Keeping Unit (SKU)</span>
@@ -763,7 +763,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '24px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="admin-form-group">
                                 <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Supplier Origin</label>
                                 <SupplierSelect 
@@ -792,7 +792,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                         </div>
 
                         {/* Cost Split */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '24px', paddingBottom: '24px', borderBottom: '1px dashed #e5e7eb', marginBottom: '24px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-dashed border-gray-200 mb-6">
                             <div className="admin-form-group">
                                 <label className="stat-label" style={{ fontSize: '11px', fontWeight: 600 }}>Wholesale Price</label>
                                 <div style={{ position: 'relative' }}>

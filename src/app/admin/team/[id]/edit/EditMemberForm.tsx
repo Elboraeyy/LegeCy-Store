@@ -106,7 +106,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                         <span>👤</span> {t.team.form.basic_info}
                 </h3>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
                                 {t.team.form.full_name} *
@@ -174,7 +174,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                         <span>📋</span> {t.team.form.personal_info}
                 </h3>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
                                 {t.team.form.national_id}
@@ -239,7 +239,7 @@ export default function EditMemberForm({ member, roles }: Props) {
                         <span>💼</span> {t.team.form.work_info}
                 </h3>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '6px', color: '#555' }}>
                                 {t.team.form.position}

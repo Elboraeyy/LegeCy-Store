@@ -128,7 +128,7 @@ export default function ReportsPage() {
                                     📊 {t.inventory.reports.valuation.title}
                             </h2>
                             
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '24px' }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                                 <div style={{ textAlign: 'center', padding: '20px', background: 'var(--admin-surface-light)', borderRadius: '12px' }}>
                                     <div style={{ fontSize: '32px', fontWeight: 700, color: 'var(--admin-text-on-light)' }}>
                                         {valuation.totalSKUs}
@@ -203,7 +203,7 @@ export default function ReportsPage() {
                     )}
 
                     {/* Two Column Layout */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         {/* Low Stock Items */}
                         <div className="admin-card">
                             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>

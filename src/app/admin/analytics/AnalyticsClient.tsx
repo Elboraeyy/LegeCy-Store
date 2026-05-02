@@ -125,7 +125,7 @@ export default function AnalyticsClient({
 
             {/* Alerts Row */}
             {(data.lowStockCount > 0 || data.pendingReturns > 0) && (
-                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
                     {data.lowStockCount > 0 && (
                         <AlertCard 
                             type="warning"
@@ -185,7 +185,7 @@ export default function AnalyticsClient({
                 </Link>
             </div>
             <div className="admin-card" style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '40px' }}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
                     <BulletChart 
                         value={data.totalRevenue} 
                         target={targets.revenueTarget} 
@@ -210,7 +210,7 @@ export default function AnalyticsClient({
             </div>
 
             {/* Rate Gauges Section */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div className="admin-card" style={{ textAlign: 'center' }}>
                     <GaugeChart value={data.fulfillmentRate} label="Fulfillment Rate" color="#166534" />
                 </div>
@@ -282,7 +282,7 @@ export default function AnalyticsClient({
 
             {/* Period Comparison Section */}
             <div className="analytics-section-title">{language === 'ar' ? 'مقارنة الفترات' : 'Period Comparison'}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <ComparisonCard 
                     current={data.periodComparison.currentPeriod.revenue}
                     previous={data.periodComparison.previousPeriod.revenue}
@@ -393,7 +393,7 @@ export default function AnalyticsClient({
             </div>
 
             {/* Multi-Ring Progress Section */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div className="admin-card">
                     <h3 className="stat-label" style={{ marginBottom: '16px' }}>Category Performance</h3>
                     <MultiRingChart data={data.revenueByCategory.slice(0, 5).map((cat, i) => ({
@@ -455,7 +455,7 @@ export default function AnalyticsClient({
             {/* Bottom Section - Lists */}
             <div className="analytics-section-title" style={{ marginTop: '32px' }}>Performance Details</div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 {/* Top Products List */}
                 <div className="admin-card">

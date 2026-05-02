@@ -63,7 +63,7 @@ export default function ApprovalsList({ initialApprovals }: { initialApprovals: 
   }
 
   return (
-    <div className="admin-grid" style={{ gridTemplateColumns: '1fr' }}>
+    <div className="grid grid-cols-1 gap-6">
       {approvals.map(request => (
         <div key={request.id} className="admin-card">
           <div className="card-header">
@@ -77,7 +77,7 @@ export default function ApprovalsList({ initialApprovals }: { initialApprovals: 
           </div>
           
           <div style={{ padding: '16px 0', borderBottom: '1px solid var(--border-color)', marginBottom: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 24px', fontSize: '14px' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-2 sm:gap-x-6 text-sm">
               <span style={{ color: 'var(--text-secondary)' }}>Action Type:</span>
               <span style={{ fontWeight: 500 }}>{request.actionType}</span>
               

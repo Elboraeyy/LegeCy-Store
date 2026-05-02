@@ -39,46 +39,25 @@ export function AdminHeader() {
         .slice(0, 2) || 'AD';
 
     return (
-        <header className="admin-header">
+        <header className="admin-header w-full">
             {/* Search */}
-            <div style={{ flex: 1, maxWidth: '400px' }}>
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 14px',
-                    background: 'var(--admin-card)',
-                    border: '1px solid var(--admin-border)',
-                    borderRadius: 'var(--admin-radius)',
-                }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--admin-text-muted)" strokeWidth="2">
+            <div className="w-full md:max-w-[400px] flex-1">
+                <div className="flex items-center gap-2 px-3 py-2 bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[var(--admin-radius)] w-full">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--admin-text-muted)" strokeWidth="2" className="flex-shrink-0">
                         <circle cx="11" cy="11" r="8" />
                         <path d="M21 21l-4.35-4.35" />
                     </svg>
                     <input
                         type="text"
                         placeholder={t.admin.header.search_placeholder}
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            outline: 'none',
-                            color: 'var(--admin-text)',
-                            fontSize: '14px',
-                            width: '100%',
-                        }}
+                        className="bg-transparent border-none outline-none text-[var(--admin-text)] text-sm w-full min-w-0"
                     />
-                    <kbd style={{
-                        padding: '2px 6px',
-                        background: 'var(--admin-border)',
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        color: 'var(--admin-text-muted)',
-                    }}>⌘K</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-[var(--admin-border)] rounded text-[11px] text-[var(--admin-text-muted)] flex-shrink-0">⌘K</kbd>
                 </div>
             </div>
 
             {/* Right side */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div className="flex items-center justify-between w-full md:w-auto md:justify-end gap-4 mt-4 md:mt-0">
                 {/* Notifications */}
                 <button style={{
                     width: '36px',

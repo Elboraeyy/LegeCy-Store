@@ -98,13 +98,7 @@ export default function CommandDeck({ pendingOrders, todayRevenue, lowStockCount
             </div>
 
             {/* Revenue Highlight */}
-            <div className="admin-card" style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '20px',
-                background: 'var(--admin-surface-light)',
-                border: '1px solid var(--admin-border)'
-            }}>
+            <div className="admin-card flex flex-col md:flex-row items-center gap-5 bg-[var(--admin-surface-light)] border border-[var(--admin-border)]">
                 <span style={{ fontSize: '40px' }}>💰</span>
                 <div style={{ flex: 1 }}>
                     <div className="stat-label">Today&apos;s Revenue</div>

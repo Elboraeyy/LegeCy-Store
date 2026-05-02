@@ -35,7 +35,7 @@ export default async function AdminReviewsPage() {
             </div>
 
             {/* Stats */}
-            <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '24px' }}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div className="admin-card">
                     <div className="stat-label">Total Reviews</div>
                     <div className="stat-value">{stats.total}</div>

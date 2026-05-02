@@ -93,7 +93,7 @@ export default function WarehousesPage() {
                     {t.inventory.loading}
                 </div>
             ) : warehouses.length > 0 ? (
-                <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {warehouses.map((warehouse) => {
                         const color = getWarehouseTypeColor(warehouse.type);
                         return (
@@ -141,15 +141,7 @@ export default function WarehousesPage() {
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div style={{ 
-                                    display: 'grid', 
-                                    gridTemplateColumns: 'repeat(4, 1fr)', 
-                                    gap: '12px',
-                                    marginBottom: '20px',
-                                    padding: '16px',
-                                    background: 'var(--admin-surface-light)',
-                                    borderRadius: '12px'
-                                }}>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5 p-4 bg-[var(--admin-surface-light)] rounded-xl">
                                     <div style={{ textAlign: 'center' }}>
                                         <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--admin-text-on-light)' }}>
                                             {warehouse.totalItems}

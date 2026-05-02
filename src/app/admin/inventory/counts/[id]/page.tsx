@@ -197,7 +197,7 @@ export default function StockCountPage() {
                         </div>
                     </div>
 
-                    <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
                         <div style={{ textAlign: 'center', padding: '20px', background: 'var(--admin-surface-light)', borderRadius: 'var(--admin-radius-sm)' }}>
                             <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginBottom: '8px' }}>{t.inventory.counts.detail.results.total_items}</div>
                             <div style={{ fontSize: '32px', fontWeight: 700, color: 'var(--admin-text-on-light)' }}>{items.length}</div>
