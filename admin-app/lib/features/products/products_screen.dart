@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/features/products/add_product_screen.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -123,6 +124,20 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         Text('No products found', style: GoogleFonts.inter(fontSize: 16, color: AppColors.textMuted)),
                       ]))
                     : _buildGrid(),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddProductScreen()),
+          );
+          if (result == true) {
+            _loadProducts();
+          }
+        },
+        backgroundColor: AppColors.primaryDark,
+        icon: const Icon(LucideIcons.plus, color: Colors.white),
+        label: Text('Add Product', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white)),
       ),
     );
   }

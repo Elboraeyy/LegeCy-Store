@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // ── More Screen ──
 class MoreScreen extends StatelessWidget {
@@ -98,7 +99,12 @@ class MoreScreen extends StatelessWidget {
           _menuItem(context, LucideIcons.bellRing, 'Notification Settings', 'Configure push alerts', const Color(0xFF0EA5E9),
               () {}),
           _menuItem(context, LucideIcons.globe, 'Open Web Dashboard', 'legecy.store/admin', const Color(0xFF8B5CF6),
-              () {}),
+              () async {
+            final uri = Uri.parse('https://www.legecy.store/admin');
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          }),
           const SizedBox(height: 20),
 
           // Logout

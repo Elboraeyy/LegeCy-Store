@@ -20,8 +20,13 @@ class ApiConfig {
   // Orders endpoints
   static const String ordersEndpoint = '$apiPrefix/orders';
 
-  // Dashboard endpoints
+  // Dashboard & Finance endpoints
   static const String dashboardStatsEndpoint = '$apiPrefix/dashboard/stats';
+  static const String financeEndpoint = '$apiPrefix/finance';
+
+  // Products & Categories endpoints
+  static const String productsEndpoint = '$apiPrefix/products';
+  static const String categoriesEndpoint = '$apiPrefix/categories';
 
   // Inventory endpoints
   static const String inventoryEndpoint = '$apiPrefix/inventory';

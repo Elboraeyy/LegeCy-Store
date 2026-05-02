@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -547,7 +548,15 @@ class _OrderDetailPageState extends State<_OrderDetailPage> {
                   icon: LucideIcons.phone,
                   label: 'Call',
                   color: AppColors.info,
-                  onTap: () {},
+                  onTap: () async {
+                    final uri = Uri.parse('tel:$phone');
+                    final messenger = ScaffoldMessenger.of(context);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri);
+                    } else {
+                      messenger.showSnackBar(const SnackBar(content: Text('Could not open dialer')));
+                    }
+                  },
                 ),
               ),
               const SizedBox(width: 10),
@@ -556,7 +565,17 @@ class _OrderDetailPageState extends State<_OrderDetailPage> {
                   icon: LucideIcons.messageCircle,
                   label: 'WhatsApp',
                   color: const Color(0xFF25D366),
-                  onTap: () {},
+                  onTap: () async {
+                    final cleanedPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
+                    final url = 'https://wa.me/$cleanedPhone';
+                    final uri = Uri.parse(url);
+                    final messenger = ScaffoldMessenger.of(context);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    } else {
+                      messenger.showSnackBar(const SnackBar(content: Text('Could not open WhatsApp')));
+                    }
+                  },
                 ),
               ),
               const SizedBox(width: 10),
@@ -566,7 +585,12 @@ class _OrderDetailPageState extends State<_OrderDetailPage> {
                 icon: LucideIcons.printer,
                 label: 'Invoice',
                 color: AppColors.primaryDark,
-                onTap: () {},
+                onTap: () async {
+                  final uri = Uri.parse('https://www.legecy.store/admin/orders/${widget.orderId}');
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
               ),
             ),
           ],
