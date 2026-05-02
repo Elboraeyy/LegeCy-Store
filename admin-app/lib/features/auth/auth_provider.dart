@@ -23,6 +23,7 @@ class AuthProvider extends ChangeNotifier {
 
   String get displayName =>
       _user?['username'] ?? _user?['name'] ?? 'Admin';
+  String? get adminName => displayName;
   String get role => _user?['role'] ?? 'admin';
   String get initials => displayName.isNotEmpty ? displayName[0].toUpperCase() : 'A';
 

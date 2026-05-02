@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
+import 'package:admin_app/features/orders/orders_screen.dart';
+import 'package:admin_app/features/products/products_screen.dart';
 import 'package:admin_app/features/dashboard/dashboard_screen.dart';
+import 'package:admin_app/features/reports/reports_screen.dart';
+import 'package:admin_app/features/more/more_screen.dart';
 
-/// The main shell that provides bottom navigation between
-/// Dashboard, Orders, Inventory, and More.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -14,13 +16,14 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  int _currentIndex = 0;
+  int _currentIndex = 2; // Default: Home (center)
 
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const _PlaceholderScreen(title: 'Orders', icon: LucideIcons.shoppingBag),
-    const _PlaceholderScreen(title: 'Inventory', icon: LucideIcons.warehouse),
-    const _PlaceholderScreen(title: 'More', icon: LucideIcons.menu),
+  final _screens = const [
+    OrdersScreen(),
+    ProductsScreen(),
+    DashboardScreen(),
+    ReportsScreen(),
+    MoreScreen(),
   ];
 
   @override
@@ -33,23 +36,26 @@ class _HomeShellState extends State<HomeShell> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
-          border: Border(
-            top: BorderSide(
-              color: AppColors.divider,
-              width: 1,
+          border: Border(top: BorderSide(color: AppColors.cardBorder, width: 0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
-          ),
+          ],
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: SizedBox(
+            height: 68,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, LucideIcons.layoutDashboard, 'Dashboard'),
-                _buildNavItem(1, LucideIcons.shoppingBag, 'Orders'),
-                _buildNavItem(2, LucideIcons.warehouse, 'Inventory'),
-                _buildNavItem(3, LucideIcons.menu, 'More'),
+                _navItem(0, LucideIcons.shoppingBag, 'Orders'),
+                _navItem(1, LucideIcons.package2, 'Products'),
+                _homeButton(),
+                _navItem(3, LucideIcons.barChart3, 'Reports'),
+                _navItem(4, LucideIcons.menu, 'More'),
               ],
             ),
           ),
@@ -58,36 +64,36 @@ class _HomeShellState extends State<HomeShell> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = _currentIndex == index;
+  Widget _navItem(int index, IconData icon, String label) {
+    final isActive = _currentIndex == index;
     return GestureDetector(
       onTap: () => setState(() => _currentIndex = index),
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primaryDark.withValues(alpha: 0.08)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
+      child: SizedBox(
+        width: 64,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 22,
-              color: isSelected ? AppColors.primaryDark : AppColors.textMuted,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              decoration: BoxDecoration(
+                color: isActive ? AppColors.primaryDark.withValues(alpha: 0.1) : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                size: 22,
+                color: isActive ? AppColors.primaryDark : AppColors.textMuted,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color:
-                    isSelected ? AppColors.primaryDark : AppColors.textMuted,
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                color: isActive ? AppColors.primaryDark : AppColors.textMuted,
               ),
             ),
           ],
@@ -95,47 +101,32 @@ class _HomeShellState extends State<HomeShell> {
       ),
     );
   }
-}
 
-/// Temporary placeholder for screens not yet built.
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  final IconData icon;
-
-  const _PlaceholderScreen({required this.title, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 48, color: AppColors.textMuted.withValues(alpha: 0.4)),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: GoogleFonts.playfairDisplay(
-                fontSize: 24,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Coming soon',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: AppColors.textMuted,
-              ),
-            ),
-          ],
+  Widget _homeButton() {
+    final isActive = _currentIndex == 2;
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = 2),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isActive
+                ? [AppColors.primaryDark, const Color(0xFF1B4332)]
+                : [AppColors.primaryDark.withValues(alpha: 0.6), AppColors.primaryDark.withValues(alpha: 0.4)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isActive
+              ? [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))]
+              : [],
+        ),
+        child: Icon(
+          LucideIcons.layoutDashboard,
+          size: 24,
+          color: isActive ? AppColors.accent : Colors.white.withValues(alpha: 0.8),
         ),
       ),
     );

@@ -3,8 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
+import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
-import 'package:admin_app/features/dashboard/dashboard_provider.dart';
+import 'package:admin_app/features/reports/reports_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,262 +15,157 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  late DashboardProvider _dashProvider;
+  Map<String, dynamic>? _stats;
+  List<dynamic> _recentOrders = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _dashProvider = DashboardProvider();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _dashProvider.loadStats(context);
-    });
+    _loadData();
   }
 
-  @override
-  void dispose() {
-    _dashProvider.dispose();
-    super.dispose();
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+
+      final results = await Future.wait([
+        client.get('/api/admin/auth/dashboard'),
+        client.get('/api/admin/auth/orders?limit=5'),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _stats = results[0];
+          _recentOrders = (results[1]['orders'] as List<dynamic>?) ?? [];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
 
-    return ChangeNotifierProvider.value(
-      value: _dashProvider,
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: SafeArea(
-          child: RefreshIndicator(
-            color: AppColors.primaryDark,
-            onRefresh: () => _dashProvider.loadStats(context),
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                // ── Header ──
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                    child: Row(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: RefreshIndicator(
+        color: AppColors.primaryDark,
+        onRefresh: _loadData,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // App Bar
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: AppColors.surface,
+              surfaceTintColor: Colors.transparent,
+              expandedHeight: 100,
+              flexibleSpace: FlexibleSpaceBar(
+                titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                title: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Welcome back,', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w400)),
+                    Text(
+                      auth.adminName ?? 'Admin',
+                      style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: IconButton(
+                    icon: Stack(
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Welcome back,',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                auth.displayName,
-                                style: GoogleFonts.playfairDisplay(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Avatar
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryDark,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Center(
-                            child: Text(
-                              auth.initials,
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.accent,
-                              ),
+                        const Icon(LucideIcons.bell, size: 24),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: AppColors.error,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.surface, width: 1.5),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-
-                // ── Stats Cards ──
-                SliverToBoxAdapter(
-                  child: Consumer<DashboardProvider>(
-                    builder: (context, dash, _) {
-                      if (dash.isLoading) {
-                        return _buildLoadingGrid();
-                      }
-                      if (dash.error != null) {
-                        return _buildErrorCard(dash.error!);
-                      }
-                      return _buildStatsGrid(dash);
-                    },
-                  ),
-                ),
-
-                // ── Quick Actions ──
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'QUICK ACTIONS',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textMuted,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            _buildQuickAction(
-                              icon: LucideIcons.scanLine,
-                              label: 'Scan\nBarcode',
-                              color: AppColors.primaryDark,
-                              onTap: () {},
-                            ),
-                            const SizedBox(width: 12),
-                            _buildQuickAction(
-                              icon: LucideIcons.packagePlus,
-                              label: 'New\nOrder',
-                              color: AppColors.success,
-                              onTap: () {},
-                            ),
-                            const SizedBox(width: 12),
-                            _buildQuickAction(
-                              icon: LucideIcons.clipboardList,
-                              label: 'Stock\nCount',
-                              color: AppColors.info,
-                              onTap: () {},
-                            ),
-                            const SizedBox(width: 12),
-                            _buildQuickAction(
-                              icon: LucideIcons.bellRing,
-                              label: 'Alerts',
-                              color: AppColors.warning,
-                              onTap: () {},
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _NotificationsPage())),
                   ),
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildStatsGrid(DashboardProvider dash) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _StatCard(
-                  label: "TODAY'S ORDERS",
-                  value: '${dash.todayOrders}',
-                  icon: LucideIcons.shoppingBag,
-                  iconColor: AppColors.primaryDark,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _StatCard(
-                  label: "TODAY'S REVENUE",
-                  value: '${dash.todayRevenue.toStringAsFixed(0)} EGP',
-                  icon: LucideIcons.trendingUp,
-                  iconColor: AppColors.success,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _StatCard(
-                  label: 'PENDING',
-                  value: '${dash.pendingOrders}',
-                  icon: LucideIcons.clock,
-                  iconColor: AppColors.warning,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _StatCard(
-                  label: 'LOW STOCK',
-                  value: '${dash.lowStockCount}',
-                  icon: LucideIcons.alertTriangle,
-                  iconColor: AppColors.error,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  if (_isLoading)
+                    const SizedBox(height: 200, child: Center(child: CircularProgressIndicator(color: AppColors.primaryDark)))
+                  else ...[
+                    // Stats Grid (2×2)
+                    Row(
+                      children: [
+                        Expanded(child: _statCard("Today's Orders", '${_stats?['todayOrders'] ?? 0}', LucideIcons.shoppingBag, AppColors.info)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _statCard('Revenue', '${(_stats?['todayRevenue'] as num?)?.toStringAsFixed(0) ?? '0'} EGP', LucideIcons.trendingUp, AppColors.success)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: _statCard('Pending', '${_stats?['pendingOrders'] ?? 0}', LucideIcons.clock, AppColors.warning)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _statCard('Low Stock', '${_stats?['lowStockCount'] ?? 0}', LucideIcons.alertTriangle, AppColors.error)),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
-  Widget _buildLoadingGrid() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(child: _ShimmerCard()),
-              const SizedBox(width: 12),
-              Expanded(child: _ShimmerCard()),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: _ShimmerCard()),
-              const SizedBox(width: 12),
-              Expanded(child: _ShimmerCard()),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+                    // Quick Actions
+                    Text('QUICK ACTIONS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5)),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 86,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          _quickAction(LucideIcons.calendarDays, 'Daily\nReport', const Color(0xFF0EA5E9),
+                              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyReportScreen()))),
+                          _quickAction(LucideIcons.star, 'Reviews', const Color(0xFFF59E0B), () {}),
+                          _quickAction(LucideIcons.mail, 'Messages', const Color(0xFF6366F1), () {}),
+                          _quickAction(LucideIcons.barChart3, 'Analytics', const Color(0xFF8B5CF6),
+                              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen()))),
+                          _quickAction(LucideIcons.plusCircle, 'New\nProduct', const Color(0xFF10B981), () {}),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
-  Widget _buildErrorCard(String message) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.error.withValues(alpha: 0.15)),
-        ),
-        child: Row(
-          children: [
-            Icon(LucideIcons.wifiOff, color: AppColors.error, size: 22),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: GoogleFonts.inter(fontSize: 13, color: AppColors.error),
+                    // Recent Orders
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('RECENT ORDERS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5)),
+                        Text('${_recentOrders.length} orders', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    ..._recentOrders.map((order) => _recentOrderCard(order)),
+                    const SizedBox(height: 40),
+                  ],
+                ]),
               ),
             ),
           ],
@@ -278,105 +174,110 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildQuickAction({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withValues(alpha: 0.12)),
-          ),
-          child: Column(
-            children: [
-              Icon(icon, size: 24, color: color),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                  height: 1.3,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color iconColor;
-
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _statCard(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textMuted,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, size: 16, color: iconColor),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 18, color: color),
           ),
           const SizedBox(height: 12),
-          Text(
-            value,
-            style: GoogleFonts.playfairDisplay(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+          Text(value, style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const SizedBox(height: 2),
+          Text(label, style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+        ],
+      ),
+    );
+  }
+
+  Widget _quickAction(IconData icon, String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 80,
+        margin: const EdgeInsets.only(right: 10),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.12)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 22, color: color),
+            const SizedBox(height: 6),
+            Text(label, textAlign: TextAlign.center, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: color, height: 1.2)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _recentOrderCard(Map<String, dynamic> order) {
+    final status = (order['status'] ?? '').toString();
+    Color statusColor;
+    switch (status.toUpperCase()) {
+      case 'PENDING': statusColor = AppColors.warning; break;
+      case 'PROCESSING': statusColor = AppColors.info; break;
+      case 'SHIPPED': statusColor = const Color(0xFF7C3AED); break;
+      case 'DELIVERED': statusColor = AppColors.success; break;
+      case 'CANCELLED': statusColor = AppColors.error; break;
+      default: statusColor = AppColors.textMuted;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text('#${order['orderNumber'] ?? ''}', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor)),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(order['displayName'] ?? 'Guest', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
+                Text('${order['itemCount'] ?? 0} items · ${(order['totalPrice'] as num?)?.toStringAsFixed(0) ?? '0'} EGP', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              status.toUpperCase(),
+              style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: statusColor, letterSpacing: 0.5),
             ),
           ),
         ],
@@ -385,14 +286,44 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _ShimmerCard extends StatelessWidget {
+// ── Notifications Page ──
+class _NotificationsPage extends StatelessWidget {
+  const _NotificationsPage();
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 100,
-      decoration: BoxDecoration(
-        color: AppColors.shimmer.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(20),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text('Notifications', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600)),
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(LucideIcons.bellOff, size: 48, color: AppColors.accent.withValues(alpha: 0.5)),
+              ),
+              const SizedBox(height: 20),
+              Text('No new notifications', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              Text(
+                'Push notifications for new orders, reviews, and messages will appear here.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted, height: 1.5),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
