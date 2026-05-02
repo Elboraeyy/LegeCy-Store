@@ -86,8 +86,8 @@ export async function middleware(request: NextRequest) {
 
     if (securedRoutes.some(route => path.startsWith(route))) {
         
-        // Allow public admin routes (login)
-        if (path === '/admin/login' || path === '/api/admin/login') {
+        // Allow public admin routes (login — web and mobile)
+        if (path === '/admin/login' || path === '/api/admin/login' || path === '/api/admin/auth/login') {
             response.headers.set('x-request-id', requestId);
             return response;
         }
@@ -103,6 +103,13 @@ export async function middleware(request: NextRequest) {
                 );
             }
             // Let the route handler validate the session
+            return response;
+        }
+
+        // Allow mobile app requests with Bearer token (they authenticate in route handlers)
+        const authHeader = request.headers.get('Authorization');
+        if (authHeader?.startsWith('Bearer ')) {
+            response.headers.set('x-request-id', requestId);
             return response;
         }
 
