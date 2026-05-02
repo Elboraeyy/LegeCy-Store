@@ -43,12 +43,12 @@ export async function GET(request: NextRequest) {
 
             // Total active products
             prisma.product.count({
-                where: { isActive: true },
+                where: { status: 'active' },
             }),
 
-            // Low stock alerts
-            prisma.variant.count({
-                where: { stock: { lte: 5 } },
+            // Low stock alerts (available <= 5)
+            prisma.inventory.count({
+                where: { available: { lte: 5 } },
             }),
         ]);
 
