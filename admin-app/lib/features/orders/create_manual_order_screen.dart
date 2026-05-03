@@ -69,6 +69,25 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   }
 
   void _nextStep() {
+    if (_currentStep == 0) {
+      // Validate Customer Step
+      if (_nameController.text.trim().isEmpty || _phoneController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter full name and phone number')));
+        return;
+      }
+      if (_selectedGovernorate == null || _addressController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a governorate and enter detailed address')));
+        return;
+      }
+      // If city is required, we can check it, but let's stick to governorate and address for shipping minimums.
+    } else if (_currentStep == 1) {
+      // Validate Products Step
+      if (_selectedItems.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add at least one product')));
+        return;
+      }
+    }
+
     if (_currentStep < 2) {
       _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     }
