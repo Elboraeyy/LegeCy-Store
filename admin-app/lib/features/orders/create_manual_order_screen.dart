@@ -808,6 +808,10 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill required fields and add products')));
       return;
     }
+    if (_selectedGovernorate == null || _addressController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a governorate and enter an address')));
+      return;
+    }
 
     setState(() => _isSubmitting = true);
     try {
