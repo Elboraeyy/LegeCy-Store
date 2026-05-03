@@ -20,8 +20,11 @@ export async function fetchCustomers(params: {
     limit?: number;
     pageSize?: number;
     search?: string;
+    skipAuthCheck?: boolean;
 }): Promise<{ data: CustomerSummary[]; total: number; totalPages: number }> {
-    await requireAdminPermission(AdminPermissions.USERS.READ);
+    if (!params.skipAuthCheck) {
+        await requireAdminPermission(AdminPermissions.USERS.READ);
+    }
 
     const page = params.page || 1;
     const limit = params.pageSize || params.limit || 10;
@@ -77,8 +80,10 @@ export async function fetchCustomers(params: {
     };
 }
 
-export async function fetchCustomerDetails(id: string) {
-    await requireAdminPermission(AdminPermissions.USERS.READ);
+export async function fetchCustomerDetails(id: string, skipAuthCheck?: boolean) {
+    if (!skipAuthCheck) {
+        await requireAdminPermission(AdminPermissions.USERS.READ);
+    }
 
     const user = await prisma.user.findUnique({
         where: { id },

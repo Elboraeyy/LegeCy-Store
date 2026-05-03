@@ -196,7 +196,17 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
                     name: input.customer.name,
                     email: generatedEmail,
                     passwordHash: '',
-                    phone: input.customer.phone
+                    phone: input.customer.phone,
+                    addresses: {
+                        create: {
+                            name: input.customer.name,
+                            phone: input.customer.phone,
+                            street: input.shippingAddress.street,
+                            city: input.shippingAddress.city,
+                            governorate: input.shippingAddress.governorate,
+                            isDefault: true,
+                        }
+                    }
                 }
             });
             userId = newUser.id;
