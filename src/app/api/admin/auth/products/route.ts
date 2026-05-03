@@ -44,7 +44,6 @@ export async function GET(request: NextRequest) {
                     createdAt: true,
                     variants: {
                         select: { id: true, sku: true, price: true },
-                        take: 1,
                     },
                     _count: { select: { variants: true } },
                 },

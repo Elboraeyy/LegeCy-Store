@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
@@ -15,8 +16,8 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
-  int _currentIndex = 2; // Default: Home (center)
+class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
+  int _currentIndex = 2; // Default: Dashboard (center)
 
   final _screens = const [
     OrdersScreen(),
@@ -26,108 +27,155 @@ class _HomeShellState extends State<HomeShell> {
     MoreScreen(),
   ];
 
+  final List<IconData> _icons = [
+    LucideIcons.shoppingBag,
+    LucideIcons.package2,
+    LucideIcons.layoutDashboard,
+    LucideIcons.barChart3,
+    LucideIcons.menu,
+  ];
+
+  final List<String> _labels = [
+    'Orders',
+    'Products',
+    'Dashboard',
+    'Reports',
+    'More',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.cardBorder, width: 0.5)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            height: 68,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _navItem(0, LucideIcons.shoppingBag, 'Orders'),
-                _navItem(1, LucideIcons.package2, 'Products'),
-                _homeButton(),
-                _navItem(3, LucideIcons.barChart3, 'Reports'),
-                _navItem(4, LucideIcons.menu, 'More'),
+      bottomNavigationBar: _buildAnimatedNavBar(),
+    );
+  }
+
+  Widget _buildAnimatedNavBar() {
+    const primaryDark = Color(0xFF12403C);
+    const goldAccent = Color(0xFFD4AF37);
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double navBarWidth = screenWidth - 32;
+    final double itemWidth = navBarWidth / 5;
+
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          // Background Bar
+          Container(
+            height: 70,
+            decoration: BoxDecoration(
+              color: primaryDark,
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryDark.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
 
-  Widget _navItem(int index, IconData icon, String label) {
-    final isActive = _currentIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 64,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          // Moving Active Bubble Background
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOutCubic,
+            left: _currentIndex * itemWidth + (itemWidth / 2) - 34,
+            bottom: 40,
+            child: Container(
+              width: 68,
+              height: 68,
               decoration: BoxDecoration(
-                color: isActive ? AppColors.primaryDark.withValues(alpha: 0.1) : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.background,
+                shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 22,
-                color: isActive ? AppColors.primaryDark : AppColors.textMuted,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                color: isActive ? AppColors.primaryDark : AppColors.textMuted,
+              padding: const EdgeInsets.all(6),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: goldAccent,
+                  shape: BoxShape.circle,
+                ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _homeButton() {
-    final isActive = _currentIndex == 2;
-    return GestureDetector(
-      onTap: () => setState(() => _currentIndex = 2),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isActive
-                ? [AppColors.primaryDark, const Color(0xFF1B4332)]
-                : [AppColors.primaryDark.withValues(alpha: 0.6), AppColors.primaryDark.withValues(alpha: 0.4)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isActive
-              ? [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))]
-              : [],
-        ),
-        child: Icon(
-          LucideIcons.layoutDashboard,
-          size: 24,
-          color: isActive ? AppColors.accent : Colors.white.withValues(alpha: 0.8),
-        ),
+
+          // Icons Row
+          SizedBox(
+            height: 70,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(5, (index) {
+                final isActive = _currentIndex == index;
+                return GestureDetector(
+                  onTap: () {
+                    if (_currentIndex != index) {
+                      HapticFeedback.mediumImpact();
+                      setState(() => _currentIndex = index);
+                    }
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: SizedBox(
+                    width: itemWidth,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Active Icon (Floating)
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 350),
+                          curve: Curves.easeInOutCubic,
+                          bottom: isActive ? 60 : -50, // Center in the bubble
+                          child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 250),
+                            opacity: isActive ? 1.0 : 0.0,
+                            child: Icon(
+                              _icons[index],
+                              size: 28,
+                              color: primaryDark,
+                            ),
+                          ),
+                        ),
+
+                        // Inactive Icon & Label
+                        AnimatedOpacity(
+                          duration: const Duration(milliseconds: 300),
+                          opacity: isActive ? 0.0 : 1.0,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _icons[index],
+                                size: 22,
+                                color: Colors.white.withValues(alpha: 0.5),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _labels[index],
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
       ),
     );
   }

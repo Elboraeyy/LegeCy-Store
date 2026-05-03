@@ -56,9 +56,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Products', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w600)),
-        backgroundColor: AppColors.surface,
+        title: Text('Products', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
+        backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(30),
+          ),
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
           child: Padding(
@@ -69,16 +74,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   child: TextField(
                     controller: _searchController,
                     onSubmitted: (_) => _loadProducts(),
-                    style: GoogleFonts.inter(fontSize: 14),
+                    style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Search products...',
                       hintStyle: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted),
-                      prefixIcon: const Icon(LucideIcons.search, size: 18),
+                      prefixIcon: Icon(LucideIcons.search, size: 18, color: AppColors.textMuted),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFD4AF37))),
                       filled: true,
-                      fillColor: AppColors.background,
+                      fillColor: Colors.white,
                     ),
                   ),
                 ),
@@ -88,9 +94,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   icon: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppColors.background,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.cardBorder),
                     ),
                     child: Icon(LucideIcons.slidersHorizontal, size: 18, color: AppColors.textMuted),
                   ),
@@ -125,26 +130,29 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       ]))
                     : _buildGrid(),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddProductScreen()),
-          );
-          if (result == true) {
-            _loadProducts();
-          }
-        },
-        backgroundColor: AppColors.primaryDark,
-        icon: const Icon(LucideIcons.plus, color: Colors.white),
-        label: Text('Add Product', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white)),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 90),
+        child: FloatingActionButton.extended(
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddProductScreen()),
+            );
+            if (result == true) {
+              _loadProducts();
+            }
+          },
+          backgroundColor: AppColors.primaryDark,
+          icon: const Icon(LucideIcons.plus, color: Colors.white),
+          label: Text('Add Product', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white)),
+        ),
       ),
     );
   }
 
   Widget _buildGrid() {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 12,

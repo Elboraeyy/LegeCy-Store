@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/features/orders/create_manual_order_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -26,10 +27,34 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   final _statuses = [
     {'key': 'all', 'label': 'All'},
     {'key': 'pending', 'label': 'Pending'},
-    {'key': 'PROCESSING', 'label': 'Processing'},
-    {'key': 'SHIPPED', 'label': 'Shipped'},
+    {'key': 'confirmed', 'label': 'Confirmed'},
+    {'key': 'preparing', 'label': 'Preparing'},
+    {'key': 'shipped', 'label': 'Shipped'},
     {'key': 'delivered', 'label': 'Delivered'},
-    {'key': 'CANCELLED', 'label': 'Cancelled'},
+    {'key': 'cancelled', 'label': 'Cancelled'},
+  ];
+
+  final Map<String, List<String>> _allowedTransitions = {
+    'draft': ['pending', 'cancelled'],
+    'payment_pending': ['pending', 'cancelled'],
+    'pending': ['confirmed', 'paid', 'cancelled'],
+    'paid': ['confirmed', 'cancelled'],
+    'confirmed': ['preparing', 'cancelled'],
+    'preparing': ['shipped', 'cancelled'],
+    'shipped': ['delivered', 'cancelled'],
+    'delivered': ['cash_received'],
+    'cash_received': [],
+    'cancelled': [],
+    'refunded': [],
+    'payment_failed': [],
+  };
+
+  final List<String> _terminalStates = [
+    'delivered',
+    'cancelled',
+    'refunded',
+    'payment_failed',
+    'cash_received'
   ];
 
   @override
@@ -76,14 +101,24 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   }
 
   Color _statusColor(String status) {
-    switch (status.toUpperCase()) {
-      case 'PENDING': return AppColors.warning;
-      case 'PROCESSING': return AppColors.info;
-      case 'SHIPPED': return const Color(0xFF7C3AED);
-      case 'DELIVERED': return AppColors.success;
-      case 'CANCELLED': case 'REJECTED': case 'FAILED': return AppColors.error;
+    switch (status.toLowerCase()) {
+      case 'payment_pending': return const Color(0xFF7C3AED);
+      case 'pending': return const Color(0xFFB76E00);
+      case 'paid': return const Color(0xFF166534);
+      case 'confirmed': return const Color(0xFF166534);
+      case 'preparing': return const Color(0xFF0D9488);
+      case 'shipped': return const Color(0xFF1E40AF);
+      case 'delivered': return const Color(0xFF166534);
+      case 'cancelled': return const Color(0xFF991B1B);
+      case 'refunded': return const Color(0xFFCA8A04);
+      case 'payment_failed': return const Color(0xFF991B1B);
+      case 'cash_received': return const Color(0xFF166534);
       default: return AppColors.textMuted;
     }
+  }
+
+  String _statusLabel(String status) {
+    return status.replaceAll('_', ' ').toUpperCase();
   }
 
   @override
@@ -91,9 +126,14 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Orders', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w600)),
-        backgroundColor: AppColors.surface,
+        title: Text('Orders', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
+        backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(30),
+          ),
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(100),
           child: Column(
@@ -104,22 +144,23 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 child: TextField(
                   controller: _searchController,
                   onSubmitted: (_) => _loadOrders(),
-                  style: GoogleFonts.inter(fontSize: 14),
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Search by name, phone, or order #',
                     hintStyle: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted),
-                    prefixIcon: const Icon(LucideIcons.search, size: 18),
+                    prefixIcon: Icon(LucideIcons.search, size: 18, color: AppColors.textMuted),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(LucideIcons.x, size: 16),
+                            icon: const Icon(LucideIcons.x, size: 16, color: AppColors.textPrimary),
                             onPressed: () { _searchController.clear(); _loadOrders(); },
                           )
                         : null,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFD4AF37))),
                     filled: true,
-                    fillColor: AppColors.background,
+                    fillColor: Colors.white,
                   ),
                 ),
               ),
@@ -128,11 +169,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 controller: _tabController,
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,
-                labelColor: AppColors.primaryDark,
+                labelColor: const Color(0xFFD4AF37), // Gold
                 unselectedLabelColor: AppColors.textMuted,
                 labelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
                 unselectedLabelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
-                indicatorColor: AppColors.primaryDark,
+                indicatorColor: const Color(0xFFD4AF37),
                 indicatorSize: TabBarIndicatorSize.label,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 tabs: _statuses.map((s) => Tab(text: s['label'])).toList(),
@@ -152,12 +193,30 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                     ? _buildEmpty()
                     : _buildList(),
       ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 90),
+        child: FloatingActionButton.extended(
+          onPressed: _openCreateOrder,
+          backgroundColor: AppColors.primaryDark,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          icon: const Icon(LucideIcons.plus, size: 20),
+          label: Text('Manual Order', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
     );
+  }
+
+  void _openCreateOrder() {
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => const CreateManualOrderScreen(),
+    )).then((_) => _loadOrders());
   }
 
   Widget _buildList() {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
       itemCount: _orders.length,
       itemBuilder: (context, index) {
         final order = _orders[index];
@@ -184,15 +243,32 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       '#${order['orderNumber']}',
                       style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        status.toUpperCase(),
-                        style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: color, letterSpacing: 0.5),
+                    GestureDetector(
+                      onTap: () {
+                        if (!_terminalStates.contains(status.toLowerCase())) {
+                          _showStatusPicker(order);
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _statusLabel(status),
+                              style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: color, letterSpacing: 0.5),
+                            ),
+                            if (!_terminalStates.contains(status.toLowerCase())) ...[
+                              const SizedBox(width: 4),
+                              Icon(LucideIcons.chevronDown, size: 12, color: color),
+                            ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -286,8 +362,157 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
   void _openOrderDetail(String id) {
     Navigator.push(context, MaterialPageRoute(
-      builder: (_) => _OrderDetailPage(orderId: id),
+      builder: (_) => OrderDetailPage(orderId: id),
     )).then((_) => _loadOrders());
+  }
+
+  void _showStatusPicker(Map<String, dynamic> order) {
+    final currentStatus = (order['status'] ?? '').toString().toLowerCase();
+    final allowed = _allowedTransitions[currentStatus] ?? [];
+    
+    if (allowed.isEmpty) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Update Order Status',
+              style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Select the next state for order #${order['orderNumber']}',
+              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 24),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: allowed.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final status = allowed[index];
+                  final color = _statusColor(status);
+                  return InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _confirmStatusUpdate(order, status);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            _statusLabel(status),
+                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                          ),
+                          const Spacer(),
+                          Icon(LucideIcons.chevronRight, size: 18, color: AppColors.textMuted),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmStatusUpdate(Map<String, dynamic> order, String newStatus) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('Change Status?', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700)),
+        content: Text(
+          'Are you sure you want to update order #${order['orderNumber']} status from "${_statusLabel(order['status'])}" to "${_statusLabel(newStatus)}"?',
+          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _updateOrderStatus(order['id'], newStatus);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: newStatus == 'cancelled' ? AppColors.error : AppColors.primaryDark,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: Text('Confirm Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateOrderStatus(String id, String status) async {
+    setState(() => _isLoading = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.patch('/api/admin/auth/orders/$id', body: {'status': status});
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Order status updated successfully'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+      _loadOrders();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update status: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
   }
 
   String _formatDate(String? dateStr) {
@@ -298,21 +523,41 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   }
 }
 
-// ── Order Detail Page ──
-class _OrderDetailPage extends StatefulWidget {
+class OrderDetailPage extends StatefulWidget {
   final String orderId;
-  const _OrderDetailPage({required this.orderId});
+  const OrderDetailPage({super.key, required this.orderId});
 
   @override
-  State<_OrderDetailPage> createState() => _OrderDetailPageState();
+  State<OrderDetailPage> createState() => _OrderDetailPageState();
 }
 
-class _OrderDetailPageState extends State<_OrderDetailPage> {
+class _OrderDetailPageState extends State<OrderDetailPage> {
   Map<String, dynamic>? _order;
   bool _isLoading = true;
   bool _isUpdating = false;
 
-  final _statusOptions = ['pending', 'PROCESSING', 'SHIPPED', 'delivered', 'CANCELLED'];
+  final List<String> _terminalStates = [
+    'delivered',
+    'cancelled',
+    'refunded',
+    'payment_failed',
+    'cash_received'
+  ];
+
+  final Map<String, List<String>> _allowedTransitions = {
+    'draft': ['pending', 'cancelled'],
+    'payment_pending': ['pending', 'cancelled'],
+    'pending': ['confirmed', 'paid', 'cancelled'],
+    'paid': ['confirmed', 'cancelled'],
+    'confirmed': ['preparing', 'cancelled'],
+    'preparing': ['shipped', 'cancelled'],
+    'shipped': ['delivered', 'cancelled'],
+    'delivered': ['cash_received'],
+    'cash_received': [],
+    'cancelled': [],
+    'refunded': [],
+    'payment_failed': [],
+  };
 
   @override
   void initState() {
@@ -434,16 +679,137 @@ class _OrderDetailPageState extends State<_OrderDetailPage> {
             ),
           ),
           // Change status button
-          PopupMenuButton<String>(
-            onSelected: _updateStatus,
-            enabled: !_isUpdating,
-            icon: _isUpdating
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : Icon(LucideIcons.chevronsUpDown, color: AppColors.primaryDark),
-            itemBuilder: (context) => _statusOptions
-                .where((s) => s != status)
-                .map((s) => PopupMenuItem(value: s, child: Text(s.toUpperCase())))
-                .toList(),
+          if (!_terminalStates.contains(status.toLowerCase()))
+            IconButton(
+              onPressed: _isUpdating ? null : () => _showStatusPicker(),
+              icon: _isUpdating
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : Icon(LucideIcons.edit3, color: color, size: 20),
+              style: IconButton.styleFrom(
+                backgroundColor: color.withValues(alpha: 0.1),
+                padding: const EdgeInsets.all(8),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showStatusPicker() {
+    final status = (_order!['status'] ?? '').toString().toLowerCase();
+    final allowed = _allowedTransitions[status] ?? [];
+    
+    if (allowed.isEmpty) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Update Order Status',
+              style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Select the next state for order #${_order!['orderNumber']}',
+              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 24),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: allowed.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final s = allowed[index];
+                  final color = _statusColorFor(s);
+                  return InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _confirmStatusUpdate(s);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            s.replaceAll('_', ' ').toUpperCase(),
+                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                          ),
+                          const Spacer(),
+                          Icon(LucideIcons.chevronRight, size: 18, color: AppColors.textMuted),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmStatusUpdate(String newStatus) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('Change Status?', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700)),
+        content: Text(
+          'Are you sure you want to update order #${_order!['orderNumber']} status from "${(_order!['status'] ?? '').toString().toUpperCase()}" to "${newStatus.replaceAll('_', ' ').toUpperCase()}"?',
+          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _updateStatus(newStatus);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: newStatus == 'cancelled' ? AppColors.error : AppColors.primaryDark,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: Text('Confirm Update'),
           ),
         ],
       ),
@@ -673,12 +1039,18 @@ class _OrderDetailPageState extends State<_OrderDetailPage> {
   }
 
   Color _statusColorFor(String status) {
-    switch (status.toUpperCase()) {
-      case 'PENDING': return AppColors.warning;
-      case 'PROCESSING': return AppColors.info;
-      case 'SHIPPED': return const Color(0xFF7C3AED);
-      case 'DELIVERED': return AppColors.success;
-      case 'CANCELLED': case 'REJECTED': return AppColors.error;
+    switch (status.toLowerCase()) {
+      case 'payment_pending': return const Color(0xFF7C3AED);
+      case 'pending': return const Color(0xFFB76E00);
+      case 'paid': return const Color(0xFF166534);
+      case 'confirmed': return const Color(0xFF166534);
+      case 'preparing': return const Color(0xFF0D9488);
+      case 'shipped': return const Color(0xFF1E40AF);
+      case 'delivered': return const Color(0xFF166534);
+      case 'cancelled': return const Color(0xFF991B1B);
+      case 'refunded': return const Color(0xFFCA8A04);
+      case 'payment_failed': return const Color(0xFF991B1B);
+      case 'cash_received': return const Color(0xFF166534);
       default: return AppColors.textMuted;
     }
   }

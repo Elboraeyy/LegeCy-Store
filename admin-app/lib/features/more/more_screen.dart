@@ -18,12 +18,17 @@ class MoreScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('More', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w600)),
-        backgroundColor: AppColors.surface,
+        title: Text('More', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
+        backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(30),
+          ),
+        ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
         children: [
           // Profile card
           Container(
