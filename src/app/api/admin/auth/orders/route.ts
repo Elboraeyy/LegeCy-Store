@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
             source: body.source,
             notes: body.notes,
             status: body.status,
+            skipAuthCheck: true,
         });
 
         if (result.success) {

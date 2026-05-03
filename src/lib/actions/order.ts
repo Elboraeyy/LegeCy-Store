@@ -149,6 +149,7 @@ interface ManualOrderInput {
     discountAmount?: number;
     paymentMethod: string;
     shippingCost?: number;
+    skipAuthCheck?: boolean; // Used by mobile API
 }
 
 interface ManualOrderResult {
@@ -160,7 +161,9 @@ interface ManualOrderResult {
 
 export async function createManualOrder(input: ManualOrderInput): Promise<ManualOrderResult> {
     try {
-        await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
+        if (!input.skipAuthCheck) {
+            await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
+        }
 
         // 1. Resolve customer info
         let userId: string | undefined;
