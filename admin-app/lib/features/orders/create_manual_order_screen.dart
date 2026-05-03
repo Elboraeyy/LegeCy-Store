@@ -36,7 +36,10 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   final List<Map<String, dynamic>> _selectedItems = [];
   
   // Financials
-  double _shippingCost = 50.0;
+  double _shippingCost = 0.0;
+  String _shippingZoneName = '';
+  bool _isLoadingShipping = false;
+  bool _shippingFetched = false;
   double _discountAmount = 0.0;
   String _paymentMethod = 'cod';
   String _orderSource = 'whatsapp';
@@ -351,7 +354,11 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       child: Column(
         children: [
           _summaryRow('Subtotal', '${_subtotal.toStringAsFixed(0)} EGP', Colors.white70),
-          _summaryRow('Shipping', '${_shippingCost.toStringAsFixed(0)} EGP', Colors.white70),
+          _summaryRow(
+            _shippingZoneName.isNotEmpty ? 'Shipping ($_shippingZoneName)' : 'Shipping',
+            _isLoadingShipping ? '...' : '${_shippingCost.toStringAsFixed(0)} EGP',
+            Colors.white70,
+          ),
           if (_discountAmount > 0)
             _summaryRow('Discount', '-${_discountAmount.toStringAsFixed(0)} EGP', Colors.greenAccent),
           const Padding(
@@ -378,15 +385,67 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   }
 
   Widget _financialInputs() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _smallField('Shipping', (v) => setState(() => _shippingCost = double.tryParse(v) ?? 0.0), initial: '50'),
+        // Shipping rate from server
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                _isLoadingShipping ? LucideIcons.loader : LucideIcons.truck,
+                size: 18,
+                color: _shippingFetched ? AppColors.primaryDark : AppColors.textMuted,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Shipping Cost',
+                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMuted),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _isLoadingShipping
+                          ? 'Calculating...'
+                          : _shippingFetched
+                              ? '${_shippingCost.toStringAsFixed(0)} EGP'
+                              : 'Select governorate first',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: _shippingFetched ? AppColors.primaryDark : AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_shippingZoneName.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryDark.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _shippingZoneName,
+                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primaryDark),
+                  ),
+                ),
+            ],
+          ),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _smallField('Discount', (v) => setState(() => _discountAmount = double.tryParse(v) ?? 0.0), initial: '0'),
-        ),
+        const SizedBox(height: 16),
+        // Discount field (still manually editable)
+        _smallField('Discount', (v) => setState(() => _discountAmount = double.tryParse(v) ?? 0.0), initial: '0'),
       ],
     );
   }
@@ -521,30 +580,46 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   Future<void> _updateShippingCost() async {
     if (_selectedGovernorate == null) return;
     
+    if (mounted) {
+      setState(() => _isLoadingShipping = true);
+    }
+    
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       
-      final data = await client.get('/api/admin/auth/orders/shipping-rate?governorate=${Uri.encodeComponent(_selectedGovernorate!)}&city=${Uri.encodeComponent(_selectedCity ?? '')}');
+      // Build query with subtotal for free shipping threshold check
+      final queryParams = {
+        'governorate': _selectedGovernorate!,
+        if (_selectedCity != null && _selectedCity!.isNotEmpty) 'city': _selectedCity!,
+        if (_subtotal > 0) 'subtotal': _subtotal.toString(),
+      };
+      final queryString = queryParams.entries
+          .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+          .join('&');
+      
+      final data = await client.get('/api/admin/auth/orders/shipping-rate?$queryString');
       
       if (!mounted) return;
       setState(() {
         _shippingCost = (data['rate'] as num).toDouble();
+        _shippingZoneName = data['zoneName'] as String? ?? '';
+        _shippingFetched = true;
+        _isLoadingShipping = false;
       });
     } catch (e) {
+      debugPrint('Shipping rate fetch error: $e');
+      // Do NOT use hardcoded fallback — show error instead
       if (mounted) {
-        // Fallback to website's default prices if API fails or isn't deployed yet
         setState(() {
-          if (_selectedGovernorate == 'Cairo' || _selectedGovernorate == 'Giza') {
-            _shippingCost = 40.0;
-          } else if (_selectedGovernorate == 'Alexandria') {
-            _shippingCost = 50.0;
-          } else {
-            _shippingCost = 70.0;
-          }
+          _isLoadingShipping = false;
+          _shippingFetched = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Using default website shipping rates')),
+          const SnackBar(
+            content: Text('Could not fetch shipping rate from server. Please check connection.'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -606,6 +681,9 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
     _selectedGovernorate = null;
     _selectedCity = null;
     _addressController.clear();
+    _shippingCost = 0.0;
+    _shippingZoneName = '';
+    _shippingFetched = false;
   }
 
   void _showCustomerPicker() {
@@ -644,9 +722,15 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
             _addressController.text = lastOrder['shippingAddress'] ?? '';
           }
         });
+        // Fetch shipping rate from server for the customer's location
+        if (_selectedGovernorate != null) {
+          _updateShippingCost();
+        }
       }
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to fetch customer details')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to fetch customer details')));
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
