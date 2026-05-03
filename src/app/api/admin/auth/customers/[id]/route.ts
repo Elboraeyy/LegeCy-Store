@@ -3,11 +3,10 @@ import { fetchCustomerDetails } from '@/lib/actions/customer';
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
     try {
-        const resolvedParams = await params;
-        const customer = await fetchCustomerDetails(resolvedParams.id);
+        const customer = await fetchCustomerDetails(params.id);
         if (!customer) {
             return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
         }
