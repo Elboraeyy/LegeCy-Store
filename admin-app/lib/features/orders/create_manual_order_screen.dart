@@ -112,22 +112,25 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Column(
-        children: [
-          _buildStepIndicator(),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              onPageChanged: (i) => setState(() => _currentStep = i),
-              children: [
-                _buildCustomerStep(),
-                _buildProductsStep(),
-                _buildSummaryStep(),
-              ],
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Column(
+          children: [
+            _buildStepIndicator(),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                onPageChanged: (i) => setState(() => _currentStep = i),
+                children: [
+                  _buildCustomerStep(),
+                  _buildProductsStep(),
+                  _buildSummaryStep(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: _buildBottomBar(),
     );
@@ -931,7 +934,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
             padding: const EdgeInsets.all(24),
             child: TextField(
               controller: _searchController,
-              autofocus: true,
+              autofocus: false,
               onChanged: (_) => _search(),
               decoration: InputDecoration(
                 hintText: 'Search products by name...',
@@ -1061,7 +1064,7 @@ class _LocationSearchSheetState extends State<_LocationSearchSheet> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _searchController,
-                  autofocus: true,
+                  autofocus: false,
                   onChanged: _filter,
                   decoration: InputDecoration(
                     hintText: 'Search...',
@@ -1145,7 +1148,7 @@ class _CustomerSearchSheetState extends State<_CustomerSearchSheet> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _searchController,
-                  autofocus: true,
+                  autofocus: false,
                   onChanged: (_) => _search(),
                   decoration: InputDecoration(
                     hintText: 'Search by name or phone...',
