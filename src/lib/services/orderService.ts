@@ -50,6 +50,7 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
         const order = await tx.order.create({
             data: {
                 totalPrice: new Prisma.Decimal(data.totalPrice),
+                subtotal: data.subtotal ? new Prisma.Decimal(data.subtotal) : undefined,
             status: data.options?.status || (data.paymentMethod === 'cod' ? OrderStatus.Pending : OrderStatus.PaymentPending),
                 userId: data.userId, // Link order to user
                 paymentMethod: data.paymentMethod || 'cod',

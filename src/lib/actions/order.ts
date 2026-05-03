@@ -249,6 +249,7 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
         const order = await createOrder({
             items: serviceItems,
             totalPrice: finalTotal,
+            subtotal: subtotal,
             userId,
             firstName,
             lastName,
