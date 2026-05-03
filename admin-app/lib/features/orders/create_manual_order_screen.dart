@@ -301,7 +301,12 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
                     child: Text('${item['quantity']}', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
                   ),
                   _qtyBtn(LucideIcons.plus, () {
-                    setState(() { item['quantity']++; });
+                    final maxStock = item['stockQuantity'] ?? 999;
+                    if (item['quantity'] < maxStock) {
+                      setState(() { item['quantity']++; });
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cannot exceed available stock')));
+                    }
                   }),
                 ],
               ),
@@ -1182,9 +1187,12 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
     _selectedVariant = variants.isNotEmpty ? variants[0] : null;
   }
 
+  int get _availableStock => _selectedVariant?['stockQuantity'] ?? 0;
+
   @override
   Widget build(BuildContext context) {
     final List<dynamic> variants = widget.product['variants'] ?? [];
+    final bool outOfStock = _availableStock <= 0;
 
     return Container(
       decoration: const BoxDecoration(
@@ -1223,6 +1231,15 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                     Text(widget.product['name'], style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text('${_selectedVariant?['price'] ?? widget.product['price']} EGP', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
+                    const SizedBox(height: 4),
+                    Text(
+                      outOfStock ? 'Out of Stock' : '$_availableStock Available',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: outOfStock ? AppColors.error : AppColors.success,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1241,7 +1258,12 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                   final v = variants[index];
                   final isSelected = _selectedVariant?['id'] == v['id'];
                   return GestureDetector(
-                    onTap: () => setState(() => _selectedVariant = v),
+                    onTap: () {
+                      setState(() {
+                        _selectedVariant = v;
+                        _quantity = 1; // Reset quantity when variant changes
+                      });
+                    },
                     child: Container(
                       margin: const EdgeInsets.only(right: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1285,7 +1307,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                     Text('$_quantity', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold)),
                     IconButton(
                       icon: const Icon(LucideIcons.plus, size: 16),
-                      onPressed: () => setState(() => _quantity++),
+                      onPressed: _quantity < _availableStock ? () => setState(() => _quantity++) : null,
                     ),
                   ],
                 ),
@@ -1297,7 +1319,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: outOfStock ? null : () {
                 try {
                   if (_selectedVariant == null) {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a variant')));
@@ -1312,6 +1334,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                     'price': double.parse((_selectedVariant['price'] ?? widget.product['price'] ?? 0).toString()),
                     'imageUrl': widget.product['imageUrl'],
                     'quantity': _quantity,
+                    'stockQuantity': _availableStock,
                   };
                   
                   widget.onAdd(item);
@@ -1320,10 +1343,13 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryDark,
+                backgroundColor: outOfStock ? AppColors.divider : AppColors.primaryDark,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              child: Text('Add to Order', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+              child: Text(
+                outOfStock ? 'Out of Stock' : 'Add to Order',
+                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: outOfStock ? AppColors.textMuted : Colors.white)
+              ),
             ),
           ),
           const SizedBox(height: 16),

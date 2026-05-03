@@ -43,7 +43,12 @@ export async function GET(request: NextRequest) {
                     categoryId: true,
                     createdAt: true,
                     variants: {
-                        select: { id: true, sku: true, price: true },
+                        select: { 
+                            id: true, 
+                            sku: true, 
+                            price: true,
+                            inventory: { select: { available: true } }
+                        },
                     },
                     _count: { select: { variants: true } },
                 },
@@ -55,11 +60,19 @@ export async function GET(request: NextRequest) {
         ]);
 
         return NextResponse.json({
-            products: products.map(p => ({
-                ...p,
-                price: p.variants[0]?.price?.toNumber() || 0,
-                variantCount: p._count.variants,
-            })),
+            products: products.map(p => {
+                const variantsWithStock = p.variants.map(v => ({
+                    ...v,
+                    stockQuantity: v.inventory?.reduce((sum: number, inv: { available: number }) => sum + inv.available, 0) || 0
+                }));
+                return {
+                    ...p,
+                    variants: variantsWithStock,
+                    price: variantsWithStock[0]?.price?.toNumber() || 0,
+                    variantCount: p._count.variants,
+                    totalStock: variantsWithStock.reduce((sum, v) => sum + v.stockQuantity, 0),
+                };
+            }),
             total,
             page,
             totalPages: Math.ceil(total / limit),
