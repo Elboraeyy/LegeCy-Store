@@ -17,13 +17,13 @@ export const createOrderSchema = z.object({
   firstName: z.string().optional(), // New
   lastName: z.string().optional(),  // New
   alternativePhone: z.string().optional().nullable(), // New
-  customerPhone: z.string().optional(), // New
-  customerEmail: z.string().optional(), // New
-  shippingAddress: z.string().optional(), // New
-  shippingGovernorate: z.string().optional(), // New
-  shippingCity: z.string().optional(), // New
+  customerPhone: z.string().optional().nullable(), // New
+  customerEmail: z.string().optional().nullable(), // New
+  shippingAddress: z.string().optional().nullable(), // New
+  shippingGovernorate: z.string().optional().nullable(), // New
+  shippingCity: z.string().optional().nullable(), // New
   shippingNotes: z.string().optional().nullable(), // New
-  paymentMethod: z.enum(['cod', 'wallet', 'instapay']).optional(),
+  paymentMethod: z.enum(['cod', 'wallet', 'instapay', 'card']).optional(),
   couponCode: z.string().optional(), // New
   pointsRedeemed: z.number().int().nonnegative().optional(), // New
   options: z.object({

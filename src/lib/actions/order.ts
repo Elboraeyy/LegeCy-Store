@@ -259,7 +259,7 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             shippingCity: input.shippingAddress.city,
             shippingGovernorate: input.shippingAddress.governorate,
             shippingNotes: input.notes ? `[${input.source?.toUpperCase() || 'MANUAL'}] ${input.notes}` : `[${input.source?.toUpperCase() || 'MANUAL'}]`,
-            paymentMethod: (input.paymentMethod as "cod" | "wallet" | "instapay") || 'cod',
+            paymentMethod: (input.paymentMethod as "cod" | "wallet" | "instapay" | "card") || 'cod',
             couponCode: input.couponCode,
             pointsRedeemed: input.pointsRedeemed,
             discountAmount: discount,
