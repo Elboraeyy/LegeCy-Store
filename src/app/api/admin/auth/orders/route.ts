@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
             ];
         }
 
-        const [orders, total] = await Promise.all([
+        const [orders, total, statusCounts] = await Promise.all([
             prisma.order.findMany({
                 where,
                 select: {
@@ -56,7 +56,18 @@ export async function GET(request: NextRequest) {
                 take: limit,
             }),
             prisma.order.count({ where }),
+            prisma.order.groupBy({
+                by: ['status'],
+                _count: { _all: true },
+            }),
         ]);
+
+        const counts: Record<string, number> = {
+            all: await prisma.order.count(),
+        };
+        statusCounts.forEach((c) => {
+            counts[c.status.toLowerCase()] = c._count._all;
+        });
 
         return NextResponse.json({
             orders: orders.map(o => ({
@@ -66,6 +77,7 @@ export async function GET(request: NextRequest) {
                 itemCount: o._count.items,
             })),
             total,
+            counts,
             page,
             totalPages: Math.ceil(total / limit),
         });

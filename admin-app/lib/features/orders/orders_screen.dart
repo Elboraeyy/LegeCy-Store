@@ -22,6 +22,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   bool _isLoading = true;
   String? _error;
   String _currentStatus = 'all';
+  Map<String, int> _counts = {};
 
 
   final _statuses = [
@@ -90,6 +91,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       if (mounted) {
         setState(() {
           _orders = data['orders'] as List<dynamic>;
+          _counts = (data['counts'] as Map<dynamic, dynamic>?)?.map(
+            (k, v) => MapEntry(k.toString(), v as int)
+          ) ?? {};
           _isLoading = false;
         });
       }
@@ -176,7 +180,39 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 indicatorColor: const Color(0xFFD4AF37),
                 indicatorSize: TabBarIndicatorSize.label,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                tabs: _statuses.map((s) => Tab(text: s['label'])).toList(),
+                tabs: _statuses.map((s) {
+                  final count = _counts[s['key']?.toString().toLowerCase()] ?? 0;
+                  return Tab(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(s['label']!),
+                        if (count > 0) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: _tabController.index == _statuses.indexOf(s) 
+                                ? const Color(0xFFD4AF37) 
+                                : AppColors.textMuted.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              count > 999 ? '999+' : count.toString(),
+                              style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: _tabController.index == _statuses.indexOf(s) 
+                                  ? Colors.white 
+                                  : AppColors.textMuted,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ),
