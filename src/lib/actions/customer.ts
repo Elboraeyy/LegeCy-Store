@@ -52,7 +52,10 @@ export async function fetchCustomers(params: {
             },
             skip,
             take: limit,
-            orderBy: { createdAt: 'desc' }
+            orderBy: [
+                { orders: { _count: 'desc' } },
+                { createdAt: 'desc' }
+            ]
         })
     ]);
 

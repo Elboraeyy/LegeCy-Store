@@ -1117,7 +1117,7 @@ class _CustomerSearchSheetState extends State<_CustomerSearchSheet> {
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      final data = await client.get('/api/admin/auth/customers?search=${Uri.encodeComponent(_searchController.text)}');
+      final data = await client.get('/api/admin/auth/customers?search=${Uri.encodeComponent(_searchController.text)}&limit=50');
       setState(() => _results = data['data']);
     } catch (_) {} finally {
       setState(() => _isSearching = false);
