@@ -40,6 +40,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   String _shippingZoneName = '';
   bool _isLoadingShipping = false;
   bool _shippingFetched = false;
+  final _shippingController = TextEditingController();
   double _discountAmount = 0.0;
   String _paymentMethod = 'cod';
   String _orderSource = 'whatsapp';
@@ -55,6 +56,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
     _emailController.dispose();
     _addressController.dispose();
     _customerSearchController.dispose();
+    _shippingController.dispose();
     super.dispose();
   }
 
@@ -261,7 +263,12 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
               height: 50,
               color: AppColors.shimmer,
               child: item['imageUrl'] != null
-                  ? Image.network(item['imageUrl'], fit: BoxFit.cover)
+                  ? CachedNetworkImage(
+                      imageUrl: item['imageUrl'],
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(color: AppColors.shimmer),
+                      errorWidget: (context, url, error) => const Icon(LucideIcons.image, size: 20),
+                    )
                   : const Icon(LucideIcons.image, size: 20),
             ),
           ),
@@ -385,82 +392,35 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   }
 
   Widget _financialInputs() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        // Shipping rate from server
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.cardBorder),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                _isLoadingShipping ? LucideIcons.loader : LucideIcons.truck,
-                size: 18,
-                color: _shippingFetched ? AppColors.primaryDark : AppColors.textMuted,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Shipping Cost',
-                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMuted),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _isLoadingShipping
-                          ? 'Calculating...'
-                          : _shippingFetched
-                              ? '${_shippingCost.toStringAsFixed(0)} EGP'
-                              : 'Select governorate first',
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: _shippingFetched ? AppColors.primaryDark : AppColors.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (_shippingZoneName.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryDark.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _shippingZoneName,
-                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primaryDark),
-                  ),
-                ),
-            ],
+        Expanded(
+          child: _smallField(
+            'Shipping',
+            (v) => setState(() => _shippingCost = double.tryParse(v) ?? 0.0),
+            controller: _shippingController,
           ),
         ),
-        const SizedBox(height: 16),
-        // Discount field (still manually editable)
-        _smallField('Discount', (v) => setState(() => _discountAmount = double.tryParse(v) ?? 0.0), initial: '0'),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _smallField('Discount', (v) => setState(() => _discountAmount = double.tryParse(v) ?? 0.0), initial: '0'),
+        ),
       ],
     );
   }
 
-  Widget _smallField(String label, Function(String) onChanged, {String? initial}) {
+  Widget _smallField(String label, Function(String) onChanged, {String? initial, TextEditingController? controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMuted)),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
           onChanged: onChanged,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            hintText: initial,
+            hintText: controller != null ? null : initial,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             fillColor: Colors.white,
           ),
@@ -606,6 +566,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
         _shippingZoneName = data['zoneName'] as String? ?? '';
         _shippingFetched = true;
         _isLoadingShipping = false;
+        _shippingController.text = _shippingCost.toStringAsFixed(0);
       });
     } catch (e) {
       debugPrint('Shipping rate fetch error: $e');
@@ -684,6 +645,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
     _shippingCost = 0.0;
     _shippingZoneName = '';
     _shippingFetched = false;
+    _shippingController.clear();
   }
 
   void _showCustomerPicker() {
