@@ -218,16 +218,19 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
         ),
       ),
-      body: RefreshIndicator(
-        color: AppColors.primaryDark,
-        onRefresh: _loadOrders,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
-            : _error != null
-                ? _buildError()
-                : _orders.isEmpty
-                    ? _buildEmpty()
-                    : _buildList(),
+      body: TabBarView(
+        controller: _tabController,
+        children: _statuses.map((s) => RefreshIndicator(
+          color: AppColors.primaryDark,
+          onRefresh: _loadOrders,
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+              : _error != null
+                  ? _buildError()
+                  : _orders.isEmpty
+                      ? _buildEmpty()
+                      : _buildList(),
+        )).toList(),
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 90),
