@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -9,13 +10,67 @@ import 'package:admin_app/core/constants/egypt_locations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class CreateManualOrderScreen extends StatefulWidget {
-  const CreateManualOrderScreen({super.key});
+  final Map<String, dynamic>? existingOrder;
+  const CreateManualOrderScreen({super.key, this.existingOrder});
 
   @override
   State<CreateManualOrderScreen> createState() => _CreateManualOrderScreenState();
 }
 
 class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingOrder != null) {
+      final order = widget.existingOrder!;
+      _nameController.text = order['displayName'] ?? order['customer']?['name'] ?? '';
+      _phoneController.text = (order['phone'] ?? order['shippingPhone'] ?? order['customerPhone'] ?? order['phoneNumber'] ?? order['customer']?['phone'] ?? '').toString();
+      _alternativePhoneController.text = (order['alternativePhone'] ?? order['customer']?['alternativePhone'] ?? '').toString();
+      _emailController.text = (order['email'] ?? order['customerEmail'] ?? order['customer']?['email'] ?? '').toString();
+      
+      final shippingAddr = order['shippingAddress'] ?? order['address'];
+      if (shippingAddr != null) {
+        if (shippingAddr is Map) {
+          _addressController.text = (shippingAddr['street'] ?? shippingAddr['address'] ?? shippingAddr['addressLine1'] ?? '').toString();
+          _selectedGovernorate = (shippingAddr['governorate'] ?? shippingAddr['state'] ?? order['shippingGovernorate'] ?? order['governorate'])?.toString();
+          _selectedCity = (shippingAddr['city'] ?? shippingAddr['area'] ?? order['shippingCity'] ?? order['city'])?.toString();
+        } else {
+          _addressController.text = shippingAddr.toString();
+          _selectedGovernorate = (order['shippingGovernorate'] ?? order['governorate'])?.toString();
+          _selectedCity = (order['shippingCity'] ?? order['city'])?.toString();
+        }
+      } else {
+        // Fallback to root level or customer level if shippingAddress is null
+        _selectedGovernorate = (order['shippingGovernorate'] ?? order['governorate'] ?? order['customer']?['governorate'])?.toString();
+        _selectedCity = (order['shippingCity'] ?? order['city'] ?? order['customer']?['city'])?.toString();
+        _addressController.text = (order['address'] ?? order['customer']?['address'] ?? '').toString();
+      }
+      
+      _isExistingCustomer = true;
+      _selectedCustomerId = order['customerId'];
+      
+      if (order['items'] != null) {
+        _selectedItems.clear(); // Clear initial if any
+        for (var item in order['items']) {
+          _selectedItems.add({
+            'variantId': item['variantId'],
+            'quantity': item['quantity'],
+            'imageUrl': item['imageUrl'] ?? item['product']?['imageUrl'],
+            'name': item['name'] ?? item['productTitle'] ?? 'Product',
+            'price': (item['price'] as num).toDouble(),
+          });
+        }
+      }
+      
+      _shippingCost = (order['shippingCost'] as num? ?? 0).toDouble();
+      _shippingController.text = _shippingCost.toStringAsFixed(0);
+      _discountAmount = (order['discountAmount'] as num? ?? 0).toDouble();
+      _discountController.text = _discountAmount.toStringAsFixed(0);
+      _paymentMethod = order['paymentMethod'] ?? 'cod';
+      _orderSource = order['source'] ?? 'whatsapp';
+    }
+  }
+
   final _pageController = PageController();
   int _currentStep = 0;
 
@@ -39,9 +94,9 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   double _shippingCost = 0.0;
   String _shippingZoneName = '';
   bool _isLoadingShipping = false;
-  bool _shippingFetched = false;
   final _shippingController = TextEditingController();
   double _discountAmount = 0.0;
+  final _discountController = TextEditingController();
   String _paymentMethod = 'cod';
   String _orderSource = 'whatsapp';
 
@@ -57,6 +112,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
     _addressController.dispose();
     _customerSearchController.dispose();
     _shippingController.dispose();
+    _discountController.dispose();
     super.dispose();
   }
 
@@ -89,12 +145,14 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
     }
 
     if (_currentStep < 2) {
+      HapticFeedback.lightImpact();
       _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     }
   }
 
   void _prevStep() {
     if (_currentStep > 0) {
+      HapticFeedback.lightImpact();
       _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     }
   }
@@ -104,7 +162,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Create Manual Order', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700)),
+        title: Text(widget.existingOrder != null ? 'Edit Order' : 'Create Manual Order', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700)),
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
@@ -188,7 +246,13 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('Customer Details'),
+          Center(
+            child: _sectionTitle(
+              widget.existingOrder != null
+                  ? 'Edit Order Details #${widget.existingOrder!['orderNumber'] ?? widget.existingOrder!['id'].toString().substring(0, 8)}'
+                  : 'Customer Details',
+            ),
+          ),
           const SizedBox(height: 16),
           _customerTypeToggle(),
           const SizedBox(height: 24),
@@ -430,7 +494,11 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _smallField('Discount', (v) => setState(() => _discountAmount = double.tryParse(v) ?? 0.0), initial: '0'),
+          child: _smallField(
+            'Discount', 
+            (v) => setState(() => _discountAmount = double.tryParse(v) ?? 0.0), 
+            controller: _discountController,
+          ),
         ),
       ],
     );
@@ -479,7 +547,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
               onPressed: _isSubmitting ? null : (_currentStep == 2 ? _submitOrder : _nextStep),
               child: _isSubmitting
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : Text(_currentStep == 2 ? 'Create Order' : 'Continue'),
+                  : Text(_currentStep == 2 ? (widget.existingOrder != null ? 'Update Order' : 'Create Order') : 'Continue'),
             ),
           ),
         ],
@@ -488,7 +556,11 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   }
 
   Widget _sectionTitle(String title) {
-    return Text(title, style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.primaryDark));
+    return Text(
+      title,
+      style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+      textAlign: TextAlign.center,
+    );
   }
 
   Widget _textField(TextEditingController controller, String hint, IconData icon, {TextInputType? keyboardType, int maxLines = 1, bool enabled = true}) {
@@ -591,7 +663,6 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       setState(() {
         _shippingCost = (data['rate'] as num).toDouble();
         _shippingZoneName = data['zoneName'] as String? ?? '';
-        _shippingFetched = true;
         _isLoadingShipping = false;
         _shippingController.text = _shippingCost.toStringAsFixed(0);
       });
@@ -601,7 +672,6 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       if (mounted) {
         setState(() {
           _isLoadingShipping = false;
-          _shippingFetched = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -671,11 +741,11 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
     _addressController.clear();
     _shippingCost = 0.0;
     _shippingZoneName = '';
-    _shippingFetched = false;
     _shippingController.clear();
   }
 
   void _showCustomerPicker() {
+    HapticFeedback.selectionClick();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -687,6 +757,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   }
 
   Future<void> _populateCustomerData(String id) async {
+    HapticFeedback.mediumImpact();
     setState(() {
       _selectedCustomerId = id;
       _isSubmitting = true; // Show loading
@@ -805,6 +876,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   }
 
   void _showProductPicker() {
+    HapticFeedback.selectionClick();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -840,6 +912,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       return;
     }
 
+    HapticFeedback.mediumImpact();
     setState(() => _isSubmitting = true);
     try {
       final token = context.read<AuthProvider>().token;
@@ -862,6 +935,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
         'items': _selectedItems.map((i) => {
           'variantId': i['variantId'],
           'quantity': i['quantity'],
+          'imageUrl': i['imageUrl'],
         }).toList(),
         'shippingCost': _shippingCost,
         'discountAmount': _discountAmount,
@@ -869,12 +943,20 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
         'source': _orderSource,
       };
 
-      await client.post('/api/admin/auth/orders', body: body);
+      if (widget.existingOrder != null) {
+        await client.patch('/api/admin/auth/orders/${widget.existingOrder!['id']}', body: body);
+      } else {
+        await client.post('/api/admin/auth/orders', body: body);
+      }
       
       if (mounted) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Order created successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating),
+          SnackBar(
+            content: Text(widget.existingOrder != null ? 'Order updated successfully' : 'Order created successfully'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (e) {

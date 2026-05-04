@@ -132,23 +132,24 @@ export async function placeOrder(cartItems: CartItemInput[]): Promise<Order> {
 // ==========================================
 
 interface ManualOrderInput {
-    customer: 
+    customer?: 
         | { existingId: string }
     | { name: string; email?: string; phone: string; alternativePhone?: string };
-    shippingAddress: {
+    shippingAddress?: {
         street: string;
         city: string;
         governorate?: string;
     };
-    items: { variantId: string; quantity: number }[];
+    items?: { variantId: string; quantity: number }[];
     notes?: string;
     source?: string;
     couponCode?: string;
     pointsRedeemed?: number;
     status?: OrderStatus;
     discountAmount?: number;
-    paymentMethod: string;
+    paymentMethod?: string;
     shippingCost?: number;
+    adminId?: string; // For tracking updates
     skipAuthCheck?: boolean; // Used by mobile API
 }
 
@@ -165,6 +166,14 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
         }
 
+        if (!input.customer || !input.shippingAddress || !input.items) {
+            throw new Error('Customer, shipping address, and items are required for order creation');
+        }
+
+        const customer = input.customer;
+        const shippingAddress = input.shippingAddress;
+        const items = input.items;
+
         // 1. Resolve customer info
         let userId: string | undefined;
         let customerPhone: string;
@@ -173,8 +182,8 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
         let firstName: string | undefined;
         let lastName: string | undefined;
         
-        if ('existingId' in input.customer) {
-            userId = input.customer.existingId;
+        if ('existingId' in customer) {
+            userId = customer.existingId;
             const existingUser = await prisma.user.findUnique({ 
                 where: { id: userId },
                 select: { name: true, phone: true, email: true }
@@ -189,43 +198,43 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             firstName = nameParts[0];
             lastName = nameParts.slice(1).join(' ') || undefined;
         } else {
-            const generatedEmail = input.customer.email || `manual_${Date.now()}_${Math.random().toString(36).slice(2)}@placeholder.local`;
+            const generatedEmail = customer.email || `manual_${Date.now()}_${Math.random().toString(36).slice(2)}@placeholder.local`;
             
             const newUser = await prisma.user.create({
                 data: {
-                    name: input.customer.name,
+                    name: customer.name,
                     email: generatedEmail,
                     passwordHash: '',
-                    phone: input.customer.phone,
+                    phone: customer.phone,
                     addresses: {
                         create: {
-                            name: input.customer.name,
-                            phone: input.customer.phone,
-                            street: input.shippingAddress.street,
-                            city: input.shippingAddress.city,
-                            governorate: input.shippingAddress.governorate,
+                            name: customer.name,
+                            phone: customer.phone,
+                            street: shippingAddress.street,
+                            city: shippingAddress.city,
+                            governorate: shippingAddress.governorate,
                             isDefault: true,
                         }
                     }
                 }
             });
             userId = newUser.id;
-            customerPhone = input.customer.phone;
-            customerEmail = input.customer.email;
-            alternativePhone = input.customer.alternativePhone;
+            customerPhone = customer.phone;
+            customerEmail = customer.email;
+            alternativePhone = customer.alternativePhone;
 
-            const nameParts = (input.customer.name || '').split(' ');
+            const nameParts = (customer.name || '').split(' ');
             firstName = nameParts[0];
             lastName = nameParts.slice(1).join(' ') || undefined;
         }
 
         // 2. Map items for createOrder service
         const variants = await prisma.variant.findMany({
-            where: { id: { in: input.items.map(i => i.variantId) } },
+            where: { id: { in: items.map(i => i.variantId) } },
             include: { product: { select: { name: true } } }
         });
 
-        const serviceItems = input.items.map(item => {
+        const serviceItems = items.map(item => {
             const variant = variants.find(v => v.id === item.variantId);
             if (!variant) throw new Error(`Variant ${item.variantId} not found`);
             return {
@@ -256,9 +265,9 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             customerPhone: customerPhone,
             customerEmail: customerEmail,
             alternativePhone: alternativePhone,
-            shippingAddress: input.shippingAddress.street,
-            shippingCity: input.shippingAddress.city,
-            shippingGovernorate: input.shippingAddress.governorate,
+            shippingAddress: shippingAddress.street,
+            shippingCity: shippingAddress.city,
+            shippingGovernorate: shippingAddress.governorate,
             shippingNotes: input.notes ? `[${input.source?.toUpperCase() || 'MANUAL'}] ${input.notes}` : `[${input.source?.toUpperCase() || 'MANUAL'}]`,
             paymentMethod: (input.paymentMethod as "cod" | "wallet" | "instapay" | "card") || 'cod',
             couponCode: input.couponCode,
@@ -297,7 +306,7 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
                         subtotal: subtotal,
                         shipping: shipping,
                         total: finalTotal,
-                        shippingAddress: `${input.shippingAddress.street}, ${input.shippingAddress.city}, ${input.shippingAddress.governorate || ''}`,
+                        shippingAddress: `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.governorate || ''}`,
                         paymentMethod: input.paymentMethod || 'cod'
                     });
                 } catch (emailError) {
@@ -311,6 +320,135 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
     } catch (error) {
         console.error('Manual order creation failed:', error);
         return { success: false, error: error instanceof Error ? error.message : 'Failed to create order' };
+    }
+}
+
+export async function adminUpdateOrder(orderId: string, input: ManualOrderInput): Promise<ManualOrderResult> {
+    try {
+        console.log(`[AdminUpdateOrder] Starting update for order ${orderId}`, {
+            hasCustomer: !!input.customer,
+            hasItems: !!input.items,
+            hasAddress: !!input.shippingAddress
+        });
+
+        if (!input.skipAuthCheck) {
+            await requireAdminPermission(AdminPermissions.ORDERS.MANAGE);
+        }
+
+        // 1. Resolve customer info
+        let userId: string | undefined;
+        let customerPhone: string | undefined;
+        let customerEmail: string | undefined;
+        let alternativePhone: string | undefined;
+        let firstName: string | undefined;
+        let lastName: string | undefined;
+        
+        if (input.customer && 'existingId' in input.customer) {
+            userId = input.customer.existingId;
+            const existingUser = await prisma.user.findUnique({ 
+                where: { id: userId },
+                select: { name: true, phone: true, email: true }
+            });
+            
+            if (existingUser) {
+                customerPhone = existingUser.phone || '';
+                customerEmail = existingUser.email || undefined;
+                const nameParts = (existingUser.name || '').split(' ');
+                firstName = nameParts[0];
+                lastName = nameParts.slice(1).join(' ') || undefined;
+            }
+        } 
+        
+        // IMPORTANT: If the mobile app provides name/phone explicitly, 
+        // they should OVERRIDE the user profile data for this specific order.
+        // This handles cases where an admin edits a guest order or changes 
+        // the contact info for an existing user's order.
+        const manualCust = input.customer as any;
+        if (manualCust) {
+            if (manualCust.phone) customerPhone = manualCust.phone;
+            if (manualCust.email) customerEmail = manualCust.email;
+            if (manualCust.alternativePhone) alternativePhone = manualCust.alternativePhone;
+            if (manualCust.name) {
+                const nameParts = manualCust.name.split(' ');
+                firstName = nameParts[0];
+                lastName = nameParts.slice(1).join(' ') || undefined;
+            }
+        }
+
+        // 2. Resolve items
+        let serviceItems: any[] | undefined;
+        if (input.items) {
+            console.log(`[AdminUpdateOrder] Processing ${input.items.length} items`);
+            const variants = await prisma.variant.findMany({
+                where: { id: { in: input.items.map(i => i.variantId) } },
+                include: { product: { select: { name: true } } }
+            });
+
+            serviceItems = input.items.map(item => {
+                const variant = variants.find(v => v.id === item.variantId);
+                if (!variant) throw new Error(`Variant ${item.variantId} not found`);
+                return {
+                    productId: variant.productId,
+                    variantId: variant.id,
+                    name: `${variant.product.name} (${variant.sku})`,
+                    price: variant.price.toNumber(),
+                    quantity: item.quantity
+                };
+            });
+        }
+
+        // 3. Call updateOrder service
+        const { updateOrder, updateOrderStatus } = await import('@/lib/services/orderService');
+        console.log('[AdminUpdateOrder] Calling updateOrder service...');
+        
+        const updated = await updateOrder(orderId, {
+            firstName,
+            lastName,
+            customerPhone,
+            customerEmail,
+            alternativePhone,
+            shippingAddress: input.shippingAddress?.street,
+            shippingCity: input.shippingAddress?.city,
+            shippingGovernorate: input.shippingAddress?.governorate,
+            items: serviceItems,
+            shippingCost: input.shippingCost,
+            discountAmount: input.discountAmount,
+            shippingNotes: input.notes,
+        });
+
+        console.log('[AdminUpdateOrder] Service call successful', {
+            newTotal: updated.totalPrice.toString()
+        });
+
+        // Update userId if it changed
+        if (userId) {
+            await prisma.order.update({
+                where: { id: orderId },
+                data: { userId }
+            });
+        }
+
+        // Handle status update if provided and different
+        if (input.status) {
+            const currentOrder = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });
+            if (currentOrder && currentOrder.status !== input.status) {
+                let adminId = input.adminId;
+                if (!adminId && !input.skipAuthCheck) {
+                    const admin = await requireAdminPermission(AdminPermissions.ORDERS.MANAGE).catch(() => null);
+                    adminId = admin?.id;
+                }
+                console.log(`[AdminUpdateOrder] Updating status to ${input.status}`);
+                await updateOrderStatus(orderId, input.status, 'admin', adminId, 'Updated during admin order edit');
+            }
+        }
+
+        revalidatePath(`/admin/orders/${orderId}`);
+        revalidatePath('/admin/orders');
+        console.log('[AdminUpdateOrder] Update completed successfully');
+        return { success: true, orderId };
+    } catch (error) {
+        console.error('Manual order update failed:', error);
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to update order' };
     }
 }
 

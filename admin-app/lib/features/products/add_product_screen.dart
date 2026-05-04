@@ -7,7 +7,8 @@ import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/config/api_config.dart';
 
 class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({super.key});
+  final Map<String, dynamic>? product;
+  const AddProductScreen({super.key, this.product});
 
   @override
   State<AddProductScreen> createState() => _AddProductScreenState();
@@ -30,9 +31,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
   bool _isLoadingCategories = true;
   bool _isSaving = false;
 
+  bool get _isEditing => widget.product != null;
+
   @override
   void initState() {
     super.initState();
+    if (_isEditing) {
+      _nameController.text = widget.product!['name'] ?? '';
+      _nameArController.text = widget.product!['nameAr'] ?? '';
+      _descriptionController.text = widget.product!['description'] ?? '';
+      _descriptionArController.text = widget.product!['descriptionAr'] ?? '';
+      _priceController.text = (widget.product!['price'] as num?)?.toString() ?? '';
+      _skuController.text = widget.product!['sku'] ?? '';
+      _status = widget.product!['status'] ?? 'active';
+      _selectedCategoryId = widget.product!['categoryId']?.toString();
+    }
     _loadCategories();
   }
 
@@ -55,8 +68,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       if (mounted) {
         setState(() {
           _categories = data['categories'] as List<dynamic>;
-          if (_categories.isNotEmpty) {
-            _selectedCategoryId = _categories.first['id'];
+          if (!_isEditing && _categories.isNotEmpty && _selectedCategoryId == null) {
+            _selectedCategoryId = _categories.first['id']?.toString();
           }
           _isLoadingCategories = false;
         });
@@ -93,11 +106,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
         'sku': _skuController.text.trim(),
       };
 
-      await client.post(ApiConfig.productsEndpoint, body: body);
+      if (_isEditing) {
+        await client.put('${ApiConfig.productsEndpoint}/${widget.product!['id']}', body: body);
+      } else {
+        await client.post(ApiConfig.productsEndpoint, body: body);
+      }
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Product added successfully', style: TextStyle(color: Colors.white)), backgroundColor: AppColors.success));
-        Navigator.pop(context, true); // true indicates success
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isEditing ? 'Product updated successfully' : 'Product added successfully', style: const TextStyle(color: Colors.white)), 
+            backgroundColor: AppColors.success
+          )
+        );
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
@@ -137,7 +159,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Add New Product', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600)),
+        title: Text(_isEditing ? 'Edit Product' : 'Add New Product', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600)),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
       ),
@@ -199,7 +221,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             fillColor: AppColors.background,
                           ),
                           items: _categories.map((c) => DropdownMenuItem<String>(
-                            value: c['id'],
+                            value: c['id']?.toString(),
                             child: Text(c['name'], style: GoogleFonts.inter(fontSize: 14)),
                           )).toList(),
                           onChanged: (v) => setState(() => _selectedCategoryId = v),
@@ -239,7 +261,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                     child: _isSaving
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : Text('Save Product', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                      : Text(_isEditing ? 'Update Product' : 'Save Product', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
                   const SizedBox(height: 40),
                 ],

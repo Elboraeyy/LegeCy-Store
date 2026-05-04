@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -134,6 +135,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         padding: const EdgeInsets.only(bottom: 90),
         child: FloatingActionButton.extended(
           onPressed: () async {
+            HapticFeedback.mediumImpact();
             final result = await Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AddProductScreen()),
@@ -164,7 +166,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
         final product = _products[index];
         final isActive = product['status'] == 'active';
         return GestureDetector(
-          onTap: () {},
+          onTap: () async {
+            HapticFeedback.lightImpact();
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => AddProductScreen(product: product)),
+            );
+            if (result == true) {
+              _loadProducts();
+            }
+          },
           child: Container(
             decoration: BoxDecoration(
               color: AppColors.card,

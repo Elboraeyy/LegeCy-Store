@@ -7,6 +7,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/reports/reports_screen.dart';
+import 'package:admin_app/features/products/add_product_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -164,7 +165,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Text('QUICK ACTIONS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5)),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 105,
+                      height: 120,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: [
@@ -174,7 +175,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           _quickAction(LucideIcons.mail, 'Messages', const Color(0xFF6366F1), () {}),
                           _quickAction(LucideIcons.barChart3, 'Analytics', const Color(0xFF8B5CF6),
                               () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen()))),
-                          _quickAction(LucideIcons.plusCircle, 'New\nProduct', const Color(0xFF10B981), () {}),
+                          _quickAction(LucideIcons.plusCircle, 'New\nProduct', const Color(0xFF10B981), () {
+                            HapticFeedback.lightImpact();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const AddProductScreen()),
+                            );
+                          }),
                         ],
                       ),
                     ),
@@ -287,7 +294,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 8),
             SizedBox(
-              height: 24, // Fixed height for text to prevent overflow
+              height: 28, // Fixed height for text to prevent overflow
               child: Text(
                 label,
                 textAlign: TextAlign.center,

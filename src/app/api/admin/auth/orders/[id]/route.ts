@@ -68,11 +68,35 @@ export async function PATCH(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { status, note } = body;
+        const { status, note, customer, items, shippingAddress } = body;
 
         const order = await prisma.order.findUnique({ where: { id } });
         if (!order) {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        }
+
+        // Check if this is a manual order update (from mobile/admin edit)
+        if (customer || items || shippingAddress) {
+            const { adminUpdateOrder } = await import('@/lib/actions/order');
+            const result = await adminUpdateOrder(id, {
+                customer,
+                items,
+                shippingAddress,
+                shippingCost: body.shippingCost,
+                discountAmount: body.discountAmount,
+                paymentMethod: body.paymentMethod,
+                source: body.source,
+                notes: body.notes || note,
+                status: status,
+                adminId: admin.id,
+                skipAuthCheck: true
+            });
+
+            if (!result.success) {
+                return NextResponse.json({ error: result.error || 'Failed to update order' }, { status: 400 });
+            }
+            
+            return NextResponse.json({ success: true, status: status || order.status });
         }
 
         const updates: Record<string, unknown> = {};

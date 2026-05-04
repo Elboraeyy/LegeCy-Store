@@ -240,6 +240,10 @@ export async function updateOrder(orderId: string, updates: UpdateOrderServicePa
     }
 
     // 4. Update Order Details
+    const subtotalValue = items 
+        ? items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+        : currentOrder.subtotal?.toNumber();
+
     const updatedOrder = await tx.order.update({
       where: { id: orderId },
       data: {
@@ -254,6 +258,7 @@ export async function updateOrder(orderId: string, updates: UpdateOrderServicePa
         shippingNotes: details.shippingNotes,
         shippingCost: details.shippingCost !== undefined ? new Prisma.Decimal(details.shippingCost) : undefined,
         discountAmount: details.discountAmount !== undefined ? new Prisma.Decimal(details.discountAmount) : undefined,
+        subtotal: subtotalValue !== undefined ? new Prisma.Decimal(subtotalValue) : undefined,
         totalPrice: newTotalPrice
       },
       include: { items: true }
