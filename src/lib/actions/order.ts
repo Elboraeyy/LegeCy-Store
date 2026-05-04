@@ -363,7 +363,7 @@ export async function adminUpdateOrder(orderId: string, input: ManualOrderInput)
         // they should OVERRIDE the user profile data for this specific order.
         // This handles cases where an admin edits a guest order or changes 
         // the contact info for an existing user's order.
-        const manualCust = input.customer as any;
+        const manualCust = input.customer as { name?: string; phone?: string; email?: string; alternativePhone?: string } | null;
         if (manualCust) {
             if (manualCust.phone) customerPhone = manualCust.phone;
             if (manualCust.email) customerEmail = manualCust.email;
@@ -376,7 +376,13 @@ export async function adminUpdateOrder(orderId: string, input: ManualOrderInput)
         }
 
         // 2. Resolve items
-        let serviceItems: any[] | undefined;
+        let serviceItems: {
+            productId: string;
+            variantId: string | null;
+            name: string;
+            price: number;
+            quantity: number;
+        }[] | undefined;
         if (input.items) {
             console.log(`[AdminUpdateOrder] Processing ${input.items.length} items`);
             const variants = await prisma.variant.findMany({
