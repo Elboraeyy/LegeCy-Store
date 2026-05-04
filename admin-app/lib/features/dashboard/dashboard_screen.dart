@@ -164,7 +164,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Text('QUICK ACTIONS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5)),
                     const SizedBox(height: 12),
                     SizedBox(
-                      height: 86,
+                      height: 105,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: [
