@@ -56,4 +56,5 @@ export const updateOrderDetailsSchema = z.object({
   })).optional(),
   shippingCost: z.number().nonnegative().optional(),
   discountAmount: z.number().nonnegative().optional(),
+  orderSource: z.string().optional(),
 });

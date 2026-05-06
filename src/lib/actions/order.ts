@@ -418,10 +418,11 @@ export async function adminUpdateOrder(orderId: string, input: ManualOrderInput)
             shippingAddress: input.shippingAddress?.street,
             shippingCity: input.shippingAddress?.city,
             shippingGovernorate: input.shippingAddress?.governorate,
-            items: serviceItems,
+            items: serviceItems.length > 0 ? serviceItems : undefined,
             shippingCost: input.shippingCost,
             discountAmount: input.discountAmount,
             shippingNotes: input.notes,
+            orderSource: input.source,
         });
 
         console.log('[AdminUpdateOrder] Service call successful', {

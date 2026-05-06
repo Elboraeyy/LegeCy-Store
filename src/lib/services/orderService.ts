@@ -259,7 +259,8 @@ export async function updateOrder(orderId: string, updates: UpdateOrderServicePa
         shippingCost: details.shippingCost !== undefined ? new Prisma.Decimal(details.shippingCost) : undefined,
         discountAmount: details.discountAmount !== undefined ? new Prisma.Decimal(details.discountAmount) : undefined,
         subtotal: subtotalValue !== undefined ? new Prisma.Decimal(subtotalValue) : undefined,
-        totalPrice: newTotalPrice
+        totalPrice: newTotalPrice,
+        orderSource: details.orderSource,
       },
       include: { items: true }
     });
