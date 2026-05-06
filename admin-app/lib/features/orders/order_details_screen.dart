@@ -714,10 +714,17 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final url = "https://wa.me/$formattedPhone?text=${Uri.encodeComponent(text)}";
     
     try {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      final bool launched = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      if (!launched) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.platformDefault);
+      }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not launch WhatsApp: $e'), backgroundColor: AppColors.error));
+      try {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.platformDefault);
+      } catch (e2) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('WhatsApp is not installed or supported.'), backgroundColor: AppColors.error));
+        }
       }
     }
   }
