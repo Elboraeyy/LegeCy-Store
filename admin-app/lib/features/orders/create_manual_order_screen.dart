@@ -805,7 +805,8 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
         {'id': 'facebook', 'label': 'Facebook', 'icon': LucideIcons.facebook},
         {'id': 'instagram', 'label': 'Instagram', 'icon': LucideIcons.instagram},
         {'id': 'phone', 'label': 'Phone', 'icon': LucideIcons.phone},
-        {'id': 'other', 'label': 'Other', 'icon': LucideIcons.moreHorizontal},
+        {'id': 'website', 'label': 'Website', 'icon': LucideIcons.globe},
+        {'id': 'in-person', 'label': 'In Real', 'icon': LucideIcons.user},
       ],
       onChanged: (v) => setState(() => _orderSource = v),
     );

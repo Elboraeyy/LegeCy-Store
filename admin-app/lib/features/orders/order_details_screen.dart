@@ -9,6 +9,10 @@ import 'package:admin_app/features/orders/create_manual_order_screen.dart';
 import 'package:admin_app/core/constants/order_constants.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final String orderId;
@@ -22,6 +26,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Map<String, dynamic>? _order;
   bool _isLoading = true;
   bool _isUpdating = false;
+  final _noteController = TextEditingController();
+  bool _isAddingNote = false;
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
 
 
   @override
@@ -101,7 +113,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         elevation: 0,
         centerTitle: true,
         actions: [
-          if (_order != null)
+          if (_order != null) ...[
             IconButton(
               icon: const Icon(LucideIcons.edit, color: AppColors.primaryDark, size: 20),
               onPressed: () async {
@@ -116,6 +128,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 }
               },
             ),
+          ],
           const SizedBox(width: 8),
         ],
       ),
@@ -136,8 +149,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         const SizedBox(height: 20),
                         _buildCustomerCard(),
                         const SizedBox(height: 20),
-                        _buildItemsCard(),
+                        _buildOrderInfoCard(),
                         const SizedBox(height: 20),
+                        _buildItemsCard(),
+                        const SizedBox(height: 24),
+                        _buildQuickActions(),
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -325,6 +341,35 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
+  Widget _buildOrderInfoCard() {
+    final source = (_order!['source'] ?? 'website').toString().toUpperCase();
+    final payment = (_order!['paymentMethod'] ?? 'cod').toString().toUpperCase();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(LucideIcons.info, size: 18, color: AppColors.primaryDark),
+              const SizedBox(width: 8),
+              Text('Additional Info', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _infoRow(LucideIcons.globe, 'Order Source', source),
+          _infoRow(LucideIcons.creditCard, 'Payment Method', payment),
+        ],
+      ),
+    );
+  }
+
   Widget _buildItemsCard() {
     final items = (_order!['items'] as List? ?? []);
     return Container(
@@ -391,6 +436,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 
   Widget _buildFinancialCard() {
+    final double total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
+    final double shipping = (_order!['shippingCost'] as num?)?.toDouble() ?? 0.0;
+    final double discount = (_order!['discountAmount'] as num?)?.toDouble() ?? 0.0;
+    final double subtotal = total - shipping + discount;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -407,9 +457,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _financeRow('Subtotal', '${_order!['totalPrice'] - (_order!['shippingCost'] ?? 0)} EGP', Colors.white70),
+          _financeRow('Subtotal', '${subtotal.toStringAsFixed(0)} EGP', Colors.white70),
           const SizedBox(height: 12),
-          _financeRow('Shipping', '${_order!['shippingCost'] ?? 0} EGP', Colors.white70),
+          _financeRow('Shipping', '${shipping.toStringAsFixed(0)} EGP', Colors.white70),
+          if (discount > 0) ...[
+            const SizedBox(height: 12),
+            _financeRow('Discount', '-${discount.toStringAsFixed(0)} EGP', Colors.greenAccent),
+          ],
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Divider(color: Colors.white10, height: 1),
@@ -418,7 +472,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Total', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
-              Text('${_order!['totalPrice']} EGP', style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.accent)),
+              Text('${total.toStringAsFixed(0)} EGP', style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.accent)),
             ],
           ),
         ],
@@ -457,5 +511,264 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         Text(value, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
       ],
     );
+  }
+
+  Widget _buildQuickActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildActionBtn(
+            icon: LucideIcons.messageCircle,
+            label: 'WhatsApp',
+            color: const Color(0xFF128C7E),
+            onTap: _shareViaWhatsApp,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildActionBtn(
+            icon: LucideIcons.printer,
+            label: 'Print',
+            color: const Color(0xFF475569),
+            onTap: _printOrder,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildActionBtn(
+            icon: LucideIcons.messageSquare,
+            label: 'Notes',
+            color: const Color(0xFFD97706),
+            onTap: _showNotesBottomSheet,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionBtn({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 8),
+            Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showNotesBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final notes = (_order!['notes'] as List<dynamic>?) ?? [];
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                top: 24, left: 24, right: 24,
+              ),
+              decoration: const BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40, height: 4,
+                      decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      const Icon(LucideIcons.messageSquare, size: 20, color: AppColors.primaryDark),
+                      const SizedBox(width: 12),
+                      Text('Admin Notes', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  if (notes.isNotEmpty) ...[
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: notes.length,
+                        itemBuilder: (context, index) {
+                          final n = notes[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.cardBorder),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(n['content'] ?? '', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _formatDate(n['createdAt']),
+                                    style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ] else
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Center(child: Text('No notes added yet.', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted))),
+                    ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _noteController,
+                          style: GoogleFonts.inter(fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: 'Add an internal note...',
+                            hintStyle: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                            filled: true,
+                            fillColor: AppColors.surface,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      IconButton.filled(
+                        onPressed: _isAddingNote ? null : () async {
+                          final text = _noteController.text.trim();
+                          if (text.isEmpty) return;
+                          
+                          HapticFeedback.lightImpact();
+                          FocusScope.of(context).unfocus();
+                          setModalState(() => _isAddingNote = true);
+                          try {
+                            final token = context.read<AuthProvider>().token;
+                            final client = ApiClient(token: token);
+                            await client.patch('/api/admin/auth/orders/${widget.orderId}', body: {'note': text});
+                            _noteController.clear();
+                            await _loadOrder();
+                            if (mounted) setModalState(() {});
+                          } catch (e) {
+                            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+                          } finally {
+                            if (mounted) setModalState(() => _isAddingNote = false);
+                          }
+                        },
+                        icon: _isAddingNote 
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Icon(LucideIcons.send, size: 20),
+                        style: IconButton.styleFrom(backgroundColor: AppColors.primaryDark, padding: const EdgeInsets.all(14)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+        );
+      },
+    );
+  }
+
+  void _shareViaWhatsApp() async {
+    final phone = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
+    final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer';
+    final orderNo = _order!['orderNumber'].toString();
+    final total = _order!['totalPrice'].toString();
+
+    final text = "Hello $name,\nThank you for your order #$orderNo from LegaCy!\nYour total is $total EGP.\nWe will keep you updated with the shipping status.";
+    final url = "whatsapp://send?phone=$phone&text=${Uri.encodeComponent(text)}";
+    
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not launch WhatsApp')));
+      }
+    }
+  }
+
+  Future<void> _printOrder() async {
+    final pdfDoc = pw.Document();
+    
+    final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Guest';
+    final orderNo = _order!['orderNumber'].toString();
+    final items = (_order!['items'] as List? ?? []);
+    final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
+    
+    pdfDoc.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('LegaCy Store', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 20),
+              pw.Text('Order #$orderNo', style: pw.TextStyle(fontSize: 18)),
+              pw.Text('Customer: $name'),
+              pw.SizedBox(height: 20),
+              pw.Text('Items:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 10),
+              ...items.map((item) => pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('${item['quantity']}x ${item['name']}'),
+                  pw.Text('${item['price']} EGP'),
+                ]
+              )),
+              pw.Divider(),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  pw.Text('$total EGP', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                ]
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdfDoc.save(),
+      name: 'Order_$orderNo',
+    );
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return '-';
+    final d = DateTime.tryParse(dateStr);
+    if (d == null) return dateStr;
+    return '${d.day}/${d.month}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 }

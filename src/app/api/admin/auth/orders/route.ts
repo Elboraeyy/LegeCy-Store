@@ -19,10 +19,23 @@ export async function GET(request: NextRequest) {
         const limit = parseInt(searchParams.get('limit') || '20');
         const skip = (page - 1) * limit;
 
+        const startDate = searchParams.get('startDate');
+        const endDate = searchParams.get('endDate');
+
         // Build where clause
         const where: Record<string, unknown> = {};
         if (status && status !== 'all') {
             where.status = status;
+        }
+
+        if (startDate || endDate) {
+            where.createdAt = {};
+            if (startDate) {
+                (where.createdAt as any).gte = new Date(startDate);
+            }
+            if (endDate) {
+                (where.createdAt as any).lte = new Date(endDate);
+            }
         }
         if (search) {
             where.OR = [

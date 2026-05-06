@@ -25,6 +25,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   String? _error;
   String _currentStatus = 'all';
   Map<String, int> _counts = {};
+  
+  DateTime? _startDate;
+  DateTime? _endDate;
+  bool _isSelectionMode = false;
+  final Set<String> _selectedOrderIds = {};
 
 
 
@@ -56,6 +61,12 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       String path = '/api/admin/auth/orders?status=$_currentStatus';
       if (_searchController.text.isNotEmpty) {
         path += '&search=${Uri.encodeComponent(_searchController.text)}';
+      }
+      if (_startDate != null) {
+        path += '&startDate=${_startDate!.toIso8601String()}';
+      }
+      if (_endDate != null) {
+        path += '&endDate=${_endDate!.toIso8601String()}';
       }
       final data = await client.get(path);
       if (mounted) {
@@ -95,6 +106,18 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     return status.replaceAll('_', ' ').toUpperCase();
   }
 
+  IconData _sourceIcon(String source) {
+    switch (source.toLowerCase()) {
+      case 'whatsapp': return LucideIcons.messageCircle;
+      case 'facebook': return LucideIcons.facebook;
+      case 'instagram': return LucideIcons.instagram;
+      case 'phone': return LucideIcons.phone;
+      case 'website': return LucideIcons.globe;
+      case 'in-person': return LucideIcons.user;
+      default: return LucideIcons.globe;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,6 +126,30 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         title: Text('Orders', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
         backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
+        actions: [
+          if (_startDate != null)
+            IconButton(
+              icon: const Icon(LucideIcons.xCircle, color: AppColors.error, size: 20),
+              onPressed: () {
+                setState(() { _startDate = null; _endDate = null; });
+                _loadOrders();
+              },
+            ),
+          IconButton(
+            icon: Icon(LucideIcons.calendar, color: _startDate != null ? AppColors.primaryDark : AppColors.textPrimary, size: 20),
+            onPressed: _showDateRangePicker,
+          ),
+          IconButton(
+            icon: Icon(_isSelectionMode ? LucideIcons.x : LucideIcons.checkSquare, color: AppColors.primaryDark, size: 20),
+            onPressed: () {
+              setState(() {
+                _isSelectionMode = !_isSelectionMode;
+                if (!_isSelectionMode) _selectedOrderIds.clear();
+              });
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             bottom: Radius.circular(30),
@@ -204,15 +251,24 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 90),
-        child: FloatingActionButton.extended(
-          onPressed: _openCreateOrder,
-          backgroundColor: AppColors.primaryDark,
-          foregroundColor: Colors.white,
-          elevation: 4,
-          icon: const Icon(LucideIcons.plus, size: 20),
-          label: Text('Manual Order', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
+        child: _isSelectionMode
+            ? FloatingActionButton.extended(
+                onPressed: _selectedOrderIds.isEmpty ? null : _showBulkStatusPicker,
+                backgroundColor: _selectedOrderIds.isEmpty ? AppColors.divider : AppColors.primaryDark,
+                foregroundColor: Colors.white,
+                elevation: 4,
+                icon: const Icon(LucideIcons.edit, size: 20),
+                label: Text('Update Status (${_selectedOrderIds.length})', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+              )
+            : FloatingActionButton.extended(
+                onPressed: _openCreateOrder,
+                backgroundColor: AppColors.primaryDark,
+                foregroundColor: Colors.white,
+                elevation: 4,
+                icon: const Icon(LucideIcons.plus, size: 20),
+                label: Text('Manual Order', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
       ),
     );
   }
@@ -233,18 +289,44 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         final color = _statusColor(status);
 
         return GestureDetector(
-          onTap: () => _openOrderDetail(order['id']),
+          onTap: () {
+            if (_isSelectionMode) {
+              setState(() {
+                if (_selectedOrderIds.contains(order['id'])) {
+                  _selectedOrderIds.remove(order['id']);
+                } else {
+                  _selectedOrderIds.add(order['id']);
+                }
+              });
+            } else {
+              _openOrderDetail(order['id']);
+            }
+          },
           child: Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.cardBorder),
+              border: Border.all(color: _selectedOrderIds.contains(order['id']) ? AppColors.primaryDark : AppColors.cardBorder, width: _selectedOrderIds.contains(order['id']) ? 2 : 1),
             ),
-            child: Column(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (_isSelectionMode) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2, right: 12),
+                    child: Icon(
+                      _selectedOrderIds.contains(order['id']) ? LucideIcons.checkSquare : LucideIcons.square,
+                      color: _selectedOrderIds.contains(order['id']) ? AppColors.primaryDark : AppColors.textMuted,
+                      size: 20,
+                    ),
+                  ),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -324,13 +406,22 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                       _formatDate(order['createdAt']),
                       style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
                     ),
-                    Text(
-                      '${order['itemCount'] ?? 0} items',
-                      style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
+                    Row(
+                      children: [
+                        Icon(_sourceIcon((order['source'] ?? 'website').toString()), size: 12, color: AppColors.textMuted),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${order['itemCount'] ?? 0} items',
+                          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ],
+            ),
+            ),
+            ],
             ),
           ),
         );
@@ -522,6 +613,118 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update status: $e'), backgroundColor: AppColors.error),
         );
+      }
+    }
+  }
+
+  Future<void> _showDateRangePicker() async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDateRange: _startDate != null && _endDate != null
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
+          : null,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primaryDark,
+              onPrimary: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _startDate = picked.start;
+        _endDate = picked.end;
+      });
+      _loadOrders();
+    }
+  }
+
+  void _showBulkStatusPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text('Bulk Update Status', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 16),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const BouncingScrollPhysics(),
+                itemCount: OrderConstants.statuses.length,
+                separatorBuilder: (context, index) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final status = OrderConstants.statuses[index]['key']!;
+                  if (status == 'all') return const SizedBox.shrink();
+                  final color = _statusColor(status);
+                  return InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _updateBulkStatus(status);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Row(
+                        children: [
+                          Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                          const SizedBox(width: 16),
+                          Text(_statusLabel(status), style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateBulkStatus(String newStatus) async {
+    setState(() => _isLoading = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.patch('/api/admin/auth/orders/bulk', body: {
+        'orderIds': _selectedOrderIds.toList(),
+        'status': newStatus,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Orders updated successfully'), backgroundColor: AppColors.success));
+        setState(() {
+          _isSelectionMode = false;
+          _selectedOrderIds.clear();
+        });
+      }
+      _loadOrders();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
       }
     }
   }
