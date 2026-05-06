@@ -705,64 +705,80 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final total = _order!['totalPrice'].toString();
 
     final text = "Hello $name,\nThank you for your order #$orderNo from LegaCy!\nYour total is $total EGP.\nWe will keep you updated with the shipping status.";
-    final url = "whatsapp://send?phone=$phone&text=${Uri.encodeComponent(text)}";
     
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
+    String formattedPhone = phone.replaceAll(RegExp(r'\D'), '');
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '2$formattedPhone'; // Egypt country code fallback
+    }
+
+    final url = "https://wa.me/$formattedPhone?text=${Uri.encodeComponent(text)}";
+    
+    try {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not launch WhatsApp')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not launch WhatsApp: $e'), backgroundColor: AppColors.error));
       }
     }
   }
 
   Future<void> _printOrder() async {
-    final pdfDoc = pw.Document();
-    
-    final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Guest';
-    final orderNo = _order!['orderNumber'].toString();
-    final items = (_order!['items'] as List? ?? []);
-    final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
-    
-    pdfDoc.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text('LegaCy Store', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 20),
-              pw.Text('Order #$orderNo', style: pw.TextStyle(fontSize: 18)),
-              pw.Text('Customer: $name'),
-              pw.SizedBox(height: 20),
-              pw.Text('Items:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 10),
-              ...items.map((item) => pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('${item['quantity']}x ${item['name']}'),
-                  pw.Text('${item['price']} EGP'),
-                ]
-              )),
-              pw.Divider(),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  pw.Text('$total EGP', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                ]
-              ),
-            ],
-          );
-        },
-      ),
-    );
+    try {
+      final pdfDoc = pw.Document();
+      
+      final font = await PdfGoogleFonts.cairoRegular();
+      final boldFont = await PdfGoogleFonts.cairoBold();
+      
+      final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Guest';
+      final orderNo = _order!['orderNumber'].toString();
+      final items = (_order!['items'] as List? ?? []);
+      final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
+      
+      pdfDoc.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          theme: pw.ThemeData.withFont(base: font, bold: boldFont),
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('LegaCy Store', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 20),
+                pw.Text('Order #$orderNo', style: pw.TextStyle(fontSize: 18)),
+                pw.Text('Customer: $name'),
+                pw.SizedBox(height: 20),
+                pw.Text('Items:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 10),
+                ...items.map((item) => pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('${item['quantity']}x ${item['name']}'),
+                    pw.Text('${item['price']} EGP'),
+                  ]
+                )),
+                pw.Divider(),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('$total EGP', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  ]
+                ),
+              ],
+            );
+          },
+        ),
+      );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdfDoc.save(),
-      name: 'Order_$orderNo',
-    );
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdfDoc.save(),
+        name: 'Order_$orderNo',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to print: $e'), backgroundColor: AppColors.error));
+      }
+    }
   }
 
   String _formatDate(String? dateStr) {
