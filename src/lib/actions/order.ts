@@ -418,7 +418,7 @@ export async function adminUpdateOrder(orderId: string, input: ManualOrderInput)
             shippingAddress: input.shippingAddress?.street,
             shippingCity: input.shippingAddress?.city,
             shippingGovernorate: input.shippingAddress?.governorate,
-            items: serviceItems.length > 0 ? serviceItems : undefined,
+            items: serviceItems?.length ? serviceItems : undefined,
             shippingCost: input.shippingCost,
             discountAmount: input.discountAmount,
             shippingNotes: input.notes,
