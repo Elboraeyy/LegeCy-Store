@@ -345,17 +345,19 @@ export async function adminUpdateOrder(orderId: string, input: ManualOrderInput)
         
         if (input.customer && 'existingId' in input.customer) {
             userId = input.customer.existingId;
-            const existingUser = await prisma.user.findUnique({ 
-                where: { id: userId },
-                select: { name: true, phone: true, email: true }
-            });
-            
-            if (existingUser) {
-                customerPhone = existingUser.phone || '';
-                customerEmail = existingUser.email || undefined;
-                const nameParts = (existingUser.name || '').split(' ');
-                firstName = nameParts[0];
-                lastName = nameParts.slice(1).join(' ') || undefined;
+            if (userId) {
+                const existingUser = await prisma.user.findUnique({ 
+                    where: { id: userId },
+                    select: { name: true, phone: true, email: true }
+                });
+                
+                if (existingUser) {
+                    customerPhone = existingUser.phone || '';
+                    customerEmail = existingUser.email || undefined;
+                    const nameParts = (existingUser.name || '').split(' ');
+                    firstName = nameParts[0];
+                    lastName = nameParts.slice(1).join(' ') || undefined;
+                }
             }
         } 
         
