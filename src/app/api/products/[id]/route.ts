@@ -79,7 +79,7 @@ export async function GET(_: NextRequest, { params }: Params) {
       createdAt: product.createdAt.toISOString(),
       detailTags: product.detailTags,
       orderedSimilarIds: (product as any).orderedSimilarIds || [],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       specs: (product as any).specs as any, // Cast to any to avoid strict type checks on Json type
       similarProducts: ((product as any).orderedSimilarIds && (product as any).orderedSimilarIds.length > 0)
         ? (product as any).orderedSimilarIds

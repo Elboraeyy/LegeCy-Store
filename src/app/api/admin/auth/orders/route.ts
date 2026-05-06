@@ -29,13 +29,14 @@ export async function GET(request: NextRequest) {
         }
 
         if (startDate || endDate) {
-            where.createdAt = {};
+            const createdAtFilter: { gte?: Date; lte?: Date } = {};
             if (startDate) {
-                (where.createdAt as any).gte = new Date(startDate);
+                createdAtFilter.gte = new Date(startDate);
             }
             if (endDate) {
-                (where.createdAt as any).lte = new Date(endDate);
+                createdAtFilter.lte = new Date(endDate);
             }
+            where.createdAt = createdAtFilter;
         }
         if (search) {
             where.OR = [

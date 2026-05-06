@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server';
 
 import prisma from '@/lib/prisma';
@@ -128,7 +128,7 @@ export async function createProductAction(data: ProductInput) {
                 metaDescriptionAr: data.metaDescriptionAr,
 
                 // Specs
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                 
                 specs: (data.specs || undefined) as any,
 
                 // Similar Products
@@ -221,7 +221,7 @@ export async function updateProductAction(id: string, data: ProductInput) {
             metaDescriptionAr: data.metaDescriptionAr,
 
             // Specs
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             
             specs: (data.specs || undefined) as any,
 
             // Similar Products logic: reset and connected new list

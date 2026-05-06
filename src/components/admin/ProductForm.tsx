@@ -44,12 +44,12 @@ interface ProductFormProps {
         brandId?: string | null;
         materialId?: string | null;
         supplierId?: string | null;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         supplier?: any | null;
         showInNewArrivals?: boolean;
         showInForYou?: boolean;
         detailTags?: string[];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         similarProducts?: any[];
         orderedSimilarIds?: string[];
 
@@ -382,17 +382,17 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 <TabButton id="sourcing" label="Sourcing & Pricing" />
                 <button
                     type="button"
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                     
                     onClick={() => setActiveTab('seo' as any)}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                     
                     className={`admin-tab-btn ${activeTab === 'seo' as any ? 'active' : ''}`}
                     style={{
                         padding: '10px 20px',
                         border: 'none',
                         background: 'transparent',
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                         
                         borderBottom: activeTab === 'seo' as any ? '2px solid var(--admin-primary)' : '2px solid transparent',
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                         
                         color: activeTab === 'seo' as any ? 'var(--admin-primary)' : 'var(--admin-text-muted)',
                         fontWeight: 500,
                         cursor: 'pointer',
@@ -614,7 +614,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                         
                         <ProductPicker 
                             value={similarProductIds}
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                             
                             initialOptions={initialData?.similarProducts?.map((p: any) => ({ label: p.name, value: p.id, image: p.imageUrl || p.images?.[0]?.url })) || []}
                             onChange={(ids) => {
                                 setSimilarProductIds(ids);
@@ -900,7 +900,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             </div>
 
             {/* SEO Tab */}
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            { }
             <div style={{ display: activeTab === 'seo' as any ? 'block' : 'none', maxWidth: '800px' }}>
                 <div className="admin-card">
                     <h3 className="stat-label" style={{ marginBottom: '20px' }}>Search Engine Optimization</h3>
