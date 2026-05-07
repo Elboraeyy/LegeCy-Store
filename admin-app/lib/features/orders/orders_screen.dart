@@ -618,33 +618,171 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   }
 
   Future<void> _showDateRangePicker() async {
-    final picked = await showDateRangePicker(
+    DateTime? tempStart = _startDate;
+    DateTime? tempEnd = _endDate;
+
+    final picked = await showDialog<bool>(
       context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      initialDateRange: _startDate != null && _endDate != null
-          ? DateTimeRange(start: _startDate!, end: _endDate!)
-          : null,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primaryDark,
-              onPrimary: Colors.white,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Dialog(
+            backgroundColor: AppColors.surface,
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Filter by Date',
+                    style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Select a start and end date to filter the orders.',
+                    style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildDateSelector(
+                          label: 'Start Date',
+                          date: tempStart,
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: tempStart ?? DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now(),
+                              builder: (context, child) => Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: const ColorScheme.light(primary: AppColors.primaryDark),
+                                ),
+                                child: child!,
+                              ),
+                            );
+                            if (picked != null) {
+                              setDialogState(() => tempStart = picked);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildDateSelector(
+                          label: 'End Date',
+                          date: tempEnd,
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: tempEnd ?? tempStart ?? DateTime.now(),
+                              firstDate: tempStart ?? DateTime(2020),
+                              lastDate: DateTime.now(),
+                              builder: (context, child) => Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: const ColorScheme.light(primary: AppColors.primaryDark),
+                                ),
+                                child: child!,
+                              ),
+                            );
+                            if (picked != null) {
+                              setDialogState(() => tempEnd = picked);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          // Clear selection if they just want to cancel filtering entirely
+                          Navigator.pop(context, false);
+                        },
+                        child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (tempStart != null && tempEnd != null && tempEnd!.isBefore(tempStart!)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('End date must be after start date.'), backgroundColor: AppColors.error),
+                            );
+                            return;
+                          }
+                          Navigator.pop(context, true);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryDark,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          elevation: 0,
+                        ),
+                        child: Text('Apply Filter', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          child: child!,
-        );
-      },
+          );
+        },
+      ),
     );
 
-    if (picked != null) {
+    if (picked == true) {
       setState(() {
-        _startDate = picked.start;
-        _endDate = picked.end;
+        _startDate = tempStart;
+        _endDate = tempEnd;
       });
       _loadOrders();
     }
+  }
+
+  Widget _buildDateSelector({required String label, required DateTime? date, required VoidCallback onTap}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.cardBorder),
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+            ),
+            child: Row(
+              children: [
+                Icon(LucideIcons.calendar, size: 16, color: date != null ? AppColors.primaryDark : AppColors.textMuted),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    date != null ? '${date.day}/${date.month}/${date.year}' : 'Select',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: date != null ? FontWeight.w600 : FontWeight.w400,
+                      color: date != null ? AppColors.textPrimary : AppColors.textMuted,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   void _showBulkStatusPicker() {
