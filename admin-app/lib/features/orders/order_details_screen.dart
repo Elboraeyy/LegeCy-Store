@@ -13,7 +13,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'dart:io' show Platform;
+import 'dart:io';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:android_intent_plus/android_intent.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
@@ -532,7 +534,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             icon: LucideIcons.printer,
             label: 'Print',
             color: const Color(0xFF475569),
-            onTap: _printOrder,
+            onTap: _showPrintOptions,
           ),
         ),
         const SizedBox(width: 12),
@@ -749,63 +751,303 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     }
   }
 
-  Future<void> _printOrder() async {
-    try {
-      final pdfDoc = pw.Document();
-      
-      final font = await PdfGoogleFonts.cairoRegular();
-      final boldFont = await PdfGoogleFonts.cairoBold();
-      
-      final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Guest';
-      final orderNo = _order!['orderNumber'].toString();
-      final items = (_order!['items'] as List? ?? []);
-      final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
-      
-      pdfDoc.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          theme: pw.ThemeData.withFont(base: font, bold: boldFont),
-          build: (pw.Context context) {
-            return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('LegaCy Store', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 20),
-                pw.Text('Order #$orderNo', style: pw.TextStyle(fontSize: 18)),
-                pw.Text('Customer: $name'),
-                pw.SizedBox(height: 20),
-                pw.Text('Items:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 10),
-                ...items.map((item) => pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text('${item['quantity']}x ${item['name']}'),
-                    pw.Text('${item['price']} EGP'),
-                  ]
-                )),
-                pw.Divider(),
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text('$total EGP', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  ]
-                ),
-              ],
-            );
-          },
-        ),
-      );
+  void _showPrintOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 24),
+              Text('Invoice Options', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+              const SizedBox(height: 24),
+              _buildOptionTile(
+                icon: LucideIcons.fileText,
+                title: 'Export as PDF',
+                subtitle: 'Save or share as a PDF document',
+                onTap: () {
+                  Navigator.pop(context);
+                  _processInvoice(asImage: false);
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildOptionTile(
+                icon: LucideIcons.image,
+                title: 'Export as Image',
+                subtitle: 'Share directly to WhatsApp or Gallery',
+                onTap: () {
+                  Navigator.pop(context);
+                  _processInvoice(asImage: true);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      }
+    );
+  }
 
-      await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => pdfDoc.save(),
-        name: 'Order_$orderNo',
-      );
+  Widget _buildOptionTile({required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.cardBorder),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: AppColors.primaryDark.withOpacity(0.05), shape: BoxShape.circle),
+              child: Icon(icon, color: AppColors.primaryDark),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            const Icon(LucideIcons.chevronRight, color: AppColors.textMuted, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _processInvoice({required bool asImage}) async {
+    try {
+      final pdfDoc = await _generateInvoicePdf();
+      final bytes = await pdfDoc.save();
+      final orderNo = _order!['orderNumber']?.toString() ?? 'unknown';
+
+      if (asImage) {
+        final raster = await Printing.raster(bytes, pages: [0]).first;
+        final pngBytes = await raster.toPng();
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/Invoice_$orderNo.png');
+        await file.writeAsBytes(pngBytes);
+        await Share.shareXFiles([XFile(file.path)], text: 'Invoice #$orderNo');
+      } else {
+        await Printing.layoutPdf(
+          onLayout: (PdfPageFormat format) async => bytes,
+          name: 'Invoice_$orderNo',
+        );
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to print: $e'), backgroundColor: AppColors.error));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
       }
     }
+  }
+
+  Future<pw.Document> _generateInvoicePdf() async {
+    final pdfDoc = pw.Document();
+    
+    final font = await PdfGoogleFonts.cairoRegular();
+    final boldFont = await PdfGoogleFonts.cairoBold();
+    
+    final primaryColor = const PdfColor.fromInt(0xFF12403C);
+    final accentColor = const PdfColor.fromInt(0xFFD4AF37);
+    final bgColor = const PdfColor.fromInt(0xFFFCF8F3);
+    
+    final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer';
+    final phone = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
+    final address = _order!['shippingAddress'] ?? _order!['address'] ?? '';
+    final orderNo = _order!['orderNumber']?.toString() ?? 'N/A';
+    final items = (_order!['items'] as List? ?? []);
+    final subtotal = (_order!['subtotal'] as num?)?.toDouble() ?? 0.0;
+    final shipping = (_order!['shippingCost'] as num?)?.toDouble() ?? 0.0;
+    final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
+    final paymentMethod = _order!['paymentMethod'] ?? 'COD';
+    final orderDate = _formatDate(_order!['createdAt']);
+    
+    pdfDoc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        theme: pw.ThemeData.withFont(base: font, bold: boldFont),
+        build: (pw.Context context) {
+          return [
+            // Header
+            pw.Container(
+              padding: const pw.EdgeInsets.all(24),
+              decoration: const pw.BoxDecoration(
+                color: primaryColor,
+                borderRadius: pw.BorderRadius.all(pw.Radius.circular(12)),
+              ),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('LegaCy', style: pw.TextStyle(color: accentColor, fontSize: 32, fontWeight: pw.FontWeight.bold)),
+                      pw.SizedBox(height: 4),
+                      pw.Text('Premium Watches', style: const pw.TextStyle(color: PdfColors.white, fontSize: 14)),
+                    ]
+                  ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('INVOICE', style: pw.TextStyle(color: PdfColors.white, fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                      pw.SizedBox(height: 8),
+                      pw.Text('#$orderNo', style: pw.TextStyle(color: accentColor, fontSize: 18)),
+                      pw.Text('Date: $orderDate', style: const pw.TextStyle(color: PdfColors.white, fontSize: 12)),
+                    ]
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 32),
+            
+            // Customer Info
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('BILLED TO:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                      pw.SizedBox(height: 8),
+                      pw.Text(name, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                      pw.Text(phone, style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey800)),
+                      if (address.isNotEmpty) pw.Text(address, style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey800)),
+                    ]
+                  ),
+                ),
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('PAYMENT METHOD:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                      pw.SizedBox(height: 8),
+                      pw.Text(paymentMethod.toString().toUpperCase(), style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                    ]
+                  ),
+                ),
+              ]
+            ),
+            pw.SizedBox(height: 32),
+            
+            // Table Header
+            pw.Container(
+              decoration: pw.BoxDecoration(
+                color: bgColor,
+                border: const pw.Border(bottom: pw.BorderSide(color: primaryColor, width: 2)),
+              ),
+              padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              child: pw.Row(
+                children: [
+                  pw.Expanded(flex: 4, child: pw.Text('ITEM', style: pw.TextStyle(color: primaryColor, fontWeight: pw.FontWeight.bold))),
+                  pw.Expanded(flex: 1, child: pw.Text('QTY', textAlign: pw.TextAlign.center, style: pw.TextStyle(color: primaryColor, fontWeight: pw.FontWeight.bold))),
+                  pw.Expanded(flex: 2, child: pw.Text('PRICE', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: primaryColor, fontWeight: pw.FontWeight.bold))),
+                  pw.Expanded(flex: 2, child: pw.Text('TOTAL', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: primaryColor, fontWeight: pw.FontWeight.bold))),
+                ]
+              )
+            ),
+            
+            // Table Items
+            ...items.map((item) {
+              final qty = item['quantity'] ?? 1;
+              final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+              final itemTotal = price * qty;
+              return pw.Container(
+                decoration: const pw.BoxDecoration(
+                  border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 1)),
+                ),
+                padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                child: pw.Row(
+                  children: [
+                    pw.Expanded(flex: 4, child: pw.Text(item['name']?.toString() ?? '', style: const pw.TextStyle(fontSize: 12))),
+                    pw.Expanded(flex: 1, child: pw.Text(qty.toString(), textAlign: pw.TextAlign.center, style: const pw.TextStyle(fontSize: 12))),
+                    pw.Expanded(flex: 2, child: pw.Text('${price.toStringAsFixed(2)} EGP', textAlign: pw.TextAlign.right, style: const pw.TextStyle(fontSize: 12))),
+                    pw.Expanded(flex: 2, child: pw.Text('${itemTotal.toStringAsFixed(2)} EGP', textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold))),
+                  ]
+                )
+              );
+            }),
+            
+            pw.SizedBox(height: 24),
+            
+            // Summary
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.end,
+              children: [
+                pw.Container(
+                  width: 250,
+                  child: pw.Column(
+                    children: [
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text('Subtotal', style: const pw.TextStyle(fontSize: 14)),
+                          pw.Text('${subtotal.toStringAsFixed(2)} EGP', style: const pw.TextStyle(fontSize: 14)),
+                        ]
+                      ),
+                      pw.SizedBox(height: 8),
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text('Shipping', style: const pw.TextStyle(fontSize: 14)),
+                          pw.Text('${shipping.toStringAsFixed(2)} EGP', style: const pw.TextStyle(fontSize: 14)),
+                        ]
+                      ),
+                      pw.SizedBox(height: 12),
+                      pw.Container(
+                        padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        decoration: const pw.BoxDecoration(
+                          color: primaryColor,
+                          borderRadius: pw.BorderRadius.all(pw.Radius.circular(8)),
+                        ),
+                        child: pw.Row(
+                          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                          children: [
+                            pw.Text('Total', style: pw.TextStyle(color: PdfColors.white, fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                            pw.Text('${total.toStringAsFixed(2)} EGP', style: pw.TextStyle(color: accentColor, fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                          ]
+                        ),
+                      ),
+                    ]
+                  )
+                )
+              ]
+            ),
+            
+            pw.SizedBox(height: 48),
+            
+            // Footer
+            pw.Center(
+              child: pw.Column(
+                children: [
+                  pw.Text('Thank you for shopping with LegaCy!', style: pw.TextStyle(color: primaryColor, fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                  pw.SizedBox(height: 4),
+                  pw.Text('For inquiries, please contact us on WhatsApp.', style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 12)),
+                ]
+              )
+            )
+          ];
+        }
+      )
+    );
+    return pdfDoc;
   }
 
   String _formatDate(String? dateStr) {
