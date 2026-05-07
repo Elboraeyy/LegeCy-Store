@@ -871,7 +871,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     
     final name = reshape(_order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer');
     final phone = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
-    final address = reshape(_order!['shippingAddress'] ?? _order!['address'] ?? '');
+    
+    final shippingAddrObj = _order!['shippingAddress'] is Map ? _order!['shippingAddress'] : null;
+    final shippingAddrStr = _order!['shippingAddress'] is String ? _order!['shippingAddress'] : '';
+    final rawAddress = shippingAddrStr.isNotEmpty ? shippingAddrStr : (shippingAddrObj?['address'] ?? _order!['address'] ?? '');
+    final address = reshape(rawAddress);
+    
+    final rawGov = shippingAddrObj?['governorate'] ?? shippingAddrObj?['state'] ?? _order!['shippingGovernorate'] ?? _order!['governorate'] ?? _order!['customer']?['governorate'] ?? '';
+    final governorate = reshape(rawGov.toString());
+    
+    final rawCity = shippingAddrObj?['city'] ?? _order!['shippingCity'] ?? _order!['city'] ?? _order!['customer']?['city'] ?? '';
+    final city = reshape(rawCity.toString());
+    
+    final altPhone = _order!['alternativePhone'] ?? _order!['altPhone'] ?? _order!['customer']?['alternativePhone'] ?? '';
+    final notes = reshape(_order!['notes'] ?? _order!['orderNotes'] ?? '');
+    
     final orderNo = _order!['orderNumber']?.toString() ?? 'N/A';
     final items = (_order!['items'] as List? ?? []);
     final subtotal = (_order!['subtotal'] as num?)?.toDouble() ?? 0.0;
@@ -879,6 +893,27 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
     final paymentMethod = _order!['paymentMethod'] ?? 'COD';
     final orderDate = _formatDate(_order!['createdAt']);
+    
+    pw.Widget buildInfoRow(String label, String value, {bool isRtl = false, bool isBold = false}) {
+      if (value.toString().trim().isEmpty) return pw.SizedBox();
+      return pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 4),
+        child: pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(label, style: pw.TextStyle(fontSize: 12, color: primaryColor, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(width: 4),
+            pw.Expanded(
+              child: pw.Text(
+                value.toString(),
+                textDirection: isRtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+                style: pw.TextStyle(fontSize: 12, color: isBold ? primaryColor : PdfColors.grey800, fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal)
+              ),
+            ),
+          ]
+        )
+      );
+    }
     
     pdfDoc.addPage(
       pw.MultiPage(
@@ -930,18 +965,25 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Expanded(
+                  flex: 3,
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text('BILLED TO:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
                       pw.SizedBox(height: 8),
-                      pw.Text(name, textDirection: pw.TextDirection.rtl, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
-                      pw.Text(phone, style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey800)),
-                      if (address.isNotEmpty) pw.Text(address, textDirection: pw.TextDirection.rtl, style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey800)),
+                      buildInfoRow('Name:', name, isRtl: true, isBold: true),
+                      buildInfoRow('Phone:', phone),
+                      buildInfoRow('Alt Phone:', altPhone.toString()),
+                      buildInfoRow('Gov:', governorate, isRtl: true),
+                      buildInfoRow('City:', city, isRtl: true),
+                      buildInfoRow('Address:', address, isRtl: true),
+                      buildInfoRow('Notes:', notes, isRtl: true),
                     ]
                   ),
                 ),
+                pw.SizedBox(width: 16),
                 pw.Expanded(
+                  flex: 2,
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
@@ -977,7 +1019,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               final qty = item['quantity'] ?? 1;
               final price = (item['price'] as num?)?.toDouble() ?? 0.0;
               final itemTotal = price * qty;
-              final itemName = reshape(item['name']?.toString() ?? '');
+              
+              String cleanItemName = item['name']?.toString() ?? '';
+              cleanItemName = cleanItemName.replaceAll(RegExp(r'\s*\([^)]*\)$'), '').trim();
+              final itemName = reshape(cleanItemName);
               return pw.Container(
                 decoration: const pw.BoxDecoration(
                   border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 1)),
