@@ -904,6 +904,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final subtotal = (_order!['subtotal'] as num?)?.toDouble() ?? 0.0;
     final shipping = (_order!['shippingCost'] as num?)?.toDouble() ?? 0.0;
     final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
+    
+    double discount = (_order!['discount'] as num?)?.toDouble() ?? 0.0;
+    if (discount <= 0) {
+      double diff = (subtotal + shipping) - total;
+      if (diff > 0.5) discount = diff;
+    }
+    
     final paymentMethod = _order!['paymentMethod'] ?? 'COD';
     final orderDate = _formatDate(_order!['createdAt']);
     
@@ -1068,6 +1075,16 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           pw.Text('${shipping.toStringAsFixed(2)} EGP', style: const pw.TextStyle(fontSize: 14)),
                         ]
                       ),
+                      if (discount > 0) ...[
+                        pw.SizedBox(height: 8),
+                        pw.Row(
+                          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                          children: [
+                            pw.Text('Discount', style: pw.TextStyle(fontSize: 14, color: primaryColor, fontWeight: pw.FontWeight.bold)),
+                            pw.Text('-${discount.toStringAsFixed(2)} EGP', style: pw.TextStyle(fontSize: 14, color: primaryColor, fontWeight: pw.FontWeight.bold)),
+                          ]
+                        ),
+                      ],
                       pw.SizedBox(height: 12),
                       pw.Container(
                         padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 16),
