@@ -3,7 +3,7 @@ import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
 
-export async function PUT(request: NextRequest, context: any) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     const admin = await validateMobileToken(request);
     if (!admin) return unauthorizedResponse();
 
@@ -45,7 +45,7 @@ export async function PUT(request: NextRequest, context: any) {
     }
 }
 
-export async function DELETE(request: NextRequest, context: any) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     const admin = await validateMobileToken(request);
     if (!admin) return unauthorizedResponse();
 
