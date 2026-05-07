@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
@@ -196,8 +197,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         Container(
                           color: AppColors.shimmer,
                           child: product['imageUrl'] != null
-                              ? Image.network(product['imageUrl'], fit: BoxFit.cover,
-                                  errorBuilder: (_, e, st) => Center(child: Icon(LucideIcons.image, color: AppColors.textMuted)))
+                              ? CachedNetworkImage(
+                                  imageUrl: product['imageUrl'], 
+                                  fit: BoxFit.cover,
+                                  errorWidget: (_, e, st) => Center(child: Icon(LucideIcons.image, color: AppColors.textMuted)),
+                                )
                               : Center(child: Icon(LucideIcons.image, color: AppColors.textMuted, size: 32)),
                         ),
                         Positioned(

@@ -1,5 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -26,6 +30,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   
   String? _selectedCategoryId;
   String _status = 'active';
+  File? _imageFile;
+  String? _imageUrl;
   
   List<dynamic> _categories = [];
   bool _isLoadingCategories = true;
@@ -45,8 +51,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _skuController.text = widget.product!['sku'] ?? '';
       _status = widget.product!['status'] ?? 'active';
       _selectedCategoryId = widget.product!['categoryId']?.toString();
+      _imageUrl = widget.product!['imageUrl'];
     }
     _loadCategories();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (pickedFile != null) {
+      setState(() { _imageFile = File(pickedFile.path); });
+    }
   }
 
   @override
@@ -95,6 +110,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       
+      if (_imageFile != null) {
+        final uploadData = await client.uploadMultipart(
+          ApiConfig.uploadEndpoint,
+          filePath: _imageFile!.path,
+          fileField: 'file',
+          fields: {'folder': 'products'},
+        );
+        _imageUrl = uploadData['url'];
+      }
+      
       final body = {
         'name': _nameController.text.trim(),
         'nameAr': _nameArController.text.trim(),
@@ -104,12 +129,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
         'status': _status,
         'price': double.tryParse(_priceController.text) ?? 0,
         'sku': _skuController.text.trim(),
+        if (_imageUrl != null) 'imageUrl': _imageUrl,
       };
 
       if (_isEditing) {
-        await client.put('${ApiConfig.productsEndpoint}/${widget.product!['id']}', body: body);
+        await client.put('${ApiConfig.authProductsEndpoint}/${widget.product!['id']}', body: body);
       } else {
-        await client.post(ApiConfig.productsEndpoint, body: body);
+        await client.post(ApiConfig.authProductsEndpoint, body: body);
       }
       
       if (mounted) {
@@ -129,6 +155,42 @@ class _AddProductScreenState extends State<AddProductScreen> {
       if (mounted) {
         setState(() { _isSaving = false; });
       }
+    }
+  }
+
+  Future<void> _deleteProduct() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Product'),
+        content: const Text('Are you sure you want to delete this product? This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true), 
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.delete('${ApiConfig.authProductsEndpoint}/${widget.product!['id']}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Product deleted successfully'), backgroundColor: AppColors.success));
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete product: $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -162,6 +224,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
         title: Text(_isEditing ? 'Edit Product' : 'Add New Product', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600)),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
+        actions: [
+          if (_isEditing)
+            IconButton(
+              icon: const Icon(LucideIcons.trash2, color: AppColors.error),
+              onPressed: _isSaving ? null : _deleteProduct,
+            ),
+        ],
       ),
       body: _isLoadingCategories
         ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
@@ -172,6 +241,38 @@ class _AddProductScreenState extends State<AddProductScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: AppColors.card,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.cardBorder),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: _imageFile != null
+                          ? Image.file(_imageFile!, fit: BoxFit.cover, width: double.infinity)
+                          : _imageUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl: _imageUrl!, 
+                                fit: BoxFit.cover, 
+                                width: double.infinity,
+                                errorWidget: (context, url, error) => const Icon(LucideIcons.image, color: AppColors.textMuted),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(LucideIcons.imagePlus, size: 48, color: AppColors.textMuted.withValues(alpha: 0.5)),
+                                  const SizedBox(height: 12),
+                                  Text('Tap to add product image', style: GoogleFonts.inter(color: AppColors.textMuted)),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(

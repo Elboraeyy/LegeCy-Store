@@ -26,7 +26,9 @@ class ApiConfig {
 
   // Products & Categories endpoints
   static const String productsEndpoint = '$apiPrefix/products';
+  static const String authProductsEndpoint = '$apiPrefix/auth/products';
   static const String categoriesEndpoint = '$apiPrefix/categories';
+  static const String uploadEndpoint = '$apiPrefix/auth/upload';
 
   // Inventory endpoints
   static const String inventoryEndpoint = '$apiPrefix/inventory';

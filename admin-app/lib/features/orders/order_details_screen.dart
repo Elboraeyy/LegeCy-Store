@@ -655,7 +655,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                             await _loadOrder();
                                             if (mounted) setModalState(() {});
                                           } catch (e) {
-                                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+                                            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
                                           } finally {
                                             if (mounted) setModalState(() => _isAddingNote = false);
                                           }

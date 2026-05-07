@@ -1,10 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:android_intent_plus/android_intent.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
@@ -34,15 +31,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   bool _isSelectionMode = false;
   final Set<String> _selectedOrderIds = {};
 
-  int _currentPage = 1;
-  bool _hasMore = true;
-  bool _isLoadingMore = false;
-  final ScrollController _scrollController = ScrollController();
+
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     _tabController = TabController(length: OrderConstants.statuses.length, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
@@ -53,33 +46,19 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     _loadOrders();
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      if (!_isLoading && !_isLoadingMore && _hasMore) {
-        _loadMoreOrders();
-      }
-    }
-  }
-
   @override
   void dispose() {
-    _scrollController.dispose();
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
   Future<void> _loadOrders() async {
-    setState(() { 
-      _isLoading = true; 
-      _error = null; 
-      _currentPage = 1;
-      _hasMore = true;
-    });
+    setState(() { _isLoading = true; _error = null; });
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      String path = '/api/admin/auth/orders?status=$_currentStatus&page=1&limit=20';
+      String path = '/api/admin/auth/orders?status=$_currentStatus';
       if (_searchController.text.isNotEmpty) {
         path += '&search=${Uri.encodeComponent(_searchController.text)}';
       }
@@ -96,47 +75,12 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           _counts = (data['counts'] as Map<dynamic, dynamic>?)?.map(
             (k, v) => MapEntry(k.toString(), v as int)
           ) ?? {};
-          _hasMore = _orders.length == 20 && (data['page'] ?? 1) < (data['totalPages'] ?? 1);
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() { _error = e.toString(); _isLoading = false; });
-      }
-    }
-  }
-
-  Future<void> _loadMoreOrders() async {
-    setState(() => _isLoadingMore = true);
-    try {
-      _currentPage++;
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      String path = '/api/admin/auth/orders?status=$_currentStatus&page=$_currentPage&limit=20';
-      if (_searchController.text.isNotEmpty) {
-        path += '&search=${Uri.encodeComponent(_searchController.text)}';
-      }
-      if (_startDate != null) {
-        path += '&startDate=${_startDate!.toIso8601String()}';
-      }
-      if (_endDate != null) {
-        path += '&endDate=${_endDate!.toIso8601String()}';
-      }
-      
-      final data = await client.get(path);
-      if (mounted) {
-        setState(() {
-          final newOrders = data['orders'] as List<dynamic>;
-          _orders.addAll(newOrders);
-          _hasMore = newOrders.length == 20 && (data['page'] ?? 1) < (data['totalPages'] ?? 1);
-          _isLoadingMore = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoadingMore = false);
-        _currentPage--;
       }
     }
   }
@@ -337,77 +281,36 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
   Widget _buildList() {
     return ListView.builder(
-      controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
-      itemCount: _orders.length + (_isLoadingMore ? 1 : 0),
+      itemCount: _orders.length,
       itemBuilder: (context, index) {
-        if (index == _orders.length) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: CircularProgressIndicator(color: AppColors.primaryDark),
-            ),
-          );
-        }
-
         final order = _orders[index];
         final status = (order['status'] ?? '').toString();
         final color = _statusColor(status);
 
-        return Dismissible(
-          key: Key(order['id'].toString()),
-          direction: _isSelectionMode ? DismissDirection.none : DismissDirection.horizontal,
-          background: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(color: const Color(0xFF25D366), borderRadius: BorderRadius.circular(16)),
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: const Icon(LucideIcons.messageCircle, color: Colors.white, size: 28),
-          ),
-          secondaryBackground: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(color: AppColors.primaryDark, borderRadius: BorderRadius.circular(16)),
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: const Icon(LucideIcons.edit, color: Colors.white, size: 28),
-          ),
-          confirmDismiss: (direction) async {
-            if (direction == DismissDirection.startToEnd) {
-              _quickWhatsApp(order);
-              return false;
-            } else if (direction == DismissDirection.endToStart) {
-              if (!OrderConstants.terminalStates.contains(status.toLowerCase())) {
-                _showStatusPicker(order);
-              } else {
-                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cannot update status for this order.'), backgroundColor: AppColors.error));
-              }
-              return false;
+        return GestureDetector(
+          onTap: () {
+            if (_isSelectionMode) {
+              setState(() {
+                if (_selectedOrderIds.contains(order['id'])) {
+                  _selectedOrderIds.remove(order['id']);
+                } else {
+                  _selectedOrderIds.add(order['id']);
+                }
+              });
+            } else {
+              _openOrderDetail(order['id']);
             }
-            return false;
           },
-          child: GestureDetector(
-            onTap: () {
-              if (_isSelectionMode) {
-                setState(() {
-                  if (_selectedOrderIds.contains(order['id'])) {
-                    _selectedOrderIds.remove(order['id']);
-                  } else {
-                    _selectedOrderIds.add(order['id']);
-                  }
-                });
-              } else {
-                _openOrderDetail(order['id']);
-              }
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _selectedOrderIds.contains(order['id']) ? AppColors.primaryDark : AppColors.cardBorder, width: _selectedOrderIds.contains(order['id']) ? 2 : 1),
-              ),
-              child: Row(
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _selectedOrderIds.contains(order['id']) ? AppColors.primaryDark : AppColors.cardBorder, width: _selectedOrderIds.contains(order['id']) ? 2 : 1),
+            ),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (_isSelectionMode) ...[
@@ -517,15 +420,14 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 ),
               ],
             ),
+            ),
+            ],
+            ),
           ),
-        ],
-      ),
-    ),
-  ),
-);
-},
-);
-}
+        );
+      },
+    );
+  }
 
   Widget _buildEmpty() {
     return Center(
@@ -1001,103 +903,5 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     final d = DateTime.tryParse(dateStr);
     if (d == null) return dateStr;
     return '${d.day}/${d.month}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-  }
-
-  Future<void> _quickWhatsApp(Map<String, dynamic> orderItem) async {
-    showDialog(
-      context: context, 
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
-    );
-    try {
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      final data = await client.get('/api/admin/auth/orders/${orderItem['id']}');
-      final fullOrder = data['order'];
-      
-      if (mounted) Navigator.pop(context); // Hide loading
-      
-      final text = _generateWhatsAppText(fullOrder);
-      final phone = fullOrder['phone'] ?? fullOrder['shippingPhone'] ?? fullOrder['customerPhone'] ?? fullOrder['phoneNumber'] ?? fullOrder['customer']?['phone'] ?? '';
-      
-      String formattedPhone = phone.replaceAll(RegExp(r'\D'), '');
-      if (formattedPhone.startsWith('0')) formattedPhone = '2$formattedPhone';
-
-      final url = "https://wa.me/$formattedPhone?text=${Uri.encodeComponent(text)}";
-      
-      if (Platform.isAndroid) {
-        try {
-          final intent = AndroidIntent(action: 'action_view', data: Uri.encodeFull(url), package: 'com.whatsapp.w4b');
-          await intent.launch();
-        } catch (_) {
-          _launchUrlSafe(url);
-        }
-      } else {
-        _launchUrlSafe(url);
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context); // Hide loading
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
-      }
-    }
-  }
-
-  Future<void> _launchUrlSafe(String url) async {
-    try {
-      final bool launched = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-      if (!launched) await launchUrl(Uri.parse(url), mode: LaunchMode.platformDefault);
-    } catch (_) {
-      try { await launchUrl(Uri.parse(url), mode: LaunchMode.platformDefault); } catch (_) {}
-    }
-  }
-
-  String _generateWhatsAppText(Map<String, dynamic> order) {
-    final status = order['status']?.toString().toLowerCase() ?? 'pending';
-    final name = order['displayName'] ?? order['customer']?['name'] ?? 'Customer';
-    final orderNo = order['orderNumber']?.toString() ?? '';
-    final total = (order['totalPrice'] as num?)?.toDouble() ?? 0.0;
-    final shipping = (order['shippingCost'] as num?)?.toDouble() ?? 0.0;
-    
-    if (status == 'delivered' || status == 'cash_received') {
-      return '''مرحبًا $name ✨\nنتمنى إن طلبك من LegaCy وصلك بأمان وبالشكل اللي كنت متوقعه.\nيسعدنا جدًا نسمع رأيك.\nولو عندك أي ملاحظة أو استفسار، يشرفنا تواصلك معنا.\nشكرًا لثقتك بنا 💚''';
-    } else if (status == 'shipped' || status == 'out_for_delivery') {
-      return '''مرحبًا $name ✨\nطلبك رقم #$orderNo من LegaCy خرج للشحن وفي طريقه ليك! 🚚\nقيمة الطلب: $total EGP\nالمندوب هيتواصل معاك قريب جداً للتسليم.\nلو عندك أي استفسار، إحنا دايماً معاك 💚''';
-    } else if (status == 'preparing') {
-      return '''مرحبًا $name ✨\nطلبك رقم #$orderNo من LegaCy قيد التجهيز حالياً! ⏳\nبنجاهزه بكل حب واهتمام عشان يوصلك في أحسن صورة.\nهنبلغك أول ما يخرج للشحن.\nشكرًا لثقتك بنا 💚''';
-    } else if (status == 'cancelled' || status == 'payment_failed') {
-      return '''مرحبًا $name ✨\nتم إلغاء طلبك رقم #$orderNo من LegaCy.\nنتمنى نشوفك تاني قريب وتكون جزء من عيلتنا 💚\nلو حابب تستفسر عن أي حاجة، إحنا موجودين دايماً!''';
-    } else if (status == 'refunded') {
-      return '''مرحبًا $name ✨\nتم استرجاع طلبك رقم #$orderNo بنجاح، وتمت عملية الـ Refund للرصيد المستحق.\nنتمنى نشوفك تاني قريب وتكون جزء من عيلة LegaCy 💚\nلو حابب تستفسر عن أي حاجة، إحنا موجودين دايماً!''';
-    } else {
-      final items = (order['items'] as List? ?? []);
-      String itemsText = '';
-      for (int i = 0; i < items.length; i++) {
-        String itemName = items[i]['name']?.toString() ?? '';
-        itemName = itemName.replaceAll(RegExp(r'\s*\([^)]*\)$'), '').trim();
-        if (i == 0) {
-          itemsText += '⌚ Watch : $itemName';
-        } else {
-          itemsText += '\n                     $itemName';
-        }
-      }
-      String shippingText = shipping <= 0 ? 'Free Shipping' : '$shipping EGP Shipping';
-      final shippingAddrObj = order['shippingAddress'] is Map ? order['shippingAddress'] : null;
-      final shippingAddrStr = order['shippingAddress'] is String ? order['shippingAddress'] : '';
-      final address = shippingAddrStr.isNotEmpty ? shippingAddrStr : (shippingAddrObj?['address'] ?? order['address'] ?? '');
-      final gov = shippingAddrObj?['governorate'] ?? shippingAddrObj?['state'] ?? order['shippingGovernorate'] ?? order['governorate'] ?? order['customer']?['governorate'] ?? '';
-      final city = shippingAddrObj?['city'] ?? order['shippingCity'] ?? order['city'] ?? order['customer']?['city'] ?? '';
-      final List<String> addressParts = [];
-      if (gov.toString().isNotEmpty) addressParts.add(gov.toString());
-      if (city.toString().isNotEmpty) addressParts.add(city.toString());
-      if (address.toString().isNotEmpty) addressParts.add(address.toString());
-      final fullAddress = addressParts.join(' ، ');
-
-      final phone1 = order['phone'] ?? order['shippingPhone'] ?? order['customerPhone'] ?? order['phoneNumber'] ?? order['customer']?['phone'] ?? '';
-      final phone2 = order['alternativePhone'] ?? order['altPhone'] ?? order['customer']?['alternativePhone'] ?? '';
-      final phone2Line = phone2.toString().trim().isNotEmpty ? '\nPhone 2 : $phone2' : '';
-
-      return '''Thank you for choosing LegaCy 💚\n\nOrder : #$orderNo\nName : $name \n$itemsText \n💰 Total Due : EGP $total + $shippingText \n📍 Address : $fullAddress\nDelivered in (1 : 4) Days \nPhone 1 : $phone1$phone2Line\n\nThanks for shopping with us! 💚''';
-    }
   }
 }
