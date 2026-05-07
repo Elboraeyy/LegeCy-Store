@@ -803,7 +803,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       final phone1 = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
       final phone2 = _order!['alternativePhone'] ?? _order!['altPhone'] ?? _order!['customer']?['alternativePhone'] ?? '';
 
-      return '''Thank you for choosing LegaCy ✨
+      return '''Thank you for choosing LegaCy 💚
 
 Order : #$orderNo
 Name : $name 

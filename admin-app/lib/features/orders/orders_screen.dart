@@ -648,6 +648,29 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   }
 
   void _showBulkStatusPicker() {
+    final selectedOrders = _orders.where((o) => _selectedOrderIds.contains(o['id'])).toList();
+    if (selectedOrders.isEmpty) return;
+
+    final firstStatus = (selectedOrders.first['status'] ?? '').toString().toLowerCase();
+    final hasDifferentStatus = selectedOrders.any((o) => (o['status'] ?? '').toString().toLowerCase() != firstStatus);
+
+    if (hasDifferentStatus) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('All selected orders must have the same status to be updated together.'),
+        backgroundColor: AppColors.error,
+      ));
+      return;
+    }
+
+    final allowed = OrderConstants.allowedTransitions[firstStatus] ?? [];
+    if (allowed.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('No further status updates are allowed for these orders.'),
+        backgroundColor: AppColors.error,
+      ));
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -667,20 +690,25 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
               ),
             ),
             const SizedBox(height: 24),
-            Text('Bulk Update Status', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 16),
+            Text('Bulk Update Status', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+            const SizedBox(height: 8),
+            Text(
+              'Select the next state for ${_selectedOrderIds.length} orders',
+              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 24),
             Flexible(
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const BouncingScrollPhysics(),
-                itemCount: OrderConstants.statuses.length,
+                itemCount: allowed.length,
                 separatorBuilder: (context, index) => const Divider(height: 1),
                 itemBuilder: (context, index) {
-                  final status = OrderConstants.statuses[index]['key']!;
-                  if (status == 'all') return const SizedBox.shrink();
+                  final status = allowed[index];
                   final color = _statusColor(status);
                   return InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       Navigator.pop(context);
                       _updateBulkStatus(status);
                     },
@@ -691,6 +719,8 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                           Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
                           const SizedBox(width: 16),
                           Text(_statusLabel(status), style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600)),
+                          const Spacer(),
+                          Icon(LucideIcons.chevronRight, size: 18, color: AppColors.textMuted),
                         ],
                       ),
                     ),
@@ -698,6 +728,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 },
               ),
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
