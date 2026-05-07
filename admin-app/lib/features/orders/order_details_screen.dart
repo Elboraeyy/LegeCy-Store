@@ -871,7 +871,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     
     String safeString(dynamic val) {
       if (val == null) return '';
-      if (val is List) return val.join(' - ');
+      if (val is List) {
+        return val.map((e) {
+          if (e is Map) return e['content']?.toString() ?? '';
+          return e.toString();
+        }).where((e) => e.toString().trim().isNotEmpty).join(' - ');
+      }
+      if (val is Map) return val['content']?.toString() ?? '';
       return val.toString();
     }
     
@@ -903,15 +909,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     pw.Widget buildInfoRow(String label, String value, {bool isRtl = false, bool isBold = false}) {
       if (value.toString().trim().isEmpty) return pw.SizedBox();
       return pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 4),
+        padding: const pw.EdgeInsets.only(bottom: 6),
         child: pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text(label, style: pw.TextStyle(fontSize: 12, color: primaryColor, fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(width: 4),
+            pw.SizedBox(
+              width: 80,
+              child: pw.Text(label, style: pw.TextStyle(fontSize: 12, color: primaryColor, fontWeight: pw.FontWeight.bold)),
+            ),
             pw.Expanded(
               child: pw.Text(
                 value.toString(),
+                textAlign: pw.TextAlign.left,
                 textDirection: isRtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
                 style: pw.TextStyle(fontSize: 12, color: isBold ? primaryColor : PdfColors.grey800, fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal)
               ),
@@ -924,6 +933,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     pdfDoc.addPage(
       pw.MultiPage(
         pageTheme: pw.PageTheme(
+          margin: const pw.EdgeInsets.symmetric(horizontal: 48, vertical: 48),
           pageFormat: PdfPageFormat.a4,
           theme: pw.ThemeData.withFont(base: font, bold: boldFont),
           buildBackground: (context) => pw.FullPage(
@@ -965,40 +975,23 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             ),
             pw.SizedBox(height: 32),
             
-            // Customer Info
-            pw.Row(
+            // Customer Info & Payment Method
+            pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Expanded(
-                  flex: 3,
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('BILLED TO:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
-                      pw.SizedBox(height: 8),
-                      buildInfoRow('Name:', name, isRtl: true, isBold: true),
-                      buildInfoRow('Phone:', phone),
-                      buildInfoRow('Alt Phone:', altPhone.toString()),
-                      buildInfoRow('Gov:', governorate, isRtl: true),
-                      buildInfoRow('City:', city, isRtl: true),
-                      buildInfoRow('Address:', address, isRtl: true),
-                      buildInfoRow('Notes:', notes, isRtl: true),
-                    ]
-                  ),
-                ),
-                pw.SizedBox(width: 16),
-                pw.Expanded(
-                  flex: 2,
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      pw.Text('PAYMENT METHOD:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
-                      pw.SizedBox(height: 8),
-                      pw.Text(paymentMethod.toString().toUpperCase(), style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
-                    ]
-                  ),
-                ),
+                pw.Text('BILLED TO:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 12),
+                buildInfoRow('Name:', name, isRtl: true, isBold: true),
+                buildInfoRow('Phone:', phone),
+                buildInfoRow('Alt Phone:', altPhone.toString()),
+                buildInfoRow('Gov:', governorate, isRtl: true),
+                buildInfoRow('City:', city, isRtl: true),
+                buildInfoRow('Address:', address, isRtl: true),
+                buildInfoRow('Notes:', notes, isRtl: true),
+                pw.SizedBox(height: 16),
+                pw.Text('PAYMENT METHOD:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 8),
+                pw.Text(paymentMethod.toString().toUpperCase(), style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
               ]
             ),
             pw.SizedBox(height: 32),
