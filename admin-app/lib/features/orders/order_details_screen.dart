@@ -634,7 +634,35 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(n['content'] ?? '', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text(n['content'] ?? '', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () async {
+                                          HapticFeedback.lightImpact();
+                                          setModalState(() => _isAddingNote = true);
+                                          try {
+                                            final token = context.read<AuthProvider>().token;
+                                            final client = ApiClient(token: token);
+                                            await client.patch('/api/admin/auth/orders/${widget.orderId}', body: {
+                                              'action': 'delete_note',
+                                              'noteId': n['id']
+                                            });
+                                            await _loadOrder();
+                                            if (mounted) setModalState(() {});
+                                          } catch (e) {
+                                            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+                                          } finally {
+                                            if (mounted) setModalState(() => _isAddingNote = false);
+                                          }
+                                        },
+                                        child: const Icon(LucideIcons.trash2, size: 16, color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
                                   const SizedBox(height: 8),
                                   Text(
                                     _formatDate(n['createdAt']),

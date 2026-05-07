@@ -99,6 +99,12 @@ export async function PATCH(
             return NextResponse.json({ success: true, status: status || order.status });
         }
 
+        // Delete note
+        if (body.action === 'delete_note' && body.noteId) {
+            await prisma.orderNote.delete({ where: { id: body.noteId } });
+            return NextResponse.json({ success: true });
+        }
+
         const updates: Record<string, unknown> = {};
 
         // Update status
