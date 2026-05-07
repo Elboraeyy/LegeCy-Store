@@ -960,6 +960,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     
     final orderNo = _order!['orderNumber']?.toString() ?? 'N/A';
     final items = (_order!['items'] as List? ?? []);
+    
+    final Map<int, pw.ImageProvider> itemImages = {};
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      final imageUrl = item['product']?['imageUrl'] ?? item['imageUrl'];
+      if (imageUrl != null && imageUrl.toString().startsWith('http')) {
+        try {
+          itemImages[i] = await networkImage(imageUrl.toString());
+        } catch (_) {}
+      }
+    }
+
     final subtotal = (_order!['subtotal'] as num?)?.toDouble() ?? 0.0;
     final shipping = (_order!['shippingCost'] as num?)?.toDouble() ?? 0.0;
     final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
@@ -1085,7 +1097,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             ),
             
             // Table Items
-            ...items.map((item) {
+            ...items.asMap().entries.map((entry) {
+              final i = entry.key;
+              final item = entry.value;
               final qty = item['quantity'] ?? 1;
               final price = (item['price'] as num?)?.toDouble() ?? 0.0;
               final itemTotal = price * qty;
@@ -1099,8 +1113,28 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
                 padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                 child: pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    pw.Expanded(flex: 4, child: pw.Text(itemName, textDirection: pw.TextDirection.rtl, style: const pw.TextStyle(fontSize: 12))),
+                    pw.Expanded(
+                      flex: 4, 
+                      child: pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        children: [
+                          if (itemImages[i] != null) ...[
+                            pw.Container(
+                              width: 24,
+                              height: 24,
+                              decoration: pw.BoxDecoration(
+                                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                                image: pw.DecorationImage(image: itemImages[i]!, fit: pw.BoxFit.cover),
+                              ),
+                            ),
+                            pw.SizedBox(width: 8),
+                          ],
+                          pw.Expanded(child: pw.Text(itemName, textDirection: pw.TextDirection.rtl, style: const pw.TextStyle(fontSize: 12))),
+                        ],
+                      ),
+                    ),
                     pw.Expanded(flex: 1, child: pw.Text(qty.toString(), textAlign: pw.TextAlign.center, style: const pw.TextStyle(fontSize: 12))),
                     pw.Expanded(flex: 2, child: pw.Text('${price.toStringAsFixed(2)} EGP', textAlign: pw.TextAlign.right, style: const pw.TextStyle(fontSize: 12))),
                     pw.Expanded(flex: 2, child: pw.Text('${itemTotal.toStringAsFixed(2)} EGP', textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold))),
