@@ -736,13 +736,88 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
+  String _getWhatsAppMessageText() {
+    final status = _order!['status']?.toString().toLowerCase() ?? 'pending';
+    
+    final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer';
+    final orderNo = _order!['orderNumber']?.toString() ?? '';
+    final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
+    final shipping = (_order!['shippingCost'] as num?)?.toDouble() ?? 0.0;
+    
+    if (status == 'delivered' || status == 'cash_received') {
+      return '''مرحبًا $name ✨
+نتمنى إن طلبك من LegaCy وصلك بأمان وبالشكل اللي كنت متوقعه. 
+يسعدنا جدًا نسمع رأيك.
+ولو عندك أي ملاحظة أو استفسار، يشرفنا تواصلك معنا.
+شكرًا لثقتك بنا 💚''';
+    } else if (status == 'shipped' || status == 'out_for_delivery') {
+      return '''مرحبًا $name ✨
+طلبك رقم #$orderNo من LegaCy خرج للشحن وفي طريقه ليك! 🚚
+قيمة الطلب: $total EGP
+المندوب هيتواصل معاك قريب جداً للتسليم.
+لو عندك أي استفسار، إحنا دايماً معاك 💚''';
+    } else if (status == 'preparing') {
+      return '''مرحبًا $name ✨
+طلبك رقم #$orderNo من LegaCy قيد التجهيز حالياً! ⏳
+بنجاهزه بكل حب واهتمام عشان يوصلك في أحسن صورة.
+هنبلغك أول ما يخرج للشحن.
+شكرًا لثقتك بنا 💚''';
+    } else if (status == 'cancelled' || status == 'payment_failed') {
+      return '''مرحبًا $name ✨
+تم إلغاء طلبك رقم #$orderNo من LegaCy.
+نتمنى نشوفك تاني قريب وتكون جزء من عيلتنا 💚
+لو حابب تستفسر عن أي حاجة، إحنا موجودين دايماً!''';
+    } else if (status == 'refunded') {
+      return '''مرحبًا $name ✨
+تم استرجاع طلبك رقم #$orderNo بنجاح، وتمت عملية الـ Refund للرصيد المستحق.
+نتمنى نشوفك تاني قريب وتكون جزء من عيلة LegaCy 💚
+لو حابب تستفسر عن أي حاجة، إحنا موجودين دايماً!''';
+    } else {
+      // Pending / Confirmed / Processing
+      final items = (_order!['items'] as List? ?? []);
+      String itemsText = '';
+      for (int i = 0; i < items.length; i++) {
+        String itemName = items[i]['name']?.toString() ?? '';
+        itemName = itemName.replaceAll(RegExp(r'\s*\([^)]*\)$'), '').trim();
+        if (i == 0) {
+          itemsText += '⌚ Watch : $itemName';
+        } else {
+          itemsText += '\n                     $itemName';
+        }
+      }
+      
+      String shippingText = shipping <= 0 ? 'Free Shipping' : '$shipping EGP Shipping';
+      
+      final shippingAddrObj = _order!['shippingAddress'] is Map ? _order!['shippingAddress'] : null;
+      final shippingAddrStr = _order!['shippingAddress'] is String ? _order!['shippingAddress'] : '';
+      final address = shippingAddrStr.isNotEmpty ? shippingAddrStr : (shippingAddrObj?['address'] ?? _order!['address'] ?? '');
+      final gov = shippingAddrObj?['governorate'] ?? shippingAddrObj?['state'] ?? _order!['shippingGovernorate'] ?? _order!['governorate'] ?? _order!['customer']?['governorate'] ?? '';
+      final city = shippingAddrObj?['city'] ?? _order!['shippingCity'] ?? _order!['city'] ?? _order!['customer']?['city'] ?? '';
+      
+      final List<String> addressParts = [];
+      if (gov.toString().isNotEmpty) addressParts.add(gov.toString());
+      if (city.toString().isNotEmpty) addressParts.add(city.toString());
+      if (address.toString().isNotEmpty) addressParts.add(address.toString());
+      final fullAddress = addressParts.join(' ، ');
+
+      final phone1 = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
+      final phone2 = _order!['alternativePhone'] ?? _order!['altPhone'] ?? _order!['customer']?['alternativePhone'] ?? '';
+
+      return '''Order : #$orderNo
+Name : $name 
+$itemsText 
+💰 Total Due : EGP $total + $shippingText 
+📍 Address : $fullAddress
+Delivered in (1 : 4) Days 
+Phone 1 : $phone1${phone2.toString().trim().isNotEmpty ? '\nPhone 2 : $phone2' : ''}
+
+Thanks for shopping with us! 💚''';
+    }
+  }
+
   void _shareViaWhatsApp() async {
     final phone = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
-    final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer';
-    final orderNo = _order!['orderNumber'].toString();
-    final total = _order!['totalPrice'].toString();
-
-    final text = "Hello $name,\nThank you for your order #$orderNo from LegaCy!\nYour total is $total EGP.\nWe will keep you updated with the shipping status.";
+    final text = _getWhatsAppMessageText();
     
     String formattedPhone = phone.replaceAll(RegExp(r'\D'), '');
     if (formattedPhone.startsWith('0')) {
