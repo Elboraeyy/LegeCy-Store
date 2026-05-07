@@ -13,6 +13,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'dart:io' show Platform;
+import 'package:android_intent_plus/android_intent.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final String orderId;
@@ -713,6 +715,24 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
     final url = "https://wa.me/$formattedPhone?text=${Uri.encodeComponent(text)}";
     
+    if (Platform.isAndroid) {
+      try {
+        final intent = AndroidIntent(
+          action: 'action_view',
+          data: url,
+          package: 'com.whatsapp.w4b', // Force WhatsApp Business
+        );
+        await intent.launch();
+      } catch (e) {
+        // Fallback to url_launcher if WhatsApp Business is not installed
+        _launchWhatsAppFallback(url);
+      }
+    } else {
+      _launchWhatsAppFallback(url);
+    }
+  }
+
+  Future<void> _launchWhatsAppFallback(String url) async {
     try {
       final bool launched = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       if (!launched) {
