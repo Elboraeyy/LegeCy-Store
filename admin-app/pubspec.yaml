@@ -49,6 +49,7 @@ dependencies:
   share_plus: ^13.1.0
   path_provider: ^2.1.5
   arabic_reshaper: ^0.0.1
+  gal: ^2.3.2
 
 dev_dependencies:
   flutter_test:

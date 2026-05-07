@@ -18,6 +18,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:arabic_reshaper/arabic_reshaper.dart';
+import 'package:gal/gal.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final String orderId;
@@ -807,17 +808,27 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 subtitle: 'Save or share as a PDF document',
                 onTap: () {
                   Navigator.pop(context);
-                  _processInvoice(asImage: false);
+                  _processInvoice(action: 'pdf');
                 },
               ),
               const SizedBox(height: 16),
               _buildOptionTile(
-                icon: LucideIcons.image,
-                title: 'Export as Image',
-                subtitle: 'Share directly to WhatsApp or Gallery',
+                icon: LucideIcons.share,
+                title: 'Share Image',
+                subtitle: 'Share invoice via WhatsApp or others',
                 onTap: () {
                   Navigator.pop(context);
-                  _processInvoice(asImage: true);
+                  _processInvoice(action: 'share_image');
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildOptionTile(
+                icon: LucideIcons.download,
+                title: 'Save Image',
+                subtitle: 'Save invoice directly to phone gallery',
+                onTap: () {
+                  Navigator.pop(context);
+                  _processInvoice(action: 'save_image');
                 },
               ),
               const SizedBox(height: 16),
@@ -863,21 +874,37 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  Future<void> _processInvoice({required bool asImage}) async {
+  Future<void> _processInvoice({required String action}) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
       final pdfDoc = await _generateInvoicePdf();
       final bytes = await pdfDoc.save();
       final orderNo = _order!['orderNumber']?.toString() ?? 'unknown';
 
-      if (asImage) {
+      if (action == 'share_image' || action == 'save_image') {
         final raster = await Printing.raster(bytes, pages: [0], dpi: 300).first;
         final pngBytes = await raster.toPng();
         final dir = await getTemporaryDirectory();
         final file = File('${dir.path}/Invoice_$orderNo.png');
         await file.writeAsBytes(pngBytes);
-        // ignore: deprecated_member_use
-        await Share.shareXFiles([XFile(file.path)], text: 'Invoice #$orderNo');
+        
+        if (action == 'save_image') {
+          // Check permissions
+          bool hasAccess = await Gal.hasAccess(toAlbum: true);
+          if (!hasAccess) {
+            hasAccess = await Gal.requestAccess(toAlbum: true);
+          }
+          if (hasAccess) {
+            await Gal.putImage(file.path, album: 'LegaCy');
+            messenger.showSnackBar(const SnackBar(content: Text('Image saved to gallery successfully!'), backgroundColor: AppColors.success));
+          } else {
+            messenger.showSnackBar(const SnackBar(content: Text('Storage permission denied.'), backgroundColor: AppColors.error));
+          }
+        } else {
+          // Share image
+          // ignore: deprecated_member_use
+          await Share.shareXFiles([XFile(file.path)], text: 'Invoice #$orderNo');
+        }
       } else {
         await Printing.layoutPdf(
           onLayout: (PdfPageFormat format) async => bytes,
