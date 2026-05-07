@@ -556,9 +556,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Column(
           children: [
@@ -681,7 +681,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             await _loadOrder();
                             if (mounted) setModalState(() {});
                           } catch (e) {
-                            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
                           } finally {
                             if (mounted) setModalState(() => _isAddingNote = false);
                           }
@@ -735,6 +735,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 
   Future<void> _launchWhatsAppFallback(String url) async {
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final bool launched = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       if (!launched) {
@@ -744,9 +745,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       try {
         await launchUrl(Uri.parse(url), mode: LaunchMode.platformDefault);
       } catch (e2) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('WhatsApp is not installed or supported.'), backgroundColor: AppColors.error));
-        }
+        messenger.showSnackBar(const SnackBar(content: Text('WhatsApp is not installed or supported.'), backgroundColor: AppColors.error));
       }
     }
   }
@@ -810,7 +809,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AppColors.primaryDark.withOpacity(0.05), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: AppColors.primaryDark.withValues(alpha: 0.05), shape: BoxShape.circle),
               child: Icon(icon, color: AppColors.primaryDark),
             ),
             const SizedBox(width: 16),
@@ -832,6 +831,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 
   Future<void> _processInvoice({required bool asImage}) async {
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final pdfDoc = await _generateInvoicePdf();
       final bytes = await pdfDoc.save();
@@ -843,6 +843,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         final dir = await getTemporaryDirectory();
         final file = File('${dir.path}/Invoice_$orderNo.png');
         await file.writeAsBytes(pngBytes);
+        // ignore: deprecated_member_use
         await Share.shareXFiles([XFile(file.path)], text: 'Invoice #$orderNo');
       } else {
         await Printing.layoutPdf(
@@ -851,9 +852,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
-      }
+      messenger.showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
     }
   }
 
@@ -863,9 +862,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final font = await PdfGoogleFonts.cairoRegular();
     final boldFont = await PdfGoogleFonts.cairoBold();
     
-    final primaryColor = const PdfColor.fromInt(0xFF12403C);
-    final accentColor = const PdfColor.fromInt(0xFFD4AF37);
-    final bgColor = const PdfColor.fromInt(0xFFFCF8F3);
+    const primaryColor = PdfColor.fromInt(0xFF12403C);
+    const accentColor = PdfColor.fromInt(0xFFD4AF37);
+    const bgColor = PdfColor.fromInt(0xFFFCF8F3);
     
     final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer';
     final phone = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
