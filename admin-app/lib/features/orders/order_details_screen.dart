@@ -882,7 +882,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     
     pdfDoc.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
         pageTheme: pw.PageTheme(
           pageFormat: PdfPageFormat.a4,
           theme: pw.ThemeData.withFont(base: font, bold: boldFont),
