@@ -869,22 +869,28 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     
     String reshape(String text) => ArabicReshaper.instance.reshape(text);
     
-    final name = reshape(_order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer');
-    final phone = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
+    String safeString(dynamic val) {
+      if (val == null) return '';
+      if (val is List) return val.join(' - ');
+      return val.toString();
+    }
+    
+    final name = reshape(safeString(_order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer'));
+    final phone = safeString(_order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone']);
     
     final shippingAddrObj = _order!['shippingAddress'] is Map ? _order!['shippingAddress'] : null;
     final shippingAddrStr = _order!['shippingAddress'] is String ? _order!['shippingAddress'] : '';
     final rawAddress = shippingAddrStr.isNotEmpty ? shippingAddrStr : (shippingAddrObj?['address'] ?? _order!['address'] ?? '');
-    final address = reshape(rawAddress);
+    final address = reshape(safeString(rawAddress));
     
     final rawGov = shippingAddrObj?['governorate'] ?? shippingAddrObj?['state'] ?? _order!['shippingGovernorate'] ?? _order!['governorate'] ?? _order!['customer']?['governorate'] ?? '';
-    final governorate = reshape(rawGov.toString());
+    final governorate = reshape(safeString(rawGov));
     
     final rawCity = shippingAddrObj?['city'] ?? _order!['shippingCity'] ?? _order!['city'] ?? _order!['customer']?['city'] ?? '';
-    final city = reshape(rawCity.toString());
+    final city = reshape(safeString(rawCity));
     
-    final altPhone = _order!['alternativePhone'] ?? _order!['altPhone'] ?? _order!['customer']?['alternativePhone'] ?? '';
-    final notes = reshape(_order!['notes'] ?? _order!['orderNotes'] ?? '');
+    final altPhone = safeString(_order!['alternativePhone'] ?? _order!['altPhone'] ?? _order!['customer']?['alternativePhone']);
+    final notes = reshape(safeString(_order!['notes'] ?? _order!['orderNotes']));
     
     final orderNo = _order!['orderNumber']?.toString() ?? 'N/A';
     final items = (_order!['items'] as List? ?? []);
