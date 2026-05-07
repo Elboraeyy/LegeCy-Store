@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:android_intent_plus/android_intent.dart';
+import 'package:arabic_reshaper/arabic_reshaper.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final String orderId;
@@ -838,7 +839,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       final orderNo = _order!['orderNumber']?.toString() ?? 'unknown';
 
       if (asImage) {
-        final raster = await Printing.raster(bytes, pages: [0]).first;
+        final raster = await Printing.raster(bytes, pages: [0], dpi: 300).first;
         final pngBytes = await raster.toPng();
         final dir = await getTemporaryDirectory();
         final file = File('${dir.path}/Invoice_$orderNo.png');
@@ -866,9 +867,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     const accentColor = PdfColor.fromInt(0xFFD4AF37);
     const bgColor = PdfColor.fromInt(0xFFFCF8F3);
     
-    final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer';
+    String reshape(String text) => ArabicReshaper.instance.reshape(text);
+    
+    final name = reshape(_order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer');
     final phone = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
-    final address = _order!['shippingAddress'] ?? _order!['address'] ?? '';
+    final address = reshape(_order!['shippingAddress'] ?? _order!['address'] ?? '');
     final orderNo = _order!['orderNumber']?.toString() ?? 'N/A';
     final items = (_order!['items'] as List? ?? []);
     final subtotal = (_order!['subtotal'] as num?)?.toDouble() ?? 0.0;
@@ -880,7 +883,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     pdfDoc.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        theme: pw.ThemeData.withFont(base: font, bold: boldFont),
+        pageTheme: pw.PageTheme(
+          pageFormat: PdfPageFormat.a4,
+          theme: pw.ThemeData.withFont(base: font, bold: boldFont),
+          buildBackground: (context) => pw.FullPage(
+            ignoreMargins: true,
+            child: pw.Container(color: bgColor),
+          ),
+        ),
         build: (pw.Context context) {
           return [
             // Header
@@ -926,9 +936,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     children: [
                       pw.Text('BILLED TO:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
                       pw.SizedBox(height: 8),
-                      pw.Text(name, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                      pw.Text(name, textDirection: pw.TextDirection.rtl, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
                       pw.Text(phone, style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey800)),
-                      if (address.isNotEmpty) pw.Text(address, style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey800)),
+                      if (address.isNotEmpty) pw.Text(address, textDirection: pw.TextDirection.rtl, style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey800)),
                     ]
                   ),
                 ),
@@ -968,6 +978,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               final qty = item['quantity'] ?? 1;
               final price = (item['price'] as num?)?.toDouble() ?? 0.0;
               final itemTotal = price * qty;
+              final itemName = reshape(item['name']?.toString() ?? '');
               return pw.Container(
                 decoration: const pw.BoxDecoration(
                   border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 1)),
@@ -975,7 +986,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                 child: pw.Row(
                   children: [
-                    pw.Expanded(flex: 4, child: pw.Text(item['name']?.toString() ?? '', style: const pw.TextStyle(fontSize: 12))),
+                    pw.Expanded(flex: 4, child: pw.Text(itemName, textDirection: pw.TextDirection.rtl, style: const pw.TextStyle(fontSize: 12))),
                     pw.Expanded(flex: 1, child: pw.Text(qty.toString(), textAlign: pw.TextAlign.center, style: const pw.TextStyle(fontSize: 12))),
                     pw.Expanded(flex: 2, child: pw.Text('${price.toStringAsFixed(2)} EGP', textAlign: pw.TextAlign.right, style: const pw.TextStyle(fontSize: 12))),
                     pw.Expanded(flex: 2, child: pw.Text('${itemTotal.toStringAsFixed(2)} EGP', textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold))),
@@ -1037,8 +1048,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               child: pw.Column(
                 children: [
                   pw.Text('Thank you for shopping with LegaCy!', style: pw.TextStyle(color: primaryColor, fontSize: 16, fontWeight: pw.FontWeight.bold)),
-                  pw.SizedBox(height: 4),
-                  pw.Text('For inquiries, please contact us on WhatsApp.', style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 12)),
+                  pw.SizedBox(height: 6),
+                  pw.Text('Please note that a 14-day exchange and return policy applies to all orders in case of any issues.', style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 10)),
+                  pw.SizedBox(height: 2),
+                  pw.Text('For inquiries, please contact us on WhatsApp.', style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 10)),
                 ]
               )
             )
