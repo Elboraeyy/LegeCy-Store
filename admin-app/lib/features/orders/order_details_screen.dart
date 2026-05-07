@@ -300,6 +300,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 
   Widget _buildCustomerCard() {
+    final rawNotes = _order!['orderNotes'] ?? _order!['customerNotes'];
+    String notesText = rawNotes?.toString().trim() ?? '';
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -341,6 +344,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             _order!['shippingCity'],
             _order!['shippingGovernorate']
           ].where((e) => e != null && e.toString().trim().isNotEmpty).join(', ')),
+          _infoRow(LucideIcons.fileText, 'Customer Notes', notesText.isNotEmpty ? notesText : '-'),
         ],
       ),
     );
