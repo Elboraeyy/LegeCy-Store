@@ -886,17 +886,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     
     final shippingAddrObj = _order!['shippingAddress'] is Map ? _order!['shippingAddress'] : null;
     final shippingAddrStr = _order!['shippingAddress'] is String ? _order!['shippingAddress'] : '';
-    final rawAddress = shippingAddrStr.isNotEmpty ? shippingAddrStr : (shippingAddrObj?['address'] ?? _order!['address'] ?? '');
-    final address = reshape(safeString(rawAddress));
+    final rawAddress = safeString(shippingAddrStr.isNotEmpty ? shippingAddrStr : (shippingAddrObj?['address'] ?? _order!['address']));
     
-    final rawGov = shippingAddrObj?['governorate'] ?? shippingAddrObj?['state'] ?? _order!['shippingGovernorate'] ?? _order!['governorate'] ?? _order!['customer']?['governorate'] ?? '';
-    final governorate = reshape(safeString(rawGov));
+    final rawGov = safeString(shippingAddrObj?['governorate'] ?? shippingAddrObj?['state'] ?? _order!['shippingGovernorate'] ?? _order!['governorate'] ?? _order!['customer']?['governorate']);
+    final rawCity = safeString(shippingAddrObj?['city'] ?? _order!['shippingCity'] ?? _order!['city'] ?? _order!['customer']?['city']);
     
-    final rawCity = shippingAddrObj?['city'] ?? _order!['shippingCity'] ?? _order!['city'] ?? _order!['customer']?['city'] ?? '';
-    final city = reshape(safeString(rawCity));
+    final List<String> addressParts = [];
+    if (rawGov.isNotEmpty) addressParts.add(rawGov);
+    if (rawCity.isNotEmpty) addressParts.add(rawCity);
+    if (rawAddress.isNotEmpty) addressParts.add(rawAddress);
+    final fullAddress = reshape(addressParts.join(' - '));
     
     final altPhone = safeString(_order!['alternativePhone'] ?? _order!['altPhone'] ?? _order!['customer']?['alternativePhone']);
-    final notes = reshape(safeString(_order!['notes'] ?? _order!['orderNotes']));
     
     final orderNo = _order!['orderNumber']?.toString() ?? 'N/A';
     final items = (_order!['items'] as List? ?? []);
@@ -981,17 +982,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               children: [
                 pw.Text('BILLED TO:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 12),
-                buildInfoRow('Name:', name, isRtl: true, isBold: true),
-                buildInfoRow('Phone:', phone),
-                buildInfoRow('Alt Phone:', altPhone.toString()),
-                buildInfoRow('Gov:', governorate, isRtl: true),
-                buildInfoRow('City:', city, isRtl: true),
-                buildInfoRow('Address:', address, isRtl: true),
-                buildInfoRow('Notes:', notes, isRtl: true),
-                pw.SizedBox(height: 16),
-                pw.Text('PAYMENT METHOD:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 8),
-                pw.Text(paymentMethod.toString().toUpperCase(), style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Expanded(child: buildInfoRow('Name:', name, isRtl: true, isBold: true)),
+                    pw.Expanded(child: buildInfoRow('Payment:', paymentMethod.toString().toUpperCase(), isBold: true)),
+                  ]
+                ),
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Expanded(child: buildInfoRow('Phone:', phone)),
+                    pw.Expanded(child: buildInfoRow('Alt Phone:', altPhone.toString())),
+                  ]
+                ),
+                buildInfoRow('Address:', fullAddress, isRtl: true),
               ]
             ),
             pw.SizedBox(height: 32),
