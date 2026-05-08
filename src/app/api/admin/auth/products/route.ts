@@ -37,16 +37,36 @@ export async function GET(request: NextRequest) {
                     id: true,
                     name: true,
                     nameAr: true,
+                    description: true,
+                    descriptionAr: true,
+                    detailedDescription: true,
+                    detailedDescriptionAr: true,
                     imageUrl: true,
                     status: true,
                     category: true,
                     categoryId: true,
                     createdAt: true,
+                    compareAtPrice: true,
+                    costPrice: true,
+                    brandId: true,
+                    materialId: true,
+                    supplierId: true,
+                    showInNewArrivals: true,
+                    showInForYou: true,
+                    detailTags: true,
+                    metaTitle: true,
+                    metaTitleAr: true,
+                    metaDescription: true,
+                    metaDescriptionAr: true,
+                    slug: true,
+                    specs: true,
+                    images: true,
                     variants: {
                         select: { 
                             id: true, 
                             sku: true, 
                             price: true,
+                            costPrice: true,
                             inventory: { select: { available: true } }
                         },
                     },
@@ -93,9 +113,15 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { name, nameAr, description, descriptionAr, categoryId, status, price, sku } = body;
+        const { 
+            name, nameAr, description, descriptionAr, categoryId, status, price, sku,
+            detailedDescription, detailedDescriptionAr, compareAtPrice, costPrice,
+            brandId, materialId, supplierId, showInNewArrivals, showInForYou,
+            detailTags, metaTitle, metaTitleAr, metaDescription, metaDescriptionAr,
+            slug, specs, imageUrl, gallery
+        } = body;
 
-        if (!name || !categoryId || !sku || price === undefined) {
+        if (!name || !sku || price === undefined) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
@@ -105,15 +131,35 @@ export async function POST(request: NextRequest) {
                 nameAr,
                 description,
                 descriptionAr,
-                categoryId,
+                detailedDescription,
+                detailedDescriptionAr,
+                categoryId: categoryId || null,
+                brandId: brandId || null,
+                materialId: materialId || null,
+                supplierId: supplierId || null,
                 status: status || 'draft',
-                slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 6),
+                compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
+                costPrice: costPrice ? parseFloat(costPrice) : null,
+                imageUrl,
+                showInNewArrivals: showInNewArrivals ?? true,
+                showInForYou: showInForYou ?? true,
+                detailTags: detailTags || [],
+                metaTitle,
+                metaTitleAr,
+                metaDescription,
+                metaDescriptionAr,
+                slug: slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 6),
+                specs: specs || {},
                 variants: {
                     create: {
                         sku,
-                        price,
+                        price: parseFloat(price),
+                        costPrice: costPrice ? parseFloat(costPrice) : null,
                     }
-                }
+                },
+                images: gallery && gallery.length > 0 ? {
+                    create: gallery.map((url: string) => ({ url }))
+                } : undefined
             },
         });
 
