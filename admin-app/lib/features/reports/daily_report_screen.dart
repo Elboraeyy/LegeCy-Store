@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
@@ -15,172 +17,492 @@ class DailyReportScreen extends StatefulWidget {
 class _DailyReportScreenState extends State<DailyReportScreen> {
   Map<String, dynamic>? _data;
   bool _isLoading = true;
+  String? _error;
   DateTime _selectedDate = DateTime.now();
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   Future<void> _load() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      final dateStr = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
+      final dateStr =
+          '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
       final data = await client.get('/api/admin/auth/daily?date=$dateStr');
       if (mounted) setState(() { _data = data; _isLoading = false; });
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() { _error = e.toString(); _isLoading = false; });
     }
   }
 
   Future<void> _pickDate() async {
+    HapticFeedback.lightImpact();
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2024),
       lastDate: DateTime.now(),
       builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(colorScheme: ColorScheme.dark(primary: AppColors.accent)),
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: AppColors.accent,
+            surface: Color(0xFF1A2E2D),
+          ),
+        ),
         child: child!,
       ),
     );
-    if (picked != null) { _selectedDate = picked; _load(); }
+    if (picked != null) {
+      _selectedDate = picked;
+      _load();
+    }
+  }
+
+  void _goDay(int offset) {
+    final next = _selectedDate.add(Duration(days: offset));
+    if (next.isAfter(DateTime.now())) return;
+    HapticFeedback.lightImpact();
+    _selectedDate = next;
+    _load();
+  }
+
+  bool get _isToday {
+    final now = DateTime.now();
+    return _selectedDate.year == now.year && _selectedDate.month == now.month && _selectedDate.day == now.day;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Daily Report', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600)),
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-        actions: [
-          IconButton(icon: const Icon(LucideIcons.calendar), onPressed: _pickDate),
-        ],
+      body: RefreshIndicator(
+        color: AppColors.primaryDark,
+        onRefresh: _load,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // ── App Bar ──
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: AppColors.background,
+              surfaceTintColor: Colors.transparent,
+              expandedHeight: 100,
+              leading: IconButton(
+                icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark),
+                onPressed: () => Navigator.pop(context),
+              ),
+              flexibleSpace: FlexibleSpaceBar(
+                titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
+                title: Text('Daily Report',
+                    style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(LucideIcons.refreshCw, size: 20, color: AppColors.primaryDark),
+                  onPressed: () { HapticFeedback.lightImpact(); _load(); },
+                ),
+                const SizedBox(width: 4),
+              ],
+            ),
+
+            // ── Body ──
+            if (_isLoading)
+              const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primaryDark)))
+            else if (_error != null)
+              SliverFillRemaining(child: _buildError())
+            else if (_data == null)
+              SliverFillRemaining(child: Center(child: Text('No data available', style: GoogleFonts.inter(color: AppColors.textMuted))))
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+                sliver: SliverList(delegate: SliverChildListDelegate(_buildContent())),
+              ),
+          ],
+        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
-          : _data == null
-              ? Center(child: Text('No data', style: GoogleFonts.inter(color: AppColors.textMuted)))
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Date header
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryDark.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(LucideIcons.calendarDays, size: 18, color: AppColors.primaryDark),
-                              const SizedBox(width: 8),
-                              Text(_data!['date'] ?? '', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
+    );
+  }
 
-                        // Stats row
-                        Row(
-                          children: [
-                            Expanded(child: _statCard('Orders', '${_data!['totalOrders'] ?? 0}', LucideIcons.shoppingBag, AppColors.info)),
-                            const SizedBox(width: 12),
-                            Expanded(child: _statCard('Revenue', '${(_data!['totalRevenue'] as num?)?.toStringAsFixed(0) ?? '0'} EGP', LucideIcons.trendingUp, AppColors.success)),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
+  Widget _buildError() {
+    return Center(
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(LucideIcons.wifiOff, size: 48, color: AppColors.error.withValues(alpha: 0.5)),
+        const SizedBox(height: 12),
+        Text('Failed to load report', style: GoogleFonts.inter(color: AppColors.error, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 16),
+        ElevatedButton.icon(onPressed: _load, icon: const Icon(LucideIcons.refreshCw, size: 16), label: const Text('Retry')),
+      ]),
+    );
+  }
 
-                        // Status breakdown
-                        Text('STATUS BREAKDOWN', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5)),
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.cardBorder),
-                          ),
-                          child: Column(
-                            children: (((_data!['statusBreakdown'] ?? []) as List).map((s) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(children: [
-                                    Container(
-                                      width: 8, height: 8,
-                                      decoration: BoxDecoration(
-                                        color: _statusColor((s['status'] ?? '').toString()),
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text((s['status'] ?? '').toString().toUpperCase(), style: GoogleFonts.inter(fontSize: 13)),
-                                  ]),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: _statusColor((s['status'] ?? '').toString()).withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text('${s['count']}', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: _statusColor((s['status'] ?? '').toString()))),
-                                  ),
-                                ],
-                              ),
-                            ))).toList(),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
+  List<Widget> _buildContent() {
+    final d = _data!;
+    final growth = d['growth'] as Map<String, dynamic>? ?? {};
+    final statusList = (d['statusBreakdown'] as List?) ?? [];
+    final topProducts = (d['topProducts'] as List?) ?? [];
+    final sources = (d['orderSources'] as List?) ?? [];
+    final payments = (d['paymentMethods'] as List?) ?? [];
+    final cities = (d['cityBreakdown'] as List?) ?? [];
+    final recentOrders = (d['recentOrders'] as List?) ?? [];
+    final totalOrders = (d['totalOrders'] as num?)?.toInt() ?? 0;
+    final totalRevenue = (d['totalRevenue'] as num?)?.toDouble() ?? 0;
+    final avgOrder = (d['averageOrderValue'] as num?)?.toDouble() ?? 0;
+    final newCustomers = (d['newCustomers'] as num?)?.toInt() ?? 0;
+    final revGrowth = (growth['revenueGrowth'] as num?)?.toDouble() ?? 0;
+    final ordGrowth = (growth['ordersGrowth'] as num?)?.toDouble() ?? 0;
 
-                        // Top products
-                        Text('TOP PRODUCTS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5)),
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.cardBorder),
-                          ),
-                          child: Column(
-                            children: ((_data!['topProducts'] ?? []) as List).asMap().entries.map((entry) {
-                              final i = entry.key;
-                              final p = entry.value;
-                              return Padding(
-                                padding: EdgeInsets.only(bottom: i < ((_data!['topProducts'] as List).length - 1) ? 10 : 0),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 28, height: 28,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.accent.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Center(child: Text('${i + 1}', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accent))),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(child: Text(p['name'] ?? '', style: GoogleFonts.inter(fontSize: 13), overflow: TextOverflow.ellipsis)),
-                                    Text('×${p['quantity'] ?? 0}', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ],
+    return [
+      // ── Date Navigation ──
+      _buildDateNav(),
+      const SizedBox(height: 16),
+
+      // ── Hero Summary ──
+      _buildHeroCard(totalOrders, totalRevenue, revGrowth, ordGrowth),
+      const SizedBox(height: 14),
+
+      // ── KPI Row ──
+      Row(children: [
+        Expanded(child: _kpiMini('Avg Order', '${avgOrder.toStringAsFixed(0)} EGP', LucideIcons.calculator, const Color(0xFF8B5CF6))),
+        const SizedBox(width: 10),
+        Expanded(child: _kpiMini('New Customers', '$newCustomers', LucideIcons.userPlus, const Color(0xFF0EA5E9))),
+      ]),
+      const SizedBox(height: 20),
+
+      // ── Status Breakdown ──
+      if (statusList.isNotEmpty) ...[
+        _sectionHeader('ORDER STATUS', LucideIcons.pieChart, const Color(0xFF7C3AED)),
+        const SizedBox(height: 10),
+        _buildStatusCards(statusList, totalOrders),
+        const SizedBox(height: 20),
+      ],
+
+      // ── Top Products ──
+      if (topProducts.isNotEmpty) ...[
+        _sectionHeader('TOP PRODUCTS', LucideIcons.package2, AppColors.accent),
+        const SizedBox(height: 10),
+        _buildTopProducts(topProducts),
+        const SizedBox(height: 20),
+      ],
+
+      // ── Order Sources ──
+      if (sources.isNotEmpty) ...[
+        _sectionHeader('ORDER SOURCES', LucideIcons.globe, const Color(0xFF10B981)),
+        const SizedBox(height: 10),
+        _buildHorizontalChips(sources, (s) => (s['source'] ?? 'unknown').toString().toUpperCase(), (s) => (s['count'] as num?)?.toInt() ?? 0, const Color(0xFF10B981)),
+        const SizedBox(height: 20),
+      ],
+
+      // ── Payment Methods ──
+      if (payments.isNotEmpty) ...[
+        _sectionHeader('PAYMENT METHODS', LucideIcons.creditCard, const Color(0xFFF59E0B)),
+        const SizedBox(height: 10),
+        _buildHorizontalChips(payments, (p) => (p['method'] ?? 'unknown').toString().toUpperCase(), (p) => (p['count'] as num?)?.toInt() ?? 0, const Color(0xFFF59E0B)),
+        const SizedBox(height: 20),
+      ],
+
+      // ── Cities ──
+      if (cities.isNotEmpty) ...[
+        _sectionHeader('TOP CITIES', LucideIcons.mapPin, const Color(0xFF7C3AED)),
+        const SizedBox(height: 10),
+        _buildCities(cities),
+        const SizedBox(height: 20),
+      ],
+
+      // ── Recent Orders ──
+      if (recentOrders.isNotEmpty) ...[
+        _sectionHeader('RECENT ORDERS', LucideIcons.shoppingBag, AppColors.info),
+        const SizedBox(height: 10),
+        ...recentOrders.take(10).map((o) => _buildOrderCard(o)),
+      ],
+    ];
+  }
+
+  // ── Date Navigation ──
+  Widget _buildDateNav() {
+    final dayName = _isToday ? 'Today' : DateFormat('EEEE').format(_selectedDate);
+    final dateStr = DateFormat('d MMM yyyy').format(_selectedDate);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+      child: Row(children: [
+        _navButton(LucideIcons.chevronLeft, () => _goDay(-1)),
+        Expanded(
+          child: GestureDetector(
+            onTap: _pickDate,
+            child: Column(children: [
+              Text(dayName, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+              Text(dateStr, style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+            ]),
+          ),
+        ),
+        _navButton(LucideIcons.chevronRight, _isToday ? null : () => _goDay(1)),
+      ]),
+    );
+  }
+
+  Widget _navButton(IconData icon, VoidCallback? onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: onTap != null ? AppColors.primaryDark.withValues(alpha: 0.06) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, size: 20, color: onTap != null ? AppColors.primaryDark : AppColors.cardBorder),
+      ),
+    );
+  }
+
+  // ── Hero Card ──
+  Widget _buildHeroCard(int orders, double revenue, double revGrowth, double ordGrowth) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFF12403C), Color(0xFF1A5C56)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
+      ),
+      child: Column(children: [
+        Row(children: [
+          Expanded(child: _heroStat('Orders', '$orders', ordGrowth, LucideIcons.shoppingBag)),
+          Container(width: 1, height: 50, color: Colors.white.withValues(alpha: 0.1)),
+          Expanded(child: _heroStat('Revenue', '${revenue.toStringAsFixed(0)} EGP', revGrowth, LucideIcons.trendingUp)),
+        ]),
+      ]),
+    );
+  }
+
+  Widget _heroStat(String label, String value, double growth, IconData icon) {
+    final isUp = growth >= 0;
+    return Column(children: [
+      Icon(icon, size: 20, color: AppColors.accent),
+      const SizedBox(height: 8),
+      Text(value, style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white)),
+      const SizedBox(height: 2),
+      Text(label, style: GoogleFonts.inter(fontSize: 11, color: Colors.white54)),
+      const SizedBox(height: 6),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: (isUp ? AppColors.success : AppColors.error).withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(isUp ? LucideIcons.trendingUp : LucideIcons.trendingDown, size: 10, color: isUp ? const Color(0xFF4ADE80) : const Color(0xFFFCA5A5)),
+          const SizedBox(width: 3),
+          Text('${growth.abs().toStringAsFixed(1)}%', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: isUp ? const Color(0xFF4ADE80) : const Color(0xFFFCA5A5))),
+        ]),
+      ),
+    ]);
+  }
+
+  // ── KPI Mini ──
+  Widget _kpiMini(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, size: 16, color: color),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(value, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          Text(label, style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted)),
+        ])),
+      ]),
+    );
+  }
+
+  // ── Section Header ──
+  Widget _sectionHeader(String title, IconData icon, Color color) {
+    return Row(children: [
+      Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+        child: Icon(icon, size: 14, color: color),
+      ),
+      const SizedBox(width: 10),
+      Text(title, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: 0.5)),
+    ]);
+  }
+
+  // ── Status Cards ──
+  Widget _buildStatusCards(List<dynamic> statuses, int total) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: statuses.map((s) {
+        final status = (s['status'] ?? '').toString();
+        final count = (s['count'] as num?)?.toInt() ?? 0;
+        final color = _statusColor(status);
+        final pct = total > 0 ? (count / total * 100).toStringAsFixed(0) : '0';
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(14), border: Border.all(color: color.withValues(alpha: 0.2))),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            const SizedBox(width: 8),
+            Text(status.toUpperCase(), style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+            const SizedBox(width: 8),
+            Text('$count', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(' ($pct%)', style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted)),
+          ]),
+        );
+      }).toList(),
+    );
+  }
+
+  // ── Top Products ──
+  Widget _buildTopProducts(List<dynamic> products) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+      child: Column(
+        children: products.asMap().entries.map((entry) {
+          final i = entry.key;
+          final p = entry.value;
+          final isTop3 = i < 3;
+          final qty = (p['quantity'] as num?)?.toInt() ?? 0;
+          final maxQty = (products[0]['quantity'] as num?)?.toInt() ?? 1;
+          return Padding(
+            padding: EdgeInsets.only(bottom: i < products.length - 1 ? 12 : 0),
+            child: Row(children: [
+              Container(
+                width: 28, height: 28,
+                decoration: BoxDecoration(
+                  color: isTop3 ? AppColors.accent.withValues(alpha: 0.15) : AppColors.cardBorder.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(child: Text('${i + 1}',
+                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: isTop3 ? AppColors.accent : AppColors.textMuted))),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(p['name'] ?? '', style: GoogleFonts.inter(fontSize: 12, fontWeight: isTop3 ? FontWeight.w600 : FontWeight.w400), overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      value: maxQty > 0 ? qty / maxQty : 0,
+                      minHeight: 4,
+                      backgroundColor: AppColors.cardBorder,
+                      color: isTop3 ? AppColors.accent : AppColors.textMuted,
                     ),
                   ),
-                ),
+                ]),
+              ),
+              const SizedBox(width: 12),
+              Text('×$qty', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+            ]),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ── Horizontal Chips ──
+  Widget _buildHorizontalChips(List<dynamic> items, String Function(dynamic) getLabel, int Function(dynamic) getCount, Color color) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: items.map((item) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.cardBorder)),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(width: 8),
+            Text(getLabel(item), style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+              child: Text('${getCount(item)}', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+            ),
+          ]),
+        );
+      }).toList(),
+    );
+  }
+
+  // ── Cities ──
+  Widget _buildCities(List<dynamic> cities) {
+    final maxCount = cities.isNotEmpty ? ((cities[0]['count'] as num?)?.toInt() ?? 1) : 1;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+      child: Column(
+        children: cities.map((c) {
+          final count = (c['count'] as num?)?.toInt() ?? 0;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Row(children: [
+                  const Icon(LucideIcons.mapPin, size: 12, color: Color(0xFF7C3AED)),
+                  const SizedBox(width: 6),
+                  Text(c['city'] ?? 'Unknown', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500)),
+                ]),
+                Text('$count orders', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF7C3AED))),
+              ]),
+              const SizedBox(height: 4),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(value: count / maxCount, minHeight: 4, backgroundColor: AppColors.cardBorder, color: const Color(0xFF7C3AED)),
+              ),
+            ]),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ── Order Card ──
+  Widget _buildOrderCard(dynamic order) {
+    final status = (order['status'] ?? '').toString();
+    final color = _statusColor(status);
+    final time = DateTime.tryParse(order['time'] ?? '');
+    final timeStr = time != null ? DateFormat('h:mm a').format(time) : '';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.cardBorder)),
+      child: Row(children: [
+        Container(
+          width: 42, height: 42,
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+          child: Center(child: Text('#${order['orderNumber'] ?? ''}', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: color))),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(order['customer'] ?? 'Guest', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 2),
+          Text('${order['itemCount'] ?? 0} items · $timeStr', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+        ])),
+        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text('${(order['total'] as num?)?.toStringAsFixed(0) ?? '0'} EGP', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+            child: Text(status.toUpperCase(), style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w700, color: color, letterSpacing: 0.5)),
+          ),
+        ]),
+      ]),
     );
   }
 
@@ -191,28 +513,8 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
       case 'SHIPPED': return const Color(0xFF7C3AED);
       case 'DELIVERED': return AppColors.success;
       case 'CANCELLED': return AppColors.error;
+      case 'REJECTED': return AppColors.error;
       default: return AppColors.textMuted;
     }
-  }
-
-  Widget _statCard(String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.cardBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(height: 10),
-          Text(value, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-          const SizedBox(height: 2),
-          Text(label, style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
-        ],
-      ),
-    );
   }
 }
