@@ -139,11 +139,23 @@ export async function GET(request: NextRequest) {
         const netProfit = rev - exp;
 
         // Calculate each investor's profit share
-        const investorProfitShares = investorStats.map(inv => ({
-            name: inv.name,
-            share: inv.currentShare,
-            profitShare: totalShares > 0 ? (inv.currentShare / totalShares) * netProfit : 0,
-        }));
+        // If currentShare is set, use it. Otherwise, distribute by net contribution ratio, or equally.
+        const totalContributed = investorStats.reduce((s, i) => s + Math.max(0, i.netContributed), 0);
+        const investorProfitShares = investorStats.map(inv => {
+            let sharePercent: number;
+            if (totalShares > 0) {
+                sharePercent = inv.currentShare / totalShares;
+            } else if (totalContributed > 0) {
+                sharePercent = Math.max(0, inv.netContributed) / totalContributed;
+            } else {
+                sharePercent = 1 / investorStats.length;
+            }
+            return {
+                name: inv.name,
+                share: sharePercent,
+                profitShare: sharePercent * netProfit,
+            };
+        });
 
         // ── Partner Alerts ──
         const alerts = await prisma.partnerAlert.findMany({

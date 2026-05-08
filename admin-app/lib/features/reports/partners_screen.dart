@@ -15,21 +15,13 @@ class PartnersScreen extends StatefulWidget {
   State<PartnersScreen> createState() => _PartnersScreenState();
 }
 
-class _PartnersScreenState extends State<PartnersScreen> with SingleTickerProviderStateMixin {
+class _PartnersScreenState extends State<PartnersScreen> {
   Map<String, dynamic>? _data;
   bool _loading = true;
   String? _error;
-  late TabController _tabController;
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _load();
-  }
-
-  @override
-  void dispose() { _tabController.dispose(); super.dispose(); }
+  void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
@@ -124,7 +116,7 @@ class _PartnersScreenState extends State<PartnersScreen> with SingleTickerProvid
       Row(children: [
         Expanded(child: _kpi('Investors', '${o['activeInvestors']}/${o['investorCount']}', LucideIcons.users, const Color(0xFF0EA5E9))),
         const SizedBox(width: 10),
-        Expanded(child: _kpi('Partners', '${o['activePartners']}/${o['partnerCount']}', LucideIcons.heartHandshake, AppColors.accent)),
+        Expanded(child: _kpi('Revenue', '${_fmt(o['totalRevenue'])}', LucideIcons.banknote, AppColors.accent)),
       ]),
       const SizedBox(height: 16),
 
@@ -142,31 +134,12 @@ class _PartnersScreenState extends State<PartnersScreen> with SingleTickerProvid
         const SizedBox(height: 16),
       ],
 
-      // ── Tabs: Investors / Partners ──
-      Container(
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14)),
-        child: TabBar(
-          controller: _tabController,
-          onTap: (_) => setState(() {}),
-          labelColor: AppColors.primaryDark,
-          unselectedLabelColor: AppColors.textMuted,
-          labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-          unselectedLabelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
-          indicatorColor: AppColors.accent,
-          indicatorWeight: 3,
-          tabs: [
-            Tab(text: 'Investors (${investors.length})'),
-            Tab(text: 'Partners (${partners.length})'),
-          ],
-        ),
-      ),
-      const SizedBox(height: 14),
-
-      // Tab Content
-      if (_tabController.index == 0)
-        ...investors.map((inv) => _buildInvestorCard(inv))
-      else
-        ...partners.map((p) => _buildPartnerCard(p)),
+      // ── Investors Section ──
+      if (investors.isNotEmpty) ...[
+        _section('INVESTORS (${investors.length})', LucideIcons.users, const Color(0xFF0EA5E9)),
+        const SizedBox(height: 12),
+        ...investors.map((inv) => _buildInvestorCard(inv)),
+      ],
     ];
   }
 
@@ -212,7 +185,7 @@ class _PartnersScreenState extends State<PartnersScreen> with SingleTickerProvid
 
   // ── Profit Distribution Pie ──
   Widget _buildProfitPie(List<dynamic> shares) {
-    final colors = [AppColors.accent, const Color(0xFF0EA5E9), const Color(0xFF8B5CF6), const Color(0xFFF59E0B), const Color(0xFF10B981), AppColors.error];
+    final colors = [const Color(0xFFE63946), const Color(0xFF457B9D), const Color(0xFF8338EC), const Color(0xFFF77F00), const Color(0xFF06D6A0), const Color(0xFF118AB2), const Color(0xFFEF476F)];
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -220,45 +193,38 @@ class _PartnersScreenState extends State<PartnersScreen> with SingleTickerProvid
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _section('PROFIT DISTRIBUTION', LucideIcons.pieChart, const Color(0xFF6366F1)),
         const SizedBox(height: 16),
-        SizedBox(
-          height: 160,
-          child: Row(children: [
-            SizedBox(
-              width: 140, height: 140,
-              child: PieChart(PieChartData(
-                sectionsSpace: 2, centerSpaceRadius: 30,
-                sections: shares.asMap().entries.map((e) {
-                  final share = ((e.value['profitShare'] as num?)?.toDouble() ?? 0).abs();
-                  return PieChartSectionData(
-                    value: share, title: '', radius: 40,
-                    color: colors[e.key % colors.length],
-                  );
-                }).toList(),
-              )),
-            ),
-            const SizedBox(width: 20),
-            Expanded(child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: shares.asMap().entries.map((e) {
-                final s = e.value;
-                final share = (s['share'] as num?)?.toDouble() ?? 0;
-                final profit = (s['profitShare'] as num?)?.toDouble() ?? 0;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(children: [
-                    Container(width: 10, height: 10, decoration: BoxDecoration(color: colors[e.key % colors.length], borderRadius: BorderRadius.circular(3))),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(s['name'] ?? '', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
-                    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                      Text('${(share * 100).toStringAsFixed(0)}%', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                      Text(_fmt(profit), style: GoogleFonts.inter(fontSize: 9, color: AppColors.textMuted)),
-                    ]),
-                  ]),
+        Center(
+          child: SizedBox(
+            width: 140, height: 140,
+            child: PieChart(PieChartData(
+              sectionsSpace: 2, centerSpaceRadius: 30,
+              sections: shares.asMap().entries.map((e) {
+                final share = ((e.value['profitShare'] as num?)?.toDouble() ?? 0).abs();
+                return PieChartSectionData(
+                  value: share == 0 ? 1 : share, title: '', radius: 40,
+                  color: colors[e.key % colors.length],
                 );
               }).toList(),
             )),
-          ]),
+          ),
         ),
+        const SizedBox(height: 16),
+        ...shares.asMap().entries.map((e) {
+          final s = e.value;
+          final share = (s['share'] as num?)?.toDouble() ?? 0;
+          final profit = (s['profitShare'] as num?)?.toDouble() ?? 0;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(children: [
+              Container(width: 10, height: 10, decoration: BoxDecoration(color: colors[e.key % colors.length], borderRadius: BorderRadius.circular(3))),
+              const SizedBox(width: 8),
+              Expanded(child: Text(s['name'] ?? '', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+              Text('${(share * 100).toStringAsFixed(0)}%', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+              const SizedBox(width: 10),
+              Text(_fmt(profit), style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+            ]),
+          );
+        }),
       ]),
     );
   }
