@@ -324,11 +324,27 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
       _buildHeroCard(totalOrders, totalRevenue, revGrowth, ordGrowth),
       const SizedBox(height: 14),
 
-      // ── KPI Row ──
+      // ── KPI Row 1 ──
       Row(children: [
         Expanded(child: _kpiMini('Avg Order', '${avgOrder.toStringAsFixed(0)} EGP', LucideIcons.calculator, const Color(0xFF8B5CF6))),
         const SizedBox(width: 10),
         Expanded(child: _kpiMini('New Customers', '$newCustomers', LucideIcons.userPlus, const Color(0xFF0EA5E9))),
+      ]),
+      const SizedBox(height: 10),
+
+      // ── KPI Row 2 (NEW) ──
+      Row(children: [
+        Expanded(child: _kpiMini('Shipping', '${_fmt(d['shippingRevenue'])} EGP', LucideIcons.truck, const Color(0xFF059669))),
+        const SizedBox(width: 10),
+        Expanded(child: _kpiMini('Discounts', '${_fmt(d['discountsGiven'])} EGP', LucideIcons.tag, const Color(0xFFF97316))),
+      ]),
+      const SizedBox(height: 10),
+
+      // ── KPI Row 3 (NEW) ──
+      Row(children: [
+        Expanded(child: _kpiMini('Returns', '${d['returnsCount'] ?? 0}', LucideIcons.rotateCcw, const Color(0xFFDC2626))),
+        const SizedBox(width: 10),
+        const Expanded(child: SizedBox()), // Empty slot
       ]),
       const SizedBox(height: 20),
 
@@ -687,5 +703,13 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
       case 'REJECTED': return AppColors.error;
       default: return AppColors.textMuted;
     }
+  }
+
+  String _fmt(dynamic v) {
+    if (v == null) return '0';
+    final n = (v is num) ? v.toDouble() : double.tryParse(v.toString()) ?? 0;
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+    return n.toStringAsFixed(0);
   }
 }

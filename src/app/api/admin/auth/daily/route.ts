@@ -53,6 +53,10 @@ export async function GET(request: NextRequest) {
             recentOrders,
             avgOrderValue,
             newCustomers,
+            // NEW
+            shippingData,
+            discountData,
+            returnsCount,
         ] = await Promise.all([
             prisma.order.count({ where }),
             prisma.order.aggregate({
@@ -114,12 +118,33 @@ export async function GET(request: NextRequest) {
                 _avg: { totalPrice: true },
             }),
             prisma.user.count({ where: { createdAt: { gte: startOfDay, lte: endOfDay } } }),
+            
+            // NEW: Shipping revenue for the period
+            prisma.order.aggregate({
+                where: { ...where, status: { notIn: ['CANCELLED', 'REJECTED', 'FAILED'] } },
+                _sum: { shippingCost: true }
+            }),
+
+            // NEW: Discount costs for the period
+            prisma.order.aggregate({
+                where: { ...where, status: { notIn: ['CANCELLED', 'REJECTED', 'FAILED'] }, discountAmount: { gt: 0 } },
+                _sum: { discountAmount: true }
+            }),
+
+            // NEW: Returns requested in the period
+            prisma.returnRequest.count({
+                where
+            }),
         ]);
 
         const todayRev = revenue._sum.totalPrice?.toNumber() || 0;
         const prevRev = prevRevenue._sum.totalPrice?.toNumber() || 0;
         const revenueGrowth = prevRev > 0 ? ((todayRev - prevRev) / prevRev) * 100 : 0;
         const ordersGrowth = prevOrders > 0 ? ((orders - prevOrders) / prevOrders) * 100 : 0;
+
+        // NEW computations
+        const periodShipping = shippingData._sum.shippingCost?.toNumber() || 0;
+        const periodDiscounts = discountData._sum.discountAmount?.toNumber() || 0;
 
         return NextResponse.json({
             date: startOfDay.toISOString().split('T')[0],
@@ -135,6 +160,11 @@ export async function GET(request: NextRequest) {
             },
             averageOrderValue: avgOrderValue._avg.totalPrice?.toNumber() || 0,
             newCustomers,
+            // NEW
+            shippingRevenue: periodShipping,
+            discountsGiven: periodDiscounts,
+            returnsCount,
+            
             statusBreakdown: ordersByStatus.map(s => ({
                 status: s.status,
                 count: s._count._all,

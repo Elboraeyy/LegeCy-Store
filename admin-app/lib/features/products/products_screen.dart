@@ -89,13 +89,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
     setState(() => _isLoading = true);
     try {
+      if (!mounted) return;
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      await client.post('${ApiConfig.authProductsEndpoint}/bulk', body: {
+      final body = <String, dynamic>{
         'action': action == 'delete' ? 'delete' : 'update_status',
         'ids': _selectedIds.toList(),
-        if (status != null) 'status': status,
-      });
+      };
+      if (status != null) body['status'] = status;
+      await client.post('${ApiConfig.authProductsEndpoint}/bulk', body: body);
       if (mounted) {
         _showSnack(action == 'delete' ? 'Products deleted' : 'Status updated', isSuccess: true);
         _exitSelection();
@@ -123,6 +125,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
     setState(() => _isLoading = true);
     try {
+      if (!mounted) return;
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       await client.delete('${ApiConfig.authProductsEndpoint}/$id');

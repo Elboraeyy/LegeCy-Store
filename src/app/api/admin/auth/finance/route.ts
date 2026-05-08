@@ -33,6 +33,11 @@ export async function GET(request: NextRequest) {
             paymentRevenue,
             pendingExpenses,
             avgOrderValue,
+            cogsData,
+            salariesData,
+            payablesData,
+            discountData,
+            shippingData,
         ] = await Promise.all([
             // All-time revenue (delivered only)
             prisma.order.aggregate({
@@ -110,6 +115,34 @@ export async function GET(request: NextRequest) {
                 where: { status: 'delivered' },
                 _avg: { totalPrice: true },
             }),
+
+            // NEW: RevenueRecognition for COGS & Gross Profit
+            prisma.revenueRecognition.aggregate({
+                _sum: { netRevenue: true, cogsAmount: true, grossProfit: true }
+            }),
+
+            // NEW: Salaries paid
+            prisma.salaryPayment.aggregate({
+                _sum: { netAmount: true }
+            }),
+
+            // NEW: Outstanding Accounts Payable (to suppliers)
+            prisma.accountsPayable.aggregate({
+                where: { status: 'OPEN' },
+                _sum: { amount: true }
+            }),
+
+            // NEW: Discount costs (from delivered orders)
+            prisma.order.aggregate({
+                where: { status: 'delivered', discountAmount: { gt: 0 } },
+                _sum: { discountAmount: true }
+            }),
+
+            // NEW: Shipping costs (from delivered orders)
+            prisma.order.aggregate({
+                where: { status: 'delivered' },
+                _sum: { shippingCost: true }
+            }),
         ]);
 
         // Get category names for expense breakdown
@@ -145,14 +178,40 @@ export async function GET(request: NextRequest) {
         const lastMonthExp = lastMonthExpenses._sum.amount?.toNumber() || 0;
         const revGrowth = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
 
+        // NEW computations
+        const totalCogs = cogsData._sum.cogsAmount?.toNumber() || 0;
+        const totalGrossProfit = cogsData._sum.grossProfit?.toNumber() || 0;
+        const totalSalaries = salariesData._sum.netAmount?.toNumber() || 0;
+        const outstandingPayables = payablesData._sum.amount?.toNumber() || 0;
+        const totalDiscounts = discountData._sum.discountAmount?.toNumber() || 0;
+        const totalShipping = shippingData._sum.shippingCost?.toNumber() || 0;
+        
+        // Accurate net profit: Revenue - COGS - Expenses - Salaries
+        // The old calculation just did Revenue - Expenses. We'll provide a true net profit based on COGS if available.
+        // If COGS data is missing or incomplete, we fallback to the old way to avoid confusing numbers.
+        const useAdvancedProfit = totalCogs > 0;
+        const trueNetProfit = useAdvancedProfit 
+            ? totalGrossProfit - totExp - totalSalaries 
+            : totRev - totExp;
+
         return NextResponse.json({
             overview: {
                 totalRevenue: totRev,
                 totalExpenses: totExp,
-                netProfit: totRev - totExp,
-                profitMargin: totRev > 0 ? Math.round(((totRev - totExp) / totRev) * 100) : 0,
+                netProfit: trueNetProfit,
+                profitMargin: totRev > 0 ? Math.round((trueNetProfit / totRev) * 100) : 0,
                 deliveredOrdersCount: deliveredCount,
                 averageOrderValue: avgOrderValue._avg.totalPrice?.toNumber() || 0,
+                
+                // NEW
+                cogs: totalCogs,
+                grossProfit: totalGrossProfit,
+                grossMargin: totRev > 0 ? Math.round((totalGrossProfit / totRev) * 100) : 0,
+                totalSalaries,
+                outstandingPayables,
+                totalDiscounts,
+                totalShipping,
+                isUsingAdvancedProfit: useAdvancedProfit,
             },
             thisMonth: {
                 revenue: thisMonthRev,

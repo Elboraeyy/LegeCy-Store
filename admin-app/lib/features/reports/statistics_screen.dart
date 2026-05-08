@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
@@ -18,6 +19,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Map<String, dynamic>? _data;
   bool _loading = true;
   String? _error;
+  DateTimeRange? _selectedRange;
 
   @override
   void initState() { super.initState(); _load(); }
@@ -27,7 +29,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      final data = await client.get('/api/admin/auth/statistics');
+      String query = '';
+      if (_selectedRange != null) {
+        final startStr = '${_selectedRange!.start.year}-${_selectedRange!.start.month.toString().padLeft(2, '0')}-${_selectedRange!.start.day.toString().padLeft(2, '0')}';
+        final endStr = '${_selectedRange!.end.year}-${_selectedRange!.end.month.toString().padLeft(2, '0')}-${_selectedRange!.end.day.toString().padLeft(2, '0')}';
+        query = '?startDate=$startStr&endDate=$endStr';
+      }
+      final data = await client.get('/api/admin/auth/statistics$query');
       if (mounted) setState(() { _data = data; _loading = false; });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
@@ -59,6 +67,23 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
               ),
               actions: [
+                if (_selectedRange != null)
+                  IconButton(
+                    icon: const Icon(LucideIcons.xCircle, size: 20, color: AppColors.error),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      setState(() => _selectedRange = null);
+                      _load();
+                    },
+                  ),
+                IconButton(
+                  icon: Icon(
+                    LucideIcons.calendar,
+                    size: 20,
+                    color: _selectedRange != null ? AppColors.accent : AppColors.primaryDark,
+                  ),
+                  onPressed: _pickDate,
+                ),
                 IconButton(
                   icon: const Icon(LucideIcons.refreshCw, size: 20, color: AppColors.primaryDark),
                   onPressed: () { HapticFeedback.lightImpact(); _load(); },
@@ -107,6 +132,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final sources = (_data!['orderSources'] as List?) ?? [];
     final payments = (_data!['paymentMethods'] as List?) ?? [];
     final hourly = (_data!['hourlyDistribution'] as List?) ?? [];
+    final weekly = _data!['weeklyComparison'] as Map<String, dynamic>? ?? {};
 
     return [
       // ── Hero Summary ──
@@ -131,7 +157,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         const SizedBox(width: 10),
         Expanded(child: KpiCard(label: 'Low Stock', value: '${o['lowStockCount']}', icon: LucideIcons.alertTriangle, color: AppColors.error)),
       ]),
+      const SizedBox(height: 10),
+
+      // ── NEW KPI Row: Cancellation + Out of Stock ──
+      Row(children: [
+        Expanded(child: KpiCard(label: 'Cancel Rate', value: '${o['cancellationRate'] ?? 0}%', icon: LucideIcons.xCircle, color: const Color(0xFFEF4444))),
+        const SizedBox(width: 10),
+        Expanded(child: KpiCard(label: 'Out of Stock', value: '${o['outOfStockCount'] ?? 0}', icon: LucideIcons.packageX, color: const Color(0xFFDC2626))),
+      ]),
+      const SizedBox(height: 10),
+
+      // ── NEW KPI Row: Fulfillment + Discounted Orders ──
+      Row(children: [
+        Expanded(child: KpiCard(label: 'Avg Delivery', value: '${o['avgFulfillmentDays'] ?? 0} days', icon: LucideIcons.truck, color: const Color(0xFF059669))),
+        const SizedBox(width: 10),
+        Expanded(child: KpiCard(label: 'Discounted', value: '${o['discountedOrderCount'] ?? 0} orders', icon: LucideIcons.tag, color: const Color(0xFFF97316))),
+      ]),
       const SizedBox(height: 20),
+
+      // ── NEW: Shipping & Discount Impact ──
+      _buildFinancialInsights(o),
+      const SizedBox(height: 16),
 
       // ── Revenue Chart ──
       RevenueChart(data: trend),
@@ -147,6 +193,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
       // ── Monthly Comparison ──
       _buildMonthlyComparison(o, g),
+      const SizedBox(height: 16),
+
+      // ── NEW: Weekly Comparison ──
+      _buildWeeklyComparison(weekly, g),
       const SizedBox(height: 16),
 
       // ── Top Products ──
@@ -210,7 +260,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.1)),
           _heroMini('Products', '${o['totalProducts']}'),
           Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.1)),
-          _heroMini('This Month', '${_fmtNum(o['thisMonth']?['revenue'] ?? 0)}'),
+          _heroMini('This Month', _fmtNum(o['thisMonth']?['revenue'] ?? 0)),
         ]),
       ]),
     );
@@ -325,11 +375,241 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
+  Widget _buildFinancialInsights(Map<String, dynamic> o) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SectionHeader(title: 'FINANCIAL INSIGHTS', icon: LucideIcons.wallet, color: const Color(0xFF0EA5E9)),
+        const SizedBox(height: 16),
+        _insightRow(LucideIcons.truck, 'Shipping Collected', '${_fmtNum(o['totalShipping'])} EGP', '${o['shippingPct'] ?? 0}% of revenue', const Color(0xFF059669)),
+        const SizedBox(height: 12),
+        _insightRow(LucideIcons.tag, 'Discounts Given', '${_fmtNum(o['totalDiscounts'])} EGP', '${o['discountPct'] ?? 0}% of revenue', const Color(0xFFF97316)),
+        const SizedBox(height: 12),
+        _insightRow(LucideIcons.xCircle, 'Cancellation Rate', '${o['cancellationRate'] ?? 0}%', '${status['cancelled'] ?? 0} cancelled orders', const Color(0xFFEF4444)),
+      ]),
+    );
+  }
+
+  Widget _insightRow(IconData icon, String label, String value, String sub, Color color) {
+    return Row(children: [
+      Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+        child: Icon(icon, size: 18, color: color),
+      ),
+      const SizedBox(width: 14),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 2),
+        Text(sub, style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted)),
+      ])),
+      Text(value, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: color)),
+    ]);
+  }
+
+  Map<String, dynamic> get status => _data?['statusDistribution'] as Map<String, dynamic>? ?? {};
+
+  Widget _buildWeeklyComparison(Map<String, dynamic> w, Map<String, dynamic> g) {
+    final thisW = w['thisWeek'] as Map<String, dynamic>? ?? {};
+    final lastW = w['lastWeek'] as Map<String, dynamic>? ?? {};
+    final growth = (g['weeklyRevenueGrowth'] as num?)?.toDouble() ?? 0;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SectionHeader(title: 'WEEKLY COMPARISON', icon: LucideIcons.calendarDays, color: const Color(0xFF8B5CF6)),
+        const SizedBox(height: 16),
+        Row(children: [
+          Expanded(child: _monthCol('This Week', '${_fmtNum(thisW['revenue'] ?? 0)} EGP', '${thisW['orders'] ?? 0} orders', const Color(0xFF8B5CF6))),
+          const SizedBox(width: 12),
+          Expanded(child: _monthCol('Last Week', '${_fmtNum(lastW['revenue'] ?? 0)} EGP', '${lastW['orders'] ?? 0} orders', AppColors.textMuted)),
+        ]),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: growth >= 0 ? AppColors.success.withValues(alpha: 0.08) : AppColors.error.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(growth >= 0 ? LucideIcons.trendingUp : LucideIcons.trendingDown, size: 16,
+              color: growth >= 0 ? AppColors.success : AppColors.error),
+            const SizedBox(width: 8),
+            Text('${growth.toStringAsFixed(1)}% weekly revenue growth',
+              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600,
+                color: growth >= 0 ? AppColors.success : AppColors.error)),
+          ]),
+        ),
+      ]),
+    );
+  }
+
   String _fmtNum(dynamic v) {
     if (v == null) return '0';
     final n = (v is num) ? v.toDouble() : double.tryParse(v.toString()) ?? 0;
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
     if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
     return n.toStringAsFixed(0);
+  }
+
+  Future<void> _pickDate() async {
+    HapticFeedback.lightImpact();
+    DateTime? tempStart = _selectedRange?.start;
+    DateTime? tempEnd = _selectedRange?.end;
+
+    final picked = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Dialog(
+            backgroundColor: AppColors.surface,
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Filter by Date Range',
+                    style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Select a start and end date to filter the dashboard.',
+                    style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildDateSelector(
+                          label: 'Start Date',
+                          date: tempStart,
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: tempStart ?? DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now(),
+                              builder: (context, child) => Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: const ColorScheme.light(primary: AppColors.primaryDark),
+                                ),
+                                child: child!,
+                              ),
+                            );
+                            if (picked != null) {
+                              setDialogState(() => tempStart = picked);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildDateSelector(
+                          label: 'End Date',
+                          date: tempEnd,
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: tempEnd ?? tempStart ?? DateTime.now(),
+                              firstDate: tempStart ?? DateTime(2020),
+                              lastDate: DateTime.now(),
+                              builder: (context, child) => Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: const ColorScheme.light(primary: AppColors.primaryDark),
+                                ),
+                                child: child!,
+                              ),
+                            );
+                            if (picked != null) {
+                              setDialogState(() => tempEnd = picked);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (tempStart != null && tempEnd != null && tempEnd!.isBefore(tempStart!)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('End date must be after start date', style: TextStyle(color: Colors.white)), backgroundColor: AppColors.error));
+                            return;
+                          }
+                          Navigator.pop(context, true);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryDark,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          elevation: 0,
+                        ),
+                        child: Text('Apply', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
+    if (picked == true && tempStart != null && tempEnd != null) {
+      setState(() {
+        _selectedRange = DateTimeRange(start: tempStart!, end: tempEnd!);
+      });
+      _load();
+    }
+  }
+
+  Widget _buildDateSelector({required String label, required DateTime? date, required VoidCallback onTap}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMuted)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Row(
+              children: [
+                const Icon(LucideIcons.calendar, size: 16, color: AppColors.primaryDark),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    date != null ? DateFormat('d MMM').format(date) : 'Select',
+                    style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: date != null ? AppColors.textPrimary : AppColors.textMuted),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

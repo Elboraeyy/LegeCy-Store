@@ -335,7 +335,7 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
               children: [
                 _miniStat("Today's\nOrders", '${_stats!['todayOrders'] ?? 0}', AppColors.info),
                 _divider(),
-                _miniStat('Revenue\n(EGP)', '${(_stats!['todayRevenue'] as num?)?.toStringAsFixed(0) ?? '0'}', AppColors.success),
+                _miniStat('Revenue\n(EGP)', (_stats!['todayRevenue'] as num?)?.toStringAsFixed(0) ?? '0', AppColors.success),
                 _divider(),
                 _miniStat('Pending', '${_stats!['pendingOrders'] ?? 0}', AppColors.warning),
                 _divider(),

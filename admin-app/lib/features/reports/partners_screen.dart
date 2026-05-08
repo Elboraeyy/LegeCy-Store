@@ -116,7 +116,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
       Row(children: [
         Expanded(child: _kpi('Investors', '${o['activeInvestors']}/${o['investorCount']}', LucideIcons.users, const Color(0xFF0EA5E9))),
         const SizedBox(width: 10),
-        Expanded(child: _kpi('Revenue', '${_fmt(o['totalRevenue'])}', LucideIcons.banknote, AppColors.accent)),
+        Expanded(child: _kpi('Revenue', _fmt(o['totalRevenue']), LucideIcons.banknote, AppColors.accent)),
       ]),
       const SizedBox(height: 16),
 
@@ -139,6 +139,14 @@ class _PartnersScreenState extends State<PartnersScreen> {
         _section('INVESTORS (${investors.length})', LucideIcons.users, const Color(0xFF0EA5E9)),
         const SizedBox(height: 12),
         ...investors.map((inv) => _buildInvestorCard(inv)),
+        const SizedBox(height: 16),
+      ],
+
+      // ── Partners Section ──
+      if (partners.isNotEmpty) ...[
+        _section('COMMISSION PARTNERS (${partners.length})', LucideIcons.briefcase, const Color(0xFF8B5CF6)),
+        const SizedBox(height: 12),
+        ...partners.map((p) => _buildPartnerCard(p)),
       ],
     ];
   }

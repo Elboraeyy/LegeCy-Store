@@ -135,6 +135,7 @@ class _AddProductScreenState extends State<AddProductScreen> with SingleTickerPr
     if (!gallery) { setState(() => _imageFile = File(f.path)); return; }
     setState(() => _saving = true);
     try {
+      if (!mounted) return;
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       final res = await client.uploadMultipart(ApiConfig.uploadEndpoint, filePath: f.path, fileField: 'file', fields: {'folder': 'products/gallery'});

@@ -124,7 +124,13 @@ class _FinanceScreenState extends State<FinanceScreen> {
       Row(children: [
         Expanded(child: _kpiCard('Avg Order', '${_fmt(o['averageOrderValue'])} EGP', LucideIcons.calculator, const Color(0xFF8B5CF6))),
         const SizedBox(width: 10),
-        Expanded(child: _kpiCard('Delivered', '${o['deliveredOrdersCount'] ?? 0}', LucideIcons.packageCheck, const Color(0xFF0EA5E9))),
+        Expanded(child: _kpiCard('Outstanding', '${_fmt(o['outstandingPayables'])} EGP', LucideIcons.building, const Color(0xFFDC2626))),
+      ]),
+      const SizedBox(height: 10),
+      Row(children: [
+        Expanded(child: _kpiCard('Shipping Cost', '${_fmt(o['totalShipping'])} EGP', LucideIcons.truck, const Color(0xFF059669))),
+        const SizedBox(width: 10),
+        Expanded(child: _kpiCard('Discount Cost', '${_fmt(o['totalDiscounts'])} EGP', LucideIcons.tag, const Color(0xFFF97316))),
       ]),
       const SizedBox(height: 16),
 
@@ -169,6 +175,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
   Widget _buildProfitHero(Map<String, dynamic> o) {
     final profit = (o['netProfit'] as num?)?.toDouble() ?? 0;
     final margin = (o['profitMargin'] as num?)?.toInt() ?? 0;
+    final isAdvanced = o['isUsingAdvancedProfit'] == true;
     final isPositive = profit >= 0;
     return Container(
       padding: const EdgeInsets.all(24),
@@ -197,28 +204,46 @@ class _FinanceScreenState extends State<FinanceScreen> {
           ),
         ]),
         const SizedBox(height: 18),
-        Text('Net Profit', style: GoogleFonts.inter(fontSize: 13, color: Colors.white60, fontWeight: FontWeight.w500)),
+        Text('True Net Profit', style: GoogleFonts.inter(fontSize: 13, color: Colors.white60, fontWeight: FontWeight.w500)),
         const SizedBox(height: 4),
         Text('${_fmt(profit)} EGP', style: GoogleFonts.playfairDisplay(fontSize: 30, fontWeight: FontWeight.w700, color: Colors.white)),
         const SizedBox(height: 16),
         Container(height: 1, color: Colors.white.withValues(alpha: 0.1)),
         const SizedBox(height: 14),
-        Row(children: [
-          _heroMini('Revenue', _fmt(o['totalRevenue'])),
-          Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.1)),
-          _heroMini('Expenses', _fmt(o['totalExpenses'])),
-          Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.1)),
-          _heroMini('Orders', '${o['deliveredOrdersCount'] ?? 0}'),
-        ]),
+        if (isAdvanced) ...[
+          Row(children: [
+            _heroMini('Revenue', _fmt(o['totalRevenue'])),
+            Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.1)),
+            _heroMini('COGS', _fmt(o['cogs']), color: Colors.white70),
+            Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.1)),
+            _heroMini('Gross Profit', _fmt(o['grossProfit'])),
+          ]),
+          const SizedBox(height: 10),
+          Row(children: [
+            _heroMini('Expenses', _fmt(o['totalExpenses']), color: Colors.white70),
+            Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.1)),
+            _heroMini('Salaries', _fmt(o['totalSalaries']), color: Colors.white70),
+            Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.1)),
+            _heroMini('Orders', '${o['deliveredOrdersCount'] ?? 0}'),
+          ]),
+        ] else ...[
+          Row(children: [
+            _heroMini('Revenue', _fmt(o['totalRevenue'])),
+            Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.1)),
+            _heroMini('Expenses', _fmt(o['totalExpenses']), color: Colors.white70),
+            Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.1)),
+            _heroMini('Orders', '${o['deliveredOrdersCount'] ?? 0}'),
+          ]),
+        ],
       ]),
     );
   }
 
-  Widget _heroMini(String label, String value) {
+  Widget _heroMini(String label, String value, {Color color = Colors.white}) {
     return Expanded(child: Column(children: [
-      Text(value, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+      Text(value, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: color)),
       const SizedBox(height: 2),
-      Text(label, style: GoogleFonts.inter(fontSize: 10, color: Colors.white54)),
+      Text(label, style: GoogleFonts.inter(fontSize: 9, color: Colors.white54)),
     ]));
   }
 

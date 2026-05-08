@@ -36,54 +36,42 @@ export async function GET(request: NextRequest) {
         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
+        const { searchParams } = new URL(request.url);
+        const startParam = searchParams.get('startDate');
+        const endParam = searchParams.get('endDate');
+
+        let dateFilter: any = {};
+        let trendStart = thirtyDaysAgo;
+        let trendEnd = new Date(now);
+
+        if (startParam && endParam) {
+            trendStart = new Date(startParam);
+            trendStart.setHours(0, 0, 0, 0);
+            trendEnd = new Date(endParam);
+            trendEnd.setHours(23, 59, 59, 999);
+            dateFilter = { createdAt: { gte: trendStart, lte: trendEnd } };
+        }
+
+        const sevenDaysFromNow = new Date(now);
+        const fourteenDaysAgo = new Date(now);
+        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
         const [
-            // Overview KPIs
-            totalOrders,
-            totalRevenue,
-            todayOrders,
-            todayRevenue,
-            yesterdayOrders,
-            yesterdayRevenue,
-            last7Revenue,
-            last7Orders,
-            thisMonthRevenue,
-            thisMonthOrders,
-            lastMonthRevenue,
-            lastMonthOrders,
-
-            // Counts
-            pendingOrders,
-            processingOrders,
-            shippedOrders,
-            deliveredOrders,
-            cancelledOrders,
-            totalCustomers,
-            totalProducts,
-            lowStockCount,
-
-            // Top data
-            topProducts,
-            topCustomers,
-            topCities,
-
-            // Order sources
-            orderSources,
-
-            // Payment methods
-            paymentMethods,
-
-            // Daily revenue for chart (last 30 days)
-            dailyOrders,
-
-            // Average order value
-            avgOrderValue,
-
-            // Repeat customer rate
-            repeatCustomers,
+            totalOrders, totalRevenue, todayOrders, todayRevenue,
+            yesterdayOrders, yesterdayRevenue, last7Revenue, last7Orders,
+            thisMonthRevenue, thisMonthOrders, lastMonthRevenue, lastMonthOrders,
+            pendingOrders, processingOrders, shippedOrders, deliveredOrders,
+            cancelledOrders, totalCustomers, totalProducts, lowStockCount,
+            topProducts, topCustomers, topCities, orderSources, paymentMethods,
+            dailyOrders, avgOrderValue, repeatCustomers,
+            // NEW
+            shippingCosts, discountImpact, outOfStockCount,
+            thisWeekRevenue, thisWeekOrders, lastWeekRevenue, lastWeekOrders,
+            fulfillmentOrders,
         ] = await Promise.all([
-            // Total orders (all time)
-            prisma.order.count(),
-            prisma.order.aggregate({ _sum: { totalPrice: true } }),
+            // Total orders (all time or filtered)
+            prisma.order.count({ where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined }),
+            prisma.order.aggregate({ where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined, _sum: { totalPrice: true } }),
 
             // Today
             prisma.order.count({ where: { createdAt: { gte: today } } }),
@@ -106,18 +94,19 @@ export async function GET(request: NextRequest) {
             prisma.order.count({ where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } } }),
 
             // Status counts
-            prisma.order.count({ where: { status: 'pending' } }),
-            prisma.order.count({ where: { status: 'processing' } }),
-            prisma.order.count({ where: { status: 'shipped' } }),
-            prisma.order.count({ where: { status: 'delivered' } }),
-            prisma.order.count({ where: { status: { in: ['cancelled', 'CANCELLED'] } } }),
-            prisma.user.count(),
+            prisma.order.count({ where: { status: 'pending', ...dateFilter } }),
+            prisma.order.count({ where: { status: 'processing', ...dateFilter } }),
+            prisma.order.count({ where: { status: 'shipped', ...dateFilter } }),
+            prisma.order.count({ where: { status: 'delivered', ...dateFilter } }),
+            prisma.order.count({ where: { status: { in: ['cancelled', 'CANCELLED'] }, ...dateFilter } }),
+            prisma.user.count({ where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined }),
             prisma.product.count({ where: { status: 'active' } }),
             prisma.inventory.count({ where: { available: { lte: 5 } } }),
 
             // Top 10 products
             prisma.orderItem.groupBy({
                 by: ['name'],
+                where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined,
                 _sum: { quantity: true },
                 _count: true,
                 orderBy: { _sum: { quantity: 'desc' } },
@@ -127,7 +116,7 @@ export async function GET(request: NextRequest) {
             // Top 10 customers
             prisma.order.groupBy({
                 by: ['customerName'],
-                where: { customerName: { not: null } },
+                where: { customerName: { not: null }, ...dateFilter },
                 _count: true,
                 _sum: { totalPrice: true },
                 orderBy: { _sum: { totalPrice: 'desc' } },
@@ -137,7 +126,7 @@ export async function GET(request: NextRequest) {
             // Top cities
             prisma.order.groupBy({
                 by: ['shippingCity'],
-                where: { shippingCity: { not: null } },
+                where: { shippingCity: { not: null }, ...dateFilter },
                 _count: true,
                 orderBy: { _count: { shippingCity: 'desc' } },
                 take: 10,
@@ -146,6 +135,7 @@ export async function GET(request: NextRequest) {
             // Order sources
             prisma.order.groupBy({
                 by: ['orderSource'],
+                where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined,
                 _count: true,
                 _sum: { totalPrice: true },
             }),
@@ -153,13 +143,14 @@ export async function GET(request: NextRequest) {
             // Payment methods
             prisma.order.groupBy({
                 by: ['paymentMethod'],
+                where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined,
                 _count: true,
                 _sum: { totalPrice: true },
             }),
 
-            // Last 30 days daily data for charts
+            // Trend daily data for charts
             prisma.order.findMany({
-                where: { createdAt: { gte: thirtyDaysAgo } },
+                where: { createdAt: { gte: trendStart, lte: trendEnd } },
                 select: { createdAt: true, totalPrice: true, status: true },
                 orderBy: { createdAt: 'asc' },
             }),
@@ -167,25 +158,50 @@ export async function GET(request: NextRequest) {
             // Average order value
             prisma.order.aggregate({
                 _avg: { totalPrice: true },
-                where: { status: { notIn: ['cancelled', 'CANCELLED'] } },
+                where: { status: { notIn: ['cancelled', 'CANCELLED'] }, ...dateFilter },
             }),
 
-            // Repeat customers (users with more than 1 order)
+            // Repeat customers
             prisma.order.groupBy({
                 by: ['customerEmail'],
-                where: { customerEmail: { not: null } },
+                where: { customerEmail: { not: null }, ...dateFilter },
                 _count: true,
                 having: { customerEmail: { _count: { gt: 1 } } },
+            }),
+            // NEW: Shipping costs
+            prisma.order.aggregate({
+                where: { status: { notIn: ['cancelled', 'CANCELLED'] }, ...dateFilter },
+                _sum: { shippingCost: true },
+            }),
+            // NEW: Discount impact
+            prisma.order.aggregate({
+                where: { discountAmount: { gt: 0 }, ...dateFilter },
+                _sum: { discountAmount: true },
+                _count: true,
+            }),
+            // NEW: Out of stock
+            prisma.inventory.count({ where: { available: { lte: 0 } } }),
+            // NEW: This week
+            prisma.order.aggregate({ where: { createdAt: { gte: sevenDaysAgo } }, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+            // NEW: Last week
+            prisma.order.aggregate({ where: { createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } }, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
+            // NEW: Fulfillment time
+            prisma.order.findMany({
+                where: { status: 'delivered', deliveredAt: { not: null }, ...dateFilter },
+                select: { createdAt: true, deliveredAt: true },
+                take: 500,
             }),
         ]);
 
         // Process daily revenue data for chart
         const dailyMap = new Map<string, { revenue: number; orders: number }>();
-        for (let i = 29; i >= 0; i--) {
-            const d = new Date(now);
-            d.setDate(d.getDate() - i);
-            const key = d.toISOString().split('T')[0];
+        const currentDate = new Date(trendStart);
+        while (currentDate <= trendEnd) {
+            const key = currentDate.toISOString().split('T')[0];
             dailyMap.set(key, { revenue: 0, orders: 0 });
+            currentDate.setDate(currentDate.getDate() + 1);
         }
         for (const order of dailyOrders) {
             const key = order.createdAt.toISOString().split('T')[0];
@@ -224,73 +240,73 @@ export async function GET(request: NextRequest) {
         const monthlyRevenueGrowth = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
         const monthlyOrdersGrowth = lastMonthOrders > 0 ? ((thisMonthOrders - lastMonthOrders) / lastMonthOrders) * 100 : 0;
 
+        // NEW calculations
+        const totRevNum = totalRevenue._sum.totalPrice?.toNumber() || 0;
+        const cancellationRate = totalOrders > 0 ? Math.round((cancelledOrders / totalOrders) * 1000) / 10 : 0;
+        const totalShipping = shippingCosts._sum.shippingCost?.toNumber() || 0;
+        const shippingPct = totRevNum > 0 ? Math.round((totalShipping / totRevNum) * 1000) / 10 : 0;
+        const totalDiscounts = discountImpact._sum.discountAmount?.toNumber() || 0;
+        const discountPct = totRevNum > 0 ? Math.round((totalDiscounts / totRevNum) * 1000) / 10 : 0;
+        const thisWeekRev = thisWeekRevenue._sum.totalPrice?.toNumber() || 0;
+        const lastWeekRev = lastWeekRevenue._sum.totalPrice?.toNumber() || 0;
+        const weeklyGrowth = lastWeekRev > 0 ? ((thisWeekRev - lastWeekRev) / lastWeekRev) * 100 : 0;
+        let avgFulfillmentDays = 0;
+        if (fulfillmentOrders.length > 0) {
+            const totalDays = fulfillmentOrders.reduce((sum: number, o: any) => {
+                return sum + (o.deliveredAt!.getTime() - o.createdAt.getTime()) / 86400000;
+            }, 0);
+            avgFulfillmentDays = Math.round((totalDays / fulfillmentOrders.length) * 10) / 10;
+        }
+
         return NextResponse.json({
             overview: {
                 totalOrders,
-                totalRevenue: totalRevenue._sum.totalPrice?.toNumber() || 0,
+                totalRevenue: totRevNum,
                 todayOrders,
                 todayRevenue: todayRev,
                 yesterdayOrders,
                 yesterdayRevenue: yesterdayRev,
-                last7Days: {
-                    revenue: last7Revenue._sum.totalPrice?.toNumber() || 0,
-                    orders: last7Orders,
-                },
-                thisMonth: {
-                    revenue: thisMonthRev,
-                    orders: thisMonthOrders,
-                },
-                lastMonth: {
-                    revenue: lastMonthRev,
-                    orders: lastMonthOrders,
-                },
+                last7Days: { revenue: last7Revenue._sum.totalPrice?.toNumber() || 0, orders: last7Orders },
+                thisMonth: { revenue: thisMonthRev, orders: thisMonthOrders },
+                lastMonth: { revenue: lastMonthRev, orders: lastMonthOrders },
                 averageOrderValue: avgOrderValue._avg.totalPrice?.toNumber() || 0,
-                totalCustomers,
-                totalProducts,
-                lowStockCount,
+                totalCustomers, totalProducts, lowStockCount, outOfStockCount,
                 repeatCustomerCount: repeatCustomers.length,
-                repeatCustomerRate: totalCustomers > 0
-                    ? Math.round((repeatCustomers.length / totalCustomers) * 100)
-                    : 0,
+                repeatCustomerRate: totalCustomers > 0 ? Math.round((repeatCustomers.length / totalCustomers) * 100) : 0,
+                cancellationRate, totalShipping, shippingPct,
+                totalDiscounts, discountPct,
+                discountedOrderCount: discountImpact._count ?? 0,
+                avgFulfillmentDays,
             },
             growth: {
                 revenueGrowth: Math.round(revenueGrowth * 10) / 10,
                 ordersGrowth: Math.round(ordersGrowth * 10) / 10,
                 monthlyRevenueGrowth: Math.round(monthlyRevenueGrowth * 10) / 10,
                 monthlyOrdersGrowth: Math.round(monthlyOrdersGrowth * 10) / 10,
+                weeklyRevenueGrowth: Math.round(weeklyGrowth * 10) / 10,
+            },
+            weeklyComparison: {
+                thisWeek: { revenue: thisWeekRev, orders: thisWeekOrders },
+                lastWeek: { revenue: lastWeekRev, orders: lastWeekOrders },
             },
             statusDistribution: {
-                pending: pendingOrders,
-                processing: processingOrders,
-                shipped: shippedOrders,
-                delivered: deliveredOrders,
-                cancelled: cancelledOrders,
+                pending: pendingOrders, processing: processingOrders,
+                shipped: shippedOrders, delivered: deliveredOrders, cancelled: cancelledOrders,
             },
-            revenueTrend,
-            hourlyDistribution,
-            topProducts: topProducts.map(p => ({
-                name: p.name,
-                quantity: p._sum.quantity || 0,
-                orders: p._count,
-            })),
+            revenueTrend, hourlyDistribution,
+            topProducts: topProducts.map(p => ({ name: p.name, quantity: p._sum.quantity || 0, orders: p._count })),
             topCustomers: topCustomers.map(c => ({
-                name: c.customerName,
-                orders: (c._count as number) || 0,
-                spent: (c._sum as { totalPrice: { toNumber: () => number } | null })?.totalPrice?.toNumber() || 0,
+                name: c.customerName, orders: (c._count as number) || 0,
+                spent: (c._sum as any)?.totalPrice?.toNumber() || 0,
             })),
-            topCities: topCities.map(c => ({
-                city: c.shippingCity,
-                orders: (c._count as number) || 0,
-            })),
+            topCities: topCities.map(c => ({ city: c.shippingCity, orders: (c._count as number) || 0 })),
             orderSources: orderSources.map(s => ({
-                source: s.orderSource,
-                count: (s._count as number) || 0,
-                revenue: (s._sum as { totalPrice: { toNumber: () => number } | null })?.totalPrice?.toNumber() || 0,
+                source: s.orderSource, count: (s._count as number) || 0,
+                revenue: (s._sum as any)?.totalPrice?.toNumber() || 0,
             })),
             paymentMethods: paymentMethods.map(p => ({
-                method: p.paymentMethod,
-                count: (p._count as number) || 0,
-                revenue: (p._sum as { totalPrice: { toNumber: () => number } | null })?.totalPrice?.toNumber() || 0,
+                method: p.paymentMethod, count: (p._count as number) || 0,
+                revenue: (p._sum as any)?.totalPrice?.toNumber() || 0,
             })),
         });
     } catch (error) {

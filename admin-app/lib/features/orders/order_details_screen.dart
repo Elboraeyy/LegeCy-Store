@@ -653,9 +653,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                               'noteId': n['id']
                                             });
                                             await _loadOrder();
-                                            if (mounted) setModalState(() {});
+                                            if (context.mounted) setModalState(() {});
                                           } catch (e) {
-                                            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+                                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
                                           } finally {
                                             if (mounted) setModalState(() => _isAddingNote = false);
                                           }
