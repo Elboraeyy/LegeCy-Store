@@ -9,6 +9,7 @@ import 'package:admin_app/features/reports/statistics_screen.dart';
 import 'package:admin_app/features/reports/daily_report_screen.dart';
 import 'package:admin_app/features/reports/finance_screen.dart';
 import 'package:admin_app/features/reports/partners_screen.dart';
+import 'package:admin_app/features/reports/customers_screen.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -98,15 +99,29 @@ class ReportsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-
-                // Partners Card
-                _CompactReportCard(
-                  icon: LucideIcons.users,
-                  title: 'Partners & Investors',
-                  color: const Color(0xFF8B5CF6),
-                  onTap: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const PartnersScreen())),
+                // Partners & Customers Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: _CompactReportCard(
+                        icon: LucideIcons.users,
+                        title: 'Partners &\nInvestors',
+                        color: const Color(0xFF8B5CF6),
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const PartnersScreen())),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _CompactReportCard(
+                        icon: LucideIcons.heart,
+                        title: 'Customers &\nLoyalty',
+                        color: const Color(0xFFE11D48),
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const CustomersScreen())),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
