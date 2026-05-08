@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         const startParam = searchParams.get('startDate');
         const endParam = searchParams.get('endDate');
 
-        let dateFilter: any = {};
+        let dateFilter: Record<string, unknown> = {};
         let trendStart = thirtyDaysAgo;
         let trendEnd = new Date(now);
 
@@ -52,7 +52,6 @@ export async function GET(request: NextRequest) {
             dateFilter = { createdAt: { gte: trendStart, lte: trendEnd } };
         }
 
-        const sevenDaysFromNow = new Date(now);
         const fourteenDaysAgo = new Date(now);
         fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
@@ -252,7 +251,7 @@ export async function GET(request: NextRequest) {
         const weeklyGrowth = lastWeekRev > 0 ? ((thisWeekRev - lastWeekRev) / lastWeekRev) * 100 : 0;
         let avgFulfillmentDays = 0;
         if (fulfillmentOrders.length > 0) {
-            const totalDays = fulfillmentOrders.reduce((sum: number, o: any) => {
+            const totalDays = fulfillmentOrders.reduce((sum: number, o: { createdAt: Date; deliveredAt: Date | null }) => {
                 return sum + (o.deliveredAt!.getTime() - o.createdAt.getTime()) / 86400000;
             }, 0);
             avgFulfillmentDays = Math.round((totalDays / fulfillmentOrders.length) * 10) / 10;
@@ -297,16 +296,16 @@ export async function GET(request: NextRequest) {
             topProducts: topProducts.map(p => ({ name: p.name, quantity: p._sum.quantity || 0, orders: p._count })),
             topCustomers: topCustomers.map(c => ({
                 name: c.customerName, orders: (c._count as number) || 0,
-                spent: (c._sum as any)?.totalPrice?.toNumber() || 0,
+                spent: (c._sum as { totalPrice?: { toNumber: () => number } | null })?.totalPrice?.toNumber() || 0,
             })),
             topCities: topCities.map(c => ({ city: c.shippingCity, orders: (c._count as number) || 0 })),
             orderSources: orderSources.map(s => ({
                 source: s.orderSource, count: (s._count as number) || 0,
-                revenue: (s._sum as any)?.totalPrice?.toNumber() || 0,
+                revenue: (s._sum as { totalPrice?: { toNumber: () => number } | null })?.totalPrice?.toNumber() || 0,
             })),
             paymentMethods: paymentMethods.map(p => ({
                 method: p.paymentMethod, count: (p._count as number) || 0,
-                revenue: (p._sum as any)?.totalPrice?.toNumber() || 0,
+                revenue: (p._sum as { totalPrice?: { toNumber: () => number } | null })?.totalPrice?.toNumber() || 0,
             })),
         });
     } catch (error) {
