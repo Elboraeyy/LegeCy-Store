@@ -390,9 +390,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget _buildProductCard(Map<String, dynamic> product) {
     final isActive = product['status'] == 'active';
     final isSelected = _selectedIds.contains(product['id']);
-    final price = (product['price'] as num?)?.toStringAsFixed(0) ?? '0';
-    final compareAt = product['compareAtPrice'] as num?;
-    final stock = product['totalStock'] ?? 0;
+    final priceRaw = product['price'];
+    final priceNum = priceRaw is String ? num.tryParse(priceRaw) : priceRaw as num?;
+    final price = priceNum?.toStringAsFixed(0) ?? '0';
+    
+    final compRaw = product['compareAtPrice'];
+    final compareAt = compRaw is String ? num.tryParse(compRaw) : compRaw as num?;
+    
+    final stockRaw = product['totalStock'];
+    final stock = (stockRaw is String ? int.tryParse(stockRaw) : stockRaw as int?) ?? 0;
 
     return GestureDetector(
       onLongPress: () { HapticFeedback.mediumImpact(); _toggleSelection(product['id']); },

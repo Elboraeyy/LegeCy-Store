@@ -79,7 +79,7 @@ class _AddProductScreenState extends State<AddProductScreen> with SingleTickerPr
       _skuCtrl.text = v['sku'] ?? '';
       _costCtrl.text = v['costPrice']?.toString() ?? '';
     } else {
-      _priceCtrl.text = (p['price'] as num?)?.toString() ?? '';
+      _priceCtrl.text = p['price']?.toString() ?? '';
       _skuCtrl.text = p['sku'] ?? '';
       _costCtrl.text = p['costPrice']?.toString() ?? '';
     }
