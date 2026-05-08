@@ -14,18 +14,28 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const dateStr = searchParams.get('date');
+        const startDateStr = searchParams.get('startDate');
+        const endDateStr = searchParams.get('endDate');
 
-        const targetDate = dateStr ? new Date(dateStr) : new Date();
-        const startOfDay = new Date(targetDate);
+        const targetStart = startDateStr ? new Date(startDateStr) : (dateStr ? new Date(dateStr) : new Date());
+        const targetEnd = endDateStr ? new Date(endDateStr) : (dateStr ? new Date(dateStr) : new Date());
+
+        const startOfDay = new Date(targetStart);
         startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(targetDate);
+        const endOfDay = new Date(targetEnd);
         endOfDay.setHours(23, 59, 59, 999);
 
-        // Previous day for comparison
-        const prevStart = new Date(startOfDay);
-        prevStart.setDate(prevStart.getDate() - 1);
-        const prevEnd = new Date(prevStart);
+        // Calculate duration in days
+        const durationDays = Math.max(1, Math.ceil((endOfDay.getTime() - startOfDay.getTime()) / (1000 * 60 * 60 * 24)));
+
+        // Previous period for comparison (shift back by duration)
+        const prevEnd = new Date(startOfDay);
+        prevEnd.setDate(prevEnd.getDate() - 1);
         prevEnd.setHours(23, 59, 59, 999);
+        
+        const prevStart = new Date(prevEnd);
+        prevStart.setDate(prevStart.getDate() - durationDays + 1);
+        prevStart.setHours(0, 0, 0, 0);
 
         const where = { createdAt: { gte: startOfDay, lte: endOfDay } };
         const prevWhere = { createdAt: { gte: prevStart, lte: prevEnd } };

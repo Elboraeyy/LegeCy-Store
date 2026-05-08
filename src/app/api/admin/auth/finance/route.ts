@@ -5,50 +5,195 @@ import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-aut
 
 /**
  * GET /api/admin/auth/finance
- * Finance overview for mobile
+ * Comprehensive finance overview for mobile
  */
 export async function GET(request: NextRequest) {
     const admin = await validateMobileToken(request);
     if (!admin) return unauthorizedResponse();
 
     try {
-        const [revenueResult, expensesResult, ordersCount] = await Promise.all([
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+        const thirtyDaysAgo = new Date(now);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const [
+            totalRevenue,
+            totalExpenses,
+            deliveredCount,
+            thisMonthRevenue,
+            lastMonthRevenue,
+            thisMonthExpenses,
+            lastMonthExpenses,
+            expensesByCategory,
+            recentExpenses,
+            monthlyRevenue,
+            paymentRevenue,
+            pendingExpenses,
+            avgOrderValue,
+        ] = await Promise.all([
+            // All-time revenue (delivered only)
             prisma.order.aggregate({
                 where: { status: 'delivered' },
                 _sum: { totalPrice: true },
             }),
+            // All-time expenses (approved)
             prisma.expense.aggregate({
                 where: { status: 'APPROVED' },
                 _sum: { amount: true },
             }),
             prisma.order.count({ where: { status: 'delivered' } }),
+
+            // This month revenue
+            prisma.order.aggregate({
+                where: { status: 'delivered', createdAt: { gte: startOfMonth } },
+                _sum: { totalPrice: true },
+            }),
+            // Last month revenue
+            prisma.order.aggregate({
+                where: { status: 'delivered', createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
+                _sum: { totalPrice: true },
+            }),
+            // This month expenses
+            prisma.expense.aggregate({
+                where: { status: 'APPROVED', date: { gte: startOfMonth } },
+                _sum: { amount: true },
+            }),
+            // Last month expenses
+            prisma.expense.aggregate({
+                where: { status: 'APPROVED', date: { gte: startOfLastMonth, lte: endOfLastMonth } },
+                _sum: { amount: true },
+            }),
+
+            // Expenses by category
+            prisma.expense.groupBy({
+                by: ['categoryId'],
+                where: { status: 'APPROVED' },
+                _sum: { amount: true },
+                _count: true,
+                orderBy: { _sum: { amount: 'desc' } },
+            }),
+
+            // Recent expenses
+            prisma.expense.findMany({
+                take: 15,
+                orderBy: { date: 'desc' },
+                include: { category: true },
+            }),
+
+            // Monthly revenue trend (last 12 months via raw orders)
+            prisma.order.findMany({
+                where: { status: 'delivered', createdAt: { gte: new Date(now.getFullYear() - 1, now.getMonth(), 1) } },
+                select: { createdAt: true, totalPrice: true },
+                orderBy: { createdAt: 'asc' },
+            }),
+
+            // Revenue by payment method
+            prisma.order.groupBy({
+                by: ['paymentMethod'],
+                where: { status: 'delivered' },
+                _sum: { totalPrice: true },
+                _count: true,
+            }),
+
+            // Pending expenses count & total
+            prisma.expense.aggregate({
+                where: { status: 'PENDING' },
+                _sum: { amount: true },
+                _count: true,
+            }),
+
+            // Average order value
+            prisma.order.aggregate({
+                where: { status: 'delivered' },
+                _avg: { totalPrice: true },
+            }),
         ]);
 
-        const totalRevenue = revenueResult._sum.totalPrice?.toNumber() || 0;
-        const totalExpenses = expensesResult._sum.amount?.toNumber() || 0;
-        const netProfit = totalRevenue - totalExpenses;
-
-        // Get recent expenses for the list
-        const recentExpenses = await prisma.expense.findMany({
-            take: 10,
-            orderBy: { date: 'desc' },
-            include: { category: true },
+        // Get category names for expense breakdown
+        const categoryIds = expensesByCategory.map(e => e.categoryId);
+        const categories = await prisma.expenseCategory.findMany({
+            where: { id: { in: categoryIds } },
+            select: { id: true, name: true, budgetLimit: true },
         });
+        const catMap = new Map(categories.map(c => [c.id, c]));
+
+        // Build monthly trend
+        const monthlyMap = new Map<string, number>();
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            monthlyMap.set(key, 0);
+        }
+        for (const order of monthlyRevenue) {
+            const key = `${order.createdAt.getFullYear()}-${String(order.createdAt.getMonth() + 1).padStart(2, '0')}`;
+            const cur = monthlyMap.get(key) || 0;
+            monthlyMap.set(key, cur + order.totalPrice.toNumber());
+        }
+        const monthlyTrend = Array.from(monthlyMap.entries()).map(([month, revenue]) => ({
+            month,
+            revenue: Math.round(revenue),
+        }));
+
+        const totRev = totalRevenue._sum.totalPrice?.toNumber() || 0;
+        const totExp = totalExpenses._sum.amount?.toNumber() || 0;
+        const thisMonthRev = thisMonthRevenue._sum.totalPrice?.toNumber() || 0;
+        const lastMonthRev = lastMonthRevenue._sum.totalPrice?.toNumber() || 0;
+        const thisMonthExp = thisMonthExpenses._sum.amount?.toNumber() || 0;
+        const lastMonthExp = lastMonthExpenses._sum.amount?.toNumber() || 0;
+        const revGrowth = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
 
         return NextResponse.json({
             overview: {
-                totalRevenue,
-                totalExpenses,
-                netProfit,
-                deliveredOrdersCount: ordersCount,
+                totalRevenue: totRev,
+                totalExpenses: totExp,
+                netProfit: totRev - totExp,
+                profitMargin: totRev > 0 ? Math.round(((totRev - totExp) / totRev) * 100) : 0,
+                deliveredOrdersCount: deliveredCount,
+                averageOrderValue: avgOrderValue._avg.totalPrice?.toNumber() || 0,
             },
+            thisMonth: {
+                revenue: thisMonthRev,
+                expenses: thisMonthExp,
+                profit: thisMonthRev - thisMonthExp,
+            },
+            lastMonth: {
+                revenue: lastMonthRev,
+                expenses: lastMonthExp,
+                profit: lastMonthRev - lastMonthExp,
+            },
+            growth: {
+                revenueGrowth: Math.round(revGrowth * 10) / 10,
+            },
+            pendingExpenses: {
+                count: pendingExpenses._count ?? 0,
+                total: pendingExpenses._sum.amount?.toNumber() || 0,
+            },
+            expensesByCategory: expensesByCategory.map(e => {
+                const cat = catMap.get(e.categoryId);
+                return {
+                    category: cat?.name || 'Unknown',
+                    amount: e._sum.amount?.toNumber() || 0,
+                    count: (e._count as number) || 0,
+                    budgetLimit: cat?.budgetLimit?.toNumber() || null,
+                };
+            }),
+            paymentBreakdown: paymentRevenue.map(p => ({
+                method: p.paymentMethod,
+                revenue: (p._sum as { totalPrice: { toNumber: () => number } | null })?.totalPrice?.toNumber() || 0,
+                orders: (p._count as number) || 0,
+            })),
+            monthlyTrend,
             recentExpenses: recentExpenses.map(e => ({
                 id: e.id,
                 title: e.description,
                 amount: e.amount.toNumber(),
                 category: e.category?.name || 'Uncategorized',
                 status: e.status,
-                date: e.date,
+                date: e.date.toISOString(),
+                paidBy: e.paidBy,
             })),
         });
     } catch (error) {

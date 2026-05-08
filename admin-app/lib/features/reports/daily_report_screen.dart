@@ -18,7 +18,10 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
   Map<String, dynamic>? _data;
   bool _isLoading = true;
   String? _error;
-  DateTime _selectedDate = DateTime.now();
+  DateTimeRange _selectedRange = DateTimeRange(
+    start: DateTime.now(),
+    end: DateTime.now(),
+  );
 
   @override
   void initState() {
@@ -34,9 +37,9 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      final dateStr =
-          '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
-      final data = await client.get('/api/admin/auth/daily?date=$dateStr');
+      final startStr = '${_selectedRange.start.year}-${_selectedRange.start.month.toString().padLeft(2, '0')}-${_selectedRange.start.day.toString().padLeft(2, '0')}';
+      final endStr = '${_selectedRange.end.year}-${_selectedRange.end.month.toString().padLeft(2, '0')}-${_selectedRange.end.day.toString().padLeft(2, '0')}';
+      final data = await client.get('/api/admin/auth/daily?startDate=$startStr&endDate=$endStr');
       if (mounted) setState(() { _data = data; _isLoading = false; });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _isLoading = false; });
@@ -45,38 +48,191 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
 
   Future<void> _pickDate() async {
     HapticFeedback.lightImpact();
-    final picked = await showDatePicker(
+    DateTime? tempStart = _selectedRange.start;
+    DateTime? tempEnd = _selectedRange.end;
+
+    final picked = await showDialog<bool>(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2024),
-      lastDate: DateTime.now(),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.dark(
-            primary: AppColors.accent,
-            surface: Color(0xFF1A2E2D),
-          ),
-        ),
-        child: child!,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Dialog(
+            backgroundColor: AppColors.surface,
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Filter by Date Range',
+                    style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Select a start and end date for the report.',
+                    style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildDateSelector(
+                          label: 'Start Date',
+                          date: tempStart,
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: tempStart ?? DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now(),
+                              builder: (context, child) => Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: const ColorScheme.light(primary: AppColors.primaryDark),
+                                ),
+                                child: child!,
+                              ),
+                            );
+                            if (picked != null) {
+                              setDialogState(() => tempStart = picked);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildDateSelector(
+                          label: 'End Date',
+                          date: tempEnd,
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: tempEnd ?? tempStart ?? DateTime.now(),
+                              firstDate: tempStart ?? DateTime(2020),
+                              lastDate: DateTime.now(),
+                              builder: (context, child) => Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: const ColorScheme.light(primary: AppColors.primaryDark),
+                                ),
+                                child: child!,
+                              ),
+                            );
+                            if (picked != null) {
+                              setDialogState(() => tempEnd = picked);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (tempStart != null && tempEnd != null && tempEnd!.isBefore(tempStart!)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('End date must be after start date.'), backgroundColor: AppColors.error),
+                            );
+                            return;
+                          }
+                          Navigator.pop(context, true);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryDark,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          elevation: 0,
+                        ),
+                        child: Text('Apply Filter', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
-    if (picked != null) {
-      _selectedDate = picked;
+
+    if (picked == true && tempStart != null && tempEnd != null) {
+      _selectedRange = DateTimeRange(start: tempStart!, end: tempEnd!);
       _load();
     }
   }
 
+  Widget _buildDateSelector({required String label, required DateTime? date, required VoidCallback onTap}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.cardBorder),
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+            ),
+            child: Row(
+              children: [
+                Icon(LucideIcons.calendar, size: 16, color: date != null ? AppColors.primaryDark : AppColors.textMuted),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    date != null ? '${date.day}/${date.month}/${date.year}' : 'Select',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: date != null ? FontWeight.w600 : FontWeight.w400,
+                      color: date != null ? AppColors.textPrimary : AppColors.textMuted,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _goDay(int offset) {
-    final next = _selectedDate.add(Duration(days: offset));
-    if (next.isAfter(DateTime.now())) return;
+    final duration = _selectedRange.end.difference(_selectedRange.start).inDays + 1;
+    final moveDays = offset * duration;
+    final nextStart = _selectedRange.start.add(Duration(days: moveDays));
+    final nextEnd = _selectedRange.end.add(Duration(days: moveDays));
+    
+    if (nextStart.isAfter(DateTime.now())) return;
+    
     HapticFeedback.lightImpact();
-    _selectedDate = next;
+    _selectedRange = DateTimeRange(
+      start: nextStart,
+      end: nextEnd.isAfter(DateTime.now()) ? DateTime.now() : nextEnd,
+    );
     _load();
   }
 
   bool get _isToday {
     final now = DateTime.now();
-    return _selectedDate.year == now.year && _selectedDate.month == now.month && _selectedDate.day == now.day;
+    return _selectedRange.start.year == now.year &&
+           _selectedRange.start.month == now.month &&
+           _selectedRange.start.day == now.day &&
+           _selectedRange.end.year == now.year &&
+           _selectedRange.end.month == now.month &&
+           _selectedRange.end.day == now.day;
   }
 
   @override
@@ -227,8 +383,23 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
 
   // ── Date Navigation ──
   Widget _buildDateNav() {
-    final dayName = _isToday ? 'Today' : DateFormat('EEEE').format(_selectedDate);
-    final dateStr = DateFormat('d MMM yyyy').format(_selectedDate);
+    final bool isSingleDay = _selectedRange.start.year == _selectedRange.end.year &&
+                             _selectedRange.start.month == _selectedRange.end.month &&
+                             _selectedRange.start.day == _selectedRange.end.day;
+    
+    final String dayName;
+    final String dateStr;
+
+    if (isSingleDay) {
+      dayName = _isToday ? 'Today' : DateFormat('EEEE').format(_selectedRange.start);
+      dateStr = DateFormat('d MMM yyyy').format(_selectedRange.start);
+    } else {
+      final duration = _selectedRange.end.difference(_selectedRange.start).inDays + 1;
+      dayName = '$duration Days';
+      final startFmt = DateFormat('d MMM').format(_selectedRange.start);
+      final endFmt = DateFormat('d MMM yyyy').format(_selectedRange.end);
+      dateStr = '$startFmt - $endFmt';
+    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
@@ -243,7 +414,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
             ]),
           ),
         ),
-        _navButton(LucideIcons.chevronRight, _isToday ? null : () => _goDay(1)),
+        _navButton(LucideIcons.chevronRight, _selectedRange.end.isAfter(DateTime.now().subtract(const Duration(days: 1))) ? null : () => _goDay(1)),
       ]),
     );
   }
