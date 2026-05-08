@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/features/reports/statistics_screen.dart';
+import 'package:admin_app/features/reports/daily_report_screen.dart';
+import 'package:admin_app/features/reports/finance_screen.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -13,41 +16,93 @@ class ReportsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Reports', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
-        backgroundColor: AppColors.background,
-        surfaceTintColor: Colors.transparent,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(30),
+      body: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: AppColors.background,
+            surfaceTintColor: Colors.transparent,
+            expandedHeight: 110,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              titlePadding: const EdgeInsets.only(left: 20, bottom: 20),
+              title: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'INSIGHTS',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 2,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Reports & Analytics',
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryDark,
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
-        children: [
-          _ReportTile(
-            icon: LucideIcons.calendarDays,
-            title: 'Daily Report',
-            subtitle: 'Today\'s order summary & revenue',
-            color: const Color(0xFF0EA5E9),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DailyReportScreen())),
-          ),
-          const SizedBox(height: 12),
-          _ReportTile(
-            icon: LucideIcons.barChart3,
-            title: 'Analytics',
-            subtitle: 'Sales trends, top products & customers',
-            color: const Color(0xFF8B5CF6),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen())),
-          ),
-          const SizedBox(height: 12),
-          _ReportTile(
-            icon: LucideIcons.wallet,
-            title: 'Finance Overview',
-            subtitle: 'Revenue, expenses & profit summary',
-            color: const Color(0xFF10B981),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FinanceScreen())),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 140),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Hero Card — Statistics Dashboard
+                _HeroReportCard(
+                  icon: LucideIcons.barChart3,
+                  title: 'Statistics Dashboard',
+                  subtitle: 'Revenue trends, KPIs, charts & deep insights',
+                  gradient: const [Color(0xFF12403C), Color(0xFF1A5C56)],
+                  iconBg: AppColors.accent,
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const StatisticsScreen())),
+                ),
+                const SizedBox(height: 16),
+
+                // Secondary Cards Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: _CompactReportCard(
+                        icon: LucideIcons.calendarDays,
+                        title: 'Daily\nReport',
+                        color: const Color(0xFF0EA5E9),
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const DailyReportScreen())),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _CompactReportCard(
+                        icon: LucideIcons.wallet,
+                        title: 'Finance\nOverview',
+                        color: const Color(0xFF10B981),
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const FinanceScreen())),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Quick Stats Preview
+                _QuickStatsPreview(),
+              ]),
+            ),
           ),
         ],
       ),
@@ -55,14 +110,102 @@ class ReportsScreen extends StatelessWidget {
   }
 }
 
-class _ReportTile extends StatelessWidget {
+// ── Hero Card ──
+class _HeroReportCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final List<Color> gradient;
+  final Color iconBg;
+  final VoidCallback onTap;
+
+  const _HeroReportCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.gradient,
+    required this.iconBg,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: gradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: gradient[0].withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(icon, color: AppColors.primaryDark, size: 28),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  )),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: Colors.white70,
+                    height: 1.3,
+                  )),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(LucideIcons.arrowRight, size: 18, color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Compact Card ──
+class _CompactReportCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
   final Color color;
   final VoidCallback onTap;
 
-  const _ReportTile({required this.icon, required this.title, required this.subtitle, required this.color, required this.onTap});
+  const _CompactReportCard({
+    required this.icon,
+    required this.title,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -71,32 +214,43 @@ class _ReportTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(18),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.cardBorder),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, color: color, size: 26),
+              child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  const SizedBox(height: 4),
-                  Text(subtitle, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-                ],
-              ),
+            const SizedBox(height: 14),
+            Text(title, style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+              height: 1.3,
+            )),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Text('View', style: GoogleFonts.inter(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+                const SizedBox(width: 4),
+                Icon(LucideIcons.arrowRight, size: 12, color: color),
+              ],
             ),
-            Icon(LucideIcons.chevronRight, size: 20, color: AppColors.textMuted),
           ],
         ),
       ),
@@ -104,475 +258,79 @@ class _ReportTile extends StatelessWidget {
   }
 }
 
-// ── Daily Report ──
-class DailyReportScreen extends StatefulWidget {
-  const DailyReportScreen({super.key});
+// ── Quick Stats Preview (fetches from dashboard endpoint) ──
+class _QuickStatsPreview extends StatefulWidget {
   @override
-  State<DailyReportScreen> createState() => _DailyReportScreenState();
+  State<_QuickStatsPreview> createState() => _QuickStatsPreviewState();
 }
 
-class _DailyReportScreenState extends State<DailyReportScreen> {
-  Map<String, dynamic>? _data;
-  bool _isLoading = true;
-  DateTime _selectedDate = DateTime.now();
-
-  @override
-  void initState() { super.initState(); _load(); }
-
-  Future<void> _load() async {
-    setState(() => _isLoading = true);
-    try {
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      final dateStr = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
-      final data = await client.get('/api/admin/auth/daily?date=$dateStr');
-      if (mounted) setState(() { _data = data; _isLoading = false; });
-    } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2024),
-      lastDate: DateTime.now(),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(colorScheme: ColorScheme.dark(primary: AppColors.accent)),
-        child: child!,
-      ),
-    );
-    if (picked != null) { _selectedDate = picked; _load(); }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Daily Report', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600)),
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.calendar),
-            onPressed: _pickDate,
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
-          : _data == null
-              ? Center(child: Text('No data', style: GoogleFonts.inter(color: AppColors.textMuted)))
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Date header
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryDark.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(LucideIcons.calendarDays, size: 18, color: AppColors.primaryDark),
-                              const SizedBox(width: 8),
-                              Text(_data!['date'] ?? '', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Stats row
-                        Row(
-                          children: [
-                            Expanded(child: _statCard('Orders', '${_data!['totalOrders'] ?? 0}', LucideIcons.shoppingBag, AppColors.info)),
-                            const SizedBox(width: 12),
-                            Expanded(child: _statCard('Revenue', '${(_data!['totalRevenue'] as num?)?.toStringAsFixed(0) ?? '0'} EGP', LucideIcons.trendingUp, AppColors.success)),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Status breakdown
-                        Text('STATUS BREAKDOWN', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5)),
-                        const SizedBox(height: 10),
-                        ...(((_data!['statusBreakdown'] ?? []) as List).map((s) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text((s['status'] ?? '').toString().toUpperCase(), style: GoogleFonts.inter(fontSize: 13)),
-                              Text('${s['count']}', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                        ))),
-                        const SizedBox(height: 20),
-
-                        // Top products
-                        Text('TOP PRODUCTS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5)),
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.cardBorder),
-                          ),
-                          child: Column(
-                            children: ((_data!['topProducts'] ?? []) as List).asMap().entries.map((entry) {
-                              final i = entry.key;
-                              final p = entry.value;
-                              return Padding(
-                                padding: EdgeInsets.only(bottom: i < ((_data!['topProducts'] as List).length - 1) ? 10 : 0),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 24, height: 24,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.accent.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Center(child: Text('${i + 1}', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.accent))),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(child: Text(p['name'] ?? '', style: GoogleFonts.inter(fontSize: 13), overflow: TextOverflow.ellipsis)),
-                                    Text('×${p['quantity'] ?? 0}', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-    );
-  }
-
-  Widget _statCard(String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.cardBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(height: 10),
-          Text(value, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-          const SizedBox(height: 2),
-          Text(label, style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Analytics ──
-class AnalyticsScreen extends StatefulWidget {
-  const AnalyticsScreen({super.key});
-  @override
-  State<AnalyticsScreen> createState() => _AnalyticsScreenState();
-}
-
-class _AnalyticsScreenState extends State<AnalyticsScreen> {
-  Map<String, dynamic>? _data;
-  bool _isLoading = true;
-
-  @override
-  void initState() { super.initState(); _load(); }
-
-  Future<void> _load() async {
-    setState(() => _isLoading = true);
-    try {
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      final data = await client.get('/api/admin/auth/analytics');
-      if (mounted) setState(() { _data = data; _isLoading = false; });
-    } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Analytics', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600)),
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
-          : _data == null
-              ? Center(child: Text('No data', style: GoogleFonts.inter(color: AppColors.textMuted)))
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Overall stats
-                        Row(
-                          children: [
-                            _stat('Total Orders', '${_data!['totalOrders'] ?? 0}', LucideIcons.shoppingCart, AppColors.info),
-                            const SizedBox(width: 12),
-                            _stat('Total Revenue', (_data!['totalRevenue'] as num?)?.toStringAsFixed(0) ?? '0', LucideIcons.dollarSign, AppColors.success),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-
-                        // 7-day stats
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [AppColors.primaryDark.withValues(alpha: 0.08), AppColors.accent.withValues(alpha: 0.05)],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.accent.withValues(alpha: 0.1)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('LAST 7 DAYS', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.accent, letterSpacing: 1.5)),
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  Column(children: [
-                                    Text('${_data!['last7Days']?['orders'] ?? 0}', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w700)),
-                                    Text('Orders', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-                                  ]),
-                                  Container(width: 1, height: 40, color: AppColors.cardBorder),
-                                  Column(children: [
-                                    Text((_data!['last7Days']?['revenue'] as num?)?.toStringAsFixed(0) ?? '0', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w700)),
-                                    Text('Revenue (EGP)', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-                                  ]),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Top Products
-                        _sectionTitle('TOP PRODUCTS'),
-                        const SizedBox(height: 10),
-                        ...(((_data!['topProducts'] ?? []) as List).take(5).toList().asMap().entries.map((e) => _listItem('#${e.key + 1}', e.value['name'] ?? '', '×${e.value['quantity'] ?? 0}'))),
-                        const SizedBox(height: 20),
-
-                        // Top Customers
-                        _sectionTitle('TOP CUSTOMERS'),
-                        const SizedBox(height: 10),
-                        ...(((_data!['topCustomers'] ?? []) as List).take(5).toList().asMap().entries.map((e) => _listItem('#${e.key + 1}', e.value['name'] ?? 'Guest', '${e.value['orders']} orders'))),
-                      ],
-                    ),
-                  ),
-                ),
-    );
-  }
-
-  Widget _stat(String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.cardBorder)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(height: 10),
-          Text(value, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700)),
-          Text(label, style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
-        ]),
-      ),
-    );
-  }
-
-  Widget _sectionTitle(String t) => Text(t, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5));
-
-  Widget _listItem(String rank, String name, String value) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.cardBorder)),
-      child: Row(
-        children: [
-          Text(rank, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accent)),
-          const SizedBox(width: 12),
-          Expanded(child: Text(name, style: GoogleFonts.inter(fontSize: 13), overflow: TextOverflow.ellipsis)),
-          Text(value, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMuted)),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Finance ──
-class FinanceScreen extends StatefulWidget {
-  const FinanceScreen({super.key});
-
-  @override
-  State<FinanceScreen> createState() => _FinanceScreenState();
-}
-
-class _FinanceScreenState extends State<FinanceScreen> {
-  Map<String, dynamic>? _data;
-  bool _isLoading = true;
-  String? _error;
+class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
+  Map<String, dynamic>? _stats;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadFinance();
+    _load();
   }
 
-  Future<void> _loadFinance() async {
-    setState(() { _isLoading = true; _error = null; });
+  Future<void> _load() async {
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      final data = await client.get('/api/admin/auth/finance');
-      if (mounted) setState(() { _data = data; _isLoading = false; });
-    } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _isLoading = false; });
+      final data = await client.get('/api/admin/auth/dashboard');
+      if (mounted) setState(() { _stats = data; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Finance', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600)),
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: RefreshIndicator(
-        color: AppColors.primaryDark,
-        onRefresh: _loadFinance,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
-            : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(LucideIcons.wifiOff, size: 48, color: AppColors.error.withValues(alpha: 0.5)),
-                        const SizedBox(height: 12),
-                        Text('Failed to load', style: GoogleFonts.inter(color: AppColors.error)),
-                        TextButton(onPressed: _loadFinance, child: const Text('Retry')),
-                      ],
-                    ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      // Overview Cards
-                      Row(
-                        children: [
-                          _financeStat('Revenue', _data!['overview']['totalRevenue'].toString(), LucideIcons.trendingUp, AppColors.success),
-                          const SizedBox(width: 12),
-                          _financeStat('Expenses', _data!['overview']['totalExpenses'].toString(), LucideIcons.trendingDown, AppColors.error),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [AppColors.primaryDark, AppColors.primaryDark.withValues(alpha: 0.8)]),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Net Profit', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${_data!['overview']['netProfit']} EGP',
-                              style: GoogleFonts.playfairDisplay(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w700),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      
-                      Text('RECENT EXPENSES', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5)),
-                      const SizedBox(height: 12),
-                      if ((_data!['recentExpenses'] as List).isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Center(child: Text('No recent expenses', style: GoogleFonts.inter(color: AppColors.textMuted))),
-                        )
-                      else
-                        ...(_data!['recentExpenses'] as List).map((expense) {
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.card,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.cardBorder),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-                                  child: const Icon(LucideIcons.receipt, color: AppColors.error, size: 20),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(expense['title'] ?? 'Expense', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-                                      Text(expense['category'] ?? '', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-                                    ],
-                                  ),
-                                ),
-                                Text('${expense['amount']} EGP', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.error)),
-                              ],
-                            ),
-                          );
-                        }),
-                    ],
-                  ),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('QUICK OVERVIEW',
+            style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600,
+                color: AppColors.textMuted, letterSpacing: 1.5)),
+        const SizedBox(height: 12),
+        if (_loading)
+          const SizedBox(height: 80, child: Center(
+              child: CircularProgressIndicator(color: AppColors.primaryDark, strokeWidth: 2)))
+        else if (_stats != null)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Row(
+              children: [
+                _miniStat("Today's\nOrders", '${_stats!['todayOrders'] ?? 0}', AppColors.info),
+                _divider(),
+                _miniStat('Revenue\n(EGP)', '${(_stats!['todayRevenue'] as num?)?.toStringAsFixed(0) ?? '0'}', AppColors.success),
+                _divider(),
+                _miniStat('Pending', '${_stats!['pendingOrders'] ?? 0}', AppColors.warning),
+                _divider(),
+                _miniStat('Low\nStock', '${_stats!['lowStockCount'] ?? 0}', AppColors.error),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _financeStat(String label, String value, IconData icon, Color color) {
+  Widget _miniStat(String label, String value, Color color) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.cardBorder)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 12),
-            Text('$value EGP', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700)),
-            Text(label, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-          ],
-        ),
-      ),
+      child: Column(children: [
+        Text(value, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: color)),
+        const SizedBox(height: 4),
+        Text(label, textAlign: TextAlign.center,
+            style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted, height: 1.2)),
+      ]),
     );
   }
+
+  Widget _divider() => Container(width: 1, height: 40, color: AppColors.cardBorder);
 }

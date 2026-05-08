@@ -6,7 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
-import 'package:admin_app/features/reports/reports_screen.dart';
+import 'package:admin_app/features/reports/daily_report_screen.dart';
+import 'package:admin_app/features/reports/statistics_screen.dart';
 import 'package:admin_app/features/products/add_product_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -174,7 +175,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           _quickAction(LucideIcons.star, 'Reviews', const Color(0xFFF59E0B), () {}),
                           _quickAction(LucideIcons.mail, 'Messages', const Color(0xFF6366F1), () {}),
                           _quickAction(LucideIcons.barChart3, 'Analytics', const Color(0xFF8B5CF6),
-                              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen()))),
+                              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StatisticsScreen()))),
                           _quickAction(LucideIcons.plusCircle, 'New\nProduct', const Color(0xFF10B981), () {
                             HapticFeedback.lightImpact();
                             Navigator.push(
