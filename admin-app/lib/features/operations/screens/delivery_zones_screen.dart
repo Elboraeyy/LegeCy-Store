@@ -49,6 +49,7 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
       ],
     ));
     if (ok != true) return;
+    if (!mounted) return;
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
@@ -118,7 +119,7 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
                         Text('Risk Level', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
-                          value: riskLevel,
+                          initialValue: riskLevel,
                           items: ['normal', 'medium', 'high'].map((r) => DropdownMenuItem(value: r, child: Text(r.toUpperCase()))).toList(),
                           onChanged: (v) => setModalState(() => riskLevel = v!),
                           style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
@@ -143,6 +144,7 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
                         'avgDeliveryDays': int.tryParse(daysCtrl.text) ?? 3,
                         'riskLevel': riskLevel,
                       };
+                      final messenger = ScaffoldMessenger.of(context);
                       try {
                         final token = context.read<AuthProvider>().token;
                         final client = ApiClient(token: token);
@@ -151,12 +153,12 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
                         } else {
                           await client.post('/api/admin/auth/delivery-zones', body: body);
                         }
-                        if (!mounted) return;
+                        if (!context.mounted) return;
                         Navigator.pop(ctx);
                         _loadZones();
                       } catch (e) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+                        if (!context.mounted) return;
+                        messenger.showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
                       }
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
@@ -227,7 +229,7 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
                       child: ListView.separated(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                         itemCount: _zones.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final zone = _zones[index];
                           final isActive = zone['isActive'] == true;
@@ -273,9 +275,13 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
                                       icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                       onSelected: (v) {
-                                        if (v == 'edit') _showAddEditDialog(zone: zone);
-                                        else if (v == 'toggle') _toggleZone(zone['id'], isActive);
-                                        else if (v == 'delete') _deleteZone(zone['id']);
+                                        if (v == 'edit') {
+                                          _showAddEditDialog(zone: zone);
+                                        } else if (v == 'toggle') {
+                                          _toggleZone(zone['id'], isActive);
+                                        } else if (v == 'delete') {
+                                          _deleteZone(zone['id']);
+                                        }
                                       },
                                       itemBuilder: (_) => [
                                         const PopupMenuItem(value: 'edit', child: Row(children: [Icon(LucideIcons.edit, size: 16), SizedBox(width: 10), Text('Edit')])),

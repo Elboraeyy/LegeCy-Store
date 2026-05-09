@@ -49,6 +49,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
       ],
     ));
     if (ok != true) return;
+    if (!mounted) return;
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
@@ -90,17 +91,18 @@ class _BrandsScreenState extends State<BrandsScreen> {
             onPressed: () async {
               if (nameCtrl.text.isEmpty || slugCtrl.text.isEmpty) return;
               final body = {'name': nameCtrl.text.trim(), 'nameAr': nameArCtrl.text.trim().isNotEmpty ? nameArCtrl.text.trim() : null, 'slug': slugCtrl.text.trim()};
+              final messenger = ScaffoldMessenger.of(context);
               try {
                 final token = context.read<AuthProvider>().token;
                 final client = ApiClient(token: token);
                 if (brand != null) { await client.put('/api/admin/auth/brands/${brand['id']}', body: body); }
                 else { await client.post('/api/admin/auth/brands', body: body); }
-                if (!mounted) return;
+                if (!context.mounted) return;
                 Navigator.pop(ctx);
                 _loadBrands();
               } catch (e) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e'), backgroundColor: AppColors.error));
+                if (!context.mounted) return;
+                messenger.showSnackBar(SnackBar(content: Text('$e'), backgroundColor: AppColors.error));
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
@@ -145,7 +147,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
                       child: ListView.separated(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                         itemCount: _brands.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final brand = _brands[index];
                           final productCount = brand['_count']?['products'] ?? 0;
@@ -163,7 +165,11 @@ class _BrandsScreenState extends State<BrandsScreen> {
                               PopupMenuButton<String>(
                                 icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                onSelected: (v) { if (v == 'edit') _showAddEdit(brand: brand); else if (v == 'delete') _deleteBrand(brand['id']); },
+                                onSelected: (v) { if (v == 'edit') {
+                                  _showAddEdit(brand: brand);
+                                } else if (v == 'delete') {
+                                  _deleteBrand(brand['id']);
+                                } },
                                 itemBuilder: (_) => [
                                   const PopupMenuItem(value: 'edit', child: Row(children: [Icon(LucideIcons.edit, size: 16), SizedBox(width: 10), Text('Edit')])),
                                   const PopupMenuDivider(),

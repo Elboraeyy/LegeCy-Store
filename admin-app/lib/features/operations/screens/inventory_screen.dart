@@ -250,7 +250,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _alerts.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final alert = _alerts[index];
         return Container(

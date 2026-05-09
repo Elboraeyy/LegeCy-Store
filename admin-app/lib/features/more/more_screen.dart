@@ -19,7 +19,7 @@ import '../operations/screens/inventory_screen.dart';
 import '../operations/screens/delivery_zones_screen.dart';
 import '../operations/screens/procurement_screen.dart';
 import 'screens/customers_screen.dart';
-
+import 'screens/stock_requests_screen.dart';
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
 
@@ -166,6 +166,7 @@ class MoreScreen extends StatelessWidget {
                     _MenuItem(title: 'Customers', subtitle: 'Client CRM & history', icon: LucideIcons.userCheck, color: const Color(0xFF10B981), screen: const CustomersListScreen()),
                     _MenuItem(title: 'Reviews', subtitle: 'Moderate product reviews', icon: LucideIcons.star, color: const Color(0xFFF59E0B), screen: const ReviewsListScreen(), badge: '3'),
                     _MenuItem(title: 'Messages', subtitle: 'Contact form submissions', icon: LucideIcons.mail, color: const Color(0xFF6366F1), screen: const MessagesListScreen(), badge: 'New'),
+                    _MenuItem(title: 'Restock Requests', subtitle: 'Waitlists and back in stock', icon: LucideIcons.bellRing, color: const Color(0xFF0EA5E9), screen: const StockRequestsScreen()),
                   ],
                 ),
                 const SizedBox(height: 24),

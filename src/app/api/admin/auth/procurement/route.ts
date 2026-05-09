@@ -30,3 +30,27 @@ export async function GET(_request: NextRequest) {
         return NextResponse.json({ error: 'Failed to fetch suppliers' }, { status: 500 });
     }
 }
+
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { name, contactPerson, email, phone, currency, paymentTerms } = body;
+
+        const supplier = await prisma.supplier.create({
+            data: {
+                name,
+                contactPerson,
+                email,
+                phone,
+                currency: currency || 'EGP',
+                paymentTerms: paymentTerms || 'NET30',
+                accountBalance: 0,
+            }
+        });
+
+        return NextResponse.json({ supplier, message: 'Supplier created successfully' }, { status: 201 });
+    } catch (error) {
+        console.error('Procurement POST Error:', error);
+        return NextResponse.json({ error: 'Failed to create supplier' }, { status: 500 });
+    }
+}

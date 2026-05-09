@@ -108,7 +108,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                       child: ListView.separated(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
                         itemCount: _logs.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 1),
+                        separatorBuilder: (_, _) => const SizedBox(height: 1),
                         itemBuilder: (context, index) {
                           final log = _logs[index];
                           final action = log['action'] ?? '';

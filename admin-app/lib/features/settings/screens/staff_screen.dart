@@ -84,7 +84,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         itemCount: _staff.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        separatorBuilder: (_, _) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
           final member = _staff[index];
           final isActive = member['isActive'] == true;
@@ -163,7 +163,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       itemCount: _roles.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final role = _roles[index];
         final memberCount = role['memberCount'] ?? 0;

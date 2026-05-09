@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -31,6 +32,54 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
     }
   }
 
+  Future<void> _toggleFeatured(String id, bool currentFeatured) async {
+    HapticFeedback.lightImpact();
+    setState(() => _isLoading = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.put('/api/admin/auth/reviews/$id', body: { 'featured': !currentFeatured });
+      _load();
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Future<void> _deleteReview(String id) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('Delete Review?', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+        content: Text('Are you sure you want to delete this review?', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted, fontWeight: FontWeight.w600))),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    if (!mounted) return;
+
+    HapticFeedback.mediumImpact();
+    setState(() => _isLoading = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.delete('/api/admin/auth/reviews/$id');
+      _load();
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,6 +108,8 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
                     itemBuilder: (context, index) {
                       final r = _reviews[index];
                       final rating = (r['rating'] as num?) ?? 0;
+                      final bool featured = r['featured'] == true;
+                      
                       return Container(
                         margin: const EdgeInsets.only(bottom: 16),
                         padding: const EdgeInsets.all(20),
@@ -142,9 +193,9 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
                                 Row(
                                   children: [
                                     TextButton.icon(
-                                      onPressed: () {},
-                                      icon: Icon(LucideIcons.checkCircle, size: 14, color: AppColors.success),
-                                      label: Text('Approve', style: GoogleFonts.inter(fontSize: 12, color: AppColors.success, fontWeight: FontWeight.w600)),
+                                      onPressed: () => _toggleFeatured(r['id'], featured),
+                                      icon: Icon(featured ? LucideIcons.checkCircle2 : LucideIcons.circle, size: 14, color: featured ? AppColors.success : AppColors.textMuted),
+                                      label: Text(featured ? 'Featured' : 'Feature', style: GoogleFonts.inter(fontSize: 12, color: featured ? AppColors.success : AppColors.textMuted, fontWeight: FontWeight.w600)),
                                       style: TextButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                                         minimumSize: Size.zero,
@@ -153,9 +204,9 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
                                     ),
                                     const SizedBox(width: 12),
                                     TextButton.icon(
-                                      onPressed: () {},
+                                      onPressed: () => _deleteReview(r['id']),
                                       icon: Icon(LucideIcons.trash2, size: 14, color: AppColors.error),
-                                      label: Text('Reject', style: GoogleFonts.inter(fontSize: 12, color: AppColors.error, fontWeight: FontWeight.w600)),
+                                      label: Text('Delete', style: GoogleFonts.inter(fontSize: 12, color: AppColors.error, fontWeight: FontWeight.w600)),
                                       style: TextButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                                         minimumSize: Size.zero,

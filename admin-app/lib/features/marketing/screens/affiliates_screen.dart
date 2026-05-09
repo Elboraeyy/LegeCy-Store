@@ -99,6 +99,7 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
     );
 
     if (ok != true) return;
+    if (!mounted) return;
 
     try {
       final token = context.read<AuthProvider>().token;
@@ -208,7 +209,7 @@ class _AffiliatesScreenState extends State<AffiliatesScreen> {
                         child: ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                           itemCount: _filteredAffiliates.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          separatorBuilder: (context, index) => const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final affiliate = _filteredAffiliates[index];
                             final isActive = affiliate['isActive'] == true;

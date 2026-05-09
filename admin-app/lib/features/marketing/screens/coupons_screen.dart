@@ -79,6 +79,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
       ),
     );
     if (ok != true) return;
+    if (!mounted) return;
 
     setState(() => _isLoading = true);
     try {

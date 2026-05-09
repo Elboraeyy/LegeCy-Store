@@ -48,6 +48,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
       ],
     ));
     if (ok != true) return;
+    if (!mounted) return;
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
@@ -89,17 +90,18 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
             onPressed: () async {
               if (nameCtrl.text.isEmpty || slugCtrl.text.isEmpty) return;
               final body = {'name': nameCtrl.text.trim(), 'nameAr': nameArCtrl.text.trim().isNotEmpty ? nameArCtrl.text.trim() : null, 'slug': slugCtrl.text.trim()};
+              final messenger = ScaffoldMessenger.of(context);
               try {
                 final token = context.read<AuthProvider>().token;
                 final client = ApiClient(token: token);
                 if (material != null) { await client.put('/api/admin/auth/materials/${material['id']}', body: body); }
                 else { await client.post('/api/admin/auth/materials', body: body); }
-                if (!mounted) return;
+                if (!context.mounted) return;
                 Navigator.pop(ctx);
                 _loadMaterials();
               } catch (e) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e'), backgroundColor: AppColors.error));
+                if (!context.mounted) return;
+                messenger.showSnackBar(SnackBar(content: Text('$e'), backgroundColor: AppColors.error));
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEC4899), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
@@ -144,7 +146,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                       child: ListView.separated(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                         itemCount: _materials.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final mat = _materials[index];
                           final productCount = mat['_count']?['products'] ?? 0;
@@ -162,7 +164,11 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                               PopupMenuButton<String>(
                                 icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                onSelected: (v) { if (v == 'edit') _showAddEdit(material: mat); else if (v == 'delete') _deleteMaterial(mat['id']); },
+                                onSelected: (v) { if (v == 'edit') {
+                                  _showAddEdit(material: mat);
+                                } else if (v == 'delete') {
+                                  _deleteMaterial(mat['id']);
+                                } },
                                 itemBuilder: (_) => [
                                   const PopupMenuItem(value: 'edit', child: Row(children: [Icon(LucideIcons.edit, size: 16), SizedBox(width: 10), Text('Edit')])),
                                   const PopupMenuDivider(),

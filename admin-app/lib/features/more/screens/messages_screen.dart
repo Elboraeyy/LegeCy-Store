@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -29,6 +30,95 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _updateStatus(String id, String status) async {
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.put('/api/admin/auth/messages/$id', body: { 'status': status });
+      _load();
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Future<void> _deleteMessage(String id) async {
+    HapticFeedback.mediumImpact();
+    setState(() => _isLoading = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.delete('/api/admin/auth/messages/$id');
+      if (mounted) Navigator.pop(context); // Close dialog
+      _load();
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  void _showMessageDetails(Map<String, dynamic> m) {
+    if (m['status'] == 'NEW') {
+      _updateStatus(m['id'], 'READ');
+    }
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Icon(LucideIcons.mail, color: const Color(0xFF6366F1)),
+            const SizedBox(width: 12),
+            Expanded(child: Text(m['subject'] ?? 'Message', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w600, fontSize: 18))),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('From: ${m['name'] ?? 'Unknown'}', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              Text(m['email'] ?? '', style: GoogleFonts.inter(color: const Color(0xFF6366F1), fontSize: 13)),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: Text(m['message'] ?? '', style: GoogleFonts.inter(color: AppColors.textSecondary, height: 1.5)),
+              ),
+              const SizedBox(height: 12),
+              Text('Sent: ${_formatDate(m['createdAt'])}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx), 
+            style: TextButton.styleFrom(foregroundColor: AppColors.textMuted),
+            child: Text('Close', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => _deleteMessage(m['id']),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            icon: const Icon(LucideIcons.trash2, size: 16),
+            label: Text('Delete', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -65,30 +155,27 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                     itemCount: _messages.length,
                     itemBuilder: (context, index) {
                       final m = _messages[index];
-                      // Simulate read/unread for visual effect if backend doesn't provide it
-                      final isUnread = index == 0; 
+                      final isUnread = m['status'] == 'NEW'; 
                       
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: isUnread ? AppColors.surface : AppColors.background,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: isUnread ? const Color(0xFF6366F1).withValues(alpha: 0.3) : AppColors.cardBorder),
-                          boxShadow: [
+                          boxShadow: isUnread ? [
                             BoxShadow(
                               color: AppColors.cardBorder.withValues(alpha: 0.5),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             )
-                          ],
+                          ] : [],
                         ),
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16),
-                            onTap: () {
-                              // View message details
-                            },
+                            onTap: () => _showMessageDetails(m),
                             child: Padding(
                               padding: const EdgeInsets.all(16),
                               child: Row(
@@ -144,6 +231,11 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                           ),
                                         ],
                                         const SizedBox(height: 8),
+                                        Text(
+                                          m['subject'] ?? 'No Subject',
+                                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                        ),
+                                        const SizedBox(height: 4),
                                         Text(
                                           m['message'] ?? '',
                                           style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary, height: 1.4),

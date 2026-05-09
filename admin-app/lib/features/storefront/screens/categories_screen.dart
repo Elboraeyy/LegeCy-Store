@@ -87,6 +87,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
 
     if (ok != true) return;
+    if (!mounted) return;
 
     try {
       final token = context.read<AuthProvider>().token;
@@ -196,7 +197,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         child: ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                           itemCount: _filteredCategories.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          separatorBuilder: (_, _) => const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final category = _filteredCategories[index];
                             final productsCount = category['_count']?['products'] ?? 0;
