@@ -94,6 +94,17 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateAvatar(String newAvatarUrl) {
+    if (_user != null) {
+      _user!['avatar'] = newAvatarUrl;
+      // Persist the updated user data
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString(_userKey, jsonEncode(_user));
+      });
+      notifyListeners();
+    }
+  }
+
   void clearError() {
     _errorMessage = null;
     notifyListeners();

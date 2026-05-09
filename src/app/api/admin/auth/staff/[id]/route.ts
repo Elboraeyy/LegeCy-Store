@@ -10,7 +10,7 @@ export async function PUT(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { name, email, username, password, roleId, position, phone, isActive } = body;
+        const { name, email, username, password, roleId, position, phone, isActive, avatar } = body;
 
         const updateData: Record<string, string | boolean> = {};
         if (name) updateData.name = name;
@@ -20,6 +20,7 @@ export async function PUT(
         if (position !== undefined) updateData.position = position;
         if (phone !== undefined) updateData.phone = phone;
         if (isActive !== undefined) updateData.isActive = isActive;
+        if (avatar !== undefined) updateData.avatar = avatar;
 
         if (password) {
             const policy = validatePasswordStrength(password);

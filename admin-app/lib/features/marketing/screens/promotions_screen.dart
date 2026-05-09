@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'flash_sales_screen.dart';
+import 'coupons_screen.dart';
 import 'bogo_deals_screen.dart';
 import 'product_bundles_screen.dart';
 import 'general_offers_screen.dart';
@@ -16,7 +17,7 @@ class PromotionsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Promotions', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+        title: Text('Promos & Discounts', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -31,6 +32,16 @@ class PromotionsScreen extends StatelessWidget {
           Text(
             'Campaign Types',
             style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5),
+          ),
+          const SizedBox(height: 16),
+          
+          _buildPromoCard(
+            context,
+            title: 'Discount Coupons',
+            subtitle: 'Create and manage reusable promo codes',
+            icon: LucideIcons.ticket,
+            color: const Color(0xFFF59E0B),
+            screen: const CouponsScreen(),
           ),
           const SizedBox(height: 16),
           

@@ -5,145 +5,234 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:admin_app/core/network/api_client.dart';
 
 import 'screens/reviews_screen.dart';
 import 'screens/messages_screen.dart';
-import '../marketing/screens/coupons_screen.dart';
 import '../marketing/screens/promotions_screen.dart';
-import '../marketing/screens/affiliates_screen.dart';
-import '../settings/screens/store_config_screen.dart';
-import '../settings/screens/staff_screen.dart';
-import '../settings/screens/activity_log_screen.dart';
 import '../settings/screens/notifications_settings_screen.dart';
 import '../operations/screens/inventory_screen.dart';
 import '../operations/screens/delivery_zones_screen.dart';
 import '../operations/screens/procurement_screen.dart';
 import 'screens/customers_screen.dart';
 import 'screens/stock_requests_screen.dart';
-class MoreScreen extends StatelessWidget {
+class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
+
+  @override
+  State<MoreScreen> createState() => _MoreScreenState();
+}
+
+class _MoreScreenState extends State<MoreScreen> {
+  bool _isUploadingAvatar = false;
+
+  Future<void> _pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (file == null) return;
+
+    if (!mounted) return;
+    setState(() => _isUploadingAvatar = true);
+
+    try {
+      final auth = context.read<AuthProvider>();
+      final client = ApiClient(token: auth.token);
+
+      // Upload to Cloudinary via backend
+      final uploadRes = await client.uploadMultipart(
+        '/api/admin/auth/upload',
+        filePath: file.path,
+        fileField: 'file',
+        fields: {'folder': 'avatars'},
+      );
+      final imageUrl = uploadRes['url'];
+
+      // Update Staff profile
+      final userId = auth.user?['id'];
+      if (userId != null && imageUrl != null) {
+        await client.put(
+          '/api/admin/auth/staff/$userId',
+          body: {'avatar': imageUrl},
+        );
+
+        auth.updateAvatar(imageUrl);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile picture updated successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload failed: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploadingAvatar = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final adminName = auth.adminName ?? 'Admin';
     final initial = adminName.isNotEmpty ? adminName[0].toUpperCase() : 'A';
+    final String? avatarUrl = auth.user?['avatar'];
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // Elegant Header
+          // Clean Standard Header
           SliverAppBar(
-            expandedHeight: 180,
             pinned: true,
-            backgroundColor: AppColors.primaryDark,
+            backgroundColor: AppColors.background,
             surfaceTintColor: Colors.transparent,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primaryDark,
-                      const Color(0xFF1E5C56),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    // Subtle background pattern or shapes
-                    Positioned(
-                      top: -40,
-                      right: -40,
-                      child: Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.accent.withValues(alpha: 0.1),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 20,
-                      left: 20,
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.accent, width: 2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                )
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                initial,
-                                style: GoogleFonts.playfairDisplay(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryDark,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                adminName,
-                                style: GoogleFonts.inter(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.accent.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  'Super Admin',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.accentLight,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+            elevation: 0,
+            titleSpacing: 20,
+            title: Text(
+              'Menu',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryDark,
               ),
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
             ),
           ),
 
           // Content
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 120),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _buildQuickStats(context),
+                // Clean Green Profile Card
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.primaryDark, Color(0xFF1E5C56)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryDark.withValues(alpha: 0.2),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: _isUploadingAvatar ? null : _pickAndUploadAvatar,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: AppColors.surface, // White circle
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: _isUploadingAvatar
+                                  ? const Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator(color: AppColors.primaryDark, strokeWidth: 2))
+                                  : avatarUrl != null && avatarUrl.isNotEmpty
+                                      ? CachedNetworkImage(
+                                          imageUrl: avatarUrl,
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryDark)),
+                                          errorWidget: (context, url, error) => Center(
+                                            child: Text(
+                                              initial,
+                                              style: GoogleFonts.playfairDisplay(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                                            ),
+                                          ),
+                                        )
+                                      : Center(
+                                          child: Text(
+                                            initial,
+                                            style: GoogleFonts.playfairDisplay(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                                          ),
+                                        ),
+                            ),
+                            Positioned(
+                              bottom: -2,
+                              right: -2,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.accent,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: AppColors.primaryDark, width: 2),
+                                ),
+                                child: const Icon(
+                                  LucideIcons.camera,
+                                  size: 10,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              adminName,
+                              style: GoogleFonts.inter(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(LucideIcons.shieldCheck, size: 12, color: AppColors.accentLight),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Super Admin',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.accentLight,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 32),
                 
 
@@ -152,9 +241,7 @@ class MoreScreen extends StatelessWidget {
                   title: 'Marketing & Growth',
                   icon: LucideIcons.trendingUp,
                   items: [
-                    _MenuItem(title: 'Coupons', subtitle: 'Manage discount codes', icon: LucideIcons.ticket, color: const Color(0xFFF59E0B), screen: const CouponsScreen()),
-                    _MenuItem(title: 'Promotions', subtitle: 'BOGO & flash sales', icon: LucideIcons.zap, color: const Color(0xFFEF4444), screen: const PromotionsScreen()),
-                    _MenuItem(title: 'Affiliates', subtitle: 'Partner tracking', icon: LucideIcons.users, color: const Color(0xFF14B8A6), screen: const AffiliatesScreen()),
+                    _MenuItem(title: 'Promos & Discounts', subtitle: 'Coupons, BOGO & flash sales', icon: LucideIcons.badgePercent, color: const Color(0xFFEF4444), screen: const PromotionsScreen()),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -186,9 +273,6 @@ class MoreScreen extends StatelessWidget {
                   title: 'System Settings',
                   icon: LucideIcons.settings,
                   items: [
-                    _MenuItem(title: 'Store Config', subtitle: 'Global settings & rules', icon: LucideIcons.settings, color: const Color(0xFF64748B), screen: const StoreConfigScreen()),
-                    _MenuItem(title: 'Staff & Team', subtitle: 'Role-based access', icon: LucideIcons.shieldCheck, color: const Color(0xFF0F766E), screen: const StaffScreen()),
-                    _MenuItem(title: 'Activity Log', subtitle: 'Audit trail of actions', icon: LucideIcons.clipboardList, color: const Color(0xFF64748B), screen: const ActivityLogScreen()),
                     _MenuItem(title: 'Notifications', subtitle: 'Push alerts setup', icon: LucideIcons.bellRing, color: const Color(0xFFD946EF), screen: const NotificationsSettingsScreen()),
                   ],
                 ),
@@ -248,60 +332,6 @@ class MoreScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickStats(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard('Pending Orders', '12', LucideIcons.clock, const Color(0xFFF59E0B)),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard('Low Stock', '4', LucideIcons.alertTriangle, const Color(0xFFEF4444)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.cardBorder.withValues(alpha: 0.5),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSection({required String title, required IconData icon, required List<_MenuItem> items}) {
     return Column(

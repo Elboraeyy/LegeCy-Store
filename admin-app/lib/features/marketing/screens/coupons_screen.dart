@@ -239,7 +239,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
     final bool isActive = coupon['isActive'] == true;
     final int usageCount = coupon['_count']?['orders'] ?? coupon['currentUsage'] ?? 0;
     final int? limit = coupon['usageLimit'];
-    final num val = coupon['discountValue'];
+    final num val = num.tryParse(coupon['discountValue']?.toString() ?? '0') ?? 0;
     final String type = coupon['discountType'];
     final String valStr = type == 'percentage' ? '$val%' : '$val EGP';
 
