@@ -25,7 +25,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 });
         }
 
-        if (!ALLOWED_TYPES.includes(file.type)) {
+        let isValidType = ALLOWED_TYPES.includes(file.type);
+        if (!isValidType) {
+            // Fallback to checking extension if type is generic or missing from mobile app
+            const extension = file.name?.split('.').pop()?.toLowerCase();
+            if (extension && ['jpg', 'jpeg', 'png', 'webp'].includes(extension)) {
+                isValidType = true;
+            }
+        }
+
+        if (!isValidType) {
             return NextResponse.json({ error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.' }, { status: 400 });
         }
 
