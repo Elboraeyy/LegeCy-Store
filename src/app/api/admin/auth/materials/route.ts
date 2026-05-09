@@ -22,8 +22,9 @@ export async function POST(request: NextRequest) {
         if (!name || !slug) return NextResponse.json({ error: 'Name and slug required' }, { status: 400 });
         const material = await prisma.material.create({ data: { name, nameAr, slug } });
         return NextResponse.json({ material, message: 'Material created' });
-    } catch (error: any) {
-        if (error.code === 'P2002') return NextResponse.json({ error: 'Material name/slug already exists' }, { status: 400 });
+    } catch (error: unknown) {
+        const err = error as { code?: string };
+        if (err.code === 'P2002') return NextResponse.json({ error: 'Material name/slug already exists' }, { status: 400 });
         return NextResponse.json({ error: 'Failed to create material' }, { status: 500 });
     }
 }

@@ -6,7 +6,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     try {
         const { id } = params;
         const body = await request.json();
-        const data: any = {};
+        const data: Record<string, unknown> = {};
         if (body.name !== undefined) data.name = body.name;
         if (body.nameAr !== undefined) data.nameAr = body.nameAr;
         if (body.slug !== undefined) data.slug = body.slug;

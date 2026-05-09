@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
     try {
         const zones = await prisma.shippingZone.findMany({
             orderBy: { name: 'asc' }
@@ -47,8 +47,9 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json({ zone, message: 'Zone created successfully' });
-    } catch (error: any) {
-        if (error.code === 'P2002') return NextResponse.json({ error: 'Zone name already exists' }, { status: 400 });
+    } catch (error: unknown) {
+        const err = error as { code?: string };
+        if (err.code === 'P2002') return NextResponse.json({ error: 'Zone name already exists' }, { status: 400 });
         console.error('Delivery Zone Create Error:', error);
         return NextResponse.json({ error: 'Failed to create zone' }, { status: 500 });
     }

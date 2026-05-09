@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
     try {
         const brands = await prisma.brand.findMany({
             include: { _count: { select: { products: true } } },

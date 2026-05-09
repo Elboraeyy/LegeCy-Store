@@ -6,13 +6,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     try {
         const { id } = params;
         const body = await request.json();
-        const data: any = {};
+        const data: Record<string, string> = {};
         if (body.name !== undefined) data.name = body.name;
         if (body.nameAr !== undefined) data.nameAr = body.nameAr;
         if (body.slug !== undefined) data.slug = body.slug;
         const material = await prisma.material.update({ where: { id }, data });
         return NextResponse.json({ material, message: 'Material updated' });
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ error: 'Failed to update material' }, { status: 500 });
     }
 }
@@ -25,7 +25,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         if (material._count.products > 0) return NextResponse.json({ error: `Material has ${material._count.products} products` }, { status: 400 });
         await prisma.material.delete({ where: { id } });
         return NextResponse.json({ message: 'Material deleted' });
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ error: 'Failed to delete material' }, { status: 500 });
     }
 }

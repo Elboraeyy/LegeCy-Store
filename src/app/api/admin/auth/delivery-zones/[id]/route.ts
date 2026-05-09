@@ -10,7 +10,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         const existing = await prisma.shippingZone.findUnique({ where: { id } });
         if (!existing) return NextResponse.json({ error: 'Zone not found' }, { status: 404 });
 
-        const data: any = {};
+        const data: Record<string, unknown> = {};
         if (body.name !== undefined) data.name = body.name;
         if (body.cities !== undefined) data.cities = body.cities;
         if (body.baseRate !== undefined) data.baseRate = Number(body.baseRate);
@@ -28,7 +28,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
     try {
         const { id } = params;
         await prisma.shippingZone.delete({ where: { id } });

@@ -19,7 +19,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
             }
         }
 
-        const dataToUpdate: any = {};
+        const dataToUpdate: Record<string, unknown> = {};
         if (body.name !== undefined) dataToUpdate.name = body.name;
         if (body.code !== undefined) dataToUpdate.code = body.code.trim().toUpperCase();
         if (body.email !== undefined) dataToUpdate.email = body.email;
@@ -39,7 +39,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
     try {
         const { id } = params;
         

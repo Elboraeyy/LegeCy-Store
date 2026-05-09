@@ -25,7 +25,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       }
     }
 
-    const dataToUpdate: any = {};
+    const dataToUpdate: Record<string, unknown> = {};
     if (body.code !== undefined) dataToUpdate.code = body.code.toUpperCase();
     if (body.discountType !== undefined) dataToUpdate.discountType = body.discountType;
     if (body.discountValue !== undefined) dataToUpdate.discountValue = Number(body.discountValue);

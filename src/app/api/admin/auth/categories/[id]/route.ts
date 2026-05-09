@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
             return NextResponse.json({ error: 'Category cannot be its own parent' }, { status: 400 });
         }
 
-        const dataToUpdate: any = {};
+        const dataToUpdate: Record<string, unknown> = {};
         if (body.name !== undefined) dataToUpdate.name = body.name;
         if (body.nameAr !== undefined) dataToUpdate.nameAr = body.nameAr;
         if (body.slug !== undefined) dataToUpdate.slug = body.slug;
