@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prismaClient from "@/lib/prisma";
 const prisma = prismaClient!;
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     const configs = await prisma.storeConfig.findMany();
     return NextResponse.json({ configs });

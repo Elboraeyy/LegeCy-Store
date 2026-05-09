@@ -2,25 +2,39 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
     try {
         const zones = await prisma.shippingZone.findMany({
             orderBy: { name: 'asc' }
         });
 
         return NextResponse.json({
-            zones: zones.map((z: any) => ({
-                id: z.id,
-                name: z.name,
-                cities: z.cities,
-                governorates: z.governorates,
-                baseRate: z.baseRate.toNumber(),
-                returnRate: z.returnRate.toNumber(),
-                avgDeliveryDays: z.avgDeliveryDays,
-                riskLevel: z.riskLevel,
-                isActive: z.isActive,
-                notes: z.notes,
-            }))
+            zones: zones.map((z) => {
+                const zone = z as unknown as {
+                    id: string;
+                    name: string;
+                    cities: string[];
+                    governorates?: string[];
+                    baseRate: { toNumber: () => number };
+                    returnRate: { toNumber: () => number };
+                    avgDeliveryDays: number;
+                    riskLevel: string;
+                    isActive: boolean;
+                    notes: string | null;
+                };
+                return {
+                    id: zone.id,
+                    name: zone.name,
+                    cities: zone.cities,
+                    governorates: zone.governorates,
+                    baseRate: zone.baseRate.toNumber(),
+                    returnRate: zone.returnRate.toNumber(),
+                    avgDeliveryDays: zone.avgDeliveryDays,
+                    riskLevel: zone.riskLevel,
+                    isActive: zone.isActive,
+                    notes: zone.notes,
+                };
+            })
         });
     } catch (error) {
         console.error('Delivery Zones GET Error:', error);
@@ -35,7 +49,8 @@ export async function POST(request: NextRequest) {
 
         if (!name) return NextResponse.json({ error: 'Zone name is required' }, { status: 400 });
 
-        const zone = await (prisma.shippingZone as any).create({
+        const createFn = prisma.shippingZone.create as unknown as (args: Record<string, unknown>) => Promise<unknown>;
+        const zone = await createFn({
             data: {
                 name,
                 cities: cities || [],

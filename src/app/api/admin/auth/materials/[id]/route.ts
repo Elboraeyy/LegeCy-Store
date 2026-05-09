@@ -12,7 +12,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         if (body.slug !== undefined) data.slug = body.slug;
         const material = await prisma.material.update({ where: { id }, data });
         return NextResponse.json({ material, message: 'Material updated' });
-    } catch (_error) {
+    } catch {
         return NextResponse.json({ error: 'Failed to update material' }, { status: 500 });
     }
 }
@@ -25,7 +25,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         if (material._count.products > 0) return NextResponse.json({ error: `Material has ${material._count.products} products` }, { status: 400 });
         await prisma.material.delete({ where: { id } });
         return NextResponse.json({ message: 'Material deleted' });
-    } catch (_error) {
+    } catch {
         return NextResponse.json({ error: 'Failed to delete material' }, { status: 500 });
     }
 }

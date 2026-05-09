@@ -6,7 +6,7 @@ const prisma = prismaClient!;
  * GET /api/admin/auth/affiliates
  * List all affiliates (Partners)
  */
-export async function GET(_request: NextRequest) {
+export async function GET() {
     try {
         const affiliates = await prisma.partner.findMany({
             orderBy: { createdAt: 'desc' },

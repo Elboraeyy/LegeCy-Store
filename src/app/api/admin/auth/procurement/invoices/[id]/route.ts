@@ -50,7 +50,7 @@ export async function PUT(
         const { id } = await params;
         const body = await request.json();
         
-        const data: any = {};
+        const data: Record<string, string | number> = {};
         if (body.status !== undefined) data.status = body.status;
         if (body.paymentStatus !== undefined) data.paymentStatus = body.paymentStatus;
         if (body.paidAmount !== undefined) {

@@ -12,7 +12,7 @@ export async function PUT(
         const body = await request.json();
         const { name, email, username, password, roleId, position, phone, isActive } = body;
 
-        const updateData: any = {};
+        const updateData: Record<string, string | boolean> = {};
         if (name) updateData.name = name;
         if (email) updateData.email = email;
         if (username) updateData.username = username;

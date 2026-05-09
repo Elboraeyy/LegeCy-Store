@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
     try {
         const suppliers = await prisma.supplier.findMany({
             include: {

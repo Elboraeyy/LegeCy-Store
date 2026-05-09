@@ -6,7 +6,7 @@ const prisma = prismaClient!;
  * GET /api/admin/auth/categories
  * List all categories
  */
-export async function GET(_request: NextRequest) {
+export async function GET() {
     try {
         const categories = await prisma.category.findMany({
             include: {

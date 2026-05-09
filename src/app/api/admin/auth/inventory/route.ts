@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
     try {
         // Get inventory with low stock alerts
         const inventory = await prisma.inventory.findMany({
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 
         if (!currentInv) return NextResponse.json({ error: 'Inventory record not found' }, { status: 404 });
 
-        const updateData: any = {};
+        const updateData: Record<string, number> = {};
         if (available !== undefined) updateData.available = available;
         if (minStock !== undefined) updateData.minStock = minStock;
 
