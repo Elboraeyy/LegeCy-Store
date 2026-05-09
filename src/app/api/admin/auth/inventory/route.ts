@@ -78,3 +78,50 @@ export async function GET(_request: NextRequest) {
         return NextResponse.json({ error: 'Failed to fetch inventory' }, { status: 500 });
     }
 }
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { id, available, minStock, reason, adminId } = body;
+
+        if (!id) return NextResponse.json({ error: 'Inventory ID is required' }, { status: 400 });
+
+        const currentInv = await prisma.inventory.findUnique({
+            where: { id },
+            include: { warehouse: true, variant: true }
+        });
+
+        if (!currentInv) return NextResponse.json({ error: 'Inventory record not found' }, { status: 404 });
+
+        const updateData: any = {};
+        if (available !== undefined) updateData.available = available;
+        if (minStock !== undefined) updateData.minStock = minStock;
+
+        const updated = await prisma.inventory.update({
+            where: { id },
+            data: updateData
+        });
+
+        // Log the change if quantity changed
+        if (available !== undefined && available !== currentInv.available) {
+            await prisma.inventoryLog.create({
+                data: {
+                    warehouseId: currentInv.warehouseId,
+                    variantId: currentInv.variantId,
+                    action: available > currentInv.available ? 'ADJUST_UP' : 'ADJUST_DOWN',
+                    quantity: Math.abs(available - currentInv.available),
+                    balanceAfter: available,
+                    reason: reason || 'Manual adjustment via Admin App',
+                    adminId: adminId,
+                }
+            });
+        }
+
+        return NextResponse.json({
+            message: 'Inventory updated successfully',
+            inventory: updated
+        });
+    } catch (error) {
+        console.error('Inventory POST Error:', error);
+        return NextResponse.json({ error: 'Failed to update inventory' }, { status: 500 });
+    }
+}

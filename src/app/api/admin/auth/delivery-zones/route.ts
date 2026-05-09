@@ -9,10 +9,11 @@ export async function GET(_request: NextRequest) {
         });
 
         return NextResponse.json({
-            zones: zones.map(z => ({
+            zones: zones.map((z: any) => ({
                 id: z.id,
                 name: z.name,
                 cities: z.cities,
+                governorates: z.governorates,
                 baseRate: z.baseRate.toNumber(),
                 returnRate: z.returnRate.toNumber(),
                 avgDeliveryDays: z.avgDeliveryDays,
@@ -30,14 +31,15 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { name, cities, baseRate, returnRate, avgDeliveryDays, riskLevel, notes } = body;
+        const { name, cities, governorates, baseRate, returnRate, avgDeliveryDays, riskLevel, notes } = body;
 
         if (!name) return NextResponse.json({ error: 'Zone name is required' }, { status: 400 });
 
-        const zone = await prisma.shippingZone.create({
+        const zone = await (prisma.shippingZone as any).create({
             data: {
                 name,
                 cities: cities || [],
+                governorates: governorates || [],
                 baseRate: baseRate ? Number(baseRate) : 50,
                 returnRate: returnRate ? Number(returnRate) : 0,
                 avgDeliveryDays: avgDeliveryDays ? Number(avgDeliveryDays) : 3,

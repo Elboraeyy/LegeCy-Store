@@ -13,6 +13,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         const data: Record<string, unknown> = {};
         if (body.name !== undefined) data.name = body.name;
         if (body.cities !== undefined) data.cities = body.cities;
+        if (body.governorates !== undefined) data.governorates = body.governorates;
         if (body.baseRate !== undefined) data.baseRate = Number(body.baseRate);
         if (body.returnRate !== undefined) data.returnRate = Number(body.returnRate);
         if (body.avgDeliveryDays !== undefined) data.avgDeliveryDays = Number(body.avgDeliveryDays);

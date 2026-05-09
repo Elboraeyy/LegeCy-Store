@@ -52,3 +52,53 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to fetch staff' }, { status: 500 });
     }
 }
+import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
+
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { name, email, username, password, roleId, position, phone } = body;
+
+        if (!name || !email || !username || !password || !roleId) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        // Validate password
+        const policy = validatePasswordStrength(password);
+        if (!policy.isValid) {
+            return NextResponse.json({ error: policy.issues[0] }, { status: 400 });
+        }
+
+        // Check unique constraints
+        const existing = await prisma.adminUser.findFirst({
+            where: { OR: [{ email }, { username }] }
+        });
+
+        if (existing) {
+            return NextResponse.json({ error: 'Email or Username already exists' }, { status: 400 });
+        }
+
+        const passwordHash = await hashPassword(password);
+
+        const newStaff = await prisma.adminUser.create({
+            data: {
+                name,
+                email,
+                username,
+                passwordHash,
+                roleId,
+                position,
+                phone,
+                isActive: true
+            }
+        });
+
+        return NextResponse.json({
+            message: 'Staff member created successfully',
+            staff: newStaff
+        });
+    } catch (error) {
+        console.error('Staff POST Error:', error);
+        return NextResponse.json({ error: 'Failed to create staff member' }, { status: 500 });
+    }
+}

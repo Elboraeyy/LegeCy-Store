@@ -25,7 +25,15 @@ class _StoreConfigScreenState extends State<StoreConfigScreen> {
   final _freeShippingThresholdCtrl = TextEditingController();
   final _storeNameCtrl = TextEditingController();
   final _supportPhoneCtrl = TextEditingController();
-
+  
+  // New Controllers
+  final _maintenanceMsgCtrl = TextEditingController();
+  final _facebookCtrl = TextEditingController();
+  final _instagramCtrl = TextEditingController();
+  final _tiktokCtrl = TextEditingController();
+  final _whatsappCtrl = TextEditingController();
+  
+  bool _maintenanceMode = false;
   bool _isSaving = false;
 
   @override
@@ -41,6 +49,11 @@ class _StoreConfigScreenState extends State<StoreConfigScreen> {
     _freeShippingThresholdCtrl.dispose();
     _storeNameCtrl.dispose();
     _supportPhoneCtrl.dispose();
+    _maintenanceMsgCtrl.dispose();
+    _facebookCtrl.dispose();
+    _instagramCtrl.dispose();
+    _tiktokCtrl.dispose();
+    _whatsappCtrl.dispose();
     super.dispose();
   }
 
@@ -69,21 +82,17 @@ class _StoreConfigScreenState extends State<StoreConfigScreen> {
       final value = config['value'];
       
       switch (key) {
-        case 'global_announcement':
-          _announcementCtrl.text = value.toString();
-          break;
-        case 'shipping_fee':
-          _shippingFeeCtrl.text = value.toString();
-          break;
-        case 'free_shipping_threshold':
-          _freeShippingThresholdCtrl.text = value.toString();
-          break;
-        case 'store_name':
-          _storeNameCtrl.text = value.toString();
-          break;
-        case 'support_phone':
-          _supportPhoneCtrl.text = value.toString();
-          break;
+        case 'global_announcement': _announcementCtrl.text = value.toString(); break;
+        case 'shipping_fee': _shippingFeeCtrl.text = value.toString(); break;
+        case 'free_shipping_threshold': _freeShippingThresholdCtrl.text = value.toString(); break;
+        case 'store_name': _storeNameCtrl.text = value.toString(); break;
+        case 'support_phone': _supportPhoneCtrl.text = value.toString(); break;
+        case 'maintenance_mode': _maintenanceMode = value == true || value == 'true'; break;
+        case 'maintenance_message': _maintenanceMsgCtrl.text = value.toString(); break;
+        case 'social_facebook': _facebookCtrl.text = value.toString(); break;
+        case 'social_instagram': _instagramCtrl.text = value.toString(); break;
+        case 'social_tiktok': _tiktokCtrl.text = value.toString(); break;
+        case 'social_whatsapp': _whatsappCtrl.text = value.toString(); break;
       }
     }
   }
@@ -109,29 +118,24 @@ class _StoreConfigScreenState extends State<StoreConfigScreen> {
     
     try {
       await Future.wait([
-        _saveConfig('store_name', _storeNameCtrl.text, 'Store Name Displayed in App/Web'),
-        _saveConfig('global_announcement', _announcementCtrl.text, 'Text shown in the top announcement bar'),
-        if (_shippingFeeCtrl.text.isNotEmpty) _saveConfig('shipping_fee', double.parse(_shippingFeeCtrl.text), 'Default Flat Shipping Fee'),
-        if (_freeShippingThresholdCtrl.text.isNotEmpty) _saveConfig('free_shipping_threshold', double.parse(_freeShippingThresholdCtrl.text), 'Minimum order value for free shipping'),
-        _saveConfig('support_phone', _supportPhoneCtrl.text, 'Customer Support Phone Number'),
+        _saveConfig('store_name', _storeNameCtrl.text, 'Store Name'),
+        _saveConfig('global_announcement', _announcementCtrl.text, 'Announcement Text'),
+        if (_shippingFeeCtrl.text.isNotEmpty) _saveConfig('shipping_fee', double.parse(_shippingFeeCtrl.text), 'Shipping Fee'),
+        if (_freeShippingThresholdCtrl.text.isNotEmpty) _saveConfig('free_shipping_threshold', double.parse(_freeShippingThresholdCtrl.text), 'Free Shipping threshold'),
+        _saveConfig('support_phone', _supportPhoneCtrl.text, 'Support Phone'),
+        _saveConfig('maintenance_mode', _maintenanceMode, 'Maintenance Mode Toggle'),
+        _saveConfig('maintenance_message', _maintenanceMsgCtrl.text, 'Maintenance Message'),
+        _saveConfig('social_facebook', _facebookCtrl.text, 'Facebook Link'),
+        _saveConfig('social_instagram', _instagramCtrl.text, 'Instagram Link'),
+        _saveConfig('social_tiktok', _tiktokCtrl.text, 'TikTok Link'),
+        _saveConfig('social_whatsapp', _whatsappCtrl.text, 'WhatsApp Number'),
       ]);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Store settings updated successfully', style: TextStyle(color: Colors.white)),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('Updated successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(e.toString(), style: const TextStyle(color: Colors.white)),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ));
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -143,9 +147,7 @@ class _StoreConfigScreenState extends State<StoreConfigScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('Store Config', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: AppColors.surface, surfaceTintColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
         actions: [
           if (!_isLoading)
@@ -156,16 +158,8 @@ class _StoreConfigScreenState extends State<StoreConfigScreen> {
                   height: 36,
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : _saveAll,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryDark,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    child: _isSaving
-                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text('Save', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13)),
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+                    child: _isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Save'),
                   ),
                 ),
               ),
@@ -179,137 +173,118 @@ class _StoreConfigScreenState extends State<StoreConfigScreen> {
               : ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    Text('Global Settings', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5)),
-                    const SizedBox(height: 16),
-
-                    // Store Info
+                    _buildSectionHeader('Basic Setup'),
                     _buildConfigCard(
-                      title: 'Store Information',
+                      title: 'Store Identity',
                       icon: LucideIcons.store,
                       color: const Color(0xFF3B82F6),
                       children: [
-                        _buildInputField(
-                          label: 'Store Name',
-                          controller: _storeNameCtrl,
-                          icon: LucideIcons.type,
-                          hint: 'LegaCy Store',
-                        ),
+                        _buildInputField(label: 'Store Name', controller: _storeNameCtrl, icon: LucideIcons.type),
                         const SizedBox(height: 16),
-                        _buildInputField(
-                          label: 'Support Phone Number',
-                          controller: _supportPhoneCtrl,
-                          icon: LucideIcons.phone,
-                          keyboardType: TextInputType.phone,
-                          hint: '+20 123 456 7890',
-                        ),
+                        _buildInputField(label: 'Support Phone', controller: _supportPhoneCtrl, icon: LucideIcons.phone, keyboardType: TextInputType.phone),
                       ],
                     ),
                     const SizedBox(height: 16),
 
-                    // Operations
+                    _buildSectionHeader('System Status'),
                     _buildConfigCard(
-                      title: 'Shipping & Operations',
+                      title: 'Maintenance',
+                      icon: LucideIcons.settings,
+                      color: const Color(0xFFEF4444),
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text('Maintenance Mode', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600)),
+                              Text('Disable public access to store', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+                            ]),
+                            Switch(value: _maintenanceMode, onChanged: (v) => setState(() => _maintenanceMode = v), activeThumbColor: AppColors.error),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _buildInputField(label: 'Maintenance Message', controller: _maintenanceMsgCtrl, icon: LucideIcons.stickyNote, maxLines: 2),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildSectionHeader('Logistics'),
+                    _buildConfigCard(
+                      title: 'Shipping Settings',
                       icon: LucideIcons.truck,
                       color: const Color(0xFF10B981),
                       children: [
-                        _buildInputField(
-                          label: 'Default Shipping Fee (EGP)',
-                          controller: _shippingFeeCtrl,
-                          icon: LucideIcons.coins,
-                          keyboardType: TextInputType.number,
-                          hint: '50',
-                        ),
+                        _buildInputField(label: 'Shipping Fee (EGP)', controller: _shippingFeeCtrl, icon: LucideIcons.coins, keyboardType: TextInputType.number),
                         const SizedBox(height: 16),
-                        _buildInputField(
-                          label: 'Free Shipping Threshold (EGP)',
-                          controller: _freeShippingThresholdCtrl,
-                          icon: LucideIcons.gift,
-                          keyboardType: TextInputType.number,
-                          hint: '1000',
-                          helperText: 'Orders above this amount get free shipping',
-                        ),
+                        _buildInputField(label: 'Free Shipping Above (EGP)', controller: _freeShippingThresholdCtrl, icon: LucideIcons.gift, keyboardType: TextInputType.number),
                       ],
                     ),
                     const SizedBox(height: 16),
 
-                    // Marketing
+                    _buildSectionHeader('Marketing & Social'),
                     _buildConfigCard(
-                      title: 'Marketing & UI',
+                      title: 'Social Media',
+                      icon: LucideIcons.share2,
+                      color: const Color(0xFF8B5CF6),
+                      children: [
+                        _buildInputField(label: 'Facebook Link', controller: _facebookCtrl, icon: LucideIcons.facebook),
+                        const SizedBox(height: 12),
+                        _buildInputField(label: 'Instagram Link', controller: _instagramCtrl, icon: LucideIcons.instagram),
+                        const SizedBox(height: 12),
+                        _buildInputField(label: 'TikTok Link', controller: _tiktokCtrl, icon: LucideIcons.video),
+                        const SizedBox(height: 12),
+                        _buildInputField(label: 'WhatsApp Number', controller: _whatsappCtrl, icon: LucideIcons.messageCircle),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildConfigCard(
+                      title: 'Announcements',
                       icon: LucideIcons.megaphone,
                       color: const Color(0xFFF59E0B),
                       children: [
-                        _buildInputField(
-                          label: 'Top Announcement Bar Text',
-                          controller: _announcementCtrl,
-                          icon: LucideIcons.bellRing,
-                          hint: 'Special Offer: Free Shipping on all orders!',
-                          maxLines: 2,
-                        ),
+                        _buildInputField(label: 'Global Banner Text', controller: _announcementCtrl, icon: LucideIcons.bellRing, maxLines: 2),
                       ],
                     ),
-                    
                     const SizedBox(height: 40),
                   ],
                 ),
     );
   }
 
+  Widget _buildSectionHeader(String title) {
+    return Padding(padding: const EdgeInsets.fromLTRB(4, 8, 0, 12), child: Text(title.toUpperCase(), style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textMuted, letterSpacing: 1.2)));
+  }
+
   Widget _buildConfigCard({required String title, required IconData icon, required Color color, required List<Widget> children}) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, size: 20, color: color),
-              ),
-              const SizedBox(width: 12),
-              Text(title, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-            ],
-          ),
-          const SizedBox(height: 24),
-          ...children,
-        ],
-      ),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder), boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(icon, size: 20, color: color)),
+          const SizedBox(width: 12),
+          Text(title, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        ]),
+        const SizedBox(height: 24),
+        ...children,
+      ]),
     );
   }
 
-  Widget _buildInputField({required String label, required TextEditingController controller, required IconData icon, String? hint, TextInputType? keyboardType, int maxLines = 1, String? helperText}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          style: GoogleFonts.inter(fontSize: 14),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted.withValues(alpha: 0.5)),
-            prefixIcon: maxLines == 1 ? Icon(icon, size: 18, color: AppColors.textMuted) : null,
-            filled: true,
-            fillColor: AppColors.background,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: maxLines == 1 ? 0 : 16),
-          ),
+  Widget _buildInputField({required String label, required TextEditingController controller, required IconData icon, String? hint, TextInputType? keyboardType, int maxLines = 1}) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+      const SizedBox(height: 8),
+      TextField(
+        controller: controller, keyboardType: keyboardType, maxLines: maxLines,
+        style: GoogleFonts.inter(fontSize: 14),
+        decoration: InputDecoration(
+          hintText: hint, prefixIcon: maxLines == 1 ? Icon(icon, size: 18, color: AppColors.textMuted) : null,
+          filled: true, fillColor: AppColors.background,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: maxLines == 1 ? 0 : 16),
         ),
-        if (helperText != null) ...[
-          const SizedBox(height: 6),
-          Text(helperText, style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
-        ]
-      ],
-    );
+      ),
+    ]);
   }
 }

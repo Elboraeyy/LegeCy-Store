@@ -24,6 +24,9 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _loadStaff();
   }
 
@@ -66,6 +69,11 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
           : _error != null
               ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error), const SizedBox(height: 16), ElevatedButton(onPressed: _loadStaff, child: const Text('Retry'))]))
               : TabBarView(controller: _tabController, children: [_buildMembersTab(), _buildRolesTab()]),
+      floatingActionButton: _tabController.index == 0 ? FloatingActionButton(
+        onPressed: () => _showStaffDialog(),
+        backgroundColor: AppColors.primaryDark,
+        child: const Icon(LucideIcons.plus, color: Colors.white),
+      ) : null,
     );
   }
 
@@ -97,6 +105,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: isActive ? AppColors.cardBorder : AppColors.warning.withValues(alpha: 0.3)),
+              boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))],
             ),
             child: Row(
               children: [
@@ -132,16 +141,23 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                           Text(member['position'], style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
                         ],
                       ]),
-                      if (member['lastLoginAt'] != null) ...[
-                        const SizedBox(height: 6),
-                        Row(children: [
-                          const Icon(LucideIcons.clock, size: 12, color: AppColors.textMuted),
-                          const SizedBox(width: 4),
-                          Text('Last login: ${_formatDate(member['lastLoginAt'])}', style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted)),
-                        ]),
-                      ],
                     ],
                   ),
+                ),
+                PopupMenuButton<String>(
+                  icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted, size: 20),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  onSelected: (v) {
+                    if (v == 'edit') _showStaffDialog(member);
+                    if (v == 'toggle') _toggleMemberStatus(member);
+                    if (v == 'delete') _deleteMember(member);
+                  },
+                  itemBuilder: (_) => [
+                    PopupMenuItem(value: 'edit', child: Row(children: [const Icon(LucideIcons.edit2, size: 16), const SizedBox(width: 10), Text('Edit Details', style: GoogleFonts.inter(fontSize: 13))])),
+                    PopupMenuItem(value: 'toggle', child: Row(children: [Icon(isActive ? LucideIcons.userX : LucideIcons.userCheck, size: 16), const SizedBox(width: 10), Text(isActive ? 'Deactivate' : 'Activate', style: GoogleFonts.inter(fontSize: 13))])),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(value: 'delete', child: Row(children: [const Icon(LucideIcons.trash2, size: 16, color: Colors.red), const SizedBox(width: 10), Text('Delete Staff', style: GoogleFonts.inter(fontSize: 13, color: Colors.red))])),
+                  ],
                 ),
               ],
             ),
@@ -150,6 +166,184 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
       ),
     );
   }
+
+  void _showStaffDialog([Map<String, dynamic>? member]) {
+    final isEditing = member != null;
+    final nameCtrl = TextEditingController(text: member?['name']);
+    final emailCtrl = TextEditingController(text: member?['email']);
+    final userCtrl = TextEditingController(text: member?['username']);
+    final passCtrl = TextEditingController();
+    final posCtrl = TextEditingController(text: member?['position']);
+    final phoneCtrl = TextEditingController(text: member?['phone']);
+    String? selectedRoleId = member?['role']?['id'] ?? (_roles.isNotEmpty ? _roles[0]['id'] : null);
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setModalState) {
+        return Container(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+          decoration: const BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.textMuted.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(2)))),
+                const SizedBox(height: 20),
+                Text(isEditing ? 'Edit Staff Member' : 'New Staff Member', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                const SizedBox(height: 20),
+                _buildInput('Full Name', nameCtrl, LucideIcons.user),
+                const SizedBox(height: 16),
+                _buildInput('Email Address', emailCtrl, LucideIcons.mail, keyboardType: TextInputType.emailAddress),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(child: _buildInput('Username', userCtrl, LucideIcons.atSign)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildInput(isEditing ? 'New Password (Optional)' : 'Password', passCtrl, LucideIcons.key, obscureText: true)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('System Role', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12)),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedRoleId,
+                          isExpanded: true,
+                          items: _roles.map<DropdownMenuItem<String>>((r) => DropdownMenuItem(value: r['id'].toString(), child: Text(r['name']))).toList(),
+                          onChanged: (v) => setModalState(() => selectedRoleId = v),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(child: _buildInput('Position/Title', posCtrl, LucideIcons.briefcase)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildInput('Phone Number', phoneCtrl, LucideIcons.phone, keyboardType: TextInputType.phone)),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity, height: 52,
+                  child: ElevatedButton(
+                    onPressed: isSaving ? null : () async {
+                      if (nameCtrl.text.isEmpty || emailCtrl.text.isEmpty) return;
+                      setModalState(() => isSaving = true);
+                      try {
+                        final token = context.read<AuthProvider>().token;
+                        final client = ApiClient(token: token);
+                        final body = {
+                          'name': nameCtrl.text.trim(),
+                          'email': emailCtrl.text.trim(),
+                          'username': userCtrl.text.trim(),
+                          'roleId': selectedRoleId,
+                          'position': posCtrl.text.trim(),
+                          'phone': phoneCtrl.text.trim(),
+                        };
+                        if (passCtrl.text.isNotEmpty) body['password'] = passCtrl.text;
+                        
+                        if (isEditing) {
+                          await client.put('/api/admin/auth/staff/${member['id']}', body: body);
+                        } else {
+                          await client.post('/api/admin/auth/staff', body: body);
+                        }
+                        
+                        if (!mounted) return;
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        _loadStaff();
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isEditing ? 'Updated successfully' : 'Created successfully'), backgroundColor: AppColors.success));
+                      } catch (e) {
+                        setModalState(() => isSaving = false);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
+                    child: isSaving ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : Text(isEditing ? 'Save Changes' : 'Create Member', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildInput(String label, TextEditingController ctrl, IconData icon, {TextInputType? keyboardType, bool obscureText = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: ctrl,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          style: GoogleFonts.inter(fontSize: 14),
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, size: 18, color: AppColors.textMuted),
+            filled: true, fillColor: AppColors.background,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _toggleMemberStatus(Map<String, dynamic> member) async {
+    final bool current = member['isActive'] == true;
+    setState(() => _isLoading = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.put('/api/admin/auth/staff/${member['id']}', body: {'isActive': !current});
+      _loadStaff();
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+    }
+  }
+
+  Future<void> _deleteMember(Map<String, dynamic> member) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Member?'),
+        content: Text('Are you sure you want to delete ${member['name']}? This action is permanent.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), style: ElevatedButton.styleFrom(backgroundColor: AppColors.error), child: const Text('Delete')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    if (!mounted) return;
+    
+    setState(() => _isLoading = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.delete('/api/admin/auth/staff/${member['id']}');
+      _loadStaff();
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+    }
+  }
+
 
   Widget _buildRolesTab() {
     if (_roles.isEmpty) {
@@ -204,15 +398,5 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
         );
       },
     );
-  }
-
-  String _formatDate(String? dateStr) {
-    if (dateStr == null) return 'Never';
-    try {
-      final d = DateTime.parse(dateStr);
-      return '${d.day}/${d.month}/${d.year}';
-    } catch (_) {
-      return dateStr;
-    }
   }
 }

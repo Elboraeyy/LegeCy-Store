@@ -188,51 +188,156 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                       final isOut = item['isOutOfStock'] == true;
                       final statusColor = isOut ? AppColors.error : isLow ? AppColors.warning : AppColors.success;
 
-                      return Container(
-                        margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: isOut ? AppColors.error.withValues(alpha: 0.3) : isLow ? AppColors.warning.withValues(alpha: 0.3) : AppColors.cardBorder),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44, height: 44,
-                              decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                              child: Icon(isOut ? LucideIcons.xCircle : isLow ? LucideIcons.alertTriangle : LucideIcons.checkCircle2, size: 20, color: statusColor),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      return GestureDetector(
+                        onTap: () => _showAdjustmentDialog(item),
+                        child: Container(
+                          margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: isOut ? AppColors.error.withValues(alpha: 0.3) : isLow ? AppColors.warning.withValues(alpha: 0.3) : AppColors.cardBorder),
+                            boxShadow: [BoxShadow(color: statusColor.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44, height: 44,
+                                decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                                child: Icon(isOut ? LucideIcons.xCircle : isLow ? LucideIcons.alertTriangle : LucideIcons.checkCircle2, size: 20, color: statusColor),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(item['productName'] ?? '', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    const SizedBox(height: 2),
+                                    Text('SKU: ${item['sku']} • ${item['warehouseName']}', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text(item['productName'] ?? '', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                  const SizedBox(height: 2),
-                                  Text('SKU: ${item['sku']} • ${item['warehouseName']}', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+                                  Text('${item['available']}', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w800, color: statusColor)),
+                                  Text('min: ${item['minStock']}', style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted)),
                                 ],
                               ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text('${item['available']}', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w800, color: statusColor)),
-                                Text('min: ${item['minStock']}', style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted)),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
                     childCount: _filteredInventory.length,
                   ),
                 ),
-          const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );
   }
+
+  void _showAdjustmentDialog(Map<String, dynamic> item) {
+    final availableCtrl = TextEditingController(text: item['available'].toString());
+    final minStockCtrl = TextEditingController(text: item['minStock'].toString());
+    final reasonCtrl = TextEditingController();
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setModalState) {
+        return Container(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+          decoration: const BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.textMuted.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(2)))),
+              const SizedBox(height: 20),
+              Text('Adjust Stock', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+              const SizedBox(height: 4),
+              Text(item['productName'] ?? '', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
+              Text('SKU: ${item['sku']} • ${item['warehouseName']}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+              const SizedBox(height: 24),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildInput('Available Stock', availableCtrl, LucideIcons.package, isNumber: true),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildInput('Min Alert Level', minStockCtrl, LucideIcons.bellRing, isNumber: true),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildInput('Adjustment Reason (Optional)', reasonCtrl, LucideIcons.stickyNote),
+              const SizedBox(height: 24),
+              
+              SizedBox(
+                width: double.infinity, height: 52,
+                child: ElevatedButton(
+                  onPressed: isSaving ? null : () async {
+                    setModalState(() => isSaving = true);
+                    final messenger = ScaffoldMessenger.of(context);
+                    try {
+                      final token = context.read<AuthProvider>().token;
+                      final client = ApiClient(token: token);
+                      await client.post('/api/admin/auth/inventory', body: {
+                        'id': item['id'],
+                        'available': int.tryParse(availableCtrl.text) ?? item['available'],
+                        'minStock': int.tryParse(minStockCtrl.text) ?? item['minStock'],
+                        'reason': reasonCtrl.text.trim(),
+                      });
+                      if (!mounted) return;
+                      if (ctx.mounted) Navigator.pop(ctx);
+                      _loadInventory();
+                      if (!mounted) return;
+                      messenger.showSnackBar(const SnackBar(content: Text('Stock updated successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+                    } catch (e) {
+                      setModalState(() => isSaving = false);
+                      messenger.showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
+                  child: isSaving 
+                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text('Update Inventory', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildInput(String label, TextEditingController ctrl, IconData icon, {bool isNumber = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: ctrl,
+          keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+          style: GoogleFonts.inter(fontSize: 14),
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, size: 18, color: AppColors.textMuted),
+            filled: true, fillColor: AppColors.background,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ],
+    );
+  }
+
 
   Widget _buildAlertsTab() {
     if (_alerts.isEmpty) {
