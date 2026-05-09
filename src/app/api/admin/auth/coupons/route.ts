@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prismaClient from "@/lib/prisma";
+const prisma = prismaClient!;
 
 // GET all coupons
 export async function GET(req: NextRequest) {
