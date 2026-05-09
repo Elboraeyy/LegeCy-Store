@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import prismaClient from "@/lib/prisma";
 const prisma = prismaClient!;
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     
     // Check if it exists
@@ -49,9 +49,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // Check usage
     const coupon = await prisma.coupon.findUnique({
