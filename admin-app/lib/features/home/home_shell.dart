@@ -37,7 +37,7 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
 
   final List<String> _labels = [
     'Orders',
-    'Products',
+    'Catalog',
     'Dashboard',
     'Reports',
     'More',

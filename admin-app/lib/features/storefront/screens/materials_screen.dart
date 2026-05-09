@@ -1,0 +1,185 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import 'package:admin_app/core/theme/app_theme.dart';
+import 'package:admin_app/core/network/api_client.dart';
+import 'package:admin_app/features/auth/auth_provider.dart';
+
+class MaterialsScreen extends StatefulWidget {
+  const MaterialsScreen({super.key});
+
+  @override
+  State<MaterialsScreen> createState() => _MaterialsScreenState();
+}
+
+class _MaterialsScreenState extends State<MaterialsScreen> {
+  bool _isLoading = true;
+  String? _error;
+  List<dynamic> _materials = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMaterials();
+  }
+
+  Future<void> _loadMaterials() async {
+    setState(() { _isLoading = true; _error = null; });
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      final data = await client.get('/api/admin/auth/materials');
+      if (mounted) setState(() { _materials = data['materials'] ?? []; _isLoading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _isLoading = false; });
+    }
+  }
+
+  Future<void> _deleteMaterial(String id) async {
+    final ok = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
+      backgroundColor: Colors.white, surfaceTintColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text('Delete Material', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+      content: Text('Materials linked to products cannot be deleted.', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted))),
+        ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0), child: const Text('Delete')),
+      ],
+    ));
+    if (ok != true) return;
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.delete('/api/admin/auth/materials/$id');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Material deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+      _loadMaterials();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+    }
+  }
+
+  void _showAddEdit({Map<String, dynamic>? material}) {
+    final nameCtrl = TextEditingController(text: material?['name'] ?? '');
+    final nameArCtrl = TextEditingController(text: material?['nameAr'] ?? '');
+    final slugCtrl = TextEditingController(text: material?['slug'] ?? '');
+
+    showModalBottomSheet(
+      context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+        decoration: const BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.textMuted.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(2)))),
+          const SizedBox(height: 16),
+          Text(material != null ? 'Edit Material' : 'New Material', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+          const SizedBox(height: 20),
+          _field('Material Name (EN)', nameCtrl, LucideIcons.layers),
+          const SizedBox(height: 12),
+          _field('Material Name (AR)', nameArCtrl, LucideIcons.languages),
+          const SizedBox(height: 12),
+          Focus(
+            onFocusChange: (f) { if (!f && slugCtrl.text.isEmpty && nameCtrl.text.isNotEmpty) slugCtrl.text = nameCtrl.text.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-'); },
+            child: _field('URL Slug', slugCtrl, LucideIcons.link),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(width: double.infinity, height: 50, child: ElevatedButton(
+            onPressed: () async {
+              if (nameCtrl.text.isEmpty || slugCtrl.text.isEmpty) return;
+              final body = {'name': nameCtrl.text.trim(), 'nameAr': nameArCtrl.text.trim().isNotEmpty ? nameArCtrl.text.trim() : null, 'slug': slugCtrl.text.trim()};
+              try {
+                final token = context.read<AuthProvider>().token;
+                final client = ApiClient(token: token);
+                if (material != null) { await client.put('/api/admin/auth/materials/${material['id']}', body: body); }
+                else { await client.post('/api/admin/auth/materials', body: body); }
+                if (!mounted) return;
+                Navigator.pop(ctx);
+                _loadMaterials();
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e'), backgroundColor: AppColors.error));
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEC4899), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
+            child: Text(material != null ? 'Save Changes' : 'Create Material', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+          )),
+        ])),
+      ),
+    );
+  }
+
+  Widget _field(String label, TextEditingController ctrl, IconData icon) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+      const SizedBox(height: 8),
+      TextField(controller: ctrl, style: GoogleFonts.inter(fontSize: 14), decoration: InputDecoration(prefixIcon: Icon(icon, size: 18, color: AppColors.textMuted), filled: true, fillColor: AppColors.background, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14))),
+    ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text('Materials', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+        backgroundColor: AppColors.surface, surfaceTintColor: Colors.transparent, elevation: 0,
+        leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          : _error != null
+              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error), const SizedBox(height: 16), ElevatedButton(onPressed: _loadMaterials, child: const Text('Retry'))]))
+              : _materials.isEmpty
+                  ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: const Color(0xFFEC4899).withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(LucideIcons.layers, size: 48, color: Color(0xFFEC4899))),
+                      const SizedBox(height: 24),
+                      Text('No Materials Yet', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                      const SizedBox(height: 8),
+                      Text('Add materials like Cotton, Silk, Leather.', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted)),
+                    ]))
+                  : RefreshIndicator(
+                      onRefresh: _loadMaterials, color: AppColors.primaryDark,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                        itemCount: _materials.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final mat = _materials[index];
+                          final productCount = mat['_count']?['products'] ?? 0;
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.cardBorder)),
+                            child: Row(children: [
+                              Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFFEC4899).withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(LucideIcons.layers, color: Color(0xFFEC4899))),
+                              const SizedBox(width: 12),
+                              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text(mat['name'] ?? '', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                                const SizedBox(height: 2),
+                                Text('$productCount products • /${mat['slug']}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+                              ])),
+                              PopupMenuButton<String>(
+                                icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                onSelected: (v) { if (v == 'edit') _showAddEdit(material: mat); else if (v == 'delete') _deleteMaterial(mat['id']); },
+                                itemBuilder: (_) => [
+                                  const PopupMenuItem(value: 'edit', child: Row(children: [Icon(LucideIcons.edit, size: 16), SizedBox(width: 10), Text('Edit')])),
+                                  const PopupMenuDivider(),
+                                  const PopupMenuItem(value: 'delete', child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
+                                ],
+                              ),
+                            ]),
+                          );
+                        },
+                      ),
+                    ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () { HapticFeedback.lightImpact(); _showAddEdit(); },
+        backgroundColor: const Color(0xFFEC4899),
+        icon: const Icon(LucideIcons.plus, color: Colors.white),
+        label: Text('New Material', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white)),
+      ),
+    );
+  }
+}

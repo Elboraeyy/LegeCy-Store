@@ -1,0 +1,194 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import 'package:admin_app/core/theme/app_theme.dart';
+import 'package:admin_app/core/network/api_client.dart';
+import 'package:admin_app/features/auth/auth_provider.dart';
+
+class MessagesListScreen extends StatefulWidget {
+  const MessagesListScreen({super.key});
+  @override
+  State<MessagesListScreen> createState() => _MessagesListScreenState();
+}
+
+class _MessagesListScreenState extends State<MessagesListScreen> {
+  List<dynamic> _messages = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    setState(() => _isLoading = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      final data = await client.get('/api/admin/auth/messages');
+      if (mounted) setState(() { _messages = data['messages'] as List<dynamic>; _isLoading = false; });
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text('Messages', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w600)),
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          : _messages.isEmpty
+              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(LucideIcons.mailOpen, size: 64, color: const Color(0xFF6366F1)),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Inbox Zero', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  const SizedBox(height: 8),
+                  Text('You have no new messages\nfrom the contact form.', textAlign: TextAlign.center, style: GoogleFonts.inter(color: AppColors.textMuted)),
+                ]))
+              : RefreshIndicator(
+                  color: AppColors.primaryDark,
+                  onRefresh: _load,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final m = _messages[index];
+                      // Simulate read/unread for visual effect if backend doesn't provide it
+                      final isUnread = index == 0; 
+                      
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: isUnread ? const Color(0xFF6366F1).withValues(alpha: 0.3) : AppColors.cardBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.cardBorder.withValues(alpha: 0.5),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () {
+                              // View message details
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Avatar
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        (m['name'] ?? 'U')[0].toUpperCase(),
+                                        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF6366F1)),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  // Content
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                m['name'] ?? 'Unknown Sender',
+                                                style: GoogleFonts.inter(fontSize: 15, fontWeight: isUnread ? FontWeight.bold : FontWeight.w600, color: AppColors.textPrimary),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            if (isUnread)
+                                              Container(
+                                                width: 8,
+                                                height: 8,
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xFF6366F1),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        if ((m['email'] ?? '').toString().isNotEmpty) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            m['email'],
+                                            style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF6366F1)),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          m['message'] ?? '',
+                                          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary, height: 1.4),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Row(
+                                          children: [
+                                            Icon(LucideIcons.clock, size: 12, color: AppColors.textMuted),
+                                            const SizedBox(width: 4),
+                                            Text(_formatDate(m['createdAt']), style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+    );
+  }
+
+  String _formatDate(String? d) {
+    if (d == null) return '';
+    final dt = DateTime.tryParse(d);
+    if (dt == null) return d;
+    
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    
+    if (diff.inDays == 0) {
+      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } else if (diff.inDays == 1) {
+      return 'Yesterday';
+    } else if (diff.inDays < 7) {
+      return '${diff.inDays} days ago';
+    }
+    
+    return '${dt.day}/${dt.month}/${dt.year}';
+  }
+}
