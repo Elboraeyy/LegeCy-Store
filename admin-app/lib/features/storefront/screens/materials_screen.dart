@@ -18,11 +18,31 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _materials = [];
+  List<dynamic> _filteredMaterials = [];
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadMaterials();
+    _searchController.addListener(_filterMaterials);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterMaterials() {
+    final q = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredMaterials = _materials.where((m) {
+        final name = m['name']?.toString().toLowerCase() ?? '';
+        final slug = m['slug']?.toString().toLowerCase() ?? '';
+        return name.contains(q) || slug.contains(q);
+      }).toList();
+    });
   }
 
   Future<void> _loadMaterials() async {
@@ -31,7 +51,13 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       final data = await client.get('/api/admin/auth/materials');
-      if (mounted) setState(() { _materials = data['materials'] ?? []; _isLoading = false; });
+      if (mounted) {
+        setState(() {
+          _materials = data['materials'] ?? [];
+          _filteredMaterials = _materials;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _isLoading = false; });
     }
@@ -75,21 +101,24 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
         child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.textMuted.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(2)))),
           const SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(material != null ? 'Edit Material' : 'New Material', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
           const SizedBox(height: 20),
-          _field('Material Name (EN)', nameCtrl, LucideIcons.layers),
-          const SizedBox(height: 12),
-          _field('Material Name (AR)', nameArCtrl, LucideIcons.languages),
-          const SizedBox(height: 12),
           Focus(
-            onFocusChange: (f) { if (!f && slugCtrl.text.isEmpty && nameCtrl.text.isNotEmpty) slugCtrl.text = nameCtrl.text.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-'); },
-            child: _field('URL Slug', slugCtrl, LucideIcons.link),
+            onFocusChange: (f) { if (!f && slugCtrl.text.isEmpty && nameCtrl.text.isNotEmpty) slugCtrl.text = nameCtrl.text.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-').replaceAll(RegExp(r'(^-|-$)'), ''); },
+            child: _field('Material Name', nameCtrl, LucideIcons.layers),
           ),
+          const SizedBox(height: 12),
+          _field('URL Slug', slugCtrl, LucideIcons.link),
           const SizedBox(height: 24),
           SizedBox(width: double.infinity, height: 50, child: ElevatedButton(
             onPressed: () async {
-              if (nameCtrl.text.isEmpty || slugCtrl.text.isEmpty) return;
-              final body = {'name': nameCtrl.text.trim(), 'nameAr': nameArCtrl.text.trim().isNotEmpty ? nameArCtrl.text.trim() : null, 'slug': slugCtrl.text.trim()};
+              if (nameCtrl.text.isEmpty || slugCtrl.text.trim().isEmpty) return;
+              final body = {
+                'name': nameCtrl.text.trim(),
+                'nameAr': material?['nameAr'], // Keep existing if edit
+                'slug': slugCtrl.text.trim(),
+              };
               final messenger = ScaffoldMessenger.of(context);
               try {
                 final token = context.read<AuthProvider>().token;
@@ -104,7 +133,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                 messenger.showSnackBar(SnackBar(content: Text('$e'), backgroundColor: AppColors.error));
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEC4899), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
             child: Text(material != null ? 'Save Changes' : 'Create Material', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
           )),
         ])),
@@ -124,65 +153,102 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Materials', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-        backgroundColor: AppColors.surface, surfaceTintColor: Colors.transparent, elevation: 0,
-        leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
-          : _error != null
-              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error), const SizedBox(height: 16), ElevatedButton(onPressed: _loadMaterials, child: const Text('Retry'))]))
-              : _materials.isEmpty
-                  ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: const Color(0xFFEC4899).withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(LucideIcons.layers, size: 48, color: Color(0xFFEC4899))),
-                      const SizedBox(height: 24),
-                      Text('No Materials Yet', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                      const SizedBox(height: 8),
-                      Text('Add materials like Cotton, Silk, Leather.', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted)),
-                    ]))
-                  : RefreshIndicator(
-                      onRefresh: _loadMaterials, color: AppColors.primaryDark,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                        itemCount: _materials.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 10),
-                        itemBuilder: (context, index) {
-                          final mat = _materials[index];
-                          final productCount = mat['_count']?['products'] ?? 0;
-                          return Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.cardBorder)),
-                            child: Row(children: [
-                              Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFFEC4899).withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(LucideIcons.layers, color: Color(0xFFEC4899))),
-                              const SizedBox(width: 12),
-                              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text(mat['name'] ?? '', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                                const SizedBox(height: 2),
-                                Text('$productCount products • /${mat['slug']}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-                              ])),
-                              PopupMenuButton<String>(
-                                icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                onSelected: (v) { if (v == 'edit') {
-                                  _showAddEdit(material: mat);
-                                } else if (v == 'delete') {
-                                  _deleteMaterial(mat['id']);
-                                } },
-                                itemBuilder: (_) => [
-                                  const PopupMenuItem(value: 'edit', child: Row(children: [Icon(LucideIcons.edit, size: 16), SizedBox(width: 10), Text('Edit')])),
-                                  const PopupMenuDivider(),
-                                  const PopupMenuItem(value: 'delete', child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
-                                ],
-                              ),
-                            ]),
-                          );
-                        },
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: AppColors.surface,
+              surfaceTintColor: Colors.transparent,
+              expandedHeight: 130,
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))),
+              leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
+              title: Text('Materials', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(70),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      style: GoogleFonts.inter(fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: 'Search materials...',
+                        hintStyle: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted),
+                        prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppColors.textMuted),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(icon: const Icon(LucideIcons.x, size: 16, color: AppColors.textMuted), onPressed: () => _searchController.clear())
+                            : null,
                       ),
                     ),
+                  ),
+                ),
+              ),
+            ),
+          ];
+        },
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+            : _error != null
+                ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error), const SizedBox(height: 16), ElevatedButton(onPressed: _loadMaterials, child: const Text('Retry'))]))
+                : _filteredMaterials.isEmpty
+                    ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: const Color(0xFF64748B).withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(LucideIcons.layers, size: 48, color: Color(0xFF64748B))),
+                        const SizedBox(height: 24),
+                        Text('No Materials Found', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                        const SizedBox(height: 8),
+                        Text('Try searching for something else.', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted)),
+                      ]))
+                    : RefreshIndicator(
+                        onRefresh: _loadMaterials, color: AppColors.primaryDark,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                          itemCount: _filteredMaterials.length,
+                          separatorBuilder: (_, _) => const SizedBox(height: 10),
+                          itemBuilder: (context, index) {
+                            final mat = _filteredMaterials[index];
+                            final productCount = mat['_count']?['products'] ?? 0;
+                            return Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.cardBorder)),
+                              child: Row(children: [
+                                Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFF64748B).withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(LucideIcons.layers, color: Color(0xFF64748B))),
+                                const SizedBox(width: 12),
+                                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text(mat['name'] ?? '', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                                  const SizedBox(height: 2),
+                                  Text('$productCount products • /${mat['slug']}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+                                ])),
+                                PopupMenuButton<String>(
+                                  icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  onSelected: (v) { if (v == 'edit') {
+                                    _showAddEdit(material: mat);
+                                  } else if (v == 'delete') {
+                                    _deleteMaterial(mat['id']);
+                                  } },
+                                  itemBuilder: (_) => [
+                                    const PopupMenuItem(value: 'edit', child: Row(children: [Icon(LucideIcons.edit, size: 16), SizedBox(width: 10), Text('Edit')])),
+                                    const PopupMenuDivider(),
+                                    const PopupMenuItem(value: 'delete', child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
+                                  ],
+                                ),
+                              ]),
+                            );
+                          },
+                        ),
+                      ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () { HapticFeedback.lightImpact(); _showAddEdit(); },
-        backgroundColor: const Color(0xFFEC4899),
+        backgroundColor: AppColors.primaryDark,
         icon: const Icon(LucideIcons.plus, color: Colors.white),
         label: Text('New Material', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white)),
       ),

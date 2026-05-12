@@ -61,6 +61,9 @@ export async function GET(request: NextRequest) {
                     slug: true,
                     specs: true,
                     images: true,
+                    brand: { select: { id: true, name: true } },
+                    material: { select: { id: true, name: true } },
+                    categoryRel: { select: { id: true, name: true } },
                     variants: {
                         select: { 
                             id: true, 

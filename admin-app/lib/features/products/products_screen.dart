@@ -8,8 +8,8 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/products/add_product_screen.dart';
+import 'package:admin_app/features/products/product_details_screen.dart';
 import 'package:admin_app/core/config/api_config.dart';
-
 
 import '../storefront/screens/categories_screen.dart';
 import '../storefront/screens/brands_screen.dart';
@@ -25,11 +25,60 @@ class ProductsScreen extends StatefulWidget {
 class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _searchController = TextEditingController();
+  List<dynamic> _allProducts = [];
   List<dynamic> _products = [];
   bool _isLoading = true;
   String? _error;
   String _statusFilter = 'all';
+  String _sortFilter = 'newest';
+  String _stockFilter = 'all';
+  String? _categoryFilter;
+  String? _brandFilter;
+  String? _materialFilter;
   bool _selectionMode = false;
+
+  bool get _hasActiveFilters =>
+      _statusFilter != 'all' ||
+      _sortFilter != 'newest' ||
+      _stockFilter != 'all' ||
+      _categoryFilter != null ||
+      _brandFilter != null ||
+      _materialFilter != null;
+
+  List<Map<String, String>> get _availableCategories {
+    final map = <String, String>{};
+    for (var p in _allProducts) {
+      final cat = p['categoryRel'];
+      if (cat != null && cat['id'] != null) {
+        map[cat['id'].toString()] = cat['name']?.toString() ?? 'Unknown';
+      } else if (p['category'] != null) {
+        map[p['category'].toString()] = p['category'].toString();
+      }
+    }
+    return map.entries.map((e) => {'id': e.key, 'name': e.value}).toList();
+  }
+
+  List<Map<String, String>> get _availableBrands {
+    final map = <String, String>{};
+    for (var p in _allProducts) {
+      final b = p['brand'];
+      if (b != null && b['id'] != null) {
+        map[b['id'].toString()] = b['name']?.toString() ?? 'Unknown';
+      }
+    }
+    return map.entries.map((e) => {'id': e.key, 'name': e.value}).toList();
+  }
+
+  List<Map<String, String>> get _availableMaterials {
+    final map = <String, String>{};
+    for (var p in _allProducts) {
+      final m = p['material'];
+      if (m != null && m['id'] != null) {
+        map[m['id'].toString()] = m['name']?.toString() ?? 'Unknown';
+      }
+    }
+    return map.entries.map((e) => {'id': e.key, 'name': e.value}).toList();
+  }
   final Set<String> _selectedIds = {};
 
   @override
@@ -57,16 +106,137 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      String path = '${ApiConfig.authProductsEndpoint}?status=$_statusFilter';
+      String path = '${ApiConfig.authProductsEndpoint}?limit=1000';
       if (_searchController.text.isNotEmpty) {
         path += '&search=${Uri.encodeComponent(_searchController.text)}';
       }
       final data = await client.get(path);
       if (mounted) {
-        setState(() { _products = data['products'] as List<dynamic>; _isLoading = false; });
+        _allProducts = data['products'] as List<dynamic>;
+        _applyLocalFilters();
+        setState(() {
+          _isLoading = false;
+        });
       }
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _isLoading = false; });
+    }
+  }
+
+  void _applyLocalFilters() {
+    List<dynamic> filtered = List.from(_allProducts);
+
+    // Status Filter
+    if (_statusFilter != 'all') {
+      filtered = filtered.where((p) => p['status'] == _statusFilter).toList();
+    }
+
+    // Stock Filter
+    if (_stockFilter != 'all') {
+      filtered = filtered.where((p) {
+        final stock = (p['totalStock'] as num?)?.toInt() ?? 0;
+        if (_stockFilter == 'in_stock') return stock > 0;
+        if (_stockFilter == 'low_stock') return stock > 0 && stock <= 5;
+        if (_stockFilter == 'out_of_stock') return stock <= 0;
+        return true;
+      }).toList();
+    }
+
+    // Category Filter
+    if (_categoryFilter != null) {
+      filtered = filtered
+          .where(
+            (p) =>
+                p['categoryRel']?['id'] == _categoryFilter ||
+                p['categoryId'] == _categoryFilter ||
+                p['category'] == _categoryFilter,
+          )
+          .toList();
+    }
+
+    // Brand Filter
+    if (_brandFilter != null) {
+      filtered = filtered
+          .where(
+            (p) =>
+                p['brand']?['id'] == _brandFilter ||
+                p['brandId'] == _brandFilter,
+          )
+          .toList();
+    }
+
+    // Material Filter
+    if (_materialFilter != null) {
+      filtered = filtered
+          .where(
+            (p) =>
+                p['material']?['id'] == _materialFilter ||
+                p['materialId'] == _materialFilter,
+          )
+          .toList();
+    }
+
+    // Sort
+    filtered.sort((a, b) {
+      if (_sortFilter == 'newest') {
+        final dateA = DateTime.tryParse(a['createdAt'] ?? '') ?? DateTime.now();
+        final dateB = DateTime.tryParse(b['createdAt'] ?? '') ?? DateTime.now();
+        return dateB.compareTo(dateA);
+      } else if (_sortFilter == 'oldest') {
+        final dateA = DateTime.tryParse(a['createdAt'] ?? '') ?? DateTime.now();
+        final dateB = DateTime.tryParse(b['createdAt'] ?? '') ?? DateTime.now();
+        return dateA.compareTo(dateB);
+      } else if (_sortFilter == 'price_asc') {
+        final priceA = num.tryParse(a['price']?.toString() ?? '0') ?? 0;
+        final priceB = num.tryParse(b['price']?.toString() ?? '0') ?? 0;
+        return priceA.compareTo(priceB);
+      } else if (_sortFilter == 'price_desc') {
+        final priceA = num.tryParse(a['price']?.toString() ?? '0') ?? 0;
+        final priceB = num.tryParse(b['price']?.toString() ?? '0') ?? 0;
+        return priceB.compareTo(priceA);
+      } else if (_sortFilter == 'name_asc') {
+        final nameA = (a['name'] ?? '').toString().toLowerCase();
+        final nameB = (b['name'] ?? '').toString().toLowerCase();
+        return nameA.compareTo(nameB);
+      } else if (_sortFilter == 'name_desc') {
+        final nameA = (a['name'] ?? '').toString().toLowerCase();
+        final nameB = (b['name'] ?? '').toString().toLowerCase();
+        return nameB.compareTo(nameA);
+      }
+      return 0;
+    });
+
+    if (mounted) {
+      setState(() {
+        _products = filtered;
+      });
+    }
+  }
+
+  Future<void> _updateProductStatus(String id, String status) async {
+    setState(() => _isLoading = true);
+    try {
+      if (!mounted) return;
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      final body = <String, dynamic>{
+        'action': 'update_status',
+        'ids': [id],
+        'status': status,
+      };
+      await client.post('${ApiConfig.authProductsEndpoint}/bulk', body: body);
+      if (mounted) {
+        _showSnack(
+          'Status updated to ${status.toUpperCase()}',
+          isSuccess: true,
+        );
+        _loadProducts();
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnack('Failed to update status: $e');
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -246,18 +416,35 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                     ],
               bottom: _selectionMode
                   ? null
-                  : TabBar(
-                      controller: _tabController,
-                      indicatorColor: AppColors.accent,
-                      indicatorWeight: 3,
-                      labelColor: AppColors.primaryDark,
-                      unselectedLabelColor: AppColors.textMuted,
-                      labelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
-                      unselectedLabelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
-                      tabs: const [
-                        Tab(text: 'Products'),
-                        Tab(text: 'Storefront'),
-                      ],
+                  : PreferredSize(
+                      preferredSize: const Size.fromHeight(60),
+                      child: Container(
+                        height: 50,
+                        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.cardBorder),
+                        ),
+                        child: TabBar(
+                          controller: _tabController,
+                          indicatorSize: TabBarIndicatorSize.tab,
+                          dividerColor: Colors.transparent,
+                          indicator: BoxDecoration(
+                            color: AppColors.primaryDark,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          labelColor: Colors.white,
+                          unselectedLabelColor: AppColors.textMuted,
+                          labelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+                          unselectedLabelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
+                          tabs: const [
+                            Tab(text: 'Products'),
+                            Tab(text: 'Organize'),
+                          ],
+                        ),
+                      ),
                     ),
             ),
           ];
@@ -329,24 +516,28 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                     ),
                   ),
                   const SizedBox(width: 10),
-                  PopupMenuButton<String>(
-                    onSelected: (v) { _statusFilter = v; _loadProducts(); },
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  GestureDetector(
+                    onTap: _showFilterSortSheet,
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: _statusFilter != 'all' ? AppColors.accent : AppColors.cardBorder),
+                        border: Border.all(
+                          color: _hasActiveFilters
+                              ? AppColors.accent
+                              : AppColors.cardBorder,
+                        ),
                         boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 4))],
                       ),
-                      child: Icon(LucideIcons.slidersHorizontal, size: 18, color: _statusFilter != 'all' ? AppColors.accent : AppColors.textMuted),
+                      child: Icon(
+                        LucideIcons.slidersHorizontal,
+                        size: 18,
+                        color: _hasActiveFilters
+                            ? AppColors.accent
+                            : AppColors.textMuted,
+                      ),
                     ),
-                    itemBuilder: (_) => [
-                      _filterItem('all', 'All Products', AppColors.textMuted),
-                      _filterItem('active', 'Active', AppColors.success),
-                      _filterItem('draft', 'Draft', AppColors.warning),
-                    ],
                   ),
                 ],
               ),
@@ -360,13 +551,31 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Row(
                 children: [
-                  _chip('All', 'all'),
-                  const SizedBox(width: 8),
-                  _chip('Active', 'active'),
-                  const SizedBox(width: 8),
-                  _chip('Draft', 'draft'),
-                  const Spacer(),
-                  Text('${_products.length} items', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _chip('All', 'all'),
+                          const SizedBox(width: 6),
+                          _chip('Active', 'active'),
+                          const SizedBox(width: 6),
+                          _chip('Draft', 'draft'),
+                          const SizedBox(width: 6),
+                          _chip('Archived', 'archived'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '${_products.length} items',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppColors.textMuted,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -400,18 +609,8 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
 
   Widget _buildStorefrontTab() {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 120),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       children: [
-        Text(
-          'Storefront Management',
-          style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.primaryDark),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Organize your catalog taxonomy, brands, and product materials to help customers find what they want.',
-          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary, height: 1.5),
-        ),
-        const SizedBox(height: 24),
         
         _buildStorefrontCard(
           title: 'Categories',
@@ -435,7 +634,7 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
           title: 'Materials',
           subtitle: 'Configure product materials and care instructions',
           icon: LucideIcons.layers,
-          color: const Color(0xFFEC4899),
+          color: const Color(0xFF64748B),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MaterialsScreen())),
         ),
       ],
@@ -493,30 +692,625 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
     );
   }
 
-  PopupMenuItem<String> _filterItem(String value, String label, Color dot) {
-    return PopupMenuItem(
-      value: value,
-      child: Row(children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
-        const SizedBox(width: 10),
-        Text(label, style: GoogleFonts.inter(fontSize: 13, fontWeight: _statusFilter == value ? FontWeight.w700 : FontWeight.w500)),
-      ]),
+  void _showFilterSortSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              ),
+              child: SafeArea(
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+                  ),
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Filter & Sort',
+                            style: GoogleFonts.playfairDisplay(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(LucideIcons.x),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Sort By
+                              Text(
+                                'Sort By',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryDark,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _sortChipSheet(
+                                    'Newest',
+                                    'newest',
+                                    setSheetState,
+                                  ),
+                                  _sortChipSheet(
+                                    'Oldest',
+                                    'oldest',
+                                    setSheetState,
+                                  ),
+                                  _sortChipSheet(
+                                    'Price: Low to High',
+                                    'price_asc',
+                                    setSheetState,
+                                  ),
+                                  _sortChipSheet(
+                                    'Price: High to Low',
+                                    'price_desc',
+                                    setSheetState,
+                                  ),
+                                  _sortChipSheet(
+                                    'Name: A-Z',
+                                    'name_asc',
+                                    setSheetState,
+                                  ),
+                                  _sortChipSheet(
+                                    'Name: Z-A',
+                                    'name_desc',
+                                    setSheetState,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Status
+                              Text(
+                                'Status',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryDark,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _filterChipSheet('All', 'all', setSheetState),
+                                  _filterChipSheet(
+                                    'Active',
+                                    'active',
+                                    setSheetState,
+                                  ),
+                                  _filterChipSheet(
+                                    'Draft',
+                                    'draft',
+                                    setSheetState,
+                                  ),
+                                  _filterChipSheet(
+                                    'Archived',
+                                    'archived',
+                                    setSheetState,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Stock Level
+                              Text(
+                                'Stock Level',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryDark,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _stockChipSheet('All', 'all', setSheetState),
+                                  _stockChipSheet(
+                                    'In Stock',
+                                    'in_stock',
+                                    setSheetState,
+                                  ),
+                                  _stockChipSheet(
+                                    'Low Stock',
+                                    'low_stock',
+                                    setSheetState,
+                                  ),
+                                  _stockChipSheet(
+                                    'Out of Stock',
+                                    'out_of_stock',
+                                    setSheetState,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Category
+                              if (_availableCategories.isNotEmpty) ...[
+                                Text(
+                                  'Category',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: AppColors.cardBorder,
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String?>(
+                                      isExpanded: true,
+                                      value: _categoryFilter,
+                                      hint: Text(
+                                        'All Categories',
+                                        style: GoogleFonts.inter(fontSize: 14),
+                                      ),
+                                      items: [
+                                        DropdownMenuItem(
+                                          value: null,
+                                          child: Text(
+                                            'All Categories',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                        ..._availableCategories.map(
+                                          (c) => DropdownMenuItem(
+                                            value: c['id'],
+                                            child: Text(
+                                              c['name']!,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (v) => setSheetState(
+                                        () => _categoryFilter = v,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+
+                              // Brand
+                              if (_availableBrands.isNotEmpty) ...[
+                                Text(
+                                  'Brand',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: AppColors.cardBorder,
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String?>(
+                                      isExpanded: true,
+                                      value: _brandFilter,
+                                      hint: Text(
+                                        'All Brands',
+                                        style: GoogleFonts.inter(fontSize: 14),
+                                      ),
+                                      items: [
+                                        DropdownMenuItem(
+                                          value: null,
+                                          child: Text(
+                                            'All Brands',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                        ..._availableBrands.map(
+                                          (b) => DropdownMenuItem(
+                                            value: b['id'],
+                                            child: Text(
+                                              b['name']!,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (v) =>
+                                          setSheetState(() => _brandFilter = v),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+
+                              // Material
+                              if (_availableMaterials.isNotEmpty) ...[
+                                Text(
+                                  'Material',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: AppColors.cardBorder,
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String?>(
+                                      isExpanded: true,
+                                      value: _materialFilter,
+                                      hint: Text(
+                                        'All Materials',
+                                        style: GoogleFonts.inter(fontSize: 14),
+                                      ),
+                                      items: [
+                                        DropdownMenuItem(
+                                          value: null,
+                                          child: Text(
+                                            'All Materials',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                        ..._availableMaterials.map(
+                                          (m) => DropdownMenuItem(
+                                            value: m['id'],
+                                            child: Text(
+                                              m['name']!,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (v) => setSheetState(
+                                        () => _materialFilter = v,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setSheetState(() {
+                                  _statusFilter = 'all';
+                                  _sortFilter = 'newest';
+                                  _stockFilter = 'all';
+                                  _categoryFilter = null;
+                                  _brandFilter = null;
+                                  _materialFilter = null;
+                                });
+                              },
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                side: const BorderSide(
+                                  color: AppColors.cardBorder,
+                                ),
+                              ),
+                              child: Text(
+                                'Reset',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                _applyLocalFilters();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryDark,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: Text(
+                                'Apply Filters',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _stockChipSheet(
+    String label,
+    String value,
+    StateSetter setSheetState,
+  ) {
+    final isActive = _stockFilter == value;
+    return GestureDetector(
+      onTap: () => setSheetState(() => _stockFilter = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primaryDark : AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.primaryDark : AppColors.cardBorder,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isActive ? Colors.white : AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _filterChipSheet(
+    String label,
+    String value,
+    StateSetter setSheetState,
+  ) {
+    final isActive = _statusFilter == value;
+    return GestureDetector(
+      onTap: () => setSheetState(() => _statusFilter = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primaryDark : AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.primaryDark : AppColors.cardBorder,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isActive ? Colors.white : AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sortChipSheet(String label, String value, StateSetter setSheetState) {
+    final isActive = _sortFilter == value;
+    return GestureDetector(
+      onTap: () => setSheetState(() => _sortFilter = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.accent : AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.accent : AppColors.cardBorder,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isActive ? Colors.white : AppColors.textSecondary,
+          ),
+        ),
+      ),
     );
   }
 
   Widget _chip(String label, String value) {
     final isActive = _statusFilter == value;
     return GestureDetector(
-      onTap: () { _statusFilter = value; _loadProducts(); },
+      onTap: () {
+        _statusFilter = value;
+        _applyLocalFilters();
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isActive ? AppColors.primaryDark : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: isActive ? AppColors.primaryDark : AppColors.cardBorder),
         ),
         child: Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: isActive ? Colors.white : AppColors.textSecondary)),
+      ),
+    );
+  }
+
+  void _showStatusPicker(Map<String, dynamic> product) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Change Status',
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                title: Text(
+                  'Active',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+                trailing: product['status'] == 'active'
+                    ? const Icon(LucideIcons.check, color: AppColors.success)
+                    : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  if (product['status'] != 'active')
+                    _updateProductStatus(product['id'], 'active');
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: AppColors.warning,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                title: Text(
+                  'Draft',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+                trailing: product['status'] == 'draft'
+                    ? const Icon(LucideIcons.check, color: AppColors.warning)
+                    : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  if (product['status'] != 'draft')
+                    _updateProductStatus(product['id'], 'draft');
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: AppColors.textMuted,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                title: Text(
+                  'Archived',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+                trailing: product['status'] == 'archived'
+                    ? const Icon(LucideIcons.check, color: AppColors.textMuted)
+                    : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  if (product['status'] != 'archived')
+                    _updateProductStatus(product['id'], 'archived');
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -539,7 +1333,7 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
       onTap: () {
         if (_selectionMode) { _toggleSelection(product['id']); return; }
         HapticFeedback.lightImpact();
-        Navigator.push(context, MaterialPageRoute(builder: (_) => AddProductScreen(product: product)))
+        Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailsScreen(product: product)))
             .then((r) { if (r == true) _loadProducts(); });
       },
       child: AnimatedContainer(
@@ -667,16 +1461,40 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
             // ── Status Badge ──
             Positioned(
               top: 10, right: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isActive ? AppColors.primaryDark : AppColors.warning,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 2))],
-                ),
-                child: Text(
-                  isActive ? 'ACTIVE' : 'DRAFT',
-                  style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 1),
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _showStatusPicker(product);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? AppColors.primaryDark
+                        : (product['status'] == 'archived'
+                              ? AppColors.textMuted
+                              : AppColors.warning),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    (product['status'] ?? 'UNKNOWN').toString().toUpperCase(),
+                    style: GoogleFonts.inter(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 1,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -698,35 +1516,7 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                 ),
               ),
 
-            // ── Quick Menu ──
-            if (!_selectionMode)
-              Positioned(
-                top: 6, left: 6,
-                child: PopupMenuButton<String>(
-                  icon: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.85),
-                      shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8)],
-                    ),
-                    child: const Icon(LucideIcons.moreHorizontal, size: 14, color: AppColors.primaryDark),
-                  ),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  onSelected: (v) {
-                    if (v == 'duplicate') {
-                      _duplicateProduct(product);
-                    } else if (v == 'delete') {
-                      _deleteSingle(product['id']);
-                    }
-                  },
-                  itemBuilder: (_) => [
-                    PopupMenuItem(value: 'duplicate', child: Row(children: [Icon(LucideIcons.copy, size: 16, color: AppColors.textSecondary), const SizedBox(width: 10), Text('Duplicate', style: GoogleFonts.inter(fontSize: 13))])),
-                    const PopupMenuDivider(),
-                    PopupMenuItem(value: 'delete', child: Row(children: [const Icon(LucideIcons.trash2, size: 16, color: Colors.red), const SizedBox(width: 10), Text('Delete', style: GoogleFonts.inter(fontSize: 13, color: Colors.red))])),
-                  ],
-                ),
-              ),
+
           ],
         ),
       ),

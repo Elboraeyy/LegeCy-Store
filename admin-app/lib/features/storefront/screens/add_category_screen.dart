@@ -90,10 +90,15 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
 
+      final name = _nameCtrl.text.trim();
+      final slug = _slugCtrl.text.trim().isNotEmpty 
+          ? _slugCtrl.text.trim() 
+          : name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-').replaceAll(RegExp(r'(^-|-$)'), '');
+
       final body = {
-        'name': _nameCtrl.text.trim(),
+        'name': name,
         'nameAr': _nameArCtrl.text.trim().isNotEmpty ? _nameArCtrl.text.trim() : null,
-        'slug': _slugCtrl.text.trim(),
+        'slug': slug,
         'description': _descCtrl.text.trim().isNotEmpty ? _descCtrl.text.trim() : null,
         'descriptionAr': _descArCtrl.text.trim().isNotEmpty ? _descArCtrl.text.trim() : null,
         'sortOrder': int.tryParse(_sortOrderCtrl.text) ?? 0,
@@ -141,95 +146,14 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             // Basic Info
             _buildSectionTitle('Basic Details'),
             _buildCard(
-              child: Column(
-                children: [
-                  Focus(
-                    onFocusChange: (hasFocus) { if (!hasFocus) _generateSlug(); },
-                    child: _buildTextField(
-                      controller: _nameCtrl,
-                      label: 'Name (English)',
-                      icon: LucideIcons.type,
-                      validator: (v) => v!.isEmpty ? 'Name is required' : null,
-                    ),
-                  ),
-                  const Divider(height: 32, color: AppColors.background),
-                  _buildTextField(
-                    controller: _nameArCtrl,
-                    label: 'Name (Arabic)',
-                    icon: LucideIcons.languages,
-                  ),
-                  const Divider(height: 32, color: AppColors.background),
-                  _buildTextField(
-                    controller: _slugCtrl,
-                    label: 'URL Slug',
-                    icon: LucideIcons.link,
-                    hint: 'e.g. smart-tvs',
-                    validator: (v) => v!.isEmpty ? 'Slug is required' : null,
-                  ),
-                ],
+              child: _buildTextField(
+                controller: _nameCtrl,
+                label: 'Name',
+                icon: LucideIcons.type,
+                validator: (v) => v!.isEmpty ? 'Name is required' : null,
               ),
             ),
             const SizedBox(height: 24),
-
-            // Descriptions
-            _buildSectionTitle('Descriptions (Optional)'),
-            _buildCard(
-              child: Column(
-                children: [
-                  _buildTextField(
-                    controller: _descCtrl,
-                    label: 'Description (English)',
-                    icon: LucideIcons.alignLeft,
-                    maxLines: 3,
-                  ),
-                  const Divider(height: 32, color: AppColors.background),
-                  _buildTextField(
-                    controller: _descArCtrl,
-                    label: 'Description (Arabic)',
-                    icon: LucideIcons.alignRight,
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Organization
-            _buildSectionTitle('Organization'),
-            _buildCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Parent Category', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                  const SizedBox(height: 8),
-                  _isLoadingParents
-                      ? const CircularProgressIndicator()
-                      : DropdownButtonFormField<String?>(
-                          initialValue: _selectedParentId,
-                          isExpanded: true,
-                          items: [
-                            const DropdownMenuItem(value: null, child: Text('None (Root Category)')),
-                            ..._parentCategories.map((c) => DropdownMenuItem(value: c['id'] as String, child: Text(c['name'] ?? 'Unknown'))),
-                          ],
-                          onChanged: (v) => setState(() => _selectedParentId = v),
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: AppColors.background,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          ),
-                        ),
-                  const Divider(height: 32, color: AppColors.background),
-                  _buildTextField(
-                    controller: _sortOrderCtrl,
-                    label: 'Sort Order',
-                    icon: LucideIcons.arrowUpDown,
-                    keyboardType: TextInputType.number,
-                    hint: '0',
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 40),
 
             // Save Button
