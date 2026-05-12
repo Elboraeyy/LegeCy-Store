@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import 'package:admin_app/core/theme/app_theme.dart';
+import 'package:admin_app/core/constants/egypt_locations.dart';
 import 'package:admin_app/core/network/api_client.dart';
+import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 
 class DeliveryZonesScreen extends StatefulWidget {
@@ -15,333 +16,229 @@ class DeliveryZonesScreen extends StatefulWidget {
 
 class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
   bool _isLoading = true;
-  bool _isSavingGlobal = false;
+  bool _isSaving = false;
   String? _error;
-  List<dynamic> _zones = [];
 
   bool _enableShipping = true;
   double _freeThreshold = 0;
   double _defaultRate = 50;
   double _expressRate = 100;
+  List<Map<String, dynamic>> _zones = [];
+  final Map<int, _CityAddingState> _cityAddingState = {};
+
+  List<String> get _governorates => egyptLocations.map((g) => g.en).toList();
 
   @override
   void initState() {
     super.initState();
-    _loadAllData();
+    _loadSettings();
   }
 
-  Future<void> _loadAllData() async {
-    setState(() { _isLoading = true; _error = null; });
+  Future<void> _loadSettings() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     try {
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      
-      final zonesData = await client.get('/api/admin/auth/delivery-zones');
-      
+      final client = _client();
       final settingsData = await client.get('/api/admin/auth/settings');
       final configs = settingsData['configs'] as List?;
-      final shippingConfig = configs?.firstWhere((c) => c['key'] == 'shipping_settings', orElse: () => null);
-      
-      if (shippingConfig != null && shippingConfig['value'] != null) {
-        final val = shippingConfig['value'];
-        _enableShipping = val['enableShipping'] ?? true;
-        _freeThreshold = (val['freeShippingThreshold'] ?? 0).toDouble();
-        _defaultRate = (val['defaultShippingRate'] ?? 50).toDouble();
-        _expressRate = (val['expressShippingRate'] ?? 100).toDouble();
-      }
+      final shippingConfig = configs?.cast<dynamic>().firstWhere(
+            (c) => c['key'] == 'shipping_settings',
+            orElse: () => null,
+          );
 
-      if (mounted) {
-        setState(() { 
-          _zones = zonesData['zones'] ?? []; 
-          _isLoading = false; 
-        });
-      }
+      final value = shippingConfig?['value'];
+      _applySettings(value is Map ? Map<String, dynamic>.from(value) : _defaultSettings());
     } catch (e) {
-      if (mounted) {
-        setState(() { _error = e.toString(); _isLoading = false; });
-      }
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _saveGlobalSettings() async {
-    setState(() => _isSavingGlobal = true);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      
-      // Fetch current settings first to preserve other fields (like existing shippingZones in JSON)
-      final settingsData = await client.get('/api/admin/auth/settings');
-      final configs = settingsData['configs'] as List?;
-      final shippingConfig = configs?.firstWhere((c) => c['key'] == 'shipping_settings', orElse: () => null);
-      
-      Map<String, dynamic> existingValue = {};
-      if (shippingConfig != null && shippingConfig['value'] != null) {
-        existingValue = Map<String, dynamic>.from(shippingConfig['value']);
+  ApiClient _client() {
+    final token = context.read<AuthProvider>().token;
+    return ApiClient(token: token);
+  }
+
+  Map<String, dynamic> _defaultSettings() {
+    return {
+      'enableShipping': true,
+      'freeShippingThreshold': 0,
+      'defaultShippingRate': 50,
+      'expressShippingRate': 100,
+      'shippingZones': [
+        {
+          'name': 'Cairo & Giza',
+          'governorates': ['Cairo', 'Giza'],
+          'cities': [],
+          'rate': 40,
+        },
+        {
+          'name': 'Alexandria',
+          'governorates': ['Alexandria'],
+          'cities': [],
+          'rate': 50,
+        },
+        {
+          'name': 'Other Governorates',
+          'governorates': [],
+          'cities': [],
+          'rate': 70,
+        },
+      ],
+    };
+  }
+
+  void _applySettings(Map<String, dynamic> value) {
+    _enableShipping = value['enableShipping'] ?? true;
+    _freeThreshold = _number(value['freeShippingThreshold'], fallback: 0);
+    _defaultRate = _number(value['defaultShippingRate'], fallback: 50);
+    _expressRate = _number(value['expressShippingRate'], fallback: 100);
+    _zones = _normalizeZones(value['shippingZones']);
+    _cityAddingState.clear();
+  }
+
+  List<Map<String, dynamic>> _normalizeZones(dynamic rawZones) {
+    final source = rawZones is List ? rawZones : _defaultSettings()['shippingZones'] as List;
+
+    return source.map<Map<String, dynamic>>((raw) {
+      final zone = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+      return {
+        'name': (zone['name'] ?? 'New Zone').toString(),
+        'governorates': _stringList(zone['governorates']),
+        'cities': _normalizeCities(zone['cities'], zoneRate: _number(zone['rate'], fallback: 50)),
+        'rate': _number(zone['rate'], fallback: 50),
+      };
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _normalizeCities(dynamic rawCities, {required double zoneRate}) {
+    if (rawCities is! List) return [];
+
+    return rawCities.map<Map<String, dynamic>>((raw) {
+      if (raw is Map) {
+        final city = Map<String, dynamic>.from(raw);
+        return {
+          'governorate': (city['governorate'] ?? '').toString(),
+          'city': (city['city'] ?? '').toString(),
+          'rate': _number(city['rate'], fallback: zoneRate),
+        };
       }
 
-      final newValue = {
-        ...existingValue,
-        'enableShipping': _enableShipping,
-        'freeShippingThreshold': _freeThreshold,
-        'defaultShippingRate': _defaultRate,
-        'expressShippingRate': _expressRate,
+      return {
+        'governorate': '',
+        'city': raw.toString(),
+        'rate': zoneRate,
       };
+    }).where((city) => (city['city'] as String).isNotEmpty).toList();
+  }
 
-      await client.put('/api/admin/auth/settings', body: {
+  List<String> _stringList(dynamic value) {
+    if (value is! List) return [];
+    return value.map((item) => item.toString()).where((item) => item.isNotEmpty).toList();
+  }
+
+  double _number(dynamic value, {required double fallback}) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  Future<void> _saveSettings() async {
+    setState(() => _isSaving = true);
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      await _client().put('/api/admin/auth/settings', body: {
         'key': 'shipping_settings',
-        'value': newValue,
-        'description': 'Global shipping configuration'
+        'value': _settingsPayload(),
+        'description': 'Shipping rates and delivery zones',
       });
 
-      if (mounted) messenger.showSnackBar(const SnackBar(content: Text('Global settings saved'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
-    } catch (e) {
-      if (mounted) messenger.showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
-    } finally {
-      if (mounted) setState(() => _isSavingGlobal = false);
-    }
-  }
-
-  Future<void> _loadZones() async {
-    try {
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      final data = await client.get('/api/admin/auth/delivery-zones');
-      if (mounted) setState(() { _zones = data['zones'] ?? []; });
-    } catch (e) {
-      debugPrint('Load zones error: $e');
-    }
-  }
-
-  Future<void> _deleteZone(String id) async {
-    final ok = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
-      backgroundColor: Colors.white, surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text('Delete Zone', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-      content: Text('This zone will be permanently removed.', style: GoogleFonts.inter(color: AppColors.textSecondary)),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted))),
-        ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0), child: const Text('Delete')),
-      ],
-    ));
-    if (ok != true) return;
-    if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      await client.delete('/api/admin/auth/delivery-zones/$id');
       if (!mounted) return;
-      messenger.showSnackBar(const SnackBar(content: Text('Zone deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
-      _loadZones();
-    } catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
-    }
-  }
-
-  Future<void> _toggleZone(String id, bool current) async {
-    try {
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      await client.put('/api/admin/auth/delivery-zones/$id', body: {'isActive': !current});
-      _loadZones();
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
-    }
-  }
-
-  void _showAddEditDialog({Map<String, dynamic>? zone}) {
-    final nameCtrl = TextEditingController(text: zone?['name'] ?? '');
-    final rateCtrl = TextEditingController(text: zone?['baseRate']?.toString() ?? '50');
-    final returnRateCtrl = TextEditingController(text: zone?['returnRate']?.toString() ?? '0');
-    final daysCtrl = TextEditingController(text: zone?['avgDeliveryDays']?.toString() ?? '3');
-    final notesCtrl = TextEditingController(text: zone?['notes'] ?? '');
-    
-    List<String> selectedGovs = List<String>.from(zone?['governorates'] ?? []);
-    List<String> selectedCities = List<String>.from(zone?['cities'] ?? []);
-    String riskLevel = zone?['riskLevel'] ?? 'normal';
-
-    final List<String> allGovernorates = [
-      'Cairo', 'Giza', 'Alexandria', 'Al Beheira', 'Al Daqahliya', 'Al Fayoum',
-      'Al Gharbia', 'Al Meniya', 'Al Monufia', 'Al Sharqia', 'Aswan', 'Asyut',
-      'Bani Souaif', 'Damietta', 'Ismailia', 'Kafr El Sheikh', 'Luxor', 'Matrooh',
-      'New Valley', 'Port Said', 'Qalyubia', 'Qena', 'Red Sea', 'Sohag', 'Suez',
-      'North Sinai', 'South Sinai'
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(builder: (ctx, setModalState) {
-        return Container(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
-          decoration: const BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.textMuted.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(2)))),
-                const SizedBox(height: 16),
-                Text(zone != null ? 'Edit Zone' : 'New Delivery Zone', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                const SizedBox(height: 20),
-                _modalField('Zone Name', nameCtrl, LucideIcons.mapPin),
-                const SizedBox(height: 20),
-                
-                Text('Governorates', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8, runSpacing: 8,
-                  children: allGovernorates.map((gov) {
-                    final isSelected = selectedGovs.contains(gov);
-                    return ChoiceChip(
-                      label: Text(gov, style: GoogleFonts.inter(fontSize: 12, color: isSelected ? Colors.white : AppColors.textPrimary)),
-                      selected: isSelected,
-                      selectedColor: AppColors.primaryDark,
-                      backgroundColor: AppColors.background,
-                      onSelected: (v) => setModalState(() {
-                        if (v) {
-                          selectedGovs.add(gov);
-                        } else {
-                          selectedGovs.remove(gov);
-                        }
-                      }),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? AppColors.primaryDark : AppColors.cardBorder)),
-                      showCheckmark: false,
-                    );
-                  }).toList(),
-                ),
-                
-                const SizedBox(height: 20),
-                Text('Specific Cities', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                const SizedBox(height: 8),
-                TextField(
-                  onSubmitted: (v) {
-                    if (v.trim().isEmpty) return;
-                    setModalState(() { selectedCities.add(v.trim()); });
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Add city and press Enter',
-                    prefixIcon: const Icon(LucideIcons.plusCircle, size: 18),
-                    filled: true, fillColor: AppColors.background,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8, runSpacing: 8,
-                  children: selectedCities.map((city) => Chip(
-                    label: Text(city, style: GoogleFonts.inter(fontSize: 12)),
-                    onDeleted: () => setModalState(() => selectedCities.remove(city)),
-                    backgroundColor: AppColors.background,
-                    deleteIcon: const Icon(LucideIcons.x, size: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: AppColors.cardBorder)),
-                  )).toList(),
-                ),
-
-                const SizedBox(height: 20),
-                Row(children: [
-                  Expanded(child: _modalField('Shipping Fee', rateCtrl, LucideIcons.coins, isNumber: true)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _modalField('Return Fee', returnRateCtrl, LucideIcons.undo, isNumber: true)),
-                ]),
-                const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(child: _modalField('Delivery Days', daysCtrl, LucideIcons.clock, isNumber: true)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Risk Level', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          initialValue: riskLevel,
-                          items: ['normal', 'medium', 'high'].map((r) => DropdownMenuItem(value: r, child: Text(r.toUpperCase()))).toList(),
-                          onChanged: (v) => setModalState(() => riskLevel = v!),
-                          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
-                          decoration: InputDecoration(filled: true, fillColor: AppColors.background, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ]),
-                const SizedBox(height: 12),
-                _modalField('Notes (Internal)', notesCtrl, LucideIcons.stickyNote),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity, height: 50,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (nameCtrl.text.isEmpty) return;
-                      final body = {
-                        'name': nameCtrl.text.trim(),
-                        'governorates': selectedGovs,
-                        'cities': selectedCities,
-                        'baseRate': double.tryParse(rateCtrl.text) ?? 50,
-                        'returnRate': double.tryParse(returnRateCtrl.text) ?? 0,
-                        'avgDeliveryDays': int.tryParse(daysCtrl.text) ?? 3,
-                        'riskLevel': riskLevel,
-                        'notes': notesCtrl.text.trim(),
-                      };
-                      final messenger = ScaffoldMessenger.of(context);
-                      try {
-                        final token = context.read<AuthProvider>().token;
-                        final client = ApiClient(token: token);
-                        if (zone != null) {
-                          await client.put('/api/admin/auth/delivery-zones/${zone['id']}', body: body);
-                        } else {
-                          await client.post('/api/admin/auth/delivery-zones', body: body);
-                        }
-                        if (!context.mounted) return;
-                        Navigator.pop(ctx);
-                        _loadZones();
-                      } catch (e) {
-                        if (!context.mounted) return;
-                        messenger.showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
-                    child: Text(zone != null ? 'Save Changes' : 'Create Zone', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
-  Widget _modalField(String label, TextEditingController ctrl, IconData icon, {bool isNumber = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-        const SizedBox(height: 8),
-        TextField(
-          controller: ctrl,
-          keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-          style: GoogleFonts.inter(fontSize: 14),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, size: 18, color: AppColors.textMuted),
-            filled: true, fillColor: AppColors.background,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Shipping settings saved'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
         ),
-      ],
+      );
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Map<String, dynamic> _settingsPayload() {
+    return {
+      'enableShipping': _enableShipping,
+      'freeShippingThreshold': _freeThreshold,
+      'defaultShippingRate': _defaultRate,
+      'expressShippingRate': _expressRate,
+      'shippingZones': _zones.map((zone) {
+        return {
+          'name': zone['name'],
+          'governorates': List<String>.from(zone['governorates'] as List),
+          'cities': (zone['cities'] as List).map((city) {
+            final cityMap = Map<String, dynamic>.from(city as Map);
+            return {
+              'governorate': cityMap['governorate'],
+              'city': cityMap['city'],
+              'rate': _number(cityMap['rate'], fallback: _number(zone['rate'], fallback: 50)),
+            };
+          }).toList(),
+          'rate': _number(zone['rate'], fallback: 50),
+        };
+      }).toList(),
+    };
+  }
+
+  void _resetDefaults() {
+    setState(() => _applySettings(_defaultSettings()));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Defaults loaded. Tap Save Changes to apply.'),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
-  Color _riskColor(String risk) {
-    switch (risk) {
-      case 'high': return AppColors.error;
-      case 'medium': return AppColors.warning;
-      default: return AppColors.success;
-    }
+  void _addZone() {
+    setState(() {
+      _zones.add({
+        'name': 'New Zone',
+        'governorates': <String>[],
+        'cities': <Map<String, dynamic>>[],
+        'rate': 50,
+      });
+    });
+  }
+
+  void _removeZone(int index) {
+    if (_zones.length <= 1) return;
+    setState(() {
+      _zones.removeAt(index);
+      _cityAddingState.remove(index);
+    });
+  }
+
+  List<City> _citiesForGovernorate(String governorate) {
+    return egyptLocations
+        .firstWhere(
+          (location) => location.en == governorate,
+          orElse: () => Governorate(en: governorate, ar: '', cities: []),
+        )
+        .cities;
   }
 
   @override
@@ -349,231 +246,485 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Shipping & Zones', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-        backgroundColor: AppColors.surface, surfaceTintColor: Colors.transparent, elevation: 0,
-        leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
+        title: Text(
+          'Shipping & Zones',
+          style: GoogleFonts.playfairDisplay(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primaryDark,
+          ),
+        ),
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
           : _error != null
-              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error), const SizedBox(height: 16), ElevatedButton(onPressed: _loadAllData, child: const Text('Retry'))]))
+              ? _buildErrorState()
               : RefreshIndicator(
-                  onRefresh: _loadAllData,
+                  onRefresh: _loadSettings,
                   color: AppColors.primaryDark,
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                     children: [
-                      _buildGlobalSettingsCard(),
-                      const SizedBox(height: 32),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Delivery Zones', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                          TextButton.icon(
-                            onPressed: _showAddEditDialog,
-                            icon: const Icon(LucideIcons.plus, size: 18),
-                            label: const Text('Add Zone'),
-                            style: TextButton.styleFrom(foregroundColor: const Color(0xFF0EA5E9)),
-                          ),
-                        ],
-                      ),
+                      _buildShippingStatusCard(),
+                      const SizedBox(height: 16),
+                      _buildRatesCard(),
+                      const SizedBox(height: 24),
+                      _buildZonesHeader(),
                       const SizedBox(height: 12),
-                      if (_zones.isEmpty)
-                        Center(child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 40),
-                          child: Column(children: [
-                            const Icon(LucideIcons.map, size: 48, color: AppColors.textMuted),
-                            const SizedBox(height: 12),
-                            Text('No custom zones yet.', style: GoogleFonts.inter(color: AppColors.textMuted)),
-                          ]),
-                        ))
-                      else
-                        ..._zones.map((zone) => _buildZoneCard(zone)),
+                      ..._zones.asMap().entries.map((entry) => _buildZoneCard(entry.key)),
+                      const SizedBox(height: 20),
+                      _buildActions(),
                     ],
                   ),
                 ),
     );
   }
 
-  Widget _buildGlobalSettingsCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error),
+          const SizedBox(height: 16),
+          Text('Could not load shipping settings', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Text(
+              _error ?? '',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: _loadSettings, child: const Text('Retry')),
+        ],
       ),
+    );
+  }
+
+  Widget _buildShippingStatusCard() {
+    return _sectionCard(
+      child: Row(
+        children: [
+          _iconBox(LucideIcons.truck),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Shipping Status', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                const SizedBox(height: 2),
+                Text('Calculate shipping costs at checkout', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: _enableShipping,
+            activeThumbColor: AppColors.success,
+            onChanged: (value) => setState(() => _enableShipping = value),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatesCard() {
+    return _sectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Global Shipping', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-              Switch.adaptive(
-                value: _enableShipping,
-                activeThumbColor: AppColors.success,
-                onChanged: (v) => setState(() => _enableShipping = v),
-              ),
+              _iconBox(LucideIcons.coins),
+              const SizedBox(width: 12),
+              Text('Default Rates', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           Row(
             children: [
-              Expanded(child: _globalField('Default Rate', _defaultRate.toString(), (v) => _defaultRate = double.tryParse(v) ?? _defaultRate)),
+              Expanded(child: _numberField('Default Rate', _defaultRate, (value) => _defaultRate = value)),
               const SizedBox(width: 12),
-              Expanded(child: _globalField('Express Rate', _expressRate.toString(), (v) => _expressRate = double.tryParse(v) ?? _expressRate)),
+              Expanded(child: _numberField('Express Rate', _expressRate, (value) => _expressRate = value)),
             ],
           ),
           const SizedBox(height: 12),
-          _globalField('Free Shipping Above (0 = disabled)', _freeThreshold.toString(), (v) => _freeThreshold = double.tryParse(v) ?? _freeThreshold),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _isSavingGlobal ? null : _saveGlobalSettings,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryDark,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
-              ),
-              child: _isSavingGlobal 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('Save Global Settings'),
-            ),
-          ),
+          _numberField('Free Shipping Above (0 = disabled)', _freeThreshold, (value) => _freeThreshold = value),
         ],
       ),
     );
   }
 
-  Widget _globalField(String label, String value, Function(String) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildZonesHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-        const SizedBox(height: 6),
-        TextField(
-          controller: TextEditingController(text: value)..selection = TextSelection.collapsed(offset: value.length),
-          keyboardType: TextInputType.number,
-          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            filled: true, fillColor: AppColors.background,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            prefixText: 'EGP ', prefixStyle: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted),
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Shipping Zones', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+            Text('${_zones.length} zones from website settings', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+          ],
+        ),
+        TextButton.icon(
+          onPressed: _addZone,
+          icon: const Icon(LucideIcons.plus, size: 18),
+          label: const Text('Add Zone'),
+          style: TextButton.styleFrom(foregroundColor: const Color(0xFF0EA5E9)),
         ),
       ],
     );
   }
 
-  Widget _buildZoneCard(dynamic zone) {
-    final isActive = zone['isActive'] == true;
-    final govs = (zone['governorates'] as List?) ?? [];
-    final cities = (zone['cities'] as List?) ?? [];
-    final risk = zone['riskLevel'] ?? 'normal';
-    final notes = zone['notes'] as String?;
+  Widget _buildZoneCard(int index) {
+    final zone = _zones[index];
+    final governorates = List<String>.from(zone['governorates'] as List);
+    final cities = List<Map<String, dynamic>>.from(zone['cities'] as List);
+    final addingState = _cityAddingState.putIfAbsent(
+      index,
+      () => _CityAddingState(rate: _number(zone['rate'], fallback: 50)),
+    );
+    final availableCities = addingState.governorate == null ? <City>[] : _citiesForGovernorate(addingState.governorate!);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isActive ? AppColors.cardBorder : AppColors.warning.withValues(alpha: 0.3)),
-        boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
+    return _sectionCard(
+      margin: const EdgeInsets.only(bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: const Color(0xFF0EA5E9).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                child: const Icon(LucideIcons.mapPin, color: Color(0xFF0EA5E9), size: 20),
+              _iconBox(LucideIcons.mapPin),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Zone ${index + 1}',
+                  style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                ),
+              ),
+              if (_zones.length > 1)
+                IconButton(
+                  tooltip: 'Remove zone',
+                  onPressed: () => _removeZone(index),
+                  icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.error),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: _textField(
+                  label: 'Zone Name',
+                  value: zone['name'].toString(),
+                  onChanged: (value) => zone['name'] = value,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      Text(zone['name'] ?? '', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                      const SizedBox(width: 8),
-                      if (!isActive) Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: AppColors.warning.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)), child: Text('INACTIVE', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.warning))),
-                    ]),
-                    if (govs.isNotEmpty) Text(govs.join(', '), style: GoogleFonts.inter(fontSize: 12, color: AppColors.primaryDark, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    if (cities.isNotEmpty) Text(cities.join(', '), style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  ],
+                flex: 2,
+                child: _numberField(
+                  'Rate',
+                  _number(zone['rate'], fallback: 50),
+                  (value) => zone['rate'] = value,
                 ),
               ),
-              PopupMenuButton<String>(
-                icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                onSelected: (v) {
-                  if (v == 'edit') {
-                    _showAddEditDialog(zone: zone);
-                  } else if (v == 'toggle') {
-                    _toggleZone(zone['id'], isActive);
-                  } else if (v == 'delete') {
-                    _deleteZone(zone['id']);
-                  }
-                },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Row(children: [Icon(LucideIcons.edit, size: 16), SizedBox(width: 10), Text('Edit')])),
-                  PopupMenuItem(value: 'toggle', child: Row(children: [Icon(isActive ? LucideIcons.ban : LucideIcons.checkCircle2, size: 16), const SizedBox(width: 10), Text(isActive ? 'Deactivate' : 'Activate')])),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(value: 'delete', child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
-                ],
-              ),
             ],
           ),
-          if (notes != null && notes.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(8),
-              width: double.infinity,
-              decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8)),
-              child: Text(notes, style: GoogleFonts.inter(fontSize: 11, fontStyle: FontStyle.italic, color: AppColors.textSecondary)),
+          const SizedBox(height: 18),
+          Text(
+            'Governorates (${governorates.length} selected)',
+            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            constraints: const BoxConstraints(maxHeight: 160),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.cardBorder),
             ),
-          ],
-          const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, color: AppColors.cardBorder)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildZoneStat('Shipping', 'EGP ${zone['baseRate']}', LucideIcons.coins),
-              _buildZoneStat('Return', 'EGP ${zone['returnRate']}', LucideIcons.undo),
-              _buildZoneStat('Days', '${zone['avgDeliveryDays']}d', LucideIcons.clock),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: _riskColor(risk).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                child: Text(risk.toUpperCase(), style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: _riskColor(risk))),
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _governorates.map((gov) {
+                  final selected = governorates.contains(gov);
+                  return ChoiceChip(
+                    label: Text(gov, style: GoogleFonts.inter(fontSize: 12, color: selected ? Colors.white : AppColors.textPrimary)),
+                    selected: selected,
+                    selectedColor: AppColors.primaryDark,
+                    backgroundColor: AppColors.surface,
+                    showCheckmark: false,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(color: selected ? AppColors.primaryDark : AppColors.cardBorder),
+                    ),
+                    onSelected: (value) {
+                      setState(() {
+                        if (value) {
+                          governorates.add(gov);
+                        } else {
+                          governorates.remove(gov);
+                        }
+                        zone['governorates'] = governorates;
+                      });
+                    },
+                  );
+                }).toList(),
               ),
-            ],
+            ),
           ),
+          const SizedBox(height: 22),
+          Text(
+            'Specific City Exceptions (${cities.length})',
+            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          _buildCityExceptionInputs(index, zone, addingState, availableCities),
+          const SizedBox(height: 12),
+          if (cities.isEmpty)
+            Text('No specific city exceptions in this zone.', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted, fontStyle: FontStyle.italic))
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: cities.asMap().entries.map((entry) {
+                final city = entry.value;
+                return Chip(
+                  label: Text(
+                    '${city['city']} (${city['governorate']}) - ${_formatMoney(_number(city['rate'], fallback: 0))}',
+                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                  deleteIcon: const Icon(LucideIcons.x, size: 14),
+                  onDeleted: () {
+                    setState(() => (zone['cities'] as List).removeAt(entry.key));
+                  },
+                  backgroundColor: AppColors.background,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.cardBorder)),
+                );
+              }).toList(),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildZoneStat(String label, String value, IconData icon) {
-    return Row(
+  Widget _buildCityExceptionInputs(int index, Map<String, dynamic> zone, _CityAddingState addingState, List<City> availableCities) {
+    return Column(
       children: [
-        Icon(icon, size: 14, color: AppColors.textMuted),
-        const SizedBox(width: 4),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        DropdownButtonFormField<String>(
+          initialValue: addingState.governorate,
+          isExpanded: true,
+          items: _governorates.map((gov) => DropdownMenuItem(value: gov, child: Text(gov))).toList(),
+          onChanged: (value) {
+            setState(() {
+              addingState.governorate = value;
+              addingState.city = null;
+              addingState.rate = _number(zone['rate'], fallback: 50);
+            });
+          },
+          decoration: _inputDecoration('Select Governorate', LucideIcons.map),
+        ),
+        const SizedBox(height: 10),
+        DropdownButtonFormField<String>(
+          initialValue: addingState.city,
+          isExpanded: true,
+          items: availableCities.map((city) => DropdownMenuItem(value: city.en, child: Text(city.en))).toList(),
+          onChanged: addingState.governorate == null ? null : (value) => setState(() => addingState.city = value),
+          decoration: _inputDecoration('Select City', LucideIcons.building2),
+        ),
+        const SizedBox(height: 10),
+        Row(
           children: [
-            Text(value, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-            Text(label, style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted)),
+            Expanded(
+              child: _numberField(
+                'City Rate',
+                addingState.rate,
+                (value) => addingState.rate = value,
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: addingState.city == null ? null : () => _addCityException(index, zone, addingState),
+                icon: const Icon(LucideIcons.plus, size: 16),
+                label: const Text('Add'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryDark,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
           ],
         ),
       ],
     );
   }
+
+  void _addCityException(int index, Map<String, dynamic> zone, _CityAddingState addingState) {
+    final governorate = addingState.governorate;
+    final city = addingState.city;
+    if (governorate == null || city == null) return;
+
+    final cities = List<Map<String, dynamic>>.from(zone['cities'] as List);
+    final exists = cities.any((entry) => entry['governorate'] == governorate && entry['city'] == city);
+    if (exists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This city is already in this zone'), backgroundColor: AppColors.error),
+      );
+      return;
+    }
+
+    setState(() {
+      cities.add({'governorate': governorate, 'city': city, 'rate': addingState.rate});
+      zone['cities'] = cities;
+      _cityAddingState[index] = _CityAddingState(governorate: governorate, rate: addingState.rate);
+    });
+  }
+
+  Widget _buildActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _resetDefaults,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primaryDark,
+              side: const BorderSide(color: AppColors.cardBorder),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            child: const Text('Reset Default'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: _isSaving ? null : _saveSettings,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryDark,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            child: _isSaving
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text('Save Changes'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _sectionCard({required Widget child, EdgeInsetsGeometry? margin}) {
+    return Container(
+      margin: margin,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryDark.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _iconBox(IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, color: const Color(0xFF0EA5E9), size: 20),
+    );
+  }
+
+  Widget _numberField(String label, double value, ValueChanged<double> onChanged) {
+    final text = value % 1 == 0 ? value.toInt().toString() : value.toString();
+    return _textField(
+      label: label,
+      value: text,
+      keyboardType: TextInputType.number,
+      prefixText: 'EGP ',
+      onChanged: (raw) => onChanged(double.tryParse(raw) ?? value),
+    );
+  }
+
+  Widget _textField({
+    required String label,
+    required String value,
+    required ValueChanged<String> onChanged,
+    TextInputType keyboardType = TextInputType.text,
+    String? prefixText,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+        const SizedBox(height: 6),
+        TextFormField(
+          key: ValueKey('$label-$value'),
+          initialValue: value,
+          keyboardType: keyboardType,
+          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.background,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            prefixText: prefixText,
+            prefixStyle: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted),
+          ),
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, size: 18, color: AppColors.textMuted),
+      filled: true,
+      fillColor: AppColors.background,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+    );
+  }
+
+  String _formatMoney(double value) {
+    final amount = value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(2);
+    return 'EGP $amount';
+  }
+}
+
+class _CityAddingState {
+  String? governorate;
+  String? city;
+  double rate;
+
+  _CityAddingState({this.governorate, required this.rate});
 }
