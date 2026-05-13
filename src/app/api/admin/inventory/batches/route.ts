@@ -41,7 +41,7 @@ export async function POST(req: Request) {
         const unitCost = keepOldCost ? (variant.costPrice || 0) : newCost;
         const sellPrice = keepOldSellPrice ? variant.price : newSellPrice;
         
-        const specs = variant.product.specs as any || {};
+        const specs = (variant.product.specs as Record<string, unknown> & { additionalCosts?: number }) || {};
         const expenses = keepOldExpenses ? (specs.additionalCosts || 0) : newExpenses;
 
         // Execute Transaction
@@ -177,11 +177,14 @@ export async function POST(req: Request) {
                 }
 
                 if (!keepOldExpenses) {
-                    const existingSpecs = (await tx.product.findUnique({ where: { id: productId } }))?.specs as any || {};
-                    existingSpecs.additionalCosts = Number(expenses);
+                    const rawSpecs = (await tx.product.findUnique({ where: { id: productId } }))?.specs;
+                    const updatedSpecs = typeof rawSpecs === 'object' && rawSpecs !== null 
+                        ? { ...rawSpecs, additionalCosts: Number(expenses) }
+                        : { additionalCosts: Number(expenses) };
+                        
                     await tx.product.update({
                         where: { id: productId },
-                        data: { specs: existingSpecs }
+                        data: { specs: updatedSpecs }
                     });
                 }
                 
