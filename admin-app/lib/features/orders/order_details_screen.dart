@@ -19,6 +19,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:arabic_reshaper/arabic_reshaper.dart';
 import 'package:gal/gal.dart';
+import '../../core/widgets/app_shimmer.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final String orderId;
@@ -108,11 +109,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          _order != null ? '#${_order!['orderNumber']}' : 'Order Details',
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: Text(
+            _order != null ? '#${_order!['orderNumber']}' : 'Order Details',
           style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700),
         ),
         backgroundColor: AppColors.background,
@@ -139,7 +142,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? _buildOrderDetailSkeleton()
           : _order == null
               ? Center(child: Text('Order not found', style: GoogleFonts.inter(color: AppColors.textMuted)))
               : RefreshIndicator(
@@ -173,6 +176,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             child: _buildFinancialCard(),
           ),
         ),
+      ),
       ),
     );
   }
@@ -485,6 +489,193 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               Text('${total.toStringAsFixed(0)} EGP', style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.accent)),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderDetailSkeleton() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status card skeleton
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Row(
+              children: [
+                const AppShimmer(width: 52, height: 52, borderRadius: 16),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      AppShimmer(width: 90, height: 12),
+                      SizedBox(height: 8),
+                      AppShimmer(width: 140, height: 22),
+                    ],
+                  ),
+                ),
+                const AppShimmer(width: 40, height: 40, borderRadius: 12),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Customer card skeleton
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: const [
+                    AppShimmer(width: 18, height: 18, borderRadius: 4),
+                    SizedBox(width: 8),
+                    AppShimmer(width: 110, height: 14),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                for (int i = 0; i < 4; i++) ...[
+                  Row(
+                    children: [
+                      const AppShimmer(width: 14, height: 14, borderRadius: 4),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppShimmer(width: 60, height: 10),
+                            const SizedBox(height: 4),
+                            AppShimmer(width: i == 3 ? 200.0 : 140.0, height: 14),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Order info card skeleton
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: const [
+                    AppShimmer(width: 18, height: 18, borderRadius: 4),
+                    SizedBox(width: 8),
+                    AppShimmer(width: 120, height: 14),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                for (int i = 0; i < 2; i++) ...[
+                  Row(
+                    children: const [
+                      AppShimmer(width: 14, height: 14, borderRadius: 4),
+                      SizedBox(width: 12),
+                      AppShimmer(width: 100, height: 14),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Items card skeleton
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: const [
+                        AppShimmer(width: 18, height: 18, borderRadius: 4),
+                        SizedBox(width: 8),
+                        AppShimmer(width: 90, height: 14),
+                      ],
+                    ),
+                    const AppShimmer(width: 50, height: 12),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                for (int i = 0; i < 3; i++) ...[
+                  Row(
+                    children: [
+                      const AppShimmer(width: 50, height: 50, borderRadius: 12),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            AppShimmer(width: 120, height: 14),
+                            SizedBox(height: 4),
+                            AppShimmer(width: 70, height: 11),
+                          ],
+                        ),
+                      ),
+                      const AppShimmer(width: 60, height: 14),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Quick actions skeleton
+          Row(
+            children: [
+              for (int i = 0; i < 3; i++) ...[
+                if (i > 0) const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      children: const [
+                        AppShimmer(width: 24, height: 24, borderRadius: 6),
+                        SizedBox(height: 8),
+                        AppShimmer(width: 50, height: 12),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 32),
         ],
       ),
     );

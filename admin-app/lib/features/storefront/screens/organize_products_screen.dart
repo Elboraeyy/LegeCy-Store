@@ -8,6 +8,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/config/api_config.dart';
+import '../../../core/widgets/app_shimmer.dart';
 
 enum OrganizeType { category, brand, material }
 
@@ -321,8 +322,37 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
           ),
         ],
         body: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: AppColors.primaryDark),
+            ? ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                itemCount: 6,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const AppShimmer(width: 56, height: 56, borderRadius: 12),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              AppShimmer(width: 140, height: 14),
+                              SizedBox(height: 6),
+                              AppShimmer(width: 80, height: 12),
+                            ],
+                          ),
+                        ),
+                        const AppShimmer(width: 20, height: 20, borderRadius: 4),
+                      ],
+                    ),
+                  ),
+                ),
               )
             : _error != null
             ? Center(

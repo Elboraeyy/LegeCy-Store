@@ -21,10 +21,25 @@ export async function GET(request: NextRequest) {
       status: "active",
     };
 
+    let useCustomOrder = false;
+    let customSortField: string | null = null;
+
     // Category filter
     if (category) {
       const categorySlugs = category.split(",").filter(Boolean);
-      if (categorySlugs.length > 0) {
+      if (categorySlugs.length === 1) {
+        const cat = await prisma.category.findUnique({
+          where: { slug: categorySlugs[0] },
+          select: { id: true, useCustomOrder: true },
+        });
+        if (cat) {
+          where.categoryId = cat.id;
+          if (cat.useCustomOrder) {
+            useCustomOrder = true;
+            customSortField = "sortInCategory";
+          }
+        }
+      } else if (categorySlugs.length > 1) {
         const categories = await prisma.category.findMany({
           where: { slug: { in: categorySlugs } },
           select: { id: true },
@@ -36,7 +51,19 @@ export async function GET(request: NextRequest) {
     // Brand filter
     if (brands) {
       const brandIds = brands.split(",").filter(Boolean);
-      if (brandIds.length > 0) {
+      if (brandIds.length === 1) {
+        const brand = await prisma.brand.findUnique({
+          where: { id: brandIds[0] },
+          select: { id: true, useCustomOrder: true },
+        });
+        if (brand) {
+          where.brandId = brand.id;
+          if (brand.useCustomOrder && !useCustomOrder) {
+            useCustomOrder = true;
+            customSortField = "sortInBrand";
+          }
+        }
+      } else if (brandIds.length > 1) {
         where.brandId = { in: brandIds };
       }
     }
@@ -44,7 +71,19 @@ export async function GET(request: NextRequest) {
     // Material filter
     if (materials) {
       const materialIds = materials.split(",").filter(Boolean);
-      if (materialIds.length > 0) {
+      if (materialIds.length === 1) {
+        const material = await prisma.material.findUnique({
+          where: { id: materialIds[0] },
+          select: { id: true, useCustomOrder: true },
+        });
+        if (material) {
+          where.materialId = material.id;
+          if (material.useCustomOrder && !useCustomOrder) {
+            useCustomOrder = true;
+            customSortField = "sortInMaterial";
+          }
+        }
+      } else if (materialIds.length > 1) {
         where.materialId = { in: materialIds };
       }
     }
@@ -62,10 +101,17 @@ export async function GET(request: NextRequest) {
       where.compareAtPrice = { not: null };
     }
 
+    // Determine order
+    const orderBy: any[] = [];
+    if (useCustomOrder && customSortField) {
+      orderBy.push({ [customSortField]: "asc" });
+    }
+    orderBy.push({ createdAt: "desc" });
+
     // Fetch products with variants for price
     const products = await prisma.product.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       include: {
         variants: {
           take: 1,

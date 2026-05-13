@@ -10,6 +10,7 @@ import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/config/api_config.dart';
 import 'package:intl/intl.dart';
+import '../../core/widgets/app_shimmer.dart';
 
 class AddBatchScreen extends StatefulWidget {
   final Map<String, dynamic>? initialProduct;
@@ -190,9 +191,11 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
@@ -218,8 +221,33 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
         ),
       ),
       body: _isLoadingData
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryDark),
+          ? SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const AppShimmer(width: 48, height: 48, shape: BoxShape.circle),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            AppShimmer(width: 150, height: 20),
+                            SizedBox(height: 8),
+                            AppShimmer(width: 250, height: 14),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  const AppShimmer(width: 120, height: 16),
+                  const SizedBox(height: 8),
+                  const AppShimmer(width: double.infinity, height: 56, borderRadius: 16),
+                ],
+              ),
             )
           : Column(
               children: [
@@ -233,6 +261,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                 _buildBottomBar(),
               ],
             ),
+      ),
     );
   }
 
@@ -550,7 +579,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
           ),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
@@ -559,18 +588,48 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
-                hint: Text(
-                  'Select Supplier',
-                  style: GoogleFonts.inter(color: AppColors.textMuted),
+                icon: const Icon(LucideIcons.chevronDown, color: AppColors.textMuted, size: 20),
+                dropdownColor: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                elevation: 4,
+                hint: Row(
+                  children: [
+                    const Icon(LucideIcons.user, color: AppColors.textMuted, size: 20),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Select Supplier',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
                 ),
                 value: _selectedSupplierId,
                 items: _suppliers
                     .map<DropdownMenuItem<String>>(
                       (s) => DropdownMenuItem(
                         value: s['id'].toString(),
-                        child: Text(
-                          s['name'] ?? '',
-                          style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryDark.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(LucideIcons.user, size: 14, color: AppColors.primaryDark),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              s['name'] ?? '',
+                              style: GoogleFonts.inter(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryDark,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     )
@@ -821,7 +880,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     side: const BorderSide(color: AppColors.cardBorder),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(999),
                     ),
                   ),
                   child: Text(
@@ -844,7 +903,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(999),
                   ),
                   elevation: 0,
                 ),

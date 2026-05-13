@@ -7,6 +7,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/storefront/screens/organize_products_screen.dart';
+import '../../../core/widgets/app_shimmer.dart';
 
 class BrandsScreen extends StatefulWidget {
   const BrandsScreen({super.key});
@@ -63,11 +64,12 @@ class _BrandsScreenState extends State<BrandsScreen> {
         });
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = e.toString();
           _isLoading = false;
         });
+      }
     }
   }
 
@@ -203,11 +205,12 @@ class _BrandsScreenState extends State<BrandsScreen> {
               const SizedBox(height: 20),
               Focus(
                 onFocusChange: (f) {
-                  if (!f && slugCtrl.text.isEmpty && nameCtrl.text.isNotEmpty)
+                  if (!f && slugCtrl.text.isEmpty && nameCtrl.text.isNotEmpty) {
                     slugCtrl.text = nameCtrl.text
                         .toLowerCase()
                         .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
                         .replaceAll(RegExp(r'(^-|-$)'), '');
+                  }
                 },
                 child: _field('Brand Name', nameCtrl, LucideIcons.tag),
               ),
@@ -219,8 +222,9 @@ class _BrandsScreenState extends State<BrandsScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
-                    if (nameCtrl.text.isEmpty || slugCtrl.text.trim().isEmpty)
+                    if (nameCtrl.text.isEmpty || slugCtrl.text.trim().isEmpty) {
                       return;
+                    }
                     final body = {
                       'name': nameCtrl.text.trim(),
                       'nameAr': brand?['nameAr'], // Keep existing if edit
@@ -311,9 +315,11 @@ class _BrandsScreenState extends State<BrandsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: NestedScrollView(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
@@ -389,8 +395,37 @@ class _BrandsScreenState extends State<BrandsScreen> {
           ];
         },
         body: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: AppColors.primaryDark),
+            ? ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                itemCount: 5,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const AppShimmer(width: 48, height: 48, shape: BoxShape.circle),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              AppShimmer(width: 120, height: 16),
+                              SizedBox(height: 6),
+                              AppShimmer(width: 160, height: 12),
+                            ],
+                          ),
+                        ),
+                        const AppShimmer(width: 24, height: 24, borderRadius: 6),
+                      ],
+                    ),
+                  ),
+                ),
               )
             : _error != null
             ? Center(
@@ -600,6 +635,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
             color: Colors.white,
           ),
         ),
+      ),
       ),
     );
   }

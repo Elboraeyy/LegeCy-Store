@@ -7,6 +7,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/storefront/screens/organize_products_screen.dart';
+import '../../../core/widgets/app_shimmer.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -53,11 +54,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         });
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = e.toString();
           _isLoading = false;
         });
+      }
     }
   }
 
@@ -165,9 +167,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: NestedScrollView(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
@@ -244,8 +248,45 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           ];
         },
         body: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: AppColors.primaryDark),
+            ? ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                itemCount: 5,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const AppShimmer(width: 48, height: 48, shape: BoxShape.circle),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const AppShimmer(width: 140, height: 16),
+                              const SizedBox(height: 8),
+                              const AppShimmer(width: 100, height: 12),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: const [
+                                  AppShimmer(width: 80, height: 22, borderRadius: 8),
+                                  SizedBox(width: 8),
+                                  AppShimmer(width: 60, height: 22, borderRadius: 8),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const AppShimmer(width: 24, height: 24, borderRadius: 6),
+                      ],
+                    ),
+                  ),
+                ),
               )
             : _error != null
             ? Center(
@@ -318,10 +359,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     return Material(color: Colors.transparent, child: child);
                   },
                   onReorder: (oldIndex, newIndex) {
-                    if (_searchController.text.isNotEmpty)
+                    if (_searchController.text.isNotEmpty) {
                       return; // Disallow reordering when filtered
+                    }
                     setState(() {
-                      if (newIndex > oldIndex) newIndex -= 1;
+                      if (newIndex > oldIndex) {
+                        newIndex -= 1;
+                      }
                       final item = _filteredCategories.removeAt(oldIndex);
                       _filteredCategories.insert(newIndex, item);
                       _categories = List.from(_filteredCategories);
@@ -551,6 +595,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -622,9 +667,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   onPressed: isSaving
                       ? null
                       : () async {
-                          if (nameCtrl.text.trim().isEmpty ||
-                              slugCtrl.text.trim().isEmpty)
-                            return;
+                           if (nameCtrl.text.trim().isEmpty ||
+                               slugCtrl.text.trim().isEmpty) {
+                             return;
+                           }
 
                           setSheetState(() => isSaving = true);
 

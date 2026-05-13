@@ -9,6 +9,7 @@ import 'package:admin_app/features/orders/create_manual_order_screen.dart';
 import 'package:admin_app/features/orders/order_details_screen.dart';
 import 'package:admin_app/core/constants/order_constants.dart';
 import 'package:flutter/services.dart';
+import '../../core/widgets/app_shimmer.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -120,8 +121,10 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('Orders', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
         backgroundColor: AppColors.background,
@@ -241,7 +244,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           color: AppColors.primaryDark,
           onRefresh: _loadOrders,
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+              ? _buildOrdersSkeleton()
               : _error != null
                   ? _buildError()
                   : _orders.isEmpty
@@ -269,6 +272,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 label: Text('Manual Order', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
+      ),
       ),
     );
   }
@@ -426,6 +430,64 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           ),
         );
       },
+    );
+  }
+
+  Widget _buildOrdersSkeleton() {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
+      itemCount: 6,
+      itemBuilder: (context, index) => Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.cardBorder),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                AppShimmer(width: 80, height: 16),
+                AppShimmer(width: 90, height: 24, borderRadius: 20),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                AppShimmer(width: 14, height: 14, borderRadius: 4),
+                SizedBox(width: 6),
+                AppShimmer(width: 130, height: 14),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: const [
+                    AppShimmer(width: 14, height: 14, borderRadius: 4),
+                    SizedBox(width: 6),
+                    AppShimmer(width: 80, height: 12),
+                  ],
+                ),
+                const AppShimmer(width: 70, height: 18),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                AppShimmer(width: 100, height: 11),
+                AppShimmer(width: 60, height: 11),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class DailyReportScreen extends StatefulWidget {
   const DailyReportScreen({super.key});
@@ -271,7 +272,93 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
 
             // ── Body ──
             if (_isLoading)
-              const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primaryDark)))
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+                sliver: SliverList(delegate: SliverChildListDelegate([
+                  // Date nav skeleton
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+                    child: Row(children: const [
+                      AppShimmer(width: 40, height: 40, borderRadius: 12),
+                      Spacer(),
+                      Column(children: [
+                        AppShimmer(width: 70, height: 14),
+                        SizedBox(height: 4),
+                        AppShimmer(width: 100, height: 11),
+                      ]),
+                      Spacer(),
+                      AppShimmer(width: 40, height: 40, borderRadius: 12),
+                    ]),
+                  ),
+                  const SizedBox(height: 16),
+                  // Hero card skeleton
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(color: AppColors.primaryDark.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(24)),
+                    child: Row(children: [
+                      Expanded(child: Column(children: const [
+                        AppShimmer(width: 20, height: 20, borderRadius: 4),
+                        SizedBox(height: 8),
+                        AppShimmer(width: 60, height: 22),
+                        SizedBox(height: 4),
+                        AppShimmer(width: 40, height: 11),
+                        SizedBox(height: 8),
+                        AppShimmer(width: 50, height: 18, borderRadius: 8),
+                      ])),
+                      Container(width: 1, height: 60, color: AppColors.cardBorder),
+                      Expanded(child: Column(children: const [
+                        AppShimmer(width: 20, height: 20, borderRadius: 4),
+                        SizedBox(height: 8),
+                        AppShimmer(width: 80, height: 22),
+                        SizedBox(height: 4),
+                        AppShimmer(width: 50, height: 11),
+                        SizedBox(height: 8),
+                        AppShimmer(width: 50, height: 18, borderRadius: 8),
+                      ])),
+                    ]),
+                  ),
+                  const SizedBox(height: 14),
+                  // KPI rows
+                  for (int i = 0; i < 3; i++) ...[
+                    Row(children: [
+                      Expanded(child: _dailyKpiSkeleton()),
+                      const SizedBox(width: 10),
+                      Expanded(child: _dailyKpiSkeleton()),
+                    ]),
+                    const SizedBox(height: 10),
+                  ],
+                  const SizedBox(height: 10),
+                  // Status chips skeleton
+                  Wrap(spacing: 8, runSpacing: 8, children: [
+                    for (int i = 0; i < 4; i++)
+                      AppShimmer(width: 100 + (i * 10).toDouble(), height: 38, borderRadius: 14),
+                  ]),
+                  const SizedBox(height: 20),
+                  // Products list skeleton
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+                    child: Column(children: [
+                      for (int i = 0; i < 4; i++)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: i < 3 ? 12 : 0),
+                          child: Row(children: [
+                            AppShimmer(width: 28, height: 28, borderRadius: 8),
+                            const SizedBox(width: 12),
+                            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              AppShimmer(width: 100 + (i * 15).toDouble(), height: 12),
+                              const SizedBox(height: 4),
+                              AppShimmer(width: double.infinity, height: 4, borderRadius: 3),
+                            ])),
+                            const SizedBox(width: 12),
+                            const AppShimmer(width: 30, height: 13),
+                          ]),
+                        ),
+                    ]),
+                  ),
+                ])),
+              )
             else if (_error != null)
               SliverFillRemaining(child: _buildError())
             else if (_data == null)
@@ -711,5 +798,21 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
     if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
     return n.toStringAsFixed(0);
+  }
+
+  Widget _dailyKpiSkeleton() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+      child: Row(children: [
+        const AppShimmer(width: 32, height: 32, borderRadius: 10),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
+          AppShimmer(width: 60, height: 14),
+          SizedBox(height: 4),
+          AppShimmer(width: 40, height: 10),
+        ])),
+      ]),
+    );
   }
 }

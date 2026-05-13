@@ -15,6 +15,7 @@ import 'package:admin_app/core/config/api_config.dart';
 import '../storefront/screens/categories_screen.dart';
 import '../storefront/screens/brands_screen.dart';
 import '../storefront/screens/materials_screen.dart';
+import '../../core/widgets/app_shimmer.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -374,9 +375,11 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: NestedScrollView(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
@@ -590,6 +593,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                 ),
               ),
             ),
+        ),
     );
   }
 
@@ -872,10 +876,18 @@ class _ProductsScreenState extends State<ProductsScreen>
 
         // ── Content ──
         _isLoading
-            ? const SliverFillRemaining(
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primaryDark,
+            ? SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 14,
+                    crossAxisSpacing: 14,
+                    childAspectRatio: 0.62,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => _buildProductSkeleton(),
+                    childCount: 6,
                   ),
                 ),
               )
@@ -1190,8 +1202,10 @@ class _ProductsScreenState extends State<ProductsScreen>
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
+                                    vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
+                                    color: AppColors.surface,
                                     border: Border.all(
                                       color: AppColors.cardBorder,
                                     ),
@@ -1200,29 +1214,65 @@ class _ProductsScreenState extends State<ProductsScreen>
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String?>(
                                       isExpanded: true,
+                                      icon: const Icon(LucideIcons.chevronDown, color: AppColors.textMuted, size: 20),
+                                      dropdownColor: AppColors.surface,
+                                      borderRadius: BorderRadius.circular(16),
+                                      elevation: 4,
                                       value: _categoryFilter,
-                                      hint: Text(
-                                        'All Categories',
-                                        style: GoogleFonts.inter(fontSize: 14),
+                                      hint: Row(
+                                        children: [
+                                          const Icon(LucideIcons.layoutGrid, color: AppColors.textMuted, size: 20),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'All Categories',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 15,
+                                              color: AppColors.textMuted,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       items: [
                                         DropdownMenuItem(
                                           value: null,
-                                          child: Text(
-                                            'All Categories',
-                                            style: GoogleFonts.inter(
-                                              fontSize: 14,
-                                            ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(LucideIcons.layoutGrid, color: AppColors.textMuted, size: 18),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                'All Categories',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                         ..._availableCategories.map(
                                           (c) => DropdownMenuItem(
                                             value: c['id'],
-                                            child: Text(
-                                              c['name']!,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 14,
-                                              ),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(6),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.primaryDark.withValues(alpha: 0.1),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: const Icon(LucideIcons.layoutGrid, size: 14, color: AppColors.primaryDark),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(
+                                                  c['name']!,
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppColors.primaryDark,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),
@@ -1250,8 +1300,10 @@ class _ProductsScreenState extends State<ProductsScreen>
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
+                                    vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
+                                    color: AppColors.surface,
                                     border: Border.all(
                                       color: AppColors.cardBorder,
                                     ),
@@ -1260,29 +1312,65 @@ class _ProductsScreenState extends State<ProductsScreen>
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String?>(
                                       isExpanded: true,
+                                      icon: const Icon(LucideIcons.chevronDown, color: AppColors.textMuted, size: 20),
+                                      dropdownColor: AppColors.surface,
+                                      borderRadius: BorderRadius.circular(16),
+                                      elevation: 4,
                                       value: _brandFilter,
-                                      hint: Text(
-                                        'All Brands',
-                                        style: GoogleFonts.inter(fontSize: 14),
+                                      hint: Row(
+                                        children: [
+                                          const Icon(LucideIcons.tag, color: AppColors.textMuted, size: 20),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'All Brands',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 15,
+                                              color: AppColors.textMuted,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       items: [
                                         DropdownMenuItem(
                                           value: null,
-                                          child: Text(
-                                            'All Brands',
-                                            style: GoogleFonts.inter(
-                                              fontSize: 14,
-                                            ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(LucideIcons.tag, color: AppColors.textMuted, size: 18),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                'All Brands',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                         ..._availableBrands.map(
                                           (b) => DropdownMenuItem(
                                             value: b['id'],
-                                            child: Text(
-                                              b['name']!,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 14,
-                                              ),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(6),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.primaryDark.withValues(alpha: 0.1),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: const Icon(LucideIcons.tag, size: 14, color: AppColors.primaryDark),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(
+                                                  b['name']!,
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppColors.primaryDark,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),
@@ -1309,8 +1397,10 @@ class _ProductsScreenState extends State<ProductsScreen>
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
+                                    vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
+                                    color: AppColors.surface,
                                     border: Border.all(
                                       color: AppColors.cardBorder,
                                     ),
@@ -1319,29 +1409,65 @@ class _ProductsScreenState extends State<ProductsScreen>
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String?>(
                                       isExpanded: true,
+                                      icon: const Icon(LucideIcons.chevronDown, color: AppColors.textMuted, size: 20),
+                                      dropdownColor: AppColors.surface,
+                                      borderRadius: BorderRadius.circular(16),
+                                      elevation: 4,
                                       value: _materialFilter,
-                                      hint: Text(
-                                        'All Materials',
-                                        style: GoogleFonts.inter(fontSize: 14),
+                                      hint: Row(
+                                        children: [
+                                          const Icon(LucideIcons.layers, color: AppColors.textMuted, size: 20),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'All Materials',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 15,
+                                              color: AppColors.textMuted,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       items: [
                                         DropdownMenuItem(
                                           value: null,
-                                          child: Text(
-                                            'All Materials',
-                                            style: GoogleFonts.inter(
-                                              fontSize: 14,
-                                            ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(LucideIcons.layers, color: AppColors.textMuted, size: 18),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                'All Materials',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                         ..._availableMaterials.map(
                                           (m) => DropdownMenuItem(
                                             value: m['id'],
-                                            child: Text(
-                                              m['name']!,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 14,
-                                              ),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(6),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.primaryDark.withValues(alpha: 0.1),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: const Icon(LucideIcons.layers, size: 14, color: AppColors.primaryDark),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(
+                                                  m['name']!,
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppColors.primaryDark,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),
@@ -1380,7 +1506,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                                   vertical: 14,
                                 ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(999),
                                 ),
                                 side: const BorderSide(
                                   color: AppColors.cardBorder,
@@ -1410,7 +1536,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                                   vertical: 14,
                                 ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(999),
                                 ),
                                 elevation: 0,
                               ),
@@ -1643,6 +1769,53 @@ class _ProductsScreenState extends State<ProductsScreen>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildProductSkeleton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image skeleton
+          const Expanded(
+            flex: 5,
+            child: AppShimmer(
+              width: double.infinity,
+              height: double.infinity,
+              borderRadius: 19,
+            ),
+          ),
+          // Info Section
+          Expanded(
+            flex: 3,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const AppShimmer(width: 120, height: 14),
+                  const AppShimmer(width: 80, height: 14),
+                  const AppShimmer(width: 60, height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const AppShimmer(width: 50, height: 20, borderRadius: 10),
+                      const AppShimmer(width: 40, height: 12),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

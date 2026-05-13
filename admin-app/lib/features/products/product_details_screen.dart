@@ -288,17 +288,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
+                              color: AppColors.primaryDark,
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(
-                                    0xFF0F172A,
-                                  ).withValues(alpha: 0.3),
+                                  color: AppColors.primaryDark.withValues(alpha: 0.3),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -1181,9 +1175,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     final String sku =
         (variants.isNotEmpty ? variants[0]['sku'] : _product['sku']) ?? 'N/A';
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Stack(
         children: [
           CustomScrollView(
             slivers: [
@@ -1839,6 +1835,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               ),
             ),
         ],
+      ),
       ),
     );
   }

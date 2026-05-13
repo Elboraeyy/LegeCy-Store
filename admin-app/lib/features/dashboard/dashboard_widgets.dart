@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 // ── Shimmer Loading Placeholder ──
 class DashboardShimmer extends StatelessWidget {
@@ -12,40 +13,287 @@ class DashboardShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Live Status Badge ──
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: Row(
+            children: const [
+              AppShimmer(width: 8, height: 8, shape: BoxShape.circle),
+              SizedBox(width: 10),
+              AppShimmer(width: 80, height: 12),
+              Spacer(),
+              AppShimmer(width: 130, height: 11),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // ── Stats Grid (2×2) ──
         Row(
           children: [
-            Expanded(child: _shimmerBox(height: 110)),
+            Expanded(child: _statCardSkeleton()),
             const SizedBox(width: 12),
-            Expanded(child: _shimmerBox(height: 110)),
+            Expanded(child: _statCardSkeleton()),
           ],
         ),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _shimmerBox(height: 110)),
+            Expanded(child: _statCardSkeleton()),
             const SizedBox(width: 12),
-            Expanded(child: _shimmerBox(height: 110)),
+            Expanded(child: _statCardSkeleton()),
           ],
         ),
         const SizedBox(height: 24),
-        _shimmerBox(height: 80),
+
+        // ── Order Pipeline ──
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.primaryDark.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AppShimmer(width: 120, height: 11),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  for (int i = 0; i < 4; i++) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        children: const [
+                          AppShimmer(width: 44, height: 44, borderRadius: 12),
+                          SizedBox(height: 8),
+                          AppShimmer(width: 50, height: 10),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 24),
-        _shimmerBox(height: 200),
-        const SizedBox(height: 24),
-        _shimmerBox(height: 100),
+
+        // ── Quick Actions ──
+        const AppShimmer(width: 110, height: 11),
         const SizedBox(height: 12),
-        _shimmerBox(height: 100),
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: 5,
+            itemBuilder: (_, index) => Container(
+              width: 80,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  AppShimmer(width: 36, height: 36, shape: BoxShape.circle),
+                  SizedBox(height: 10),
+                  AppShimmer(width: 40, height: 10),
+                  SizedBox(height: 4),
+                  AppShimmer(width: 30, height: 10),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // ── Revenue Chart ──
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      AppShimmer(width: 110, height: 11),
+                      SizedBox(height: 6),
+                      AppShimmer(width: 70, height: 10),
+                    ],
+                  ),
+                  const AppShimmer(width: 34, height: 34, borderRadius: 10),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  for (final h in [60.0, 100.0, 80.0, 120.0, 90.0, 70.0, 110.0])
+                    AppShimmer(width: 20, height: h, borderRadius: 4),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // ── Monthly Overview ──
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AppShimmer(width: 140, height: 11),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  for (int i = 0; i < 3; i++) ...[
+                    if (i > 0) const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        children: const [
+                          AppShimmer(width: 60, height: 16),
+                          SizedBox(height: 4),
+                          AppShimmer(width: 50, height: 10),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // ── Top Products ──
+        const AppShimmer(width: 160, height: 11),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < 3; i++)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  child: Row(
+                    children: [
+                      AppShimmer(width: 32, height: 32, shape: BoxShape.circle),
+                      const SizedBox(width: 14),
+                      Expanded(child: AppShimmer(width: 120, height: 13)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: const [
+                          AppShimmer(width: 50, height: 12),
+                          SizedBox(height: 4),
+                          AppShimmer(width: 40, height: 10),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // ── Recent Orders ──
+        const AppShimmer(width: 120, height: 11),
+        const SizedBox(height: 12),
+        for (int i = 0; i < 3; i++)
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Row(
+              children: [
+                const AppShimmer(width: 44, height: 44, borderRadius: 12),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      AppShimmer(width: 100, height: 14),
+                      SizedBox(height: 4),
+                      AppShimmer(width: 150, height: 11),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: const [
+                    AppShimmer(width: 70, height: 20, borderRadius: 10),
+                    SizedBox(height: 6),
+                    AppShimmer(width: 30, height: 12),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 140),
       ],
     );
   }
 
-  Widget _shimmerBox({required double height}) {
+  static Widget _statCardSkeleton() {
     return Container(
-      height: height,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.shimmer.withValues(alpha: 0.5),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              AppShimmer(width: 40, height: 40, borderRadius: 14),
+              AppShimmer(width: 50, height: 20, borderRadius: 8),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const AppShimmer(width: 90, height: 22),
+          const SizedBox(height: 6),
+          const AppShimmer(width: 70, height: 11),
+          const SizedBox(height: 2),
+          const AppShimmer(width: 100, height: 9),
+        ],
       ),
     );
   }

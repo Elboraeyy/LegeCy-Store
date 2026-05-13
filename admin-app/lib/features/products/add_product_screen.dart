@@ -11,6 +11,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/config/api_config.dart';
+import '../../core/widgets/app_shimmer.dart';
 
 class AddProductScreen extends StatefulWidget {
   final Map<String, dynamic>? product;
@@ -429,7 +430,25 @@ class _AddProductScreenState extends State<AddProductScreen> {
         const SizedBox(height: 24),
         _buildSectionTitle('Organization', LucideIcons.layers),
         if (_loadingOpts)
-          const Center(child: CircularProgressIndicator())
+          const Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(child: AppShimmer(width: double.infinity, height: 56, borderRadius: 16)),
+                  SizedBox(width: 12),
+                  Expanded(child: AppShimmer(width: double.infinity, height: 56, borderRadius: 16)),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: AppShimmer(width: double.infinity, height: 56, borderRadius: 16)),
+                  SizedBox(width: 12),
+                  Expanded(child: AppShimmer(width: double.infinity, height: 56, borderRadius: 16)),
+                ],
+              ),
+            ],
+          )
         else ...[
           Row(
             children: [

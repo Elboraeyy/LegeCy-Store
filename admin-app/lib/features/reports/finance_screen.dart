@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class FinanceScreen extends StatefulWidget {
   const FinanceScreen({super.key});
@@ -71,7 +72,133 @@ class _FinanceScreenState extends State<FinanceScreen> {
               ],
             ),
             if (_isLoading)
-              const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primaryDark)))
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+                sliver: SliverList(delegate: SliverChildListDelegate([
+                  // Profit Hero skeleton
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(color: AppColors.primaryDark.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(24)),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: const [
+                        AppShimmer(width: 42, height: 42, borderRadius: 14),
+                        AppShimmer(width: 80, height: 26, borderRadius: 10),
+                      ]),
+                      const SizedBox(height: 18),
+                      const AppShimmer(width: 100, height: 13),
+                      const SizedBox(height: 6),
+                      const AppShimmer(width: 180, height: 30),
+                      const SizedBox(height: 16),
+                      Container(height: 1, color: AppColors.cardBorder),
+                      const SizedBox(height: 14),
+                      Row(children: [
+                        for (int i = 0; i < 3; i++) ...[  
+                          if (i > 0) const SizedBox(width: 12),
+                          Expanded(child: Column(children: const [
+                            AppShimmer(width: 50, height: 14),
+                            SizedBox(height: 4),
+                            AppShimmer(width: 40, height: 10),
+                          ])),
+                        ],
+                      ]),
+                    ]),
+                  ),
+                  const SizedBox(height: 14),
+                  // KPI Grid (3 rows)
+                  for (int row = 0; row < 3; row++) ...[
+                    Row(children: [
+                      Expanded(child: _financeKpiSkeleton()),
+                      const SizedBox(width: 10),
+                      Expanded(child: _financeKpiSkeleton()),
+                    ]),
+                    const SizedBox(height: 10),
+                  ],
+                  const SizedBox(height: 6),
+                  // Monthly comparison skeleton
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: const [
+                        AppShimmer(width: 26, height: 26, borderRadius: 8),
+                        SizedBox(width: 10),
+                        AppShimmer(width: 110, height: 12),
+                      ]),
+                      const SizedBox(height: 16),
+                      Row(children: [
+                        for (int i = 0; i < 2; i++) ...[  
+                          if (i > 0) const SizedBox(width: 12),
+                          Expanded(child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(14)),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
+                              AppShimmer(width: 70, height: 10),
+                              SizedBox(height: 8),
+                              AppShimmer(width: 90, height: 14),
+                              SizedBox(height: 4),
+                              AppShimmer(width: 60, height: 10),
+                            ]),
+                          )),
+                        ],
+                      ]),
+                      const SizedBox(height: 12),
+                      const AppShimmer(width: double.infinity, height: 40, borderRadius: 12),
+                    ]),
+                  ),
+                  const SizedBox(height: 16),
+                  // Chart skeleton
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: const [
+                        AppShimmer(width: 26, height: 26, borderRadius: 8),
+                        SizedBox(width: 10),
+                        AppShimmer(width: 120, height: 12),
+                      ]),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        height: 180,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            for (final h in [80.0, 120.0, 100.0, 140.0, 90.0, 110.0])
+                              AppShimmer(width: 14, height: h, borderRadius: 4),
+                          ],
+                        ),
+                      ),
+                    ]),
+                  ),
+                  const SizedBox(height: 16),
+                  // Payment breakdown skeleton
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: const [
+                        AppShimmer(width: 26, height: 26, borderRadius: 8),
+                        SizedBox(width: 10),
+                        AppShimmer(width: 130, height: 12),
+                      ]),
+                      const SizedBox(height: 16),
+                      for (int i = 0; i < 3; i++) ...[
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                          Row(children: [
+                            AppShimmer(width: 10, height: 10, borderRadius: 3),
+                            const SizedBox(width: 8),
+                            AppShimmer(width: 50 + (i * 10).toDouble(), height: 12),
+                          ]),
+                          const AppShimmer(width: 60, height: 12),
+                        ]),
+                        const SizedBox(height: 4),
+                        const AppShimmer(width: double.infinity, height: 5, borderRadius: 3),
+                        const SizedBox(height: 12),
+                      ],
+                    ]),
+                  ),
+                ])),
+              )
             else if (_error != null)
               SliverFillRemaining(child: _buildError())
             else
@@ -90,7 +217,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(LucideIcons.wifiOff, size: 48, color: AppColors.error.withValues(alpha: 0.5)),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Text('Failed to load finance data', style: GoogleFonts.inter(color: AppColors.error, fontWeight: FontWeight.w600)),
         const SizedBox(height: 16),
         ElevatedButton.icon(onPressed: _load, icon: const Icon(LucideIcons.refreshCw, size: 16), label: const Text('Retry')),
@@ -205,7 +332,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
         ]),
         const SizedBox(height: 18),
         Text('True Net Profit', style: GoogleFonts.inter(fontSize: 13, color: Colors.white60, fontWeight: FontWeight.w500)),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text('${_fmt(profit)} EGP', style: GoogleFonts.playfairDisplay(fontSize: 30, fontWeight: FontWeight.w700, color: Colors.white)),
         const SizedBox(height: 16),
         Container(height: 1, color: Colors.white.withValues(alpha: 0.1)),
@@ -565,4 +692,18 @@ class _FinanceScreenState extends State<FinanceScreen> {
   }
 
   String _fmtK(double v) => v >= 1000 ? '${(v / 1000).toStringAsFixed(1)}K' : v.toStringAsFixed(0);
+
+  Widget _financeKpiSkeleton() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        AppShimmer(width: 32, height: 32, borderRadius: 10),
+        SizedBox(height: 12),
+        AppShimmer(width: 80, height: 16),
+        SizedBox(height: 4),
+        AppShimmer(width: 60, height: 10),
+      ]),
+    );
+  }
 }

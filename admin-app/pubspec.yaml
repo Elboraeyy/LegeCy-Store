@@ -51,6 +51,7 @@ dependencies:
   arabic_reshaper: ^0.0.1
   gal: ^2.3.2
   intl: ^0.20.2
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:

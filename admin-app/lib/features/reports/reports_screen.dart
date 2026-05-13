@@ -10,6 +10,7 @@ import 'package:admin_app/features/reports/daily_report_screen.dart';
 import 'package:admin_app/features/reports/finance_screen.dart';
 import 'package:admin_app/features/reports/partners_screen.dart';
 import 'package:admin_app/features/reports/customers_screen.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -321,8 +322,28 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
                 color: AppColors.textMuted, letterSpacing: 1.5)),
         const SizedBox(height: 12),
         if (_loading)
-          const SizedBox(height: 80, child: Center(
-              child: CircularProgressIndicator(color: AppColors.primaryDark, strokeWidth: 2)))
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Row(
+              children: [
+                for (int i = 0; i < 4; i++) ...[
+                  if (i > 0) Container(width: 1, height: 40, color: AppColors.cardBorder),
+                  Expanded(
+                    child: Column(children: const [
+                      AppShimmer(width: 40, height: 24),
+                      SizedBox(height: 6),
+                      AppShimmer(width: 50, height: 10),
+                    ]),
+                  ),
+                ],
+              ],
+            ),
+          )
         else if (_stats != null)
           Container(
             padding: const EdgeInsets.all(20),

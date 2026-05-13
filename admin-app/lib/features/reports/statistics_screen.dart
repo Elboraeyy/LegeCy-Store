@@ -8,6 +8,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/reports/stats_widgets.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -92,7 +93,64 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               ],
             ),
             if (_loading)
-              const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primaryDark)))
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                sliver: SliverList(delegate: SliverChildListDelegate([
+                  // Hero skeleton
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryDark.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: const [
+                        AppShimmer(width: 42, height: 42, borderRadius: 14),
+                        SizedBox(width: 14),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          AppShimmer(width: 90, height: 12),
+                          SizedBox(height: 6),
+                          AppShimmer(width: 160, height: 24),
+                        ])),
+                      ]),
+                      const SizedBox(height: 16),
+                      Container(height: 1, color: AppColors.cardBorder),
+                      const SizedBox(height: 16),
+                      Row(children: [
+                        for (int i = 0; i < 3; i++) ...[  
+                          if (i > 0) const SizedBox(width: 12),
+                          Expanded(child: Column(children: const [
+                            AppShimmer(width: 50, height: 18),
+                            SizedBox(height: 4),
+                            AppShimmer(width: 40, height: 10),
+                          ])),
+                        ],
+                      ]),
+                    ]),
+                  ),
+                  const SizedBox(height: 16),
+                  // KPI Grid (3 rows × 2)
+                  for (int row = 0; row < 5; row++) ...[
+                    Row(children: [
+                      Expanded(child: _kpiSkeleton()),
+                      const SizedBox(width: 10),
+                      Expanded(child: _kpiSkeleton()),
+                    ]),
+                    const SizedBox(height: 10),
+                  ],
+                  const SizedBox(height: 10),
+                  // Chart skeleton
+                  _chartSkeleton(),
+                  const SizedBox(height: 16),
+                  _chartSkeleton(),
+                  const SizedBox(height: 16),
+                  // Cards
+                  for (int i = 0; i < 3; i++) ...[
+                    _cardSkeleton(),
+                    const SizedBox(height: 16),
+                  ],
+                ])),
+              )
             else if (_error != null)
               SliverFillRemaining(child: _buildError())
             else
@@ -610,6 +668,59 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _kpiSkeleton() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
+        AppShimmer(width: 32, height: 32, borderRadius: 10),
+        SizedBox(height: 12),
+        AppShimmer(width: 80, height: 16),
+        SizedBox(height: 4),
+        AppShimmer(width: 60, height: 10),
+      ]),
+    );
+  }
+
+  Widget _chartSkeleton() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const AppShimmer(width: 140, height: 12),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 180,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              for (final h in [60.0, 100.0, 80.0, 120.0, 90.0, 110.0])
+                AppShimmer(width: 20, height: h, borderRadius: 4),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _cardSkeleton() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+      child: Row(children: [
+        const AppShimmer(width: 40, height: 40, borderRadius: 12),
+        const SizedBox(width: 14),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
+          AppShimmer(width: 120, height: 14),
+          SizedBox(height: 4),
+          AppShimmer(width: 80, height: 10),
+        ])),
+        const AppShimmer(width: 60, height: 14),
+      ]),
     );
   }
 }

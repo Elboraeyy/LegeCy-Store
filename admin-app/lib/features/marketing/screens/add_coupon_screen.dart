@@ -147,9 +147,11 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
         title: Text(widget.coupon != null ? 'Edit Coupon' : 'New Coupon', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
@@ -334,6 +336,7 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
             const SizedBox(height: 40),
           ],
         ),
+      ),
       ),
     );
   }

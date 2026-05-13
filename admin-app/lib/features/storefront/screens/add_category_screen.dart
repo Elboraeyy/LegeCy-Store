@@ -97,9 +97,11 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
         title: Text(widget.category != null ? 'Edit Category' : 'New Category', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
@@ -143,6 +145,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
             const SizedBox(height: 40),
           ],
         ),
+      ),
       ),
     );
   }

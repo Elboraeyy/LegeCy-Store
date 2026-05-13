@@ -7,6 +7,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/reports/customer_widgets.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -55,7 +56,26 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 const SizedBox(width: 8),
               ],
             ),
-            if (_loading) const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primaryDark)))
+            if (_loading) SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+              sliver: SliverList(delegate: SliverChildListDelegate([
+                _custHeroSkeleton(),
+                const SizedBox(height: 14),
+                for (int row = 0; row < 3; row++) ...[
+                  Row(children: [
+                    Expanded(child: _custKpiSkeleton()),
+                    const SizedBox(width: 10),
+                    Expanded(child: _custKpiSkeleton()),
+                  ]),
+                  const SizedBox(height: 10),
+                ],
+                const SizedBox(height: 6),
+                for (int i = 0; i < 4; i++) ...[
+                  _custCardSkeleton(),
+                  const SizedBox(height: 16),
+                ],
+              ])),
+            )
             else if (_error != null) SliverFillRemaining(child: _buildError())
             else SliverPadding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
                 sliver: SliverList(delegate: SliverChildListDelegate(_buildContent()))),
@@ -394,6 +414,82 @@ class _CustomersScreenState extends State<CustomersScreen> {
             ]),
           )),
         ],
+      ]),
+    );
+  }
+
+  Widget _custHeroSkeleton() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: AppColors.primaryDark.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(24)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: const [
+          AppShimmer(width: 42, height: 42, borderRadius: 14),
+          SizedBox(width: 14),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            AppShimmer(width: 100, height: 12),
+            SizedBox(height: 6),
+            AppShimmer(width: 130, height: 24),
+          ])),
+          AppShimmer(width: 90, height: 22, borderRadius: 10),
+        ]),
+        const SizedBox(height: 16),
+        Container(height: 1, color: AppColors.cardBorder),
+        const SizedBox(height: 14),
+        Row(children: [
+          for (int i = 0; i < 3; i++) ...[
+            if (i > 0) const SizedBox(width: 12),
+            Expanded(child: Column(children: const [
+              AppShimmer(width: 50, height: 14),
+              SizedBox(height: 4),
+              AppShimmer(width: 40, height: 10),
+            ])),
+          ],
+        ]),
+      ]),
+    );
+  }
+
+  Widget _custKpiSkeleton() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardBorder)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
+        AppShimmer(width: 32, height: 32, borderRadius: 10),
+        SizedBox(height: 12),
+        AppShimmer(width: 80, height: 16),
+        SizedBox(height: 4),
+        AppShimmer(width: 60, height: 10),
+      ]),
+    );
+  }
+
+  Widget _custCardSkeleton() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: const [
+          AppShimmer(width: 26, height: 26, borderRadius: 8),
+          SizedBox(width: 10),
+          AppShimmer(width: 140, height: 12),
+        ]),
+        const SizedBox(height: 16),
+        Row(children: [
+          Expanded(child: Center(child: AppShimmer(width: 80, height: 80, shape: BoxShape.circle))),
+          Expanded(child: Column(children: [
+            for (int i = 0; i < 2; i++) ...[
+              Row(children: [
+                AppShimmer(width: 10, height: 10, borderRadius: 3),
+                const SizedBox(width: 8),
+                const AppShimmer(width: 50, height: 11),
+                const Spacer(),
+                const AppShimmer(width: 30, height: 13),
+              ]),
+              const SizedBox(height: 8),
+            ],
+          ])),
+        ]),
       ]),
     );
   }
