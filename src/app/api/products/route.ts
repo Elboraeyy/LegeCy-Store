@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
@@ -22,7 +23,11 @@ export async function GET(request: NextRequest) {
     };
 
     let useCustomOrder = false;
-    let customSortField: string | null = null;
+    let customSortField:
+      | "sortInCategory"
+      | "sortInBrand"
+      | "sortInMaterial"
+      | null = null;
 
     // Category filter
     if (category) {
@@ -102,7 +107,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Determine order
-    const orderBy: any[] = [];
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] = [];
     if (useCustomOrder && customSortField) {
       orderBy.push({ [customSortField]: "asc" });
     }
