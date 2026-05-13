@@ -12,7 +12,8 @@ import 'package:admin_app/core/config/api_config.dart';
 import 'package:intl/intl.dart';
 
 class AddBatchScreen extends StatefulWidget {
-  const AddBatchScreen({super.key});
+  final Map<String, dynamic>? initialProduct;
+  const AddBatchScreen({super.key, this.initialProduct});
 
   @override
   State<AddBatchScreen> createState() => _AddBatchScreenState();
@@ -30,7 +31,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
 
   Map<String, dynamic>? _selectedProduct;
   final _quantityCtrl = TextEditingController();
-  
+
   DateTime _purchaseDate = DateTime.now();
   String? _selectedSupplierId;
 
@@ -46,6 +47,9 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialProduct != null) {
+      _selectedProduct = widget.initialProduct;
+    }
     _fetchData();
   }
 
@@ -62,9 +66,11 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
   Future<void> _fetchData() async {
     try {
       final client = ApiClient(token: context.read<AuthProvider>().token);
-      final productsRes = await client.get(ApiConfig.authProductsEndpoint);
-      final optionsRes = await client.get('${ApiConfig.authProductsEndpoint}/options');
-      
+      final productsRes = await client.get('${ApiConfig.authProductsEndpoint}?limit=200');
+      final optionsRes = await client.get(
+        '${ApiConfig.authProductsEndpoint}/options',
+      );
+
       if (!mounted) return;
       setState(() {
         _products = productsRes['products'] as List<dynamic>? ?? [];
@@ -80,23 +86,39 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
 
   void _nextStep() {
     if (_currentStep == 0) {
-      if (_selectedProduct == null) return _showSnack('Please select a product');
-      if (int.tryParse(_quantityCtrl.text) == null || int.parse(_quantityCtrl.text) <= 0) {
+      if (_selectedProduct == null) {
+        return _showSnack('Please select a product');
+      }
+      if (int.tryParse(_quantityCtrl.text) == null ||
+          int.parse(_quantityCtrl.text) <= 0) {
         return _showSnack('Please enter a valid quantity');
       }
     } else if (_currentStep == 1) {
-      if (_selectedSupplierId == null) return _showSnack('Please select a supplier');
+      if (_selectedSupplierId == null) {
+        return _showSnack('Please select a supplier');
+      }
     } else if (_currentStep == 2) {
-      if (!_keepOldCost && double.tryParse(_newCostCtrl.text) == null) return _showSnack('Invalid cost price');
-      if (!_keepOldSellPrice && double.tryParse(_newSellPriceCtrl.text) == null) return _showSnack('Invalid sell price');
-      if (!_keepOldExpenses && double.tryParse(_newExpensesCtrl.text) == null) return _showSnack('Invalid expenses');
+      if (!_keepOldCost && double.tryParse(_newCostCtrl.text) == null) {
+        return _showSnack('Invalid cost price');
+      }
+      if (!_keepOldSellPrice &&
+          double.tryParse(_newSellPriceCtrl.text) == null) {
+        return _showSnack('Invalid sell price');
+      }
+      if (!_keepOldExpenses && double.tryParse(_newExpensesCtrl.text) == null) {
+        return _showSnack('Invalid expenses');
+      }
       _saveBatch();
       return;
     }
 
     HapticFeedback.lightImpact();
     setState(() => _currentStep++);
-    _pageController.animateToPage(_currentStep, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    _pageController.animateToPage(
+      _currentStep,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   void _prevStep() {
@@ -106,14 +128,18 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
     }
     HapticFeedback.lightImpact();
     setState(() => _currentStep--);
-    _pageController.animateToPage(_currentStep, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    _pageController.animateToPage(
+      _currentStep,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   Future<void> _saveBatch() async {
     setState(() => _isSaving = true);
     try {
       final client = ApiClient(token: context.read<AuthProvider>().token);
-      
+
       final oldVariant = _selectedProduct!['variants']?[0];
       final productId = _selectedProduct!['id'];
       final variantId = oldVariant?['id'];
@@ -127,13 +153,17 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
         'keepOldCost': _keepOldCost,
         'newCost': _keepOldCost ? null : double.tryParse(_newCostCtrl.text),
         'keepOldSellPrice': _keepOldSellPrice,
-        'newSellPrice': _keepOldSellPrice ? null : double.tryParse(_newSellPriceCtrl.text),
+        'newSellPrice': _keepOldSellPrice
+            ? null
+            : double.tryParse(_newSellPriceCtrl.text),
         'keepOldExpenses': _keepOldExpenses,
-        'newExpenses': _keepOldExpenses ? null : double.tryParse(_newExpensesCtrl.text),
+        'newExpenses': _keepOldExpenses
+            ? null
+            : double.tryParse(_newExpensesCtrl.text),
       };
 
       await client.post('/api/admin/inventory/batches', body: body);
-      
+
       if (!mounted) return;
       _showSnack('New batch added successfully', isSuccess: true);
       Navigator.pop(context, true);
@@ -145,12 +175,17 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
   }
 
   void _showSnack(String msg, {bool isSuccess = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-      backgroundColor: isSuccess ? AppColors.success : AppColors.error,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          msg,
+          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: isSuccess ? AppColors.success : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
@@ -164,29 +199,35 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
           icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark),
           onPressed: _prevStep,
         ),
-        title: Text('New Product Batch', style: GoogleFonts.playfairDisplay(color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+        title: Text(
+          'New Product Batch',
+          style: GoogleFonts.playfairDisplay(
+            color: AppColors.primaryDark,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
           child: LinearProgressIndicator(
             value: (_currentStep + 1) / _totalSteps,
             backgroundColor: AppColors.cardBorder,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              AppColors.primaryDark,
+            ),
           ),
         ),
       ),
       body: _isLoadingData
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryDark),
+            )
           : Column(
               children: [
                 Expanded(
                   child: PageView(
                     controller: _pageController,
                     physics: const NeverScrollableScrollPhysics(),
-                    children: [
-                      _buildStep1(),
-                      _buildStep2(),
-                      _buildStep3(),
-                    ],
+                    children: [_buildStep1(), _buildStep2(), _buildStep3()],
                   ),
                 ),
                 _buildBottomBar(),
@@ -205,7 +246,10 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
                 child: const Icon(LucideIcons.package, color: AppColors.accent),
               ),
               const SizedBox(width: 16),
@@ -213,22 +257,49 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Select Product', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                    Text('Choose the product to add stock to', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary)),
+                    Text(
+                      'Select Product',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                    Text(
+                      'Choose the product to add stock to',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 32),
-          
-          Text('Search Product', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+
+          Text(
+            'Search Product',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 8),
           _buildProductDropdown(),
-          
+
           if (_selectedProduct != null) ...[
             const SizedBox(height: 32),
-            Text('New Quantity', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            Text(
+              'New Quantity',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: _quantityCtrl,
@@ -238,10 +309,25 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                 hintText: 'e.g. 50',
                 filled: true,
                 fillColor: AppColors.surface,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.cardBorder)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.cardBorder)),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.accent, width: 2)),
-                prefixIcon: const Icon(LucideIcons.boxes, color: AppColors.textMuted),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: AppColors.cardBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: AppColors.cardBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                    color: AppColors.accent,
+                    width: 2,
+                  ),
+                ),
+                prefixIcon: const Icon(
+                  LucideIcons.boxes,
+                  color: AppColors.textMuted,
+                ),
               ),
             ),
           ],
@@ -265,8 +351,17 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
           children: [
             Expanded(
               child: _selectedProduct == null
-                  ? Text('Select a product...', style: GoogleFonts.inter(color: AppColors.textMuted))
-                  : Text(_selectedProduct!['name'] ?? '', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
+                  ? Text(
+                      'Select a product...',
+                      style: GoogleFonts.inter(color: AppColors.textMuted),
+                    )
+                  : Text(
+                      _selectedProduct!['name'] ?? '',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
             ),
             const Icon(LucideIcons.chevronDown, color: AppColors.textMuted),
           ],
@@ -281,10 +376,18 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setSheetState) {
-          final filtered = _products.where((p) => p['name'].toString().toLowerCase().contains(search.toLowerCase())).toList();
+          final filtered = _products
+              .where(
+                (p) => p['name'].toString().toLowerCase().contains(
+                  search.toLowerCase(),
+                ),
+              )
+              .toList();
           return FractionallySizedBox(
             heightFactor: 0.8,
             child: Column(
@@ -295,7 +398,9 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search products...',
                       prefixIcon: const Icon(LucideIcons.search),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     onChanged: (val) => setSheetState(() => search = val),
                   ),
@@ -306,11 +411,27 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                     itemBuilder: (context, i) {
                       final p = filtered[i];
                       return ListTile(
-                        leading: p['imageUrl'] != null 
-                            ? ClipRRect(borderRadius: BorderRadius.circular(8), child: CachedNetworkImage(imageUrl: p['imageUrl'], width: 40, height: 40, fit: BoxFit.cover))
+                        leading: p['imageUrl'] != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: CachedNetworkImage(
+                                  imageUrl: p['imageUrl'],
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
                             : const Icon(LucideIcons.imageOff),
-                        title: Text(p['name'] ?? '', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-                        subtitle: Text('${p['price'] ?? 0} EGP', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+                        title: Text(
+                          p['name'] ?? '',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          '${p['price'] ?? 0} EGP',
+                          style: GoogleFonts.inter(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                         onTap: () {
                           setState(() => _selectedProduct = p);
                           Navigator.pop(ctx);
@@ -322,7 +443,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
               ],
             ),
           );
-        }
+        },
       ),
     );
   }
@@ -337,7 +458,10 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
                 child: const Icon(LucideIcons.truck, color: AppColors.accent),
               ),
               const SizedBox(width: 16),
@@ -345,16 +469,36 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Purchase Details', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                    Text('Enter supplier and date', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary)),
+                    Text(
+                      'Purchase Details',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                    Text(
+                      'Enter supplier and date',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 32),
-          
-          Text('Purchase Date', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+
+          Text(
+            'Purchase Date',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 8),
           InkWell(
             onTap: () async {
@@ -376,16 +520,34 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.calendar, color: AppColors.textMuted, size: 20),
+                  const Icon(
+                    LucideIcons.calendar,
+                    color: AppColors.textMuted,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
-                  Text(DateFormat('MMM dd, yyyy').format(_purchaseDate), style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500, color: AppColors.primaryDark)),
+                  Text(
+                    DateFormat('MMM dd, yyyy').format(_purchaseDate),
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.primaryDark,
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 24),
-          
-          Text('Supplier', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+
+          Text(
+            'Supplier',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -397,12 +559,22 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
-                hint: Text('Select Supplier', style: GoogleFonts.inter(color: AppColors.textMuted)),
+                hint: Text(
+                  'Select Supplier',
+                  style: GoogleFonts.inter(color: AppColors.textMuted),
+                ),
                 value: _selectedSupplierId,
-                items: _suppliers.map<DropdownMenuItem<String>>((s) => DropdownMenuItem(
-                  value: s['id'].toString(),
-                  child: Text(s['name'] ?? '', style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
-                )).toList(),
+                items: _suppliers
+                    .map<DropdownMenuItem<String>>(
+                      (s) => DropdownMenuItem(
+                        value: s['id'].toString(),
+                        child: Text(
+                          s['name'] ?? '',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (val) => setState(() => _selectedSupplierId = val),
               ),
             ),
@@ -426,23 +598,42 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.1), shape: BoxShape.circle),
-                child: const Icon(LucideIcons.banknote, color: AppColors.accent),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  LucideIcons.banknote,
+                  color: AppColors.accent,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Smart Pricing Rules', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                    Text('Set prices for this specific batch', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary)),
+                    Text(
+                      'Smart Pricing Rules',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                    Text(
+                      'Set prices for this specific batch',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
-          
+
           _buildPricingToggle(
             title: 'Purchase Price (Cost)',
             oldValue: oldCost.toString(),
@@ -451,7 +642,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             controller: _newCostCtrl,
           ),
           const SizedBox(height: 16),
-          
+
           _buildPricingToggle(
             title: 'Selling Price',
             oldValue: oldPrice.toString(),
@@ -475,7 +666,9 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             decoration: BoxDecoration(
               color: AppColors.primaryDark.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primaryDark.withValues(alpha: 0.1)),
+              border: Border.all(
+                color: AppColors.primaryDark.withValues(alpha: 0.1),
+              ),
             ),
             child: Row(
               children: [
@@ -484,7 +677,11 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                 Expanded(
                   child: Text(
                     'If you set new prices, the system will continue selling the old batch at old prices until it runs out. Then it will automatically switch to the new prices.',
-                    style: GoogleFonts.inter(fontSize: 12, color: AppColors.primaryDark, height: 1.5),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppColors.primaryDark,
+                      height: 1.5,
+                    ),
                   ),
                 ),
               ],
@@ -495,7 +692,13 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
     );
   }
 
-  Widget _buildPricingToggle({required String title, required String oldValue, required bool keepOld, required ValueChanged<bool> onChanged, required TextEditingController controller}) {
+  Widget _buildPricingToggle({
+    required String title,
+    required String oldValue,
+    required bool keepOld,
+    required ValueChanged<bool> onChanged,
+    required TextEditingController controller,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -509,8 +712,20 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
-              Text('Old: $oldValue EGP', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+              Text(
+                'Old: $oldValue EGP',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -521,8 +736,16 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                   onTap: () => onChanged(true),
                   child: Row(
                     children: [
-                      Radio<bool>(value: true, groupValue: keepOld, activeColor: AppColors.primaryDark, onChanged: (v) => onChanged(true)),
-                      Text('Same as old', style: GoogleFonts.inter(fontSize: 14)),
+                      Radio<bool>(
+                        value: true,
+                        groupValue: keepOld,
+                        activeColor: AppColors.primaryDark,
+                        onChanged: (v) => onChanged(true),
+                      ),
+                      Text(
+                        'Same as old',
+                        style: GoogleFonts.inter(fontSize: 14),
+                      ),
                     ],
                   ),
                 ),
@@ -532,7 +755,12 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                   onTap: () => onChanged(false),
                   child: Row(
                     children: [
-                      Radio<bool>(value: false, groupValue: keepOld, activeColor: AppColors.primaryDark, onChanged: (v) => onChanged(false)),
+                      Radio<bool>(
+                        value: false,
+                        groupValue: keepOld,
+                        activeColor: AppColors.primaryDark,
+                        onChanged: (v) => onChanged(false),
+                      ),
                       Text('Set new', style: GoogleFonts.inter(fontSize: 14)),
                     ],
                   ),
@@ -544,17 +772,25 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
                 hintText: 'Enter new $title',
                 filled: true,
                 fillColor: AppColors.background,
                 prefixText: 'EGP ',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
             ),
-          ]
+          ],
         ],
       ),
     );
@@ -565,7 +801,13 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -578,9 +820,17 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     side: const BorderSide(color: AppColors.cardBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
-                  child: Text('Back', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  child: Text(
+                    'Back',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -593,14 +843,28 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                   backgroundColor: AppColors.primaryDark,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 0,
                 ),
                 child: _isSaving
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
                     : Text(
-                        _currentStep == _totalSteps - 1 ? 'Save Smart Batch' : 'Continue',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 16),
+                        _currentStep == _totalSteps - 1
+                            ? 'Save Smart Batch'
+                            : 'Continue',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
                       ),
               ),
             ),

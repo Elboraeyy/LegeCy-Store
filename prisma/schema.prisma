@@ -307,6 +307,9 @@ model Product {
   slug                  String?               @unique
   orderedSimilarIds     String[]              @default([])
   specs                 Json?
+  sortInCategory        Int                   @default(0)
+  sortInBrand           Int                   @default(0)
+  sortInMaterial        Int                   @default(0)
   bogoDeals             BOGOProduct[]
   bundleOptions         BundleItemProduct[]
   bundles               BundleProduct[]
@@ -345,7 +348,9 @@ model Brand {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   nameAr    String?
-  products  Product[]
+  sortOrder      Int       @default(0)
+  useCustomOrder Boolean   @default(false)
+  products       Product[]
 }
 
 model Material {
@@ -355,7 +360,9 @@ model Material {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   nameAr    String?
-  products  Product[]
+  sortOrder      Int       @default(0)
+  useCustomOrder Boolean   @default(false)
+  products       Product[]
 }
 
 model Review {
@@ -381,14 +388,15 @@ model Category {
   slug          String     @unique
   description   String?
   parentId      String?
-  sortOrder     Int        @default(0)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  descriptionAr String?
-  nameAr        String?
-  parent        Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children      Category[] @relation("CategoryHierarchy")
-  products      Product[]
+  sortOrder      Int        @default(0)
+  useCustomOrder Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  descriptionAr  String?
+  nameAr         String?
+  parent         Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children       Category[] @relation("CategoryHierarchy")
+  products       Product[]
 
   @@index([parentId])
   @@index([sortOrder])

@@ -121,49 +121,153 @@ export async function POST(request: NextRequest) {
             detailedDescription, detailedDescriptionAr, compareAtPrice, costPrice,
             brandId, materialId, supplierId, showInNewArrivals, showInForYou,
             detailTags, metaTitle, metaTitleAr, metaDescription, metaDescriptionAr,
-            slug, specs, imageUrl, gallery
+            slug, specs, imageUrl, gallery, stock, purchaseDate
         } = body;
 
         if (!name || !sku || price === undefined) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const product = await prisma.product.create({
-            data: {
-                name,
-                nameAr,
-                description,
-                descriptionAr,
-                detailedDescription,
-                detailedDescriptionAr,
-                categoryId: categoryId || null,
-                brandId: brandId || null,
-                materialId: materialId || null,
-                supplierId: supplierId || null,
-                status: status || 'draft',
-                compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
-                costPrice: costPrice ? parseFloat(costPrice) : null,
-                imageUrl,
-                showInNewArrivals: showInNewArrivals ?? true,
-                showInForYou: showInForYou ?? true,
-                detailTags: detailTags || [],
-                metaTitle,
-                metaTitleAr,
-                metaDescription,
-                metaDescriptionAr,
-                slug: slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 6),
-                specs: specs || {},
-                variants: {
-                    create: {
-                        sku,
-                        price: parseFloat(price),
-                        costPrice: costPrice ? parseFloat(costPrice) : null,
-                    }
+        const date = new Date(purchaseDate || Date.now());
+
+        const product = await prisma.$transaction(async (tx) => {
+            const created = await tx.product.create({
+                data: {
+                    name,
+                    nameAr,
+                    description,
+                    descriptionAr,
+                    detailedDescription,
+                    detailedDescriptionAr,
+                    categoryId: categoryId || null,
+                    brandId: brandId || null,
+                    materialId: materialId || null,
+                    supplierId: supplierId || null,
+                    status: status || 'draft',
+                    compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
+                    costPrice: costPrice ? parseFloat(costPrice) : null,
+                    imageUrl,
+                    showInNewArrivals: showInNewArrivals ?? true,
+                    showInForYou: showInForYou ?? true,
+                    detailTags: detailTags || [],
+                    metaTitle,
+                    metaTitleAr,
+                    metaDescription,
+                    metaDescriptionAr,
+                    slug: slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 6),
+                    specs: specs || {},
+                    variants: {
+                        create: {
+                            sku,
+                            price: parseFloat(price),
+                            costPrice: costPrice ? parseFloat(costPrice) : null,
+                        }
+                    },
+                    images: gallery && gallery.length > 0 ? {
+                        create: gallery.map((url: string) => ({ url }))
+                    } : undefined
                 },
-                images: gallery && gallery.length > 0 ? {
-                    create: gallery.map((url: string) => ({ url }))
-                } : undefined
-            },
+                include: { variants: true }
+            });
+
+            // Handle Smart Inventory if stock is provided
+            const initialStock = parseInt(stock) || 0;
+            if (initialStock > 0) {
+                const variantId = created.variants[0].id;
+
+                let warehouse = await tx.warehouse.findFirst({ where: { type: 'MAIN' } });
+                if (!warehouse) {
+                    warehouse = await tx.warehouse.create({
+                        data: { name: 'Main Warehouse', code: 'WH-MAIN', type: 'MAIN', country: 'Egypt' }
+                    });
+                }
+
+                let actualSupplierId = supplierId;
+                if (!actualSupplierId) {
+                    const defSup = await tx.supplier.findFirst({ where: { name: 'Default Supplier' } });
+                    actualSupplierId = defSup ? defSup.id : (await tx.supplier.create({ data: { name: 'Default Supplier' } })).id;
+                }
+
+                // Create Invoice
+                const invoice = await tx.purchaseInvoice.create({
+                    data: {
+                        invoiceNumber: `INV-INIT-${Date.now()}`,
+                        supplierId: actualSupplierId,
+                        issueDate: date,
+                        subtotal: (Number(created.costPrice) || 0) * initialStock,
+                        taxTotal: 0,
+                        shippingTotal: 0,
+                        discountTotal: 0,
+                        grandTotal: (Number(created.costPrice) || 0) * initialStock,
+                        status: 'POSTED',
+                    }
+                });
+
+                // Create Invoice Item
+                const invoiceItem = await tx.purchaseInvoiceItem.create({
+                    data: {
+                        invoiceId: invoice.id,
+                        productId: created.id,
+                        variantId: variantId,
+                        description: `Initial stock for ${created.name}`,
+                        quantity: initialStock,
+                        unitCost: Number(created.costPrice) || 0,
+                        finalUnitCost: Number(created.costPrice) || 0,
+                        totalCost: (Number(created.costPrice) || 0) * initialStock,
+                    }
+                });
+
+                // Create Stock In Event
+                const stockIn = await tx.stockInEvent.create({
+                    data: {
+                        invoiceId: invoice.id,
+                        warehouseId: warehouse.id,
+                        postedBy: admin.id,
+                        postedAt: date,
+                    }
+                });
+
+                // Create Inventory Batch
+                await tx.inventoryBatch.create({
+                    data: {
+                        stockInId: stockIn.id,
+                        variantId: variantId,
+                        purchaseItemId: invoiceItem.id,
+                        initialQuantity: initialStock,
+                        remainingQuantity: initialStock,
+                        unitCost: Number(created.costPrice) || 0,
+                        sellPrice: created.variants[0].price,
+                        compareAtPrice: created.compareAtPrice,
+                        expenses: Number((specs as Record<string, unknown> & { additionalCosts?: number })?.additionalCosts || 0),
+                        isPriceApplied: true,
+                        createdAt: date,
+                    }
+                });
+
+                // Update Main Inventory counts
+                await tx.inventory.create({
+                    data: {
+                        warehouseId: warehouse.id,
+                        variantId: variantId,
+                        available: initialStock,
+                        minStock: 5,
+                    }
+                });
+
+                // Create Inventory Log
+                await tx.inventoryLog.create({
+                    data: {
+                        warehouseId: warehouse.id,
+                        variantId: variantId,
+                        action: 'STOCK_IN_MANUAL',
+                        quantity: initialStock,
+                        reason: 'Initial stock on product creation',
+                        adminId: admin.id,
+                    }
+                });
+            }
+
+            return created;
         });
 
         return NextResponse.json({ success: true, product });

@@ -23,7 +23,8 @@ class ProductsScreen extends StatefulWidget {
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
 
-class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProviderStateMixin {
+class _ProductsScreenState extends State<ProductsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _searchController = TextEditingController();
   List<dynamic> _allProducts = [];
@@ -80,6 +81,7 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
     }
     return map.entries.map((e) => {'id': e.key, 'name': e.value}).toList();
   }
+
   final Set<String> _selectedIds = {};
 
   @override
@@ -103,7 +105,10 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
   }
 
   Future<void> _loadProducts() async {
-    setState(() { _isLoading = true; _error = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
@@ -120,7 +125,12 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _isLoading = false; });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -255,7 +265,10 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
   }
 
   void _exitSelection() {
-    setState(() { _selectionMode = false; _selectedIds.clear(); });
+    setState(() {
+      _selectionMode = false;
+      _selectedIds.clear();
+    });
   }
 
   Future<void> _bulkAction(String action, {String? status}) async {
@@ -284,7 +297,10 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
       if (status != null) body['status'] = status;
       await client.post('${ApiConfig.authProductsEndpoint}/bulk', body: body);
       if (mounted) {
-        _showSnack(action == 'delete' ? 'Products deleted' : 'Status updated', isSuccess: true);
+        _showSnack(
+          action == 'delete' ? 'Products deleted' : 'Status updated',
+          isSuccess: true,
+        );
         _exitSelection();
         _loadProducts();
       }
@@ -296,30 +312,58 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
     }
   }
 
-
   void _showSnack(String msg, {bool isSuccess = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: const TextStyle(color: Colors.white)),
-      backgroundColor: isSuccess ? AppColors.success : AppColors.error,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, style: const TextStyle(color: Colors.white)),
+        backgroundColor: isSuccess ? AppColors.success : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
-  Widget _buildConfirmDialog({required String title, required String message, required String confirmLabel, bool isDestructive = false}) {
+  Widget _buildConfirmDialog({
+    required String title,
+    required String message,
+    required String confirmLabel,
+    bool isDestructive = false,
+  }) {
     return AlertDialog(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: Text(title, style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-      content: Text(message, style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
+      title: Text(
+        title,
+        style: GoogleFonts.playfairDisplay(
+          fontWeight: FontWeight.w700,
+          color: AppColors.primaryDark,
+        ),
+      ),
+      content: Text(
+        message,
+        style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+      ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted, fontWeight: FontWeight.w600))),
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(
+            'Cancel',
+            style: GoogleFonts.inter(
+              color: AppColors.textMuted,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true),
           style: ElevatedButton.styleFrom(
-            backgroundColor: isDestructive ? AppColors.error : AppColors.primaryDark,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            backgroundColor: isDestructive
+                ? AppColors.error
+                : AppColors.primaryDark,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             elevation: 0,
           ),
           child: Text(confirmLabel),
@@ -340,42 +384,137 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
               backgroundColor: AppColors.surface,
               surfaceTintColor: Colors.transparent,
               expandedHeight: _selectionMode ? 60 : 130,
-              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(20),
+                ),
+              ),
               leading: _selectionMode
-                  ? IconButton(icon: const Icon(LucideIcons.x, color: AppColors.primaryDark), onPressed: _exitSelection)
+                  ? IconButton(
+                      icon: const Icon(
+                        LucideIcons.x,
+                        color: AppColors.primaryDark,
+                      ),
+                      onPressed: _exitSelection,
+                    )
                   : null,
               title: _selectionMode
-                  ? Text('${_selectedIds.length} selected', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.primaryDark))
-                  : Text('Catalog', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                  ? Text(
+                      '${_selectedIds.length} selected',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryDark,
+                      ),
+                    )
+                  : Text(
+                      'Catalog',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
               actions: _selectionMode
                   ? [
                       IconButton(
-                        icon: Icon(_selectedIds.length == _products.length ? LucideIcons.checkSquare : LucideIcons.square, color: AppColors.primaryDark),
+                        icon: Icon(
+                          _selectedIds.length == _products.length
+                              ? LucideIcons.checkSquare
+                              : LucideIcons.square,
+                          color: AppColors.primaryDark,
+                        ),
                         onPressed: () {
                           setState(() {
                             if (_selectedIds.length == _products.length) {
-                              _selectedIds.clear(); _selectionMode = false;
+                              _selectedIds.clear();
+                              _selectionMode = false;
                             } else {
-                              _selectedIds.addAll(_products.map((p) => p['id'].toString()));
+                              _selectedIds.addAll(
+                                _products.map((p) => p['id'].toString()),
+                              );
                             }
                           });
                         },
                       ),
                       PopupMenuButton<String>(
-                        icon: const Icon(LucideIcons.moreVertical, color: AppColors.primaryDark),
-                        onSelected: (v) => v == 'delete' ? _bulkAction('delete') : _bulkAction('status', status: v),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        icon: const Icon(
+                          LucideIcons.moreVertical,
+                          color: AppColors.primaryDark,
+                        ),
+                        onSelected: (v) => v == 'delete'
+                            ? _bulkAction('delete')
+                            : _bulkAction('status', status: v),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         itemBuilder: (_) => [
-                          PopupMenuItem(value: 'active', child: Row(children: [Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.success, shape: BoxShape.circle)), const SizedBox(width: 10), const Text('Set Active')])),
-                          PopupMenuItem(value: 'draft', child: Row(children: [Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.warning, shape: BoxShape.circle)), const SizedBox(width: 10), const Text('Set Draft')])),
+                          PopupMenuItem(
+                            value: 'active',
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.success,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                const Text('Set Active'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'draft',
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.warning,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                const Text('Set Draft'),
+                              ],
+                            ),
+                          ),
                           const PopupMenuDivider(),
-                          const PopupMenuItem(value: 'delete', child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  LucideIcons.trash2,
+                                  size: 16,
+                                  color: Colors.red,
+                                ),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ]
                   : [
                       if (_tabController.index == 0)
-                        IconButton(icon: const Icon(LucideIcons.checkSquare, size: 20, color: AppColors.primaryDark), onPressed: () => setState(() => _selectionMode = true)),
+                        IconButton(
+                          icon: const Icon(
+                            LucideIcons.checkSquare,
+                            size: 20,
+                            color: AppColors.primaryDark,
+                          ),
+                          onPressed: () =>
+                              setState(() => _selectionMode = true),
+                        ),
                       const SizedBox(width: 8),
                     ],
               bottom: _selectionMode
@@ -401,8 +540,14 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                           ),
                           labelColor: Colors.white,
                           unselectedLabelColor: AppColors.textMuted,
-                          labelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
-                          unselectedLabelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
+                          labelStyle: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          unselectedLabelStyle: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                           tabs: const [
                             Tab(text: 'Products'),
                             Tab(text: 'Organize'),
@@ -433,8 +578,16 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                 foregroundColor: Colors.white,
                 elevation: 4,
                 icon: const Icon(LucideIcons.plus, size: 20),
-                label: Text('New Product', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                label: Text(
+                  'New Product',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
     );
@@ -456,15 +609,19 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                 color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
-              )
-            ]
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Add Product',
-                style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryDark,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -472,24 +629,36 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                 style: GoogleFonts.inter(color: AppColors.textSecondary),
               ),
               const SizedBox(height: 24),
-              _buildAddOption(
-                icon: LucideIcons.packagePlus,
-                title: 'Completely New Product',
-                subtitle: 'Create a brand new product from scratch',
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _navigateToAddProduct();
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildAddOption(
-                icon: LucideIcons.boxes,
-                title: 'New Batch of Existing Product',
-                subtitle: 'Add new quantity to a product you already sell',
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _navigateToAddBatch();
-                },
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _buildAddOption(
+                        icon: LucideIcons.packagePlus,
+                        title: 'New Product',
+                        subtitle: 'Create a brand new product from scratch',
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _navigateToAddProduct();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildAddOption(
+                        icon: LucideIcons.boxes,
+                        title: 'New Batch',
+                        subtitle:
+                            'Add new quantity to a product you already sell',
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _navigateToAddBatch();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -498,7 +667,12 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildAddOption({required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) {
+  Widget _buildAddOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -508,7 +682,8 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
           border: Border.all(color: AppColors.cardBorder),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(12),
@@ -516,20 +691,28 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                 color: AppColors.primaryDark.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: AppColors.primaryDark),
+              child: Icon(icon, color: AppColors.primaryDark, size: 28),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15, color: AppColors.primaryDark)),
-                  const SizedBox(height: 4),
-                  Text(subtitle, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
-                ],
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                color: AppColors.primaryDark,
               ),
+              textAlign: TextAlign.center,
             ),
-            const Icon(LucideIcons.chevronRight, size: 20, color: AppColors.textMuted),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+                height: 1.3,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
@@ -538,13 +721,19 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
 
   Future<void> _navigateToAddProduct() async {
     HapticFeedback.mediumImpact();
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const AddProductScreen()));
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AddProductScreen()),
+    );
     if (result == true) _loadProducts();
   }
 
   Future<void> _navigateToAddBatch() async {
     HapticFeedback.mediumImpact();
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const AddBatchScreen()));
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AddBatchScreen()),
+    );
     if (result == true) _loadProducts();
   }
 
@@ -564,7 +753,15 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AppColors.cardBorder),
-                        boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 4))],
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryDark.withValues(
+                              alpha: 0.03,
+                            ),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: TextField(
                         controller: _searchController,
@@ -572,13 +769,29 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                         style: GoogleFonts.inter(fontSize: 14),
                         decoration: InputDecoration(
                           hintText: 'Search products...',
-                          hintStyle: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted),
-                          prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppColors.textMuted),
+                          hintStyle: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: AppColors.textMuted,
+                          ),
+                          prefixIcon: const Icon(
+                            LucideIcons.search,
+                            size: 18,
+                            color: AppColors.textMuted,
+                          ),
                           suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(icon: const Icon(LucideIcons.x, size: 16), onPressed: () { _searchController.clear(); _loadProducts(); })
+                              ? IconButton(
+                                  icon: const Icon(LucideIcons.x, size: 16),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _loadProducts();
+                                  },
+                                )
                               : null,
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                         ),
                       ),
                     ),
@@ -596,7 +809,15 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                               ? AppColors.accent
                               : AppColors.cardBorder,
                         ),
-                        boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 4))],
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryDark.withValues(
+                              alpha: 0.03,
+                            ),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Icon(
                         LucideIcons.slidersHorizontal,
@@ -651,26 +872,32 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
 
         // ── Content ──
         _isLoading
-            ? const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primaryDark)))
+            ? const SliverFillRemaining(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryDark,
+                  ),
+                ),
+              )
             : _error != null
-                ? SliverFillRemaining(child: _buildErrorState())
-                : _products.isEmpty
-                    ? SliverFillRemaining(child: _buildEmptyState())
-                    : SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
-                        sliver: SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 14,
-                            crossAxisSpacing: 14,
-                            childAspectRatio: 0.62,
-                          ),
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) => _buildProductCard(_products[index]),
-                            childCount: _products.length,
-                          ),
-                        ),
-                      ),
+            ? SliverFillRemaining(child: _buildErrorState())
+            : _products.isEmpty
+            ? SliverFillRemaining(child: _buildEmptyState())
+            : SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 14,
+                    crossAxisSpacing: 14,
+                    childAspectRatio: 0.62,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => _buildProductCard(_products[index]),
+                    childCount: _products.length,
+                  ),
+                ),
+              ),
       ],
     );
   }
@@ -679,37 +906,51 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       children: [
-        
         _buildStorefrontCard(
           title: 'Categories',
           subtitle: 'Manage product hierarchy and collections',
           icon: LucideIcons.layoutGrid,
           color: const Color(0xFF3B82F6),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CategoriesScreen()),
+          ),
         ),
         const SizedBox(height: 16),
-        
+
         _buildStorefrontCard(
           title: 'Brands',
           subtitle: 'Manage partner brands and manufacturers',
           icon: LucideIcons.tag,
           color: const Color(0xFF8B5CF6),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BrandsScreen())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const BrandsScreen()),
+          ),
         ),
         const SizedBox(height: 16),
-        
+
         _buildStorefrontCard(
           title: 'Materials',
           subtitle: 'Configure product materials and care instructions',
           icon: LucideIcons.layers,
           color: const Color(0xFF64748B),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MaterialsScreen())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MaterialsScreen()),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildStorefrontCard({required String title, required String subtitle, required IconData icon, required Color color, required VoidCallback onTap}) {
+  Widget _buildStorefrontCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -723,7 +964,7 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
               color: AppColors.cardBorder.withValues(alpha: 0.5),
               blurRadius: 10,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Row(
@@ -743,17 +984,28 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: AppColors.textMuted,
+                    ),
                   ),
                 ],
               ),
             ),
-            Icon(LucideIcons.chevronRight, size: 20, color: AppColors.textMuted.withValues(alpha: 0.5)),
+            Icon(
+              LucideIcons.chevronRight,
+              size: 20,
+              color: AppColors.textMuted.withValues(alpha: 0.5),
+            ),
           ],
         ),
       ),
@@ -1281,9 +1533,18 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
         decoration: BoxDecoration(
           color: isActive ? AppColors.primaryDark : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isActive ? AppColors.primaryDark : AppColors.cardBorder),
+          border: Border.all(
+            color: isActive ? AppColors.primaryDark : AppColors.cardBorder,
+          ),
         ),
-        child: Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: isActive ? Colors.white : AppColors.textSecondary)),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isActive ? Colors.white : AppColors.textSecondary,
+          ),
+        ),
       ),
     );
   }
@@ -1390,22 +1651,34 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
     final isActive = product['status'] == 'active';
     final isSelected = _selectedIds.contains(product['id']);
     final priceRaw = product['price'];
-    final priceNum = priceRaw is String ? num.tryParse(priceRaw) : priceRaw as num?;
+    final priceNum = priceRaw is String
+        ? num.tryParse(priceRaw)
+        : priceRaw as num?;
     final price = priceNum?.toStringAsFixed(0) ?? '0';
-    
+
     final compRaw = product['compareAtPrice'];
-    final compareAt = compRaw is String ? num.tryParse(compRaw) : compRaw as num?;
-    
+    final compareAt = compRaw is String
+        ? num.tryParse(compRaw)
+        : compRaw as num?;
+
     final stockRaw = product['totalStock'];
-    final stock = (stockRaw is String ? int.tryParse(stockRaw) : stockRaw as int?) ?? 0;
+    final stock =
+        (stockRaw is String ? int.tryParse(stockRaw) : stockRaw as int?) ?? 0;
 
     final List<dynamic> detailTagsRaw = product['detailTags'] ?? [];
     List<Widget> badgeWidgets = [];
 
     if (compareAt != null && compareAt > (priceNum ?? 0)) {
-      final discount = (((compareAt - (priceNum ?? 0)) / compareAt) * 100).round();
+      final discount = (((compareAt - (priceNum ?? 0)) / compareAt) * 100)
+          .round();
       if (discount > 0) {
-        badgeWidgets.add(_buildBadge('-$discount%', const Color(0xFFEF4444)));
+        badgeWidgets.add(
+          _buildBadge(
+            '-$discount%',
+            const Color(0xFFEF4444),
+            icon: LucideIcons.flame,
+          ),
+        );
       }
     }
 
@@ -1417,27 +1690,56 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
       if (tagStr.contains('|')) {
         final parts = tagStr.split('|');
         label = parts[0];
-        if (parts.length > 1 && parts[1].isNotEmpty) badgeColor = _parseColor(parts[1], AppColors.primaryDark);
+        if (parts.length > 1 && parts[1].isNotEmpty) {
+          badgeColor = _parseColor(parts[1], AppColors.primaryDark);
+        }
       }
-      badgeWidgets.add(_buildBadge(label.toUpperCase(), badgeColor));
+      badgeWidgets.add(
+        _buildBadge(
+          label.toUpperCase(),
+          badgeColor,
+          icon: LucideIcons.sparkles,
+        ),
+      );
     }
 
     return GestureDetector(
-      onLongPress: () { HapticFeedback.mediumImpact(); _toggleSelection(product['id']); },
+      onLongPress: () {
+        HapticFeedback.mediumImpact();
+        _toggleSelection(product['id']);
+      },
       onTap: () {
-        if (_selectionMode) { _toggleSelection(product['id']); return; }
+        if (_selectionMode) {
+          _toggleSelection(product['id']);
+          return;
+        }
         HapticFeedback.lightImpact();
-        Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailsScreen(product: product)))
-            .then((r) { if (r == true) _loadProducts(); });
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailsScreen(product: product),
+          ),
+        ).then((r) {
+          if (r == true) _loadProducts();
+        });
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? AppColors.accent : AppColors.cardBorder, width: isSelected ? 2 : 1),
+          border: Border.all(
+            color: isSelected ? AppColors.accent : AppColors.cardBorder,
+            width: isSelected ? 2 : 1,
+          ),
           boxShadow: [
-            BoxShadow(color: AppColors.primaryDark.withValues(alpha: isSelected ? 0.08 : 0.04), blurRadius: 16, offset: const Offset(0, 6)),
+            BoxShadow(
+              color: AppColors.primaryDark.withValues(
+                alpha: isSelected ? 0.08 : 0.04,
+              ),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
           ],
         ),
         child: Stack(
@@ -1449,7 +1751,9 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                 Expanded(
                   flex: 5,
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(19)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(19),
+                    ),
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -1457,28 +1761,46 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                             ? CachedNetworkImage(
                                 imageUrl: product['imageUrl'],
                                 fit: BoxFit.cover,
-                                placeholder: (_, _) => Container(color: AppColors.shimmer),
+                                placeholder: (_, _) =>
+                                    Container(color: AppColors.shimmer),
                                 errorWidget: (_, _, _) => Container(
                                   color: AppColors.shimmer,
-                                  child: const Center(child: Icon(LucideIcons.image, color: AppColors.textMuted, size: 28)),
+                                  child: const Center(
+                                    child: Icon(
+                                      LucideIcons.image,
+                                      color: AppColors.textMuted,
+                                      size: 28,
+                                    ),
+                                  ),
                                 ),
                               )
                             : Container(
                                 color: AppColors.shimmer,
                                 child: Center(
-                                  child: Icon(LucideIcons.image, color: AppColors.textMuted.withValues(alpha: 0.4), size: 36),
+                                  child: Icon(
+                                    LucideIcons.image,
+                                    color: AppColors.textMuted.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                    size: 36,
+                                  ),
                                 ),
                               ),
                         // Gradient overlay at bottom
                         Positioned(
-                          bottom: 0, left: 0, right: 0,
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
                           child: Container(
                             height: 40,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [Colors.transparent, Colors.black.withValues(alpha: 0.15)],
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.15),
+                                ],
                               ),
                             ),
                           ),
@@ -1500,7 +1822,12 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                         // Name
                         Text(
                           product['name'] ?? '',
-                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary, height: 1.3),
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                            height: 1.3,
+                          ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1516,18 +1843,30 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                                   if (compareAt != null)
                                     Text(
                                       '${compareAt.toStringAsFixed(0)} EGP',
-                                      style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted, decoration: TextDecoration.lineThrough, decorationColor: AppColors.textMuted),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        color: AppColors.textMuted,
+                                        decoration: TextDecoration.lineThrough,
+                                        decorationColor: AppColors.textMuted,
+                                      ),
                                     ),
                                   Text(
                                     '$price EGP',
-                                    style: GoogleFonts.playfairDisplay(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                                    style: GoogleFonts.playfairDisplay(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primaryDark,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                             // Stock badge
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: stock > 0
                                     ? AppColors.success.withValues(alpha: 0.08)
@@ -1539,7 +1878,9 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                                 style: GoogleFonts.inter(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: stock > 0 ? AppColors.success : AppColors.error,
+                                  color: stock > 0
+                                      ? AppColors.success
+                                      : AppColors.error,
                                 ),
                               ),
                             ),
@@ -1554,7 +1895,8 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
 
             // ── Status Badge ──
             Positioned(
-              top: 10, right: 10,
+              top: 10,
+              right: 10,
               child: GestureDetector(
                 onTap: () {
                   HapticFeedback.lightImpact();
@@ -1596,7 +1938,8 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
             // ── Badges ──
             if (badgeWidgets.isNotEmpty && !_selectionMode)
               Positioned(
-                top: 10, left: 10,
+                top: 10,
+                left: 10,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: badgeWidgets,
@@ -1606,21 +1949,39 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
             // ── Selection Indicator ──
             if (_selectionMode)
               Positioned(
-                top: 10, left: 10,
+                top: 10,
+                left: 10,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  width: 26, height: 26,
+                  width: 26,
+                  height: 26,
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.accent : Colors.white.withValues(alpha: 0.9),
+                    color: isSelected
+                        ? AppColors.accent
+                        : Colors.white.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
-                    border: Border.all(color: isSelected ? AppColors.accent : AppColors.cardBorder, width: 2),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 6)],
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.accent
+                          : AppColors.cardBorder,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 6,
+                      ),
+                    ],
                   ),
-                  child: isSelected ? const Icon(LucideIcons.check, size: 14, color: Colors.white) : null,
+                  child: isSelected
+                      ? const Icon(
+                          LucideIcons.check,
+                          size: 14,
+                          color: Colors.white,
+                        )
+                      : null,
                 ),
               ),
-
-
           ],
         ),
       ),
@@ -1636,13 +1997,35 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
           children: [
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.08), shape: BoxShape.circle),
-              child: Icon(LucideIcons.package, size: 48, color: AppColors.accent.withValues(alpha: 0.5)),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                LucideIcons.package,
+                size: 48,
+                color: AppColors.accent.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: 24),
-            Text('No Products Yet', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+            Text(
+              'No Products Yet',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryDark,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text('Start building your catalog by\nadding your first product.', textAlign: TextAlign.center, style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted, height: 1.5)),
+            Text(
+              'Start building your catalog by\nadding your first product.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppColors.textMuted,
+                height: 1.5,
+              ),
+            ),
           ],
         ),
       ),
@@ -1658,13 +2041,30 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
           children: [
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.08), shape: BoxShape.circle),
-              child: Icon(LucideIcons.wifiOff, size: 40, color: AppColors.error.withValues(alpha: 0.5)),
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                LucideIcons.wifiOff,
+                size: 40,
+                color: AppColors.error.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: 20),
-            Text('Failed to Load', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.error)),
+            Text(
+              'Failed to Load',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.error,
+              ),
+            ),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: _loadProducts, child: const Text('Retry')),
+            ElevatedButton(
+              onPressed: _loadProducts,
+              child: const Text('Retry'),
+            ),
           ],
         ),
       ),
@@ -1683,29 +2083,38 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
     }
   }
 
-  Widget _buildBadge(String label, Color color) {
+  Widget _buildBadge(String label, Color color, {IconData? icon}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 9,
-          fontWeight: FontWeight.w800,
-          color: Colors.white,
-          letterSpacing: 0.5,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 10, color: Colors.white),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }

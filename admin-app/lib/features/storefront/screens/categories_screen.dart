@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
-
+import 'package:admin_app/features/storefront/screens/organize_products_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -36,12 +36,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Future<void> _loadCategories() async {
-    setState(() { _isLoading = true; _error = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       final data = await client.get('/api/admin/auth/categories');
-      
+
       if (mounted) {
         setState(() {
           _categories = data['categories'];
@@ -50,7 +53,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _isLoading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
     }
   }
 
@@ -61,7 +68,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         final name = c['name']?.toString().toLowerCase() ?? '';
         final nameAr = c['nameAr']?.toString().toLowerCase() ?? '';
         final slug = c['slug']?.toString().toLowerCase() ?? '';
-        return name.contains(query) || nameAr.contains(query) || slug.contains(query);
+        return name.contains(query) ||
+            nameAr.contains(query) ||
+            slug.contains(query);
       }).toList();
     });
   }
@@ -73,13 +82,34 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Delete Category', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-        content: Text('Are you sure you want to delete this category?', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+        title: Text(
+          'Delete Category',
+          style: GoogleFonts.playfairDisplay(
+            fontWeight: FontWeight.w700,
+            color: AppColors.primaryDark,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete this category?',
+          style: GoogleFonts.inter(color: AppColors.textSecondary),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.inter(color: AppColors.textMuted),
+            ),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -93,13 +123,25 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       await client.delete('/api/admin/auth/categories/$id');
-      
+
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Category deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Category deleted'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       _loadCategories();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -107,11 +149,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      final items = _categories.asMap().entries.map((e) => {
-        'id': e.value['id'],
-        'sortOrder': e.key,
-      }).toList();
-      await client.put('/api/admin/auth/categories/reorder', body: {'items': items});
+      final items = _categories
+          .asMap()
+          .entries
+          .map((e) => {'id': e.value['id'], 'sortOrder': e.key})
+          .toList();
+      await client.put(
+        '/api/admin/auth/categories/reorder',
+        body: {'items': items},
+      );
     } catch (e) {
       debugPrint('Failed to save category order: $e');
     }
@@ -129,9 +175,26 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               backgroundColor: AppColors.surface,
               surfaceTintColor: Colors.transparent,
               expandedHeight: 130,
-              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))),
-              leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
-              title: Text('Categories', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(20),
+                ),
+              ),
+              leading: IconButton(
+                icon: const Icon(
+                  LucideIcons.arrowLeft,
+                  color: AppColors.primaryDark,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: Text(
+                'Categories',
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryDark,
+                ),
+              ),
               actions: [],
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(70),
@@ -148,12 +211,29 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       style: GoogleFonts.inter(fontSize: 14),
                       decoration: InputDecoration(
                         hintText: 'Search categories...',
-                        hintStyle: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted),
-                        prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppColors.textMuted),
+                        hintStyle: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppColors.textMuted,
+                        ),
+                        prefixIcon: const Icon(
+                          LucideIcons.search,
+                          size: 18,
+                          color: AppColors.textMuted,
+                        ),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(icon: const Icon(LucideIcons.x, size: 16, color: AppColors.textMuted), onPressed: () => _searchController.clear())
+                            ? IconButton(
+                                icon: const Icon(
+                                  LucideIcons.x,
+                                  size: 16,
+                                  color: AppColors.textMuted,
+                                ),
+                                onPressed: () => _searchController.clear(),
+                              )
                             : null,
                       ),
                     ),
@@ -164,150 +244,297 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           ];
         },
         body: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primaryDark),
+              )
             : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error),
-                        const SizedBox(height: 16),
-                        Text(_error!, style: GoogleFonts.inter(color: AppColors.error)),
-                        const SizedBox(height: 16),
-                        ElevatedButton(onPressed: _loadCategories, child: const Text('Retry')),
-                      ],
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      LucideIcons.alertCircle,
+                      size: 48,
+                      color: AppColors.error,
                     ),
-                  )
-                : _filteredCategories.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(color: AppColors.primaryDark.withValues(alpha: 0.05), shape: BoxShape.circle),
-                              child: const Icon(LucideIcons.layoutGrid, size: 48, color: AppColors.primaryDark),
+                    const SizedBox(height: 16),
+                    Text(
+                      _error!,
+                      style: GoogleFonts.inter(color: AppColors.error),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadCategories,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+            : _filteredCategories.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryDark.withValues(alpha: 0.05),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        LucideIcons.layoutGrid,
+                        size: 48,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'No Categories Found',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Create your first category to organize products.',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _loadCategories,
+                color: AppColors.primaryDark,
+                child: ReorderableListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                  itemCount: _filteredCategories.length,
+                  buildDefaultDragHandles: _searchController.text.isEmpty,
+                  proxyDecorator: (child, index, animation) {
+                    return Material(color: Colors.transparent, child: child);
+                  },
+                  onReorder: (oldIndex, newIndex) {
+                    if (_searchController.text.isNotEmpty)
+                      return; // Disallow reordering when filtered
+                    setState(() {
+                      if (newIndex > oldIndex) newIndex -= 1;
+                      final item = _filteredCategories.removeAt(oldIndex);
+                      _filteredCategories.insert(newIndex, item);
+                      _categories = List.from(_filteredCategories);
+                    });
+                    _saveCategoryOrder();
+                  },
+                  itemBuilder: (context, index) {
+                    final category = _filteredCategories[index];
+                    final productsCount = category['_count']?['products'] ?? 0;
+                    final childrenCount = category['_count']?['children'] ?? 0;
+
+                    return Padding(
+                      key: ValueKey(category['id']),
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.cardBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryDark.withValues(
+                                alpha: 0.02,
+                              ),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
-                            const SizedBox(height: 24),
-                            Text('No Categories Found', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                            const SizedBox(height: 8),
-                            Text('Create your first category to organize products.', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted)),
                           ],
                         ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadCategories,
-                        color: AppColors.primaryDark,
-                        child: ReorderableListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                          itemCount: _filteredCategories.length,
-                          buildDefaultDragHandles: _searchController.text.isEmpty,
-                          proxyDecorator: (child, index, animation) {
-                            return Material(
-                              color: Colors.transparent,
-                              child: child,
-                            );
-                          },
-                          onReorder: (oldIndex, newIndex) {
-                            if (_searchController.text.isNotEmpty) return; // Disallow reordering when filtered
-                            setState(() {
-                              if (newIndex > oldIndex) newIndex -= 1;
-                              final item = _filteredCategories.removeAt(oldIndex);
-                              _filteredCategories.insert(newIndex, item);
-                              _categories = List.from(_filteredCategories);
-                            });
-                            _saveCategoryOrder();
-                          },
-                          itemBuilder: (context, index) {
-                            final category = _filteredCategories[index];
-                            final productsCount = category['_count']?['products'] ?? 0;
-                            final childrenCount = category['_count']?['children'] ?? 0;
-                            
-                            return Padding(
-                              key: ValueKey(category['id']),
-                              padding: const EdgeInsets.only(bottom: 12.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: AppColors.cardBorder),
-                                  boxShadow: [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))],
-                                ),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.all(16),
-                                  leading: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(color: const Color(0xFF3B82F6).withValues(alpha: 0.1), shape: BoxShape.circle),
-                                    child: const Icon(LucideIcons.folder, color: Color(0xFF3B82F6)),
-                                  ),
-                                  title: Row(
-                                    children: [
-                                      Expanded(child: Text(category['name'] ?? '', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primaryDark))),
-                                    ],
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(height: 4),
-                                      Text('Slug: ${category['slug']}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
-                                      if (category['parent'] != null) ...[
-                                        const SizedBox(height: 4),
-                                        Text('Parent: ${category['parent']['name']}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-                                      ],
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                            decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8)),
-                                            child: Row(
-                                              children: [
-                                                const Icon(LucideIcons.package, size: 12, color: AppColors.textSecondary),
-                                                const SizedBox(width: 4),
-                                                Text('$productsCount Products', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                                              ],
-                                            ),
-                                          ),
-                                          if (childrenCount > 0) ...[
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8)),
-                                              child: Row(
-                                                children: [
-                                                  const Icon(LucideIcons.gitMerge, size: 12, color: AppColors.textSecondary),
-                                                  const SizedBox(width: 4),
-                                                  Text('$childrenCount Subcategories', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  trailing: PopupMenuButton<String>(
-                                    icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                    onSelected: (v) {
-                                      if (v == 'edit') {
-                                        _showCategorySheet(category: category);
-                                      } else if (v == 'delete') {
-                                        _deleteCategory(category['id']);
-                                      }
-                                    },
-                                    itemBuilder: (_) => [
-                                      const PopupMenuItem(value: 'edit', child: Row(children: [Icon(LucideIcons.edit, size: 16, color: AppColors.primaryDark), SizedBox(width: 10), Text('Edit Category')])),
-                                      const PopupMenuDivider(),
-                                      const PopupMenuItem(value: 'delete', child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
-                                    ],
-                                  ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(16),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => OrganizeProductsScreen(
+                                  entityId: category['id'],
+                                  entityName: category['name'] ?? 'Category',
+                                  type: OrganizeType.category,
                                 ),
                               ),
                             );
                           },
+                          leading: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF3B82F6,
+                              ).withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              LucideIcons.folder,
+                              color: Color(0xFF3B82F6),
+                            ),
+                          ),
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  category['name'] ?? '',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text(
+                                'Slug: ${category['slug']}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              if (category['parent'] != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Parent: ${category['parent']['name']}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: AppColors.textMuted,
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.background,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          LucideIcons.package,
+                                          size: 12,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '$productsCount Products',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (childrenCount > 0) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.background,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            LucideIcons.gitMerge,
+                                            size: 12,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '$childrenCount Subcategories',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
+                          ),
+                          trailing: PopupMenuButton<String>(
+                            icon: const Icon(
+                              LucideIcons.moreVertical,
+                              color: AppColors.textMuted,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            onSelected: (v) {
+                              if (v == 'edit') {
+                                _showCategorySheet(category: category);
+                              } else if (v == 'delete') {
+                                _deleteCategory(category['id']);
+                              }
+                            },
+                            itemBuilder: (_) => [
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      LucideIcons.edit,
+                                      size: 16,
+                                      color: AppColors.primaryDark,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text('Edit Category'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuDivider(),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      LucideIcons.trash2,
+                                      size: 16,
+                                      color: Colors.red,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
+                    );
+                  },
+                ),
+              ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -316,7 +543,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         },
         backgroundColor: AppColors.primaryDark,
         icon: const Icon(LucideIcons.plus, color: Colors.white),
-        label: Text('New Category', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white)),
+        label: Text(
+          'New Category',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
@@ -332,7 +565,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setSheetState) => Container(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 30),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            MediaQuery.of(ctx).viewInsets.bottom + 30,
+          ),
           decoration: const BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -362,12 +600,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ),
               const SizedBox(height: 24),
               _sheetField(
-                'Category Name', 
-                nameCtrl, 
+                'Category Name',
+                nameCtrl,
                 LucideIcons.tag,
                 onChanged: (v) {
                   if (slugCtrl.text.isEmpty) {
-                    slugCtrl.text = v.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-').replaceAll(RegExp(r'(^-|-$)'), '');
+                    slugCtrl.text = v
+                        .toLowerCase()
+                        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                        .replaceAll(RegExp(r'(^-|-$)'), '');
                   }
                 },
               ),
@@ -378,57 +619,90 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: isSaving ? null : () async {
-                    if (nameCtrl.text.trim().isEmpty || slugCtrl.text.trim().isEmpty) return;
-                    
-                    setSheetState(() => isSaving = true);
-                    
-                    final body = {
-                      'name': nameCtrl.text.trim(),
-                      'slug': slugCtrl.text.trim(),
-                      'nameAr': category?['nameAr'],
-                      'description': category?['description'],
-                      'parentId': category?['parentId'],
-                      'sortOrder': category?['sortOrder'] ?? 0,
-                    };
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (nameCtrl.text.trim().isEmpty ||
+                              slugCtrl.text.trim().isEmpty)
+                            return;
 
-                    final messenger = ScaffoldMessenger.of(context);
-                    try {
-                      final token = context.read<AuthProvider>().token;
-                      final client = ApiClient(token: token);
-                      
-                      if (category != null) {
-                        await client.put('/api/admin/auth/categories/${category['id']}', body: body);
-                      } else {
-                        await client.post('/api/admin/auth/categories', body: body);
-                      }
-                      
-                      if (!context.mounted) return;
-                      Navigator.pop(ctx);
-                      _loadCategories();
-                      messenger.showSnackBar(SnackBar(
-                        content: Text(category != null ? 'Category updated' : 'Category created'),
-                        backgroundColor: AppColors.success,
-                        behavior: SnackBarBehavior.floating,
-                      ));
-                    } catch (e) {
-                      setSheetState(() => isSaving = false);
-                      messenger.showSnackBar(SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: AppColors.error,
-                        behavior: SnackBarBehavior.floating,
-                      ));
-                    }
-                  },
+                          setSheetState(() => isSaving = true);
+
+                          final body = {
+                            'name': nameCtrl.text.trim(),
+                            'slug': slugCtrl.text.trim(),
+                            'nameAr': category?['nameAr'],
+                            'description': category?['description'],
+                            'parentId': category?['parentId'],
+                            'sortOrder': category?['sortOrder'] ?? 0,
+                          };
+
+                          final messenger = ScaffoldMessenger.of(context);
+                          try {
+                            final token = context.read<AuthProvider>().token;
+                            final client = ApiClient(token: token);
+
+                            if (category != null) {
+                              await client.put(
+                                '/api/admin/auth/categories/${category['id']}',
+                                body: body,
+                              );
+                            } else {
+                              await client.post(
+                                '/api/admin/auth/categories',
+                                body: body,
+                              );
+                            }
+
+                            if (!context.mounted) return;
+                            Navigator.pop(ctx);
+                            _loadCategories();
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  category != null
+                                      ? 'Category updated'
+                                      : 'Category created',
+                                ),
+                                backgroundColor: AppColors.success,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          } catch (e) {
+                            setSheetState(() => isSaving = false);
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: AppColors.error,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryDark,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     elevation: 0,
                   ),
                   child: isSaving
-                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : Text(category != null ? 'Save Changes' : 'Create Category', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          category != null ? 'Save Changes' : 'Create Category',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -438,13 +712,22 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Widget _sheetField(String label, TextEditingController ctrl, IconData icon, {Function(String)? onChanged}) {
+  Widget _sheetField(
+    String label,
+    TextEditingController ctrl,
+    IconData icon, {
+    Function(String)? onChanged,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -455,8 +738,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             prefixIcon: Icon(icon, size: 18, color: AppColors.textMuted),
             filled: true,
             fillColor: AppColors.background,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
         ),
       ],
