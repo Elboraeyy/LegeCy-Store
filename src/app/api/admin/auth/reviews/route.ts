@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
         // Map to consistent shape for mobile
         const mapped = reviews.map(r => ({
             id: r.id,
+            productId: r.productId,
             rating: r.rating,
             comment: r.text,
             reviewerName: r.name,

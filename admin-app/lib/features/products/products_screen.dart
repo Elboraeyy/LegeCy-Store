@@ -8,6 +8,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/products/add_product_screen.dart';
+import 'package:admin_app/features/products/add_batch_screen.dart';
 import 'package:admin_app/features/products/product_details_screen.dart';
 import 'package:admin_app/core/config/api_config.dart';
 
@@ -295,43 +296,6 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
     }
   }
 
-  Future<void> _deleteSingle(String id) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => _buildConfirmDialog(
-        title: 'Delete Product?',
-        message: 'This will permanently remove this product and its variants.',
-        confirmLabel: 'Delete',
-        isDestructive: true,
-      ),
-    );
-    if (ok != true) return;
-
-    setState(() => _isLoading = true);
-    try {
-      if (!mounted) return;
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      await client.delete('${ApiConfig.authProductsEndpoint}/$id');
-      if (mounted) {
-        _showSnack('Product deleted', isSuccess: true);
-        _loadProducts();
-      }
-    } catch (e) {
-      if (mounted) {
-        _showSnack('Failed: $e');
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  void _duplicateProduct(Map<String, dynamic> product) {
-    final copy = Map<String, dynamic>.from(product);
-    copy.remove('id');
-    copy['name'] = '${copy['name']} (Copy)';
-    Navigator.push(context, MaterialPageRoute(builder: (_) => AddProductScreen(product: copy)))
-      .then((r) { if (r == true) _loadProducts(); });
-  }
 
   void _showSnack(String msg, {bool isSuccess = false}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -464,11 +428,7 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
           : Padding(
               padding: const EdgeInsets.only(bottom: 90),
               child: FloatingActionButton.extended(
-                onPressed: () async {
-                  HapticFeedback.mediumImpact();
-                  final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const AddProductScreen()));
-                  if (result == true) _loadProducts();
-                },
+                onPressed: _showAddOptions,
                 backgroundColor: AppColors.primaryDark,
                 foregroundColor: Colors.white,
                 elevation: 4,
@@ -478,6 +438,114 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
               ),
             ),
     );
+  }
+
+  void _showAddOptions() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          width: 400,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              )
+            ]
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Add Product',
+                style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'What would you like to do?',
+                style: GoogleFonts.inter(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 24),
+              _buildAddOption(
+                icon: LucideIcons.packagePlus,
+                title: 'Completely New Product',
+                subtitle: 'Create a brand new product from scratch',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _navigateToAddProduct();
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildAddOption(
+                icon: LucideIcons.boxes,
+                title: 'New Batch of Existing Product',
+                subtitle: 'Add new quantity to a product you already sell',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _navigateToAddBatch();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddOption({required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.cardBorder),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primaryDark.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: AppColors.primaryDark),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15, color: AppColors.primaryDark)),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+            const Icon(LucideIcons.chevronRight, size: 20, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _navigateToAddProduct() async {
+    HapticFeedback.mediumImpact();
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const AddProductScreen()));
+    if (result == true) _loadProducts();
+  }
+
+  Future<void> _navigateToAddBatch() async {
+    HapticFeedback.mediumImpact();
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const AddBatchScreen()));
+    if (result == true) _loadProducts();
   }
 
   Widget _buildProductsTab() {
@@ -1260,8 +1328,9 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                     : null,
                 onTap: () {
                   Navigator.pop(ctx);
-                  if (product['status'] != 'active')
+                  if (product['status'] != 'active') {
                     _updateProductStatus(product['id'], 'active');
+                  }
                 },
               ),
               ListTile(
@@ -1282,8 +1351,9 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                     : null,
                 onTap: () {
                   Navigator.pop(ctx);
-                  if (product['status'] != 'draft')
+                  if (product['status'] != 'draft') {
                     _updateProductStatus(product['id'], 'draft');
+                  }
                 },
               ),
               ListTile(
@@ -1304,8 +1374,9 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
                     : null,
                 onTap: () {
                   Navigator.pop(ctx);
-                  if (product['status'] != 'archived')
+                  if (product['status'] != 'archived') {
                     _updateProductStatus(product['id'], 'archived');
+                  }
                 },
               ),
             ],
@@ -1327,6 +1398,29 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
     
     final stockRaw = product['totalStock'];
     final stock = (stockRaw is String ? int.tryParse(stockRaw) : stockRaw as int?) ?? 0;
+
+    final List<dynamic> detailTagsRaw = product['detailTags'] ?? [];
+    List<Widget> badgeWidgets = [];
+
+    if (compareAt != null && compareAt > (priceNum ?? 0)) {
+      final discount = (((compareAt - (priceNum ?? 0)) / compareAt) * 100).round();
+      if (discount > 0) {
+        badgeWidgets.add(_buildBadge('-$discount%', const Color(0xFFEF4444)));
+      }
+    }
+
+    for (var tagRaw in detailTagsRaw) {
+      final tagStr = tagRaw.toString();
+      if (tagStr.isEmpty) continue;
+      String label = tagStr;
+      Color badgeColor = AppColors.primaryDark;
+      if (tagStr.contains('|')) {
+        final parts = tagStr.split('|');
+        label = parts[0];
+        if (parts.length > 1 && parts[1].isNotEmpty) badgeColor = _parseColor(parts[1], AppColors.primaryDark);
+      }
+      badgeWidgets.add(_buildBadge(label.toUpperCase(), badgeColor));
+    }
 
     return GestureDetector(
       onLongPress: () { HapticFeedback.mediumImpact(); _toggleSelection(product['id']); },
@@ -1499,6 +1593,16 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
               ),
             ),
 
+            // ── Badges ──
+            if (badgeWidgets.isNotEmpty && !_selectionMode)
+              Positioned(
+                top: 10, left: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: badgeWidgets,
+                ),
+              ),
+
             // ── Selection Indicator ──
             if (_selectionMode)
               Positioned(
@@ -1562,6 +1666,45 @@ class _ProductsScreenState extends State<ProductsScreen> with SingleTickerProvid
             const SizedBox(height: 12),
             ElevatedButton(onPressed: _loadProducts, child: const Text('Retry')),
           ],
+        ),
+      ),
+    );
+  }
+
+  Color _parseColor(String? hexString, Color fallback) {
+    if (hexString == null || hexString.isEmpty) return fallback;
+    try {
+      final buffer = StringBuffer();
+      if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
+      buffer.write(hexString.replaceFirst('#', ''));
+      return Color(int.parse(buffer.toString(), radix: 16));
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  Widget _buildBadge(String label, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+          letterSpacing: 0.5,
         ),
       ),
     );

@@ -18,17 +18,13 @@ class AddCategoryScreen extends StatefulWidget {
 class _AddCategoryScreenState extends State<AddCategoryScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  bool _isLoadingParents = true;
-
+  
   late TextEditingController _nameCtrl;
   late TextEditingController _nameArCtrl;
   late TextEditingController _slugCtrl;
   late TextEditingController _descCtrl;
   late TextEditingController _descArCtrl;
   late TextEditingController _sortOrderCtrl;
-
-  String? _selectedParentId;
-  List<dynamic> _parentCategories = [];
 
   @override
   void initState() {
@@ -40,9 +36,6 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     _descCtrl = TextEditingController(text: c?['description'] ?? '');
     _descArCtrl = TextEditingController(text: c?['descriptionAr'] ?? '');
     _sortOrderCtrl = TextEditingController(text: c?['sortOrder']?.toString() ?? '0');
-    _selectedParentId = c?['parentId'];
-    
-    _loadParentCategories();
   }
 
   @override
@@ -56,31 +49,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     super.dispose();
   }
 
-  Future<void> _loadParentCategories() async {
-    try {
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      final data = await client.get('/api/admin/auth/categories');
-      
-      if (mounted) {
-        setState(() {
-          // Filter out the current category to prevent self-parenting
-          _parentCategories = (data['categories'] as List<dynamic>).where((c) => c['id'] != widget.category?['id']).toList();
-          _isLoadingParents = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) setState(() => _isLoadingParents = false);
-    }
-  }
 
-  void _generateSlug() {
-    if (_nameCtrl.text.isNotEmpty && _slugCtrl.text.isEmpty) {
-      setState(() {
-        _slugCtrl.text = _nameCtrl.text.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-').replaceAll(RegExp(r'(^-|-$)'), '');
-      });
-    }
-  }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
@@ -102,7 +71,6 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
         'description': _descCtrl.text.trim().isNotEmpty ? _descCtrl.text.trim() : null,
         'descriptionAr': _descArCtrl.text.trim().isNotEmpty ? _descArCtrl.text.trim() : null,
         'sortOrder': int.tryParse(_sortOrderCtrl.text) ?? 0,
-        'parentId': _selectedParentId,
       };
 
       if (widget.category != null) {

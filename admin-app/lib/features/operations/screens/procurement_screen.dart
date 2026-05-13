@@ -244,7 +244,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
                         Text('Status', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
-                          value: status,
+                          initialValue: status,
                           items: ['DRAFT', 'POSTED'].map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
                           onChanged: (v) => setModalState(() => status = v!),
                           decoration: InputDecoration(filled: true, fillColor: AppColors.background, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),

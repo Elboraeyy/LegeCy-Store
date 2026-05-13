@@ -90,7 +90,6 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
 
   void _showAddEdit({Map<String, dynamic>? material}) {
     final nameCtrl = TextEditingController(text: material?['name'] ?? '');
-    final nameArCtrl = TextEditingController(text: material?['nameAr'] ?? '');
     final slugCtrl = TextEditingController(text: material?['slug'] ?? '');
 
     showModalBottomSheet(

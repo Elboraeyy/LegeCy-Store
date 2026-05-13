@@ -1144,6 +1144,10 @@ model InventoryBatch {
   initialQuantity   Int
   remainingQuantity Int
   unitCost          Decimal
+  sellPrice         Decimal?
+  compareAtPrice    Decimal?
+  expenses          Decimal?
+  isPriceApplied    Boolean             @default(false)
   expiryDate        DateTime?
   purchaseItemId    String              @unique
   createdAt         DateTime            @default(now())

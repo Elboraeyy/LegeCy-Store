@@ -392,6 +392,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       'sortOrder': category?['sortOrder'] ?? 0,
                     };
 
+                    final messenger = ScaffoldMessenger.of(context);
                     try {
                       final token = context.read<AuthProvider>().token;
                       final client = ApiClient(token: token);
@@ -402,17 +403,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         await client.post('/api/admin/auth/categories', body: body);
                       }
                       
-                      if (!mounted) return;
+                      if (!context.mounted) return;
                       Navigator.pop(ctx);
                       _loadCategories();
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      messenger.showSnackBar(SnackBar(
                         content: Text(category != null ? 'Category updated' : 'Category created'),
                         backgroundColor: AppColors.success,
                         behavior: SnackBarBehavior.floating,
                       ));
                     } catch (e) {
                       setSheetState(() => isSaving = false);
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      messenger.showSnackBar(SnackBar(
                         content: Text('Error: $e'),
                         backgroundColor: AppColors.error,
                         behavior: SnackBarBehavior.floating,

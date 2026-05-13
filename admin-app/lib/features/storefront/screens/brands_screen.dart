@@ -91,7 +91,6 @@ class _BrandsScreenState extends State<BrandsScreen> {
 
   void _showAddEdit({Map<String, dynamic>? brand}) {
     final nameCtrl = TextEditingController(text: brand?['name'] ?? '');
-    final nameArCtrl = TextEditingController(text: brand?['nameAr'] ?? '');
     final slugCtrl = TextEditingController(text: brand?['slug'] ?? '');
 
     showModalBottomSheet(
