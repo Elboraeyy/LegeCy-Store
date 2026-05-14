@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/features/dashboard/providers/todo_provider.dart';
 import 'package:admin_app/features/auth/login_screen.dart';
 import 'package:admin_app/features/home/home_shell.dart';
 
@@ -22,6 +23,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => TodoProvider()),
       ],
       child: const LegacyAdminApp(),
     ),

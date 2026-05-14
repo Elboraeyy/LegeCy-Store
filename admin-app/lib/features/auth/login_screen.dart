@@ -211,11 +211,11 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                 return true;
               },
               child: DraggableScrollableSheet(
-                initialChildSize: 0.65,
-                minChildSize: 0.65,
-                maxChildSize: 1.0,
+                initialChildSize: keyboardHeight > 0 ? 0.52 : 0.65,
+                minChildSize: keyboardHeight > 0 ? 0.45 : 0.65,
+                maxChildSize: keyboardHeight > 0 ? 0.85 : 1.0,
                 snap: true,
-                snapSizes: const [0.65, 1.0],
+                snapSizes: keyboardHeight > 0 ? const [0.52, 0.72] : const [0.65, 1.0],
                 builder: (context, scrollController) {
                   return Container(
                     decoration: const BoxDecoration(
@@ -236,15 +236,20 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                       controller: scrollController,
                       physics: const ClampingScrollPhysics(),
                       slivers: [
-                        SliverFillRemaining(
-                          hasScrollBody: false,
+                        SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 12, 24, 48),
-                              child: Consumer<AuthProvider>(
+                            padding: EdgeInsets.fromLTRB(
+                              24,
+                              12,
+                              24,
+                              32 + keyboardHeight,
+                            ),
+                            child: Consumer<AuthProvider>(
                               builder: (context, auth, _) {
                                 return Form(
                                   key: _formKey,
                                   child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
                                       // Top Pill Indicator
                                       Center(
@@ -257,10 +262,11 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                           ),
                                         ),
                                       ),
-                                      const Spacer(),
+                                      SizedBox(height: keyboardHeight > 0 ? 20 : 40),
                                       
                                       Text(
                                         'Welcome Back',
+                                        textAlign: TextAlign.center,
                                         style: GoogleFonts.playfairDisplay(
                                           fontSize: 24,
                                           color: primaryDark,
@@ -396,7 +402,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                         ),
                                       ],
                                       
-                                      const Spacer(),
+                                      SizedBox(height: keyboardHeight > 0 ? 16 : 32),
                                       
                                       // Footer
                                       Text(

@@ -124,6 +124,7 @@ model AdminUser {
   approvedTransfers   StockTransfer[]  @relation("TransferApprovedBy")
   createdTransfers    StockTransfer[]  @relation("TransferCreatedBy")
   managedWarehouses   Warehouse[]
+  todos               Todo[]
 }
 
 model AdminRole {
@@ -1849,6 +1850,23 @@ model SharedWishlist {
   id        String   @id @default(uuid())
   products  String[]
   createdAt DateTime @default(now())
+}
+
+model Todo {
+  id          String      @id @default(uuid())
+  title       String
+  description String      @default("")
+  deadline    DateTime
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  isCompleted Boolean     @default(false)
+  createdById String
+  createdBy   AdminUser   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([createdById])
+  @@index([deadline])
+  @@index([isCompleted])
+  @@index([createdAt])
 }
 
 enum AccountType {

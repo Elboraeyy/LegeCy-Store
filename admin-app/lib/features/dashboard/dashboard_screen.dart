@@ -8,6 +8,9 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/dashboard/dashboard_widgets.dart';
+import 'package:admin_app/features/dashboard/providers/todo_provider.dart';
+import 'package:admin_app/features/dashboard/widgets/todo_widgets.dart';
+import 'package:admin_app/features/dashboard/screens/add_todo_dialog.dart';
 import 'package:admin_app/features/reports/daily_report_screen.dart';
 import 'package:admin_app/features/reports/statistics_screen.dart';
 
@@ -39,6 +42,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
     _fadeAnim = CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
     _loadData();
+    _loadTodos();
   }
 
   @override
@@ -78,6 +82,18 @@ class _DashboardScreenState extends State<DashboardScreen>
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _loadTodos() async {
+    if (!mounted) return;
+    try {
+      final token = context.read<AuthProvider>().token;
+      if (token != null) {
+        await context.read<TodoProvider>().loadTodos(token);
+      }
+    } catch (e) {
+      // Silent fail
     }
   }
 
@@ -124,14 +140,21 @@ class _DashboardScreenState extends State<DashboardScreen>
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          _getGreeting(),
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            color: AppColors.textMuted,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 1.5,
-                            height: 1.0,
+                        // Greeting with gold color
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: _getGreeting(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  color: AppColors.accent,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.5,
+                                  height: 1.0,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -262,6 +285,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     final recentOrders = _list('recentOrders');
     final topProducts = _list('topProducts');
     final weeklyChart = _list('weeklyChart');
+    final todos = context.watch<TodoProvider>().allTodos;
+    final auth = context.watch<AuthProvider>();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,6 +294,28 @@ class _DashboardScreenState extends State<DashboardScreen>
         // ── Live Status Badge ──
         _buildLiveStatus(),
         const SizedBox(height: 16),
+
+        // ── TODO List Section ──
+        TodoListSection(
+          todos: todos,
+          onAddTodo: () {
+            showDialog(
+              context: context,
+              builder: (_) => AddTodoDialog(
+                onAdd: (title, description, deadline) async {
+                  await context.read<TodoProvider>().addTodo(
+                    title: title,
+                    description: description,
+                    deadline: deadline,
+                    adminName: auth.adminName ?? 'Admin',
+                    token: auth.token,
+                  );
+                },
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 24),
 
         // ── Stats Grid (2×2) ──
         Row(

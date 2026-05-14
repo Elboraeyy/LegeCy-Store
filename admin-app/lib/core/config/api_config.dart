@@ -33,6 +33,9 @@ class ApiConfig {
   // Inventory endpoints
   static const String inventoryEndpoint = '$apiPrefix/inventory';
 
+  // TODO endpoints (new)
+  static const String todosEndpoint = '$apiPrefix/auth/todos';
+
   // Timeouts
   static const Duration connectionTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 15);
