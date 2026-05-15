@@ -42,9 +42,9 @@ export default function ModernProductCard({ product, priority = false, compact =
 
     // Status badges
     const isIndividuallyOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
-    // const isOutOfStock = product.inStock === false;
-    // ENABLE OVERSOLD/BACKORDERS
-    const isOutOfStock = false;
+    const isOutOfStock = product.inStock === false;
+    // ENABLE OVERSOLD/BACKORDERS (quantity limits only - sold out status unchanged)
+    // const isOutOfStock = false;
     const isNew = product.isNew;
 
     // "Mihslsh khasm fo2 el khasm"

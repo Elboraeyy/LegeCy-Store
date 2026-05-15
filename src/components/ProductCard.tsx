@@ -47,9 +47,9 @@ export default React.memo(function ProductCard({ product, priority = false, hide
 
   // Badges logic
   const isIndividuallyOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
-  // const isOutOfStock = product.inStock === false;
-  // ENABLE OVERSOLD/BACKORDERS
-  const isOutOfStock = false;
+  const isOutOfStock = product.inStock === false;
+  // ENABLE OVERSOLD/BACKORDERS (quantity limits only - sold out status unchanged)
+  // const isOutOfStock = false;
   const isNew = product.isNew;
 
   // "Mihslsh khasm fo2 el khasm" - Don't apply sitewide if it's already on sale

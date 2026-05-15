@@ -466,9 +466,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     ? product!.compareAtPrice! - product!.price
     : applySitewideVisual && product ? product.price - displayPrice : 0;
 
-  // const isOutOfStock = product ? product.totalStock <= 0 : false;
-  // ENABLE OVERSOLD/BACKORDERS
-  const isOutOfStock = false;
+  const isOutOfStock = product ? product.totalStock <= 0 : false;
+  // ENABLE OVERSOLD/BACKORDERS (quantity limits only - sold out status unchanged)
+  // const isOutOfStock = false;
   const isNew = product?.createdAt
     ? (new Date().getTime() - new Date(product.createdAt).getTime()) < (5 * 24 * 60 * 60 * 1000)
     : false;
