@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Product } from "@/types/product";
 import { useStore } from "@/context/StoreContext";
 import { useIsClient } from "@/hooks/useIsClient";
@@ -41,7 +42,9 @@ export default function ModernProductCard({ product, priority = false, compact =
 
     // Status badges
     const isIndividuallyOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
-    const isOutOfStock = product.inStock === false;
+    // const isOutOfStock = product.inStock === false;
+    // ENABLE OVERSOLD/BACKORDERS
+    const isOutOfStock = false;
     const isNew = product.isNew;
 
     // "Mihslsh khasm fo2 el khasm"
@@ -61,8 +64,11 @@ export default function ModernProductCard({ product, priority = false, compact =
         ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100) 
         : applySitewideVisual ? sitewideTier1Percent : 0;
 
+    const router = useRouter();
+
     const handleCardClick = () => {
-        setShowQuickView(true);
+        // setShowQuickView(true);
+        router.push(`/product/${product.id}`);
     };
 
     return (

@@ -62,27 +62,35 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
     final double navBarWidth = screenWidth - 32;
     final double itemWidth = navBarWidth / 5;
 
-    return Container(
-      height: 120,
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+    return SizedBox(
+      height: 144, // 120 for nav bar + 24 for bottom margin
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
-          // Background Bar
-          Container(
-            height: 70,
-            decoration: BoxDecoration(
-              color: primaryDark,
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: primaryDark.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+          // The Floating Nav Bar
+          Positioned(
+            bottom: 24,
+            left: 16,
+            right: 16,
+            height: 120,
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                // Background Bar
+                Container(
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: primaryDark,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryDark.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
 
           // Moving Active Bubble Background
           AnimatedPositioned(
@@ -173,6 +181,9 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
                   ),
                 );
               }),
+            ),
+          ),
+              ],
             ),
           ),
         ],

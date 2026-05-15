@@ -179,10 +179,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                                 return false;
                             } else {
                                 // Reduced stock
-                                if (item.qty > v.available) {
-                                    item.qty = v.available;
-                                    changed = true;
-                                }
+                                // ENABLE OVERSOLD/BACKORDERS
+                                // if (item.qty > v.available) {
+                                //     item.qty = v.available;
+                                //     changed = true;
+                                // }
                                 return true;
                             }
                         }
@@ -406,15 +407,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const currentItem = cart.find(i => i.id === id && (i.variantId || "") === vId);
         const currentQty = currentItem?.qty || 0;
 
-        if (currentQty + qty > stock) {
-            const availableToAdd = stock - currentQty;
-            if (availableToAdd <= 0) {
-                showToast("No more stock available", "danger");
-                return;
-            }
-            // Add what's available
-            qty = availableToAdd;
-        }
+        // ENABLE OVERSOLD/BACKORDERS - disable stock limitation
+        // if (currentQty + qty > stock) {
+        //     const availableToAdd = stock - currentQty;
+        //     if (availableToAdd <= 0) {
+        //         showToast("No more stock available", "danger");
+        //         return;
+        //     }
+        //     // Add what's available
+        //     qty = availableToAdd;
+        // }
 
       const tempItem: CartItem = {
           id, variantId: vId, qty: qty, 
@@ -428,7 +430,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setCart(prev => {
           const exists = prev.find(i => i.id === id && (i.variantId || "") === vId);
           if (exists) {
-              return prev.map(i => i.id === id && (i.variantId || "") === vId ? { ...i, qty: Math.min(i.qty + qty, stock) } : i);
+              // return prev.map(i => i.id === id && (i.variantId || "") === vId ? { ...i, qty: Math.min(i.qty + qty, stock) } : i);
+              return prev.map(i => i.id === id && (i.variantId || "") === vId ? { ...i, qty: i.qty + qty } : i);
           }
           return [...prev, tempItem];
       });

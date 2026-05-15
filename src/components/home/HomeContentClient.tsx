@@ -121,8 +121,8 @@ export function HomeContentClient({
           <motion.div className="collection-card modern-card" variants={fadeUpSlow}>
             <div className="collection-media">
               <Image 
-                src="/image/1.png" 
-                alt="Women's Collection" 
+                src="/image/Original.JPG" 
+                alt="Original Collection" 
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -130,10 +130,10 @@ export function HomeContentClient({
             </div>
             <div className="collection-overlay">
               <Reveal>
-                <h3>{t.home.modern_classics}</h3>
+                <h3>{language === 'ar' ? 'الأوريجنال كوليكشن' : 'Original Collection'}</h3>
               </Reveal>
               <Reveal delay={0.1}>
-                <Link href="/shop?category=women" className="btn-link">{t.home.view_more}</Link>
+                <Link href="/shop?category=original" className="btn-link">{t.home.view_more}</Link>
               </Reveal>
             </div>
           </motion.div>

@@ -31,7 +31,7 @@ export default function ShopClient({
     const [isPending] = useTransition();
 
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<"grid" | "list" | "compact" | "categories">("categories");
+    const [viewMode, setViewMode] = useState<"grid" | "list" | "compact" | "categories">("grid");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 

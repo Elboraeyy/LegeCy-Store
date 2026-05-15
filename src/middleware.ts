@@ -220,8 +220,8 @@ export async function middleware(request: NextRequest) {
         return response;
     }
 
-    // 2. Customer Route Protection (Profile, Checkout)
-    const protectedRoutes = ['/profile', '/checkout'];
+    // 2. Customer Route Protection (Profile)
+    const protectedRoutes = ['/profile'];
     if (protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))) {
         const session = request.cookies.get('auth_session')?.value;
 

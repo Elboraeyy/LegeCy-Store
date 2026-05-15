@@ -35,6 +35,72 @@ class DashboardShimmer extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
+        // ── TODO List Section ──
+        const AppShimmer(width: 100, height: 14),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: const [
+                        AppShimmer(width: 32, height: 32, borderRadius: 8),
+                        SizedBox(width: 10),
+                        AppShimmer(width: 80, height: 14),
+                      ],
+                    ),
+                    const AppShimmer(width: 32, height: 32, borderRadius: 8),
+                  ],
+                ),
+              ),
+              Divider(height: 1, color: AppColors.cardBorder),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: List.generate(2, (index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.cardBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          const AppShimmer(width: 24, height: 24, borderRadius: 6),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                AppShimmer(width: 140, height: 12),
+                                SizedBox(height: 6),
+                                AppShimmer(width: 100, height: 10),
+                              ],
+                            ),
+                          ),
+                          const AppShimmer(width: 24, height: 24, borderRadius: 6),
+                        ],
+                      ),
+                    ),
+                  )),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
         // ── Stats Grid (2×2) ──
         Row(
           children: [

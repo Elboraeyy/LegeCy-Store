@@ -466,7 +466,9 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
     ? product!.compareAtPrice! - product!.price
     : applySitewideVisual && product ? product.price - displayPrice : 0;
 
-  const isOutOfStock = product ? product.totalStock <= 0 : false;
+  // const isOutOfStock = product ? product.totalStock <= 0 : false;
+  // ENABLE OVERSOLD/BACKORDERS
+  const isOutOfStock = false;
   const isNew = product?.createdAt
     ? (new Date().getTime() - new Date(product.createdAt).getTime()) < (5 * 24 * 60 * 60 * 1000)
     : false;
@@ -481,6 +483,16 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
   const handleAddToCart = async () => {
     if (!product || isOutOfStock) return;
     setAddingToCart(true);
+
+    // Meta Pixel: Track AddToCart event
+    trackMetaEvent('AddToCart', {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: 'product',
+      value: product.price * quantity,
+      currency: 'EGP',
+    });
+
     // Use the updated addToCart that supports quantity
     addToCart(product.id, undefined, true, quantity);
     await new Promise(r => setTimeout(r, 500));
@@ -522,8 +534,10 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
 
   const handleQuantityChange = (delta: number) => {
     const newQty = quantity + delta;
-    const maxStock = product?.totalStock || 0;
-    if (newQty >= 1 && newQty <= maxStock) {
+    // const maxStock = product?.totalStock || 0;
+    // ENABLE OVERSOLD/BACKORDERS
+    // if (newQty >= 1 && newQty <= maxStock) {
+    if (newQty >= 1) {
       setQuantity(newQty);
     }
   };
@@ -871,7 +885,8 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                 <span className="qty-value">{quantity}</span>
                 <button 
                   onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= (product?.totalStock || 0)}
+                  // ENABLE OVERSOLD/BACKORDERS
+                  // disabled={quantity >= (product?.totalStock || 0)}
                   className="qty-btn"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

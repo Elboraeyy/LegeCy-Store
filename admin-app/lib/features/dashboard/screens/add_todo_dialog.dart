@@ -121,44 +121,29 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final screenHeight = mediaQuery.size.height;
-    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
-    final topInset = mediaQuery.padding.top;
-    final availableHeight = screenHeight - keyboardInset - topInset - 32;
     final deadlineText = _selectedDeadline != null
         ? DateFormat('EEE, d MMM - h:mm a').format(_selectedDeadline!)
         : 'Select deadline';
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      alignment: Alignment.topCenter,
-      insetPadding: EdgeInsets.fromLTRB(
-        24,
-        topInset + 16,
-        24,
-        keyboardInset > 0 ? keyboardInset + 16 : 24,
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: availableHeight.clamp(260.0, screenHeight * 0.82),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(bottom: keyboardInset > 0 ? 16 : 0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -347,7 +332,6 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
               ),
             ),
           ),
-        ),
       );
   }
 

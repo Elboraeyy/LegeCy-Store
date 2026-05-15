@@ -202,8 +202,9 @@ export default function CartDrawer() {
                           onClick={() => addToCart(item.id)}
                           className={styles.qtyBtn}
                           aria-label="Increase quantity"
-                          disabled={item.qty >= (item.stock || 99)}
-                          style={{ opacity: item.qty >= (item.stock || 99) ? 0.3 : 1, cursor: item.qty >= (item.stock || 99) ? 'not-allowed' : 'pointer' }}
+                          // ENABLE OVERSOLD/BACKORDERS
+                          // disabled={item.qty >= (item.stock || 99)}
+                          // style={{ opacity: item.qty >= (item.stock || 99) ? 0.3 : 1, cursor: item.qty >= (item.stock || 99) ? 'not-allowed' : 'pointer' }}
                         >
                           +
                         </button>
@@ -253,7 +254,6 @@ export default function CartDrawer() {
 
             {/* Buttons */}
             <div className={styles.actionButtons}>
-              {isLoggedIn && (
                 <Link
                   href="/checkout"
                   className={styles.checkoutBtn}
@@ -261,12 +261,10 @@ export default function CartDrawer() {
                 >
                   {t.cart.checkout}
                 </Link>
-              )}
               <Link 
                 href="/cart" 
                 className={styles.viewCartBtn}
                 onClick={closeCart}
-                style={!isLoggedIn ? { flex: 1, width: '100%' } : undefined}
               >
                 {t.cart.view_cart}
               </Link>

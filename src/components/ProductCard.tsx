@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Product } from "@/types/product";
 import { useStore } from "@/context/StoreContext";
 import { useIsClient } from "@/hooks/useIsClient";
@@ -46,7 +47,9 @@ export default React.memo(function ProductCard({ product, priority = false, hide
 
   // Badges logic
   const isIndividuallyOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
-  const isOutOfStock = product.inStock === false;
+  // const isOutOfStock = product.inStock === false;
+  // ENABLE OVERSOLD/BACKORDERS
+  const isOutOfStock = false;
   const isNew = product.isNew;
 
   // "Mihslsh khasm fo2 el khasm" - Don't apply sitewide if it's already on sale
@@ -66,6 +69,8 @@ export default React.memo(function ProductCard({ product, priority = false, hide
     ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100) 
     : applySitewideVisual ? sitewideTier1Percent : 0;
 
+  const router = useRouter();
+
   const handleCardClick = () => {
     trackGAEvent('select_item', {
       item_list_id: "product_grid",
@@ -77,7 +82,8 @@ export default React.memo(function ProductCard({ product, priority = false, hide
         quantity: 1
       }]
     });
-    setShowQuickView(true);
+    // setShowQuickView(true); // Disable Quick View
+    router.push(`/product/${product.id}`); // Navigate directly
   };
 
   return (

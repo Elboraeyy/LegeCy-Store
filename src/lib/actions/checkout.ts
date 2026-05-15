@@ -374,10 +374,11 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
           }
 
           const inventory = inventoryMap.get(item.variantId);
-          if (!inventory || inventory.available < item.qty) {
-            const available = inventory?.available || 0;
-            insufficientStockItems.push(`${item.name} (available: ${available}, required: ${item.qty})`);
-          }
+          // ENABLE OVERSOLD/BACKORDERS
+          // if (!inventory || inventory.available < item.qty) {
+          //   const available = inventory?.available || 0;
+          //   insufficientStockItems.push(`${item.name} (available: ${available}, required: ${item.qty})`);
+          // }
         }
       }
 
@@ -387,9 +388,10 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       }
 
       // Fail early if insufficient stock
-      if (insufficientStockItems.length > 0) {
-        throw new Error(`Insufficient stock for the following products: ${insufficientStockItems.join(', ')}`);
-      }
+      // ENABLE OVERSOLD/BACKORDERS
+      // if (insufficientStockItems.length > 0) {
+      //   throw new Error(`Insufficient stock for the following products: ${insufficientStockItems.join(', ')}`);
+      // }
 
       // STEP 2: Create the order
       // Use PaymentPending for online payments, Pending for COD
@@ -512,7 +514,8 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
             where: {
               warehouseId: warehouse.id,
               variantId: item.variantId,
-              available: { gte: item.qty }
+              // ENABLE OVERSOLD/BACKORDERS
+              // available: { gte: item.qty }
             },
             data: {
               available: { decrement: item.qty },
@@ -527,9 +530,10 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
 
       // Verify all updates succeeded
       for (let i = 0; i < updateResults.length; i++) {
-        if (updateResults[i].count === 0) {
-          throw new Error(`Failed to ${input.paymentMethod === 'cod' ? 'deduct' : 'reserve'} inventory for product: ${inventoryItems[i].name}. Insufficient stock.`);
-        }
+        // ENABLE OVERSOLD/BACKORDERS
+        // if (updateResults[i].count === 0) {
+        //   throw new Error(`Failed to ${input.paymentMethod === 'cod' ? 'deduct' : 'reserve'} inventory for product: ${inventoryItems[i].name}. Insufficient stock.`);
+        // }
       }
 
       // NOTE: Inventory logs moved to background task (not critical for order creation)
