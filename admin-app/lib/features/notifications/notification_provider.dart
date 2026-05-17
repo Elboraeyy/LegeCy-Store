@@ -83,6 +83,7 @@ class NotificationProvider extends ChangeNotifier {
   Timer? _pollTimer;
   String? _token;
   int _lastKnownCount = 0;
+  bool _hasFetchedOnce = false;
 
   // Settings (persisted to SharedPreferences)
   Map<String, bool> _pushEnabled = {
@@ -175,7 +176,7 @@ class NotificationProvider extends ChangeNotifier {
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       // Check for new notifications and show push
-      if (_globalEnabled && _notifications.length > _lastKnownCount && _lastKnownCount > 0) {
+      if (_globalEnabled && _hasFetchedOnce && _notifications.length > _lastKnownCount) {
         final newOnes = _notifications.sublist(0, _notifications.length - _lastKnownCount);
         for (final n in newOnes) {
           if (_pushEnabled[n.category] == true) {
@@ -191,6 +192,7 @@ class NotificationProvider extends ChangeNotifier {
         }
       }
       _lastKnownCount = _notifications.length;
+      _hasFetchedOnce = true;
     } catch (e) {
       // Silent fail - notifications are non-critical
     }

@@ -630,15 +630,6 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
             paymentMethod: input.paymentMethod
           }).catch(err => logger.error('Failed to send confirmation email', { orderId: order.id, error: err }));
 
-        // Notify Admins (background)
-        await createAdminNotification({
-          title: 'New Order Received',
-          body: `Order #${order.orderNumber} placed by ${input.firstName} ${input.lastName} for ${finalTotal} EGP`,
-          category: 'order',
-          referenceId: order.id,
-          referenceType: 'Order',
-        }).catch(err => logger.error('Failed to create admin notification', { orderId: order.id, error: err }));
-
         // Revalidate admin orders page (background)
         revalidatePath('/admin/orders');
       } catch (err) {
@@ -647,6 +638,48 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       }
     })();
     
+    // Notify Admins (Synchronous but fast to ensure it doesn't get killed)
+    await createAdminNotification({
+      title: 'New Order Received',
+      body: `Order #${order.orderNumber} placed by ${input.firstName} ${input.lastName} for ${finalTotal} EGP`,
+      category: 'order',
+      referenceId: order.id,
+      referenceType: 'Order',
+    }).catch(err => logger.error('Failed to create admin notification', { orderId: order.id, error: err }));
+
+    // Check for low stock/out of stock (Synchronous to ensure it fires)
+    try {
+      const variantIds = input.cartItems.filter(i => i.variantId).map(i => i.variantId as string);
+      if (variantIds.length > 0) {
+        const inventories = await prisma.inventory.findMany({
+          where: { variantId: { in: variantIds } },
+          include: { variant: { include: { product: { select: { name: true } } } } }
+        });
+        
+        for (const inv of inventories) {
+          if (inv.available <= 0) {
+            await createAdminNotification({
+              title: 'Product Out of Stock!',
+              body: `${inv.variant.product.name} (SKU: ${inv.variant.sku}) is now out of stock.`,
+              category: 'inventory',
+              referenceId: inv.variantId,
+              referenceType: 'Variant',
+            });
+          } else if (inv.available <= 5) { // Threshold for low stock
+            await createAdminNotification({
+              title: 'Low Stock Alert',
+              body: `Only ${inv.available} left of ${inv.variant.product.name} (SKU: ${inv.variant.sku}).`,
+              category: 'inventory',
+              referenceId: inv.variantId,
+              referenceType: 'Variant',
+            });
+          }
+        }
+      }
+    } catch (err) {
+      logger.error('Failed to check inventory for notifications', { error: err });
+    }
+
     // RETURN IMMEDIATELY - User gets redirected right away!
     return {
       success: true,
