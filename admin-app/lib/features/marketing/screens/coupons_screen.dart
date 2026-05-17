@@ -286,7 +286,13 @@ class _CouponsScreenState extends State<CouponsScreen> {
                     children: [
                       Row(
                         children: [
-                          Text(coupon['code'], style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: 1)),
+                          Flexible(
+                            child: Text(
+                              coupon['code'],
+                              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: 1),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                           const SizedBox(width: 8),
                           if (isActive)
                             Container(

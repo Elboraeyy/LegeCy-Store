@@ -13,6 +13,8 @@ import 'package:admin_app/features/dashboard/widgets/todo_widgets.dart';
 import 'package:admin_app/features/dashboard/screens/add_todo_dialog.dart';
 import 'package:admin_app/features/reports/daily_report_screen.dart';
 import 'package:admin_app/features/reports/statistics_screen.dart';
+import 'package:admin_app/features/notifications/notification_provider.dart';
+import 'package:admin_app/features/notifications/notifications_screen.dart';
 
 import 'package:admin_app/features/products/add_product_screen.dart';
 
@@ -175,41 +177,62 @@ class _DashboardScreenState extends State<DashboardScreen>
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
-                  child: IconButton(
-                    icon: Stack(
-                      children: [
-                        const Icon(
-                          LucideIcons.bell,
-                          size: 24,
-                          color: AppColors.primaryDark,
-                        ),
-                        if (!_isLoading &&
-                            (_int('pendingMessages') > 0 ||
-                                _int('pendingStockRequests') > 0))
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: AppColors.error,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.background,
-                                  width: 1.5,
+                  child: Consumer<NotificationProvider>(
+                    builder: (context, notifProvider, _) {
+                      final count = notifProvider.unreadCount;
+                      return IconButton(
+                        icon: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Icon(
+                              LucideIcons.bell,
+                              size: 24,
+                              color: AppColors.primaryDark,
+                            ),
+                            if (count > 0)
+                              Positioned(
+                                right: -4,
+                                top: -4,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: AppColors.background,
+                                      width: 1.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.error.withValues(alpha: 0.3),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    count > 99 ? '99+' : '$count',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      height: 1.0,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
-                            ),
+                          ],
+                        ),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationsScreen(),
                           ),
-                      ],
-                    ),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const _NotificationsPage(),
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -501,7 +524,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
         // ── Order Status Breakdown ──
         _buildStatusBreakdown(),
-        const SizedBox(height: 140),
+        const SizedBox(height: 160),
       ],
     );
   }
@@ -866,68 +889,5 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (hour < 12) return 'Good morning,';
     if (hour < 17) return 'Good afternoon,';
     return 'Good evening,';
-  }
-}
-
-// ── Notifications Page ──
-class _NotificationsPage extends StatelessWidget {
-  const _NotificationsPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Notifications',
-          style: GoogleFonts.playfairDisplay(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  LucideIcons.bellOff,
-                  size: 48,
-                  color: AppColors.accent.withValues(alpha: 0.5),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'No new notifications',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Push notifications for new orders, reviews, and messages will appear here.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: AppColors.textMuted,
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

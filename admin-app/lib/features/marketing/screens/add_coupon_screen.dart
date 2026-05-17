@@ -9,7 +9,8 @@ import 'package:admin_app/features/auth/auth_provider.dart';
 
 class AddCouponScreen extends StatefulWidget {
   final Map<String, dynamic>? coupon;
-  const AddCouponScreen({super.key, this.coupon});
+  final String? defaultType;
+  const AddCouponScreen({super.key, this.coupon, this.defaultType});
 
   @override
   State<AddCouponScreen> createState() => _AddCouponScreenState();
@@ -40,7 +41,7 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
     _maxDiscountCtrl = TextEditingController(text: c?['maxDiscount']?.toString() ?? '');
     _usageLimitCtrl = TextEditingController(text: c?['usageLimit']?.toString() ?? '');
 
-    _discountType = c?['discountType'] ?? 'percentage';
+    _discountType = c?['discountType'] ?? widget.defaultType ?? 'percentage';
     _isActive = c?['isActive'] ?? true;
     _startDate = c?['startDate'] != null ? DateTime.parse(c!['startDate']) : DateTime.now();
     _endDate = c?['endDate'] != null ? DateTime.parse(c!['endDate']) : null;
@@ -176,30 +177,45 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
                     validator: (v) => v!.isEmpty ? 'Code is required' : null,
                   ),
                   const Divider(height: 32, color: AppColors.background),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDropdown(
-                          label: 'Discount Type',
-                          value: _discountType,
-                          items: const [
-                            DropdownMenuItem(value: 'percentage', child: Text('Percentage (%)')),
-                            DropdownMenuItem(value: 'fixed', child: Text('Fixed Amount (EGP)')),
-                          ],
-                          onChanged: (v) => setState(() => _discountType = v.toString()),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildTextField(
-                          controller: _valueCtrl,
-                          label: 'Value',
-                          icon: _discountType == 'percentage' ? LucideIcons.percent : LucideIcons.banknote,
-                          keyboardType: TextInputType.number,
-                          validator: (v) => v!.isEmpty ? 'Required' : null,
-                        ),
-                      ),
+                  _buildDropdown(
+                    label: 'Discount Type',
+                    value: _discountType,
+                    items: [
+                      DropdownMenuItem(value: 'percentage', child: Row(children: [
+                        Icon(LucideIcons.percent, size: 16, color: AppColors.primaryDark),
+                        const SizedBox(width: 10),
+                        Text('Percentage (%)', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
+                      ])),
+                      DropdownMenuItem(value: 'fixed', child: Row(children: [
+                        Icon(LucideIcons.banknote, size: 16, color: AppColors.primaryDark),
+                        const SizedBox(width: 10),
+                        Text('Fixed Amount (EGP)', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
+                      ])),
+                      DropdownMenuItem(value: 'FREE_SHIPPING', child: Row(children: [
+                        Icon(LucideIcons.truck, size: 16, color: AppColors.primaryDark),
+                        const SizedBox(width: 10),
+                        Text('Free Shipping', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
+                      ])),
+                      DropdownMenuItem(value: 'SHIPPING_PERCENTAGE', child: Row(children: [
+                        Icon(LucideIcons.packageCheck, size: 16, color: AppColors.primaryDark),
+                        const SizedBox(width: 10),
+                        Text('Shipping % Off', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
+                      ])),
+                      DropdownMenuItem(value: 'SHIPPING_FIXED', child: Row(children: [
+                        Icon(LucideIcons.packageMinus, size: 16, color: AppColors.primaryDark),
+                        const SizedBox(width: 10),
+                        Text('Shipping Fixed', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
+                      ])),
                     ],
+                    onChanged: (v) => setState(() => _discountType = v.toString()),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _valueCtrl,
+                    label: 'Value',
+                    icon: _discountType == 'percentage' ? LucideIcons.percent : LucideIcons.banknote,
+                    keyboardType: TextInputType.number,
+                    validator: (v) => v!.isEmpty ? 'Required' : null,
                   ),
                 ],
               ),
@@ -254,7 +270,7 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Start Date', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+                                Text('Start Date', style: GoogleFonts.inter(fontSize: 10.5, color: AppColors.textMuted)),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
@@ -278,7 +294,7 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('End Date (Optional)', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+                                Text('End Date (Optional)', style: GoogleFonts.inter(fontSize: 10.5, color: AppColors.textMuted), maxLines: 1, overflow: TextOverflow.ellipsis),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
@@ -298,12 +314,14 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Active Status', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                          Text('Can customers use this coupon right now?', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Active Status', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                            Text('Can customers use this coupon right now?', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+                          ],
+                        ),
                       ),
                       Switch(
                         value: _isActive,
@@ -403,16 +421,27 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
       children: [
         Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          initialValue: value,
-          items: items,
-          onChanged: onChanged,
-          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.background,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: DropdownButtonFormField<String>(
+            value: value,
+            items: items,
+            onChanged: onChanged,
+            icon: const Icon(LucideIcons.chevronDown, size: 18, color: AppColors.textMuted),
+            dropdownColor: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            elevation: 8,
+            style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: AppColors.background,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
           ),
         ),
       ],

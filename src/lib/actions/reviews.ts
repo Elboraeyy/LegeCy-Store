@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { requireAdminPermission } from '@/lib/auth/guards';
 import { AdminPermissions } from '@/lib/auth/permissions';
+import { createAdminNotification } from '@/lib/services/notification';
 
 export interface ReviewDTO {
     id: string;
@@ -204,7 +205,7 @@ export async function submitReview(data: SubmitReviewInput): Promise<{ success: 
         // Check if product exists
         const product = await prisma.product.findUnique({
             where: { id: data.productId },
-            select: { id: true }
+            select: { id: true, name: true }
         });
 
         if (!product) {
@@ -212,7 +213,7 @@ export async function submitReview(data: SubmitReviewInput): Promise<{ success: 
         }
 
         // Create review (not featured by default - needs admin approval)
-        await (prisma as any).review.create({
+        const review = await (prisma as any).review.create({
             data: {
                 name: data.name.trim(),
                 text: data.text.trim(),
@@ -221,6 +222,14 @@ export async function submitReview(data: SubmitReviewInput): Promise<{ success: 
                 productId: data.productId,
                 featured: false
             }
+        });
+
+        await createAdminNotification({
+            title: 'New Product Review',
+            body: `${data.name} left a ${data.rating}-star review for ${product.name}`,
+            category: 'review',
+            referenceId: review.id,
+            referenceType: 'Review'
         });
 
         revalidatePath(`/product/${data.productId}`);

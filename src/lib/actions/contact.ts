@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { createAdminNotification } from "@/lib/services/notification";
 
 export async function submitContactForm(prevState: unknown, formData: FormData) {
   try {
@@ -27,7 +28,7 @@ export async function submitContactForm(prevState: unknown, formData: FormData) 
       // await uploadToStorage(buffer, attachment.name);
     }
 
-    await prisma.contactMessage.create({
+    const newMessage = await prisma.contactMessage.create({
       data: {
         name,
         email,
@@ -36,6 +37,14 @@ export async function submitContactForm(prevState: unknown, formData: FormData) 
         fileUrl,
         status: "NEW",
       },
+    });
+
+    await createAdminNotification({
+      title: 'New Message',
+      body: `From: ${name}\nSubject: ${subject}`,
+      category: 'message',
+      referenceId: newMessage.id,
+      referenceType: 'ContactMessage',
     });
 
     revalidatePath("/admin/messages"); // Assuming an admin page exists or will exist

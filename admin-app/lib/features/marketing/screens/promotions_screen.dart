@@ -3,12 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
-import 'flash_sales_screen.dart';
 import 'coupons_screen.dart';
-import 'bogo_deals_screen.dart';
-import 'product_bundles_screen.dart';
 import 'general_offers_screen.dart';
-
+import 'shipping_promos_screen.dart';
+import 'loyalty_promos_screen.dart';
+import 'announcement_promos_screen.dart';
+import 'sitewide_promos_screen.dart';
 class PromotionsScreen extends StatelessWidget {
   const PromotionsScreen({super.key});
 
@@ -33,7 +33,7 @@ class PromotionsScreen extends StatelessWidget {
             'Campaign Types',
             style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 1.5),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
           _buildPromoCard(
             context,
@@ -43,45 +43,55 @@ class PromotionsScreen extends StatelessWidget {
             color: const Color(0xFFF59E0B),
             screen: const CouponsScreen(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
           _buildPromoCard(
             context,
-            title: 'Flash Sales',
-            subtitle: 'Time-limited extreme discounts to drive urgent sales',
-            icon: LucideIcons.zap,
-            color: const Color(0xFFEF4444),
-            screen: const FlashSalesScreen(),
-          ),
-          const SizedBox(height: 16),
-          
-          _buildPromoCard(
-            context,
-            title: 'BOGO Deals',
-            subtitle: 'Buy X Get Y Free or discounted offers',
-            icon: LucideIcons.copyPlus,
-            color: const Color(0xFF3B82F6),
-            screen: const BogoDealsScreen(),
-          ),
-          const SizedBox(height: 16),
-          
-          _buildPromoCard(
-            context,
-            title: 'Product Bundles',
-            subtitle: 'Group products together for a discounted price',
-            icon: LucideIcons.packagePlus,
-            color: const Color(0xFF8B5CF6),
-            screen: const ProductBundlesScreen(),
-          ),
-          const SizedBox(height: 16),
-          
-          _buildPromoCard(
-            context,
-            title: 'General Offers',
+            title: 'Product Offers',
             subtitle: 'Standard percentage or fixed discounts on products',
             icon: LucideIcons.tag,
             color: const Color(0xFF10B981),
             screen: const GeneralOffersScreen(),
+          ),
+          const SizedBox(height: 12),
+
+          _buildPromoCard(
+            context,
+            title: 'Shipping Options',
+            subtitle: 'Manage free shipping thresholds & rates',
+            icon: LucideIcons.truck,
+            color: const Color(0xFF0EA5E9),
+            screen: const ShippingPromosScreen(),
+          ),
+          const SizedBox(height: 12),
+
+          _buildPromoCard(
+            context,
+            title: 'Loyalty Program',
+            subtitle: 'Manage reward points and customer tiers',
+            icon: LucideIcons.star,
+            color: const Color(0xFFEAB308),
+            screen: const LoyaltyPromosScreen(),
+          ),
+          const SizedBox(height: 12),
+
+          _buildPromoCard(
+            context,
+            title: 'Announcement Bar',
+            subtitle: 'Global store notifications and top bar alerts',
+            icon: LucideIcons.megaphone,
+            color: const Color(0xFFEC4899),
+            screen: const AnnouncementPromosScreen(),
+          ),
+          const SizedBox(height: 12),
+
+          _buildPromoCard(
+            context,
+            title: 'Site-Wide Offer',
+            subtitle: 'Global discounts applied across the entire store',
+            icon: LucideIcons.target,
+            color: const Color(0xFF14B8A6),
+            screen: const SitewidePromosScreen(),
           ),
         ],
       ),
@@ -95,10 +105,10 @@ class PromotionsScreen extends StatelessWidget {
         Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.cardBorder),
           boxShadow: [
             BoxShadow(
@@ -111,12 +121,12 @@ class PromotionsScreen extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 28, color: color),
+              child: Icon(icon, size: 24, color: color),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -125,17 +135,17 @@ class PromotionsScreen extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+                    style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
                   ),
                 ],
               ),
             ),
-            Icon(LucideIcons.chevronRight, color: AppColors.textMuted.withValues(alpha: 0.5)),
+            Icon(LucideIcons.chevronRight, size: 20, color: AppColors.textMuted.withValues(alpha: 0.5)),
           ],
         ),
       ),

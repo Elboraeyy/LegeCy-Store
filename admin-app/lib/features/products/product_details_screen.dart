@@ -1600,30 +1600,23 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(4),
+                              height: 50,
                               margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                              padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: AppColors.background,
-                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: AppColors.cardBorder),
                               ),
                               child: TabBar(
                                 controller: _infoTabController,
                                 indicatorSize: TabBarIndicatorSize.tab,
                                 dividerColor: Colors.transparent,
                                 indicator: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.05,
-                                      ),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
+                                  color: AppColors.primaryDark,
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                labelColor: AppColors.primaryDark,
+                                labelColor: Colors.white,
                                 unselectedLabelColor: AppColors.textMuted,
                                 labelStyle: GoogleFonts.inter(
                                   fontSize: 13,

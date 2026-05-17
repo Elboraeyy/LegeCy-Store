@@ -5,10 +5,12 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/dashboard/providers/todo_provider.dart';
+import 'package:admin_app/features/notifications/notification_provider.dart';
+import 'package:admin_app/core/services/notification_service.dart';
 import 'package:admin_app/features/auth/login_screen.dart';
 import 'package:admin_app/features/home/home_shell.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Set status bar style
@@ -19,11 +21,15 @@ void main() {
     ),
   );
 
+  // Initialize notification service
+  await NotificationService.instance.initialize();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => TodoProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const LegacyAdminApp(),
     ),

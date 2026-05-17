@@ -210,7 +210,6 @@ class TodoListSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.cardBorder.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [
@@ -283,7 +282,6 @@ class TodoListSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.cardBorder.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [

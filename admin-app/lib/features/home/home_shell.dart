@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
+import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/features/notifications/notification_provider.dart';
 import 'package:admin_app/features/orders/orders_screen.dart';
 import 'package:admin_app/features/products/products_screen.dart';
 import 'package:admin_app/features/dashboard/dashboard_screen.dart';
@@ -18,6 +21,16 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
   int _currentIndex = 2; // Default: Dashboard (center)
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize notifications with the auth token
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final token = context.read<AuthProvider>().token;
+      context.read<NotificationProvider>().init(token);
+    });
+  }
 
   final _screens = const [
     OrdersScreen(),
@@ -67,6 +80,17 @@ class _HomeShellState extends State<HomeShell> with TickerProviderStateMixin {
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
+          // Solid background to hide content behind the lower half of the nav bar
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 59, // 24 (margin) + 35 (half of nav bar) = 59. Hides the cut-off behind the solid nav bar.
+            child: Container(
+              color: AppColors.background,
+            ),
+          ),
+
           // The Floating Nav Bar
           Positioned(
             bottom: 24,

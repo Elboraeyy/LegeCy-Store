@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache';
 import { FraudCheckResult } from '@/lib/services/fraudService';
 import { logger } from '@/lib/logger';
 import { sendOrderConfirmationEmail } from '@/lib/services/emailService';
-
+import { createAdminNotification } from '@/lib/services/notification';
 interface CartItemInput {
   id: string;
   name: string;
@@ -629,6 +629,15 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
             shippingAddress: `${input.shippingAddress}, ${input.shippingCity}, ${input.shippingGovernorate}`,
             paymentMethod: input.paymentMethod
           }).catch(err => logger.error('Failed to send confirmation email', { orderId: order.id, error: err }));
+
+        // Notify Admins (background)
+        await createAdminNotification({
+          title: 'New Order Received',
+          body: `Order #${order.orderNumber} placed by ${input.firstName} ${input.lastName} for ${finalTotal} EGP`,
+          category: 'order',
+          referenceId: order.id,
+          referenceType: 'Order',
+        }).catch(err => logger.error('Failed to create admin notification', { orderId: order.id, error: err }));
 
         // Revalidate admin orders page (background)
         revalidatePath('/admin/orders');

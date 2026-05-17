@@ -189,50 +189,63 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 ),
               ),
               // Status tabs
-              TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                labelColor: const Color(0xFFD4AF37), // Gold
-                unselectedLabelColor: AppColors.textMuted,
-                labelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
-                unselectedLabelStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
-                indicatorColor: const Color(0xFFD4AF37),
-                indicatorSize: TabBarIndicatorSize.label,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                tabs: OrderConstants.statuses.map((s) {
-                  final count = _counts[s['key']?.toString().toLowerCase()] ?? 0;
-                  return Tab(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(s['label']!),
-                        if (count > 0) ...[
-                          const SizedBox(width: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: _tabController.index == OrderConstants.statuses.indexOf(s) 
-                                ? const Color(0xFFD4AF37) 
-                                : AppColors.textMuted.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              count > 999 ? '999+' : count.toString(),
-                              style: GoogleFonts.inter(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
+              Container(
+                height: 50,
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  indicator: BoxDecoration(
+                    color: AppColors.primaryDark,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: AppColors.textMuted,
+                  labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+                  unselectedLabelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+                  tabs: OrderConstants.statuses.map((s) {
+                    final count = _counts[s['key']?.toString().toLowerCase()] ?? 0;
+                    return Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(s['label']!),
+                          if (count > 0) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
                                 color: _tabController.index == OrderConstants.statuses.indexOf(s) 
-                                  ? Colors.white 
-                                  : AppColors.textMuted,
+                                  ? Colors.white
+                                  : AppColors.textMuted.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                count > 999 ? '999+' : count.toString(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: _tabController.index == OrderConstants.statuses.indexOf(s) 
+                                    ? AppColors.primaryDark 
+                                    : AppColors.textMuted,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
-                      ],
-                    ),
-                  );
-                }).toList(),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ],
           ),

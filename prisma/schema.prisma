@@ -1869,6 +1869,21 @@ model Todo {
   @@index([createdAt])
 }
 
+model AdminNotification {
+  id            String   @id @default(uuid())
+  title         String
+  body          String
+  category      String   @default("system") // order, inventory, review, message, restock, finance, system
+  referenceId   String?
+  referenceType String?
+  isRead        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([isRead])
+  @@index([category])
+  @@index([createdAt])
+}
+
 enum AccountType {
   ASSET
   LIABILITY

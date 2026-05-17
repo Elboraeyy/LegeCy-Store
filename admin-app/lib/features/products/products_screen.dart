@@ -529,7 +529,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                         margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: AppColors.background,
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: AppColors.cardBorder),
                         ),

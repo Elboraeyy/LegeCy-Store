@@ -326,17 +326,35 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
           title: Text('Procurement', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
           backgroundColor: AppColors.surface, surfaceTintColor: Colors.transparent, elevation: 0,
           leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
-          bottom: TabBar(
-            indicatorColor: const Color(0xFF8B5CF6),
-            labelColor: const Color(0xFF8B5CF6),
-            unselectedLabelColor: AppColors.textMuted,
-            indicatorSize: TabBarIndicatorSize.label,
-            labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: const [
-              Tab(text: 'Suppliers'),
-              Tab(text: 'Invoices'),
-              Tab(text: 'Performance'),
-            ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(60),
+            child: Container(
+              height: 50,
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: TabBar(
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: Colors.transparent,
+                indicator: BoxDecoration(
+                  color: AppColors.primaryDark,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                labelColor: Colors.white,
+                unselectedLabelColor: AppColors.textMuted,
+                labelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+                unselectedLabelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
+                tabs: const [
+                  Tab(text: 'Suppliers'),
+                  Tab(text: 'Invoices'),
+                  Tab(text: 'Performance'),
+                ],
+              ),
+            ),
           ),
         ),
         body: _isLoading

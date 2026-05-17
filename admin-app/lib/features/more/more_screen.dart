@@ -27,6 +27,52 @@ class MoreScreen extends StatefulWidget {
 
 class _MoreScreenState extends State<MoreScreen> {
   bool _isUploadingAvatar = false;
+  int _newReviewsCount = 0;
+  int _newMessagesCount = 0;
+  int _newRestockCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBadges();
+  }
+
+  Future<void> _loadBadges() async {
+    try {
+      final token = context.read<AuthProvider>().token;
+      if (token == null) return;
+      final client = ApiClient(token: token);
+      
+      final results = await Future.wait([
+        client.get('/api/admin/auth/reviews').catchError((_) => {'reviews': []}),
+        client.get('/api/admin/auth/messages').catchError((_) => {'messages': []}),
+        client.get('/api/admin/auth/stock-requests').catchError((_) => {'requests': []}),
+      ]);
+      
+      if (mounted) {
+        setState(() {
+          // For reviews, count those not featured and created in the last 7 days as 'new' (since there's no explicit unread status)
+          final reviews = results[0]['reviews'] as List?;
+          _newReviewsCount = reviews?.where((r) {
+            if (r['featured'] == true) return false;
+            if (r['createdAt'] != null) {
+              final dt = DateTime.tryParse(r['createdAt']);
+              if (dt != null && DateTime.now().difference(dt).inDays <= 7) return true;
+            }
+            return false;
+          }).length ?? 0;
+
+          // For messages, status NEW means unread
+          _newMessagesCount = (results[1]['messages'] as List?)?.where((m) => m['status'] == 'NEW').length ?? 0;
+          
+          // For stock requests, status pending means waiting
+          _newRestockCount = (results[2]['requests'] as List?)?.where((r) => r['status'] == 'pending').length ?? 0;
+        });
+      }
+    } catch (e) {
+      // Ignore errors for badges
+    }
+  }
 
   Future<void> _pickAndUploadAvatar() async {
     final picker = ImagePicker();
@@ -251,9 +297,9 @@ class _MoreScreenState extends State<MoreScreen> {
                   icon: LucideIcons.heart,
                   items: [
                     _MenuItem(title: 'Customers', subtitle: 'Client CRM & history', icon: LucideIcons.userCheck, color: const Color(0xFF10B981), screen: const CustomersListScreen()),
-                    _MenuItem(title: 'Reviews', subtitle: 'Moderate product reviews', icon: LucideIcons.star, color: const Color(0xFFF59E0B), screen: const ReviewsListScreen(), badge: '3'),
-                    _MenuItem(title: 'Messages', subtitle: 'Contact form submissions', icon: LucideIcons.mail, color: const Color(0xFF6366F1), screen: const MessagesListScreen(), badge: 'New'),
-                    _MenuItem(title: 'Restock Requests', subtitle: 'Waitlists and back in stock', icon: LucideIcons.bellRing, color: const Color(0xFF0EA5E9), screen: const StockRequestsScreen()),
+                    _MenuItem(title: 'Reviews', subtitle: 'Moderate product reviews', icon: LucideIcons.star, color: const Color(0xFFF59E0B), screen: const ReviewsListScreen(), badge: _newReviewsCount > 0 ? _newReviewsCount.toString() : null),
+                    _MenuItem(title: 'Messages', subtitle: 'Contact form submissions', icon: LucideIcons.mail, color: const Color(0xFF6366F1), screen: const MessagesListScreen(), badge: _newMessagesCount > 0 ? _newMessagesCount.toString() : null),
+                    _MenuItem(title: 'Restock Requests', subtitle: 'Waitlists and back in stock', icon: LucideIcons.bellRing, color: const Color(0xFF0EA5E9), screen: const StockRequestsScreen(), badge: _newRestockCount > 0 ? _newRestockCount.toString() : null),
                   ],
                 ),
                 const SizedBox(height: 24),
