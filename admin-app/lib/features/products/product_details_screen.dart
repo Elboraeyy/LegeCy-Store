@@ -1112,38 +1112,137 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     );
   }
 
-  void _showPlaceholderDialog(String title, String message) {
+  void _showAddReviewDialog() {
+    final nameController = TextEditingController();
+    final commentController = TextEditingController();
+    double rating = 5.0;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          title,
-          style: GoogleFonts.playfairDisplay(
-            fontWeight: FontWeight.w700,
-            color: AppColors.primaryDark,
-          ),
-        ),
-        content: Text(
-          message,
-          style: GoogleFonts.inter(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Close',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryDark,
-              ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Add Manual Review',
+            style: GoogleFonts.playfairDisplay(
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryDark,
             ),
           ),
-        ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Reviewer Name',
+                    labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
+                    enabledBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.cardBorder),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.primaryDark),
+                    ),
+                  ),
+                  style: GoogleFonts.inter(color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Rating: ${rating.toInt()} Stars',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Slider(
+                  value: rating,
+                  min: 1,
+                  max: 5,
+                  divisions: 4,
+                  onChanged: (val) => setDialogState(() => rating = val),
+                  activeColor: const Color(0xFFF59E0B),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: commentController,
+                  decoration: InputDecoration(
+                    labelText: 'Comment',
+                    labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.cardBorder),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.primaryDark),
+                    ),
+                  ),
+                  maxLines: 3,
+                  style: GoogleFonts.inter(color: AppColors.textPrimary),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final name = nameController.text.trim();
+                final comment = commentController.text.trim();
+                if (name.isEmpty || comment.isEmpty) {
+                  _snack('Please fill all fields');
+                  return;
+                }
+                Navigator.pop(ctx);
+                
+                setState(() => _isLoading = true);
+                try {
+                  final client = ApiClient(token: context.read<AuthProvider>().token);
+                  await client.post('/api/admin/auth/reviews', body: {
+                    'name': name,
+                    'rating': rating.toInt(),
+                    'text': comment,
+                    'productId': _product['id'],
+                    'featured': false,
+                  });
+                  _snack('Review added successfully', ok: true);
+                  _loadReviews();
+                } catch (e) {
+                  _snack('Failed to add review: $e');
+                } finally {
+                  if (mounted) setState(() => _isLoading = false);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Add',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -1707,10 +1806,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                             LucideIcons.star,
                           ),
                           TextButton.icon(
-                            onPressed: () => _showPlaceholderDialog(
-                              'Add Review',
-                              'Placeholder for adding a manual review.',
-                            ),
+                            onPressed: () => _showAddReviewDialog(),
                             icon: const Icon(LucideIcons.plus, size: 16),
                             label: const Text('Add'),
                             style: TextButton.styleFrom(

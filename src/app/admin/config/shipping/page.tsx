@@ -16,7 +16,6 @@ const defaultSettings: ShippingSettings = {
     enableShipping: true,
     freeShippingThreshold: 0,
     defaultShippingRate: 50,
-    expressShippingRate: 100,
     shippingZones: [
         { name: 'Cairo & Giza', governorates: ['Cairo', 'Giza'], cities: [], rate: 40 },
         { name: 'Alexandria', governorates: ['Alexandria'], cities: [], rate: 50 },
@@ -186,19 +185,6 @@ export default function ShippingSettingsPage() {
                             type="number"
                             value={settings.defaultShippingRate}
                             onChange={(e) => setSettings({ ...settings, defaultShippingRate: Number(e.target.value) })}
-                            min={0}
-                        />
-                    </SettingsField>
-
-                    <SettingsField
-                        label="Express Rate (EGP)"
-                        htmlFor="expressRate"
-                    >
-                        <input
-                            id="expressRate"
-                            type="number"
-                            value={settings.expressShippingRate}
-                            onChange={(e) => setSettings({ ...settings, expressShippingRate: Number(e.target.value) })}
                             min={0}
                         />
                     </SettingsField>

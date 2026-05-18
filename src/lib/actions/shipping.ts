@@ -8,7 +8,6 @@ const defaultShippingSettings: ShippingSettings = {
   enableShipping: true,
   freeShippingThreshold: 2000,
   defaultShippingRate: 50,
-  expressShippingRate: 100,
   shippingZones: [
     { name: 'Cairo & Giza', governorates: ['Cairo', 'Giza'], cities: [], rate: 40 },
     { name: 'Alexandria', governorates: ['Alexandria'], cities: [], rate: 50 },

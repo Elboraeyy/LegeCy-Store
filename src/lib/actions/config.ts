@@ -152,7 +152,6 @@ export type ShippingSettings = {
   enableShipping: boolean;
   freeShippingThreshold: number;
   defaultShippingRate: number;
-  expressShippingRate: number;
   shippingZones: Array<{
     name: string;
     governorates: string[];

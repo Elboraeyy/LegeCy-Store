@@ -11,7 +11,7 @@ export default function TrustBadges() {
           <circle cx="18.5" cy="18.5" r="2.5"></circle>
         </svg>
       ),
-      text: "Free Express Shipping"
+      text: "Free Shipping"
     },
     {
       icon: (

@@ -47,3 +47,36 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to fetch reviews' }, { status: 500 });
     }
 }
+
+/**
+ * POST /api/admin/auth/reviews
+ * Creates a review manually from the admin.
+ */
+export async function POST(request: NextRequest) {
+    const admin = await validateMobileToken(request);
+    if (!admin) return unauthorizedResponse();
+
+    try {
+        const body = await request.json();
+        const { name, rating, text, productId, featured } = body;
+
+        if (!name || !rating || !text || !productId) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        const review = await prisma.review.create({
+            data: {
+                name,
+                rating: parseInt(rating),
+                text,
+                productId,
+                featured: featured || false,
+            },
+        });
+
+        return NextResponse.json({ success: true, review });
+    } catch (error) {
+        console.error('Mobile Reviews POST Error:', error);
+        return NextResponse.json({ error: 'Failed to create review' }, { status: 500 });
+    }
+}

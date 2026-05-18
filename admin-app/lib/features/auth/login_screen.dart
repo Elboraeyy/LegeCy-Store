@@ -407,6 +407,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                       // Footer
                                       Text(
                                         '🔒 Protected by Legacy Security Systems',
+                                        textAlign: TextAlign.center,
                                         style: GoogleFonts.inter(
                                           fontSize: 12,
                                           color: textMutedBrand,

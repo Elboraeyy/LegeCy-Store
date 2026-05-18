@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     // Parse filter parameters
     const category = searchParams.get("category");
     const brands = searchParams.get("brands");
@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get("maxPrice");
     const inStock = searchParams.get("inStock");
     const onSale = searchParams.get("onSale");
-
 
     // Build where clause
     const where: Record<string, unknown> = {
@@ -49,7 +48,7 @@ export async function GET(request: NextRequest) {
           where: { slug: { in: categorySlugs } },
           select: { id: true },
         });
-        where.categoryId = { in: categories.map(c => c.id) };
+        where.categoryId = { in: categories.map((c) => c.id) };
       }
     }
 
@@ -133,10 +132,12 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform and apply client-side filters
-    let transformedProducts = products.map(p => {
+    let transformedProducts = products.map((p) => {
       const firstVariant = p.variants[0];
       const price = firstVariant ? Number(firstVariant.price) : 0;
-      const totalStock = firstVariant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ?? 0;
+      const totalStock =
+        firstVariant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ??
+        0;
       const inStockStatus = totalStock > 0;
 
       return {
@@ -155,30 +156,31 @@ export async function GET(request: NextRequest) {
         brand: p.brand?.name,
         totalStock,
         createdAt: p.createdAt.toISOString(),
+        detailTags: p.detailTags,
       };
     });
 
     // Apply price filter (client-side since price comes from variants)
     if (minPrice) {
       const min = Number(minPrice);
-      transformedProducts = transformedProducts.filter(p => p.price >= min);
+      transformedProducts = transformedProducts.filter((p) => p.price >= min);
     }
     if (maxPrice) {
       const max = Number(maxPrice);
-      transformedProducts = transformedProducts.filter(p => p.price <= max);
+      transformedProducts = transformedProducts.filter((p) => p.price <= max);
     }
 
     // Apply stock filter
     if (inStock === "true") {
-      transformedProducts = transformedProducts.filter(p => p.inStock);
+      transformedProducts = transformedProducts.filter((p) => p.inStock);
     } else if (inStock === "false") {
-      transformedProducts = transformedProducts.filter(p => !p.inStock);
+      transformedProducts = transformedProducts.filter((p) => !p.inStock);
     }
 
     // Apply on sale filter (must have compareAtPrice > price)
     if (onSale === "true") {
       transformedProducts = transformedProducts.filter(
-        p => p.compareAtPrice && p.compareAtPrice > p.price
+        (p) => p.compareAtPrice && p.compareAtPrice > p.price,
       );
     }
 
@@ -190,7 +192,7 @@ export async function GET(request: NextRequest) {
     console.error("Products API Error:", error);
     return NextResponse.json(
       { error: "Failed to fetch products" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

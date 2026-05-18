@@ -6,6 +6,7 @@ import 'package:admin_app/core/constants/egypt_locations.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'edit_delivery_zones_screen.dart';
 
 class DeliveryZonesScreen extends StatefulWidget {
   const DeliveryZonesScreen({super.key});
@@ -16,22 +17,26 @@ class DeliveryZonesScreen extends StatefulWidget {
 
 class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
   bool _isLoading = true;
-  bool _isSaving = false;
   String? _error;
 
   bool _enableShipping = true;
   double _freeThreshold = 0;
   double _defaultRate = 50;
-  double _expressRate = 100;
   List<Map<String, dynamic>> _zones = [];
-  final Map<int, _CityAddingState> _cityAddingState = {};
 
-  List<String> get _governorates => egyptLocations.map((g) => g.en).toList();
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSettings() async {
@@ -68,27 +73,7 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
       'enableShipping': true,
       'freeShippingThreshold': 0,
       'defaultShippingRate': 50,
-      'expressShippingRate': 100,
-      'shippingZones': [
-        {
-          'name': 'Cairo & Giza',
-          'governorates': ['Cairo', 'Giza'],
-          'cities': [],
-          'rate': 40,
-        },
-        {
-          'name': 'Alexandria',
-          'governorates': ['Alexandria'],
-          'cities': [],
-          'rate': 50,
-        },
-        {
-          'name': 'Other Governorates',
-          'governorates': [],
-          'cities': [],
-          'rate': 70,
-        },
-      ],
+      'shippingZones': [],
     };
   }
 
@@ -96,15 +81,13 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
     _enableShipping = value['enableShipping'] ?? true;
     _freeThreshold = _number(value['freeShippingThreshold'], fallback: 0);
     _defaultRate = _number(value['defaultShippingRate'], fallback: 50);
-    _expressRate = _number(value['expressShippingRate'], fallback: 100);
     _zones = _normalizeZones(value['shippingZones']);
-    _cityAddingState.clear();
   }
 
   List<Map<String, dynamic>> _normalizeZones(dynamic rawZones) {
-    final source = rawZones is List ? rawZones : _defaultSettings()['shippingZones'] as List;
+    if (rawZones is! List) return [];
 
-    return source.map<Map<String, dynamic>>((raw) {
+    return rawZones.map<Map<String, dynamic>>((raw) {
       final zone = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
       return {
         'name': (zone['name'] ?? 'New Zone').toString(),
@@ -117,7 +100,6 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
 
   List<Map<String, dynamic>> _normalizeCities(dynamic rawCities, {required double zoneRate}) {
     if (rawCities is! List) return [];
-
     return rawCities.map<Map<String, dynamic>>((raw) {
       if (raw is Map) {
         final city = Map<String, dynamic>.from(raw);
@@ -127,12 +109,7 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
           'rate': _number(city['rate'], fallback: zoneRate),
         };
       }
-
-      return {
-        'governorate': '',
-        'city': raw.toString(),
-        'rate': zoneRate,
-      };
+      return {'governorate': '', 'city': raw.toString(), 'rate': zoneRate};
     }).where((city) => (city['city'] as String).isNotEmpty).toList();
   }
 
@@ -146,99 +123,29 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
     return double.tryParse(value?.toString() ?? '') ?? fallback;
   }
 
-  Future<void> _saveSettings() async {
-    setState(() => _isSaving = true);
-    final messenger = ScaffoldMessenger.of(context);
-
-    try {
-      await _client().put('/api/admin/auth/settings', body: {
-        'key': 'shipping_settings',
-        'value': _settingsPayload(),
-        'description': 'Shipping rates and delivery zones',
-      });
-
-      if (!mounted) return;
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Shipping settings saved'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _isSaving = false);
+  double getGovernorateRate(String governorate) {
+    for (var zone in _zones) {
+      if ((zone['governorates'] as List).contains(governorate)) {
+        return _number(zone['rate'], fallback: _defaultRate);
+      }
     }
+    return _defaultRate;
   }
 
-  Map<String, dynamic> _settingsPayload() {
-    return {
-      'enableShipping': _enableShipping,
-      'freeShippingThreshold': _freeThreshold,
-      'defaultShippingRate': _defaultRate,
-      'expressShippingRate': _expressRate,
-      'shippingZones': _zones.map((zone) {
-        return {
-          'name': zone['name'],
-          'governorates': List<String>.from(zone['governorates'] as List),
-          'cities': (zone['cities'] as List).map((city) {
-            final cityMap = Map<String, dynamic>.from(city as Map);
-            return {
-              'governorate': cityMap['governorate'],
-              'city': cityMap['city'],
-              'rate': _number(cityMap['rate'], fallback: _number(zone['rate'], fallback: 50)),
-            };
-          }).toList(),
-          'rate': _number(zone['rate'], fallback: 50),
-        };
-      }).toList(),
-    };
+  double getCityRate(String governorate, String city) {
+    for (var zone in _zones) {
+      for (var exception in (zone['cities'] as List)) {
+        if (exception['governorate'] == governorate && exception['city'] == city) {
+          return _number(exception['rate'], fallback: _number(zone['rate'], fallback: _defaultRate));
+        }
+      }
+    }
+    return getGovernorateRate(governorate);
   }
 
-  void _resetDefaults() {
-    setState(() => _applySettings(_defaultSettings()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Defaults loaded. Tap Save Changes to apply.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _addZone() {
-    setState(() {
-      _zones.add({
-        'name': 'New Zone',
-        'governorates': <String>[],
-        'cities': <Map<String, dynamic>>[],
-        'rate': 50,
-      });
-    });
-  }
-
-  void _removeZone(int index) {
-    if (_zones.length <= 1) return;
-    setState(() {
-      _zones.removeAt(index);
-      _cityAddingState.remove(index);
-    });
-  }
-
-  List<City> _citiesForGovernorate(String governorate) {
-    return egyptLocations
-        .firstWhere(
-          (location) => location.en == governorate,
-          orElse: () => Governorate(en: governorate, ar: '', cities: []),
-        )
-        .cities;
+  String _formatMoney(double value) {
+    final amount = value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(2);
+    return 'EGP $amount';
   }
 
   @override
@@ -247,7 +154,7 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          'Shipping & Zones',
+          'Shipping Prices',
           style: GoogleFonts.playfairDisplay(
             fontSize: 24,
             fontWeight: FontWeight.w700,
@@ -261,6 +168,21 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
           icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          TextButton.icon(
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditDeliveryZonesScreen()),
+              );
+              // Reload settings when returning from edit screen
+              _loadSettings();
+            },
+            icon: const Icon(LucideIcons.edit, size: 18),
+            label: const Text('Edit'),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFF0EA5E9)),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
@@ -269,18 +191,20 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
               : RefreshIndicator(
                   onRefresh: _loadSettings,
                   color: AppColors.primaryDark,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                  child: Column(
                     children: [
-                      _buildShippingStatusCard(),
-                      const SizedBox(height: 16),
-                      _buildRatesCard(),
-                      const SizedBox(height: 24),
-                      _buildZonesHeader(),
-                      const SizedBox(height: 12),
-                      ..._zones.asMap().entries.map((entry) => _buildZoneCard(entry.key)),
-                      const SizedBox(height: 20),
-                      _buildActions(),
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.all(16),
+                          children: [
+                            _buildOverviewCard(),
+                            const SizedBox(height: 16),
+                            _buildSearchField(),
+                            const SizedBox(height: 16),
+                            _buildSearchResults(),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -311,329 +235,8 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
     );
   }
 
-  Widget _buildShippingStatusCard() {
-    return _sectionCard(
-      child: Row(
-        children: [
-          _iconBox(LucideIcons.truck),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Shipping Status', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
-                const SizedBox(height: 2),
-                Text('Calculate shipping costs at checkout', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-              ],
-            ),
-          ),
-          Switch.adaptive(
-            value: _enableShipping,
-            activeThumbColor: AppColors.success,
-            onChanged: (value) => setState(() => _enableShipping = value),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRatesCard() {
-    return _sectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _iconBox(LucideIcons.coins),
-              const SizedBox(width: 12),
-              Text('Default Rates', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(child: _numberField('Default Rate', _defaultRate, (value) => _defaultRate = value)),
-              const SizedBox(width: 12),
-              Expanded(child: _numberField('Express Rate', _expressRate, (value) => _expressRate = value)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _numberField('Free Shipping Above (0 = disabled)', _freeThreshold, (value) => _freeThreshold = value),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildZonesHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Shipping Zones', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-            Text('${_zones.length} zones from website settings', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-          ],
-        ),
-        TextButton.icon(
-          onPressed: _addZone,
-          icon: const Icon(LucideIcons.plus, size: 18),
-          label: const Text('Add Zone'),
-          style: TextButton.styleFrom(foregroundColor: const Color(0xFF0EA5E9)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildZoneCard(int index) {
-    final zone = _zones[index];
-    final governorates = List<String>.from(zone['governorates'] as List);
-    final cities = List<Map<String, dynamic>>.from(zone['cities'] as List);
-    final addingState = _cityAddingState.putIfAbsent(
-      index,
-      () => _CityAddingState(rate: _number(zone['rate'], fallback: 50)),
-    );
-    final availableCities = addingState.governorate == null ? <City>[] : _citiesForGovernorate(addingState.governorate!);
-
-    return _sectionCard(
-      margin: const EdgeInsets.only(bottom: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _iconBox(LucideIcons.mapPin),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Zone ${index + 1}',
-                  style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
-                ),
-              ),
-              if (_zones.length > 1)
-                IconButton(
-                  tooltip: 'Remove zone',
-                  onPressed: () => _removeZone(index),
-                  icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.error),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: _textField(
-                  label: 'Zone Name',
-                  value: zone['name'].toString(),
-                  onChanged: (value) => zone['name'] = value,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: _numberField(
-                  'Rate',
-                  _number(zone['rate'], fallback: 50),
-                  (value) => zone['rate'] = value,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Text(
-            'Governorates (${governorates.length} selected)',
-            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            constraints: const BoxConstraints(maxHeight: 160),
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.cardBorder),
-            ),
-            child: SingleChildScrollView(
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _governorates.map((gov) {
-                  final selected = governorates.contains(gov);
-                  return ChoiceChip(
-                    label: Text(gov, style: GoogleFonts.inter(fontSize: 12, color: selected ? Colors.white : AppColors.textPrimary)),
-                    selected: selected,
-                    selectedColor: AppColors.primaryDark,
-                    backgroundColor: AppColors.surface,
-                    showCheckmark: false,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(color: selected ? AppColors.primaryDark : AppColors.cardBorder),
-                    ),
-                    onSelected: (value) {
-                      setState(() {
-                        if (value) {
-                          governorates.add(gov);
-                        } else {
-                          governorates.remove(gov);
-                        }
-                        zone['governorates'] = governorates;
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          const SizedBox(height: 22),
-          Text(
-            'Specific City Exceptions (${cities.length})',
-            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 8),
-          _buildCityExceptionInputs(index, zone, addingState, availableCities),
-          const SizedBox(height: 12),
-          if (cities.isEmpty)
-            Text('No specific city exceptions in this zone.', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted, fontStyle: FontStyle.italic))
-          else
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: cities.asMap().entries.map((entry) {
-                final city = entry.value;
-                return Chip(
-                  label: Text(
-                    '${city['city']} (${city['governorate']}) - ${_formatMoney(_number(city['rate'], fallback: 0))}',
-                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-                  ),
-                  deleteIcon: const Icon(LucideIcons.x, size: 14),
-                  onDeleted: () {
-                    setState(() => (zone['cities'] as List).removeAt(entry.key));
-                  },
-                  backgroundColor: AppColors.background,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.cardBorder)),
-                );
-              }).toList(),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCityExceptionInputs(int index, Map<String, dynamic> zone, _CityAddingState addingState, List<City> availableCities) {
-    return Column(
-      children: [
-        DropdownButtonFormField<String>(
-          initialValue: addingState.governorate,
-          isExpanded: true,
-          items: _governorates.map((gov) => DropdownMenuItem(value: gov, child: Text(gov))).toList(),
-          onChanged: (value) {
-            setState(() {
-              addingState.governorate = value;
-              addingState.city = null;
-              addingState.rate = _number(zone['rate'], fallback: 50);
-            });
-          },
-          decoration: _inputDecoration('Select Governorate', LucideIcons.map),
-        ),
-        const SizedBox(height: 10),
-        DropdownButtonFormField<String>(
-          initialValue: addingState.city,
-          isExpanded: true,
-          items: availableCities.map((city) => DropdownMenuItem(value: city.en, child: Text(city.en))).toList(),
-          onChanged: addingState.governorate == null ? null : (value) => setState(() => addingState.city = value),
-          decoration: _inputDecoration('Select City', LucideIcons.building2),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _numberField(
-                'City Rate',
-                addingState.rate,
-                (value) => addingState.rate = value,
-              ),
-            ),
-            const SizedBox(width: 10),
-            SizedBox(
-              height: 48,
-              child: ElevatedButton.icon(
-                onPressed: addingState.city == null ? null : () => _addCityException(index, zone, addingState),
-                icon: const Icon(LucideIcons.plus, size: 16),
-                label: const Text('Add'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryDark,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  void _addCityException(int index, Map<String, dynamic> zone, _CityAddingState addingState) {
-    final governorate = addingState.governorate;
-    final city = addingState.city;
-    if (governorate == null || city == null) return;
-
-    final cities = List<Map<String, dynamic>>.from(zone['cities'] as List);
-    final exists = cities.any((entry) => entry['governorate'] == governorate && entry['city'] == city);
-    if (exists) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This city is already in this zone'), backgroundColor: AppColors.error),
-      );
-      return;
-    }
-
-    setState(() {
-      cities.add({'governorate': governorate, 'city': city, 'rate': addingState.rate});
-      zone['cities'] = cities;
-      _cityAddingState[index] = _CityAddingState(governorate: governorate, rate: addingState.rate);
-    });
-  }
-
-  Widget _buildActions() {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _resetDefaults,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primaryDark,
-              side: const BorderSide(color: AppColors.cardBorder),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-            child: const Text('Reset Default'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _isSaving ? null : _saveSettings,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryDark,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-            child: _isSaving
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('Save Changes'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _sectionCard({required Widget child, EdgeInsetsGeometry? margin}) {
+  Widget _buildOverviewCard() {
     return Container(
-      margin: margin,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -647,84 +250,216 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
           ),
         ],
       ),
-      child: child,
-    );
-  }
-
-  Widget _iconBox(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(LucideIcons.truck, color: Color(0xFF0EA5E9), size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Global Shipping Settings', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                    const SizedBox(height: 2),
+                    Text(_enableShipping ? 'Active' : 'Disabled', style: GoogleFonts.inter(fontSize: 12, color: _enableShipping ? AppColors.success : AppColors.error, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _infoTile('Default Rate', _formatMoney(_defaultRate)),
+              ),
+              Container(
+                width: 1,
+                height: 28,
+                color: AppColors.cardBorder,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 24),
+                  child: _infoTile('Free Shipping', _freeThreshold > 0 ? '> ${_formatMoney(_freeThreshold)}' : 'Off'),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
-      child: Icon(icon, color: const Color(0xFF0EA5E9), size: 20),
     );
   }
 
-  Widget _numberField(String label, double value, ValueChanged<double> onChanged) {
-    final text = value % 1 == 0 ? value.toInt().toString() : value.toString();
-    return _textField(
-      label: label,
-      value: text,
-      keyboardType: TextInputType.number,
-      prefixText: 'EGP ',
-      onChanged: (raw) => onChanged(double.tryParse(raw) ?? value),
-    );
-  }
-
-  Widget _textField({
-    required String label,
-    required String value,
-    required ValueChanged<String> onChanged,
-    TextInputType keyboardType = TextInputType.text,
-    String? prefixText,
-  }) {
+  Widget _infoTile(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
-        const SizedBox(height: 6),
-        TextFormField(
-          key: ValueKey('$label-$value'),
-          initialValue: value,
-          keyboardType: keyboardType,
-          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.background,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            prefixText: prefixText,
-            prefixStyle: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted),
-          ),
-        ),
+        Text(label, style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
+        Text(value, style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
       ],
     );
   }
 
-  InputDecoration _inputDecoration(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon, size: 18, color: AppColors.textMuted),
-      filled: true,
-      fillColor: AppColors.background,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+  Widget _buildSearchField() {
+    return TextField(
+      controller: _searchController,
+      onChanged: (value) => setState(() => _searchQuery = value),
+      style: GoogleFonts.inter(fontSize: 15),
+      decoration: InputDecoration(
+        hintText: 'Search governorates or cities...',
+        hintStyle: GoogleFonts.inter(color: AppColors.textMuted),
+        prefixIcon: const Icon(LucideIcons.search, color: AppColors.textMuted),
+        suffixIcon: _searchQuery.isNotEmpty
+            ? IconButton(
+                icon: const Icon(LucideIcons.xCircle, color: AppColors.textMuted, size: 18),
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() => _searchQuery = '');
+                },
+              )
+            : null,
+        filled: true,
+        fillColor: AppColors.surface,
+        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.cardBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.cardBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.primaryDark),
+        ),
+      ),
     );
   }
 
-  String _formatMoney(double value) {
-    final amount = value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(2);
-    return 'EGP $amount';
+  Widget _buildSearchResults() {
+    final query = _searchQuery.trim().toLowerCase();
+    
+    if (query.isEmpty) {
+      return Column(
+        children: egyptLocations.map((gov) {
+          final govRate = getGovernorateRate(gov.en);
+          return Card(
+            color: AppColors.surface,
+            elevation: 0,
+            margin: const EdgeInsets.only(bottom: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: AppColors.cardBorder),
+            ),
+            child: Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                title: Text('${gov.en} (${gov.ar})', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15, color: AppColors.textPrimary)),
+                subtitle: Text('Base Rate: ${_formatMoney(govRate)}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
+                childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                children: [
+                  const Divider(color: AppColors.cardBorder),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: gov.cities.map((city) {
+                      final cityRate = getCityRate(gov.en, city.en);
+                      final isException = cityRate != govRate;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isException ? const Color(0xFF0EA5E9).withValues(alpha: 0.1) : AppColors.background,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: isException ? const Color(0xFF0EA5E9).withValues(alpha: 0.3) : AppColors.cardBorder),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(city.en, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                            const SizedBox(width: 6),
+                            Text(_formatMoney(cityRate), style: GoogleFonts.inter(fontSize: 12, fontWeight: isException ? FontWeight.bold : FontWeight.w600, color: isException ? const Color(0xFF0EA5E9) : AppColors.textSecondary)),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  )
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      );
+    }
+
+    // Search Mode
+    final List<Widget> results = [];
+    
+    for (var gov in egyptLocations) {
+      bool govMatches = gov.en.toLowerCase().contains(query) || gov.ar.toLowerCase().contains(query);
+      
+      if (govMatches) {
+        final govRate = getGovernorateRate(gov.en);
+        results.add(
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            tileColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.cardBorder)),
+            leading: const Icon(LucideIcons.map, color: AppColors.primaryDark),
+            title: Text('${gov.en} (${gov.ar})', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            subtitle: Text('Governorate', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+            trailing: Text(_formatMoney(govRate), style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primaryDark)),
+          ),
+        );
+        results.add(const SizedBox(height: 8));
+      }
+
+      for (var city in gov.cities) {
+        if (city.en.toLowerCase().contains(query) || city.ar.toLowerCase().contains(query)) {
+          final cityRate = getCityRate(gov.en, city.en);
+          results.add(
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              tileColor: AppColors.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.cardBorder)),
+              leading: const Icon(LucideIcons.building2, color: Color(0xFF0EA5E9)),
+              title: Text('${city.en} (${city.ar})', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              subtitle: Text('City in ${gov.en}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+              trailing: Text(_formatMoney(cityRate), style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primaryDark)),
+            ),
+          );
+          results.add(const SizedBox(height: 8));
+        }
+      }
+    }
+
+    if (results.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 40),
+          child: Column(
+            children: [
+              const Icon(LucideIcons.searchX, size: 48, color: AppColors.textMuted),
+              const SizedBox(height: 16),
+              Text('No locations found', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(children: results);
   }
-}
-
-class _CityAddingState {
-  String? governorate;
-  String? city;
-  double rate;
-
-  _CityAddingState({this.governorate, required this.rate});
 }

@@ -293,7 +293,7 @@ export default function ProductPreviewModal({ isOpen, onClose, data }: ProductPr
                                                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
                                                             <div style={{ paddingBottom: '20px' }}>
                                                                 {[
-                                                                    { Icon: Truck, text: 'Free Express Shipping on orders over 1500 EGP' },
+                                                                    { Icon: Truck, text: 'Free Shipping on eligible orders' },
                                                                     { Icon: Package, text: 'Carefully packaged in premium LegaCy box' },
                                                                     { Icon: RefreshCw, text: 'Easy 14-day exchange or return policy' }
                                                                 ].map((item, i) => (

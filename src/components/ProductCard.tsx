@@ -19,20 +19,27 @@ interface ProductCardProps {
   hideNewBadge?: boolean;
 }
 
-export default React.memo(function ProductCard({ product, priority = false, hideNewBadge = false }: ProductCardProps) {
+export default React.memo(function ProductCard({
+  product,
+  priority = false,
+  hideNewBadge = false,
+}: ProductCardProps) {
   const { addToCart, toggleFav, isFav } = useStore();
   const isClient = useIsClient();
   const { t, language } = useLanguage();
   const [showQuickView, setShowQuickView] = useState(false);
 
   const formatPrice = (p: number) => {
-    return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en-EG', {
-      style: 'currency',
-      currency: 'EGP'
+    return new Intl.NumberFormat(language === "ar" ? "ar-EG" : "en-EG", {
+      style: "currency",
+      currency: "EGP",
     }).format(p);
   };
-  
-  const productImage = optimizeCloudinaryUrl(product.imageUrl || product.img || '/placeholder.jpg', 600);
+
+  const productImage = optimizeCloudinaryUrl(
+    product.imageUrl || product.img || "/placeholder.jpg",
+    600,
+  );
   const [imgSrc, setImgSrc] = React.useState(productImage);
 
   // Update imgSrc when product changes
@@ -43,10 +50,12 @@ export default React.memo(function ProductCard({ product, priority = false, hide
   // Check sitewide offer
   const { sitewideConfig } = useStore();
   const isSitewideEnabled = sitewideConfig?.enabled === true;
-  const sitewideTier1Percent = (sitewideConfig?.tier1DiscountPercent as number) || 20;
+  const sitewideTier1Percent =
+    (sitewideConfig?.tier1DiscountPercent as number) || 20;
 
   // Badges logic
-  const isIndividuallyOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
+  const isIndividuallyOnSale =
+    product.compareAtPrice && product.compareAtPrice > product.price;
   const isOutOfStock = product.inStock === false;
   // ENABLE OVERSOLD/BACKORDERS (quantity limits only - sold out status unchanged)
   // const isOutOfStock = false;
@@ -56,7 +65,7 @@ export default React.memo(function ProductCard({ product, priority = false, hide
   const applySitewideVisual = isSitewideEnabled && !isIndividuallyOnSale;
 
   const displayPrice = applySitewideVisual
-    ? product.price - (product.price * (sitewideTier1Percent / 100))
+    ? product.price - product.price * (sitewideTier1Percent / 100)
     : product.price;
 
   const displayComparePrice = applySitewideVisual
@@ -65,22 +74,29 @@ export default React.memo(function ProductCard({ product, priority = false, hide
 
   const isOnSale = isIndividuallyOnSale || applySitewideVisual;
 
-  const salePercent = isIndividuallyOnSale 
-    ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100) 
-    : applySitewideVisual ? sitewideTier1Percent : 0;
+  const salePercent = isIndividuallyOnSale
+    ? Math.round(
+        ((product.compareAtPrice! - product.price) / product.compareAtPrice!) *
+          100,
+      )
+    : applySitewideVisual
+      ? sitewideTier1Percent
+      : 0;
 
   const router = useRouter();
 
   const handleCardClick = () => {
-    trackGAEvent('select_item', {
+    trackGAEvent("select_item", {
       item_list_id: "product_grid",
       item_list_name: "Product Grid",
-      items: [{
-        item_id: product.id,
-        item_name: product.name,
-        price: product.price,
-        quantity: 1
-      }]
+      items: [
+        {
+          item_id: product.id,
+          item_name: product.name,
+          price: product.price,
+          quantity: 1,
+        },
+      ],
     });
     // setShowQuickView(true); // Disable Quick View
     router.push(`/product/${product.id}`); // Navigate directly
@@ -89,8 +105,8 @@ export default React.memo(function ProductCard({ product, priority = false, hide
   return (
     <>
       <div
-        className={`group relative w-full min-w-0 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${isOutOfStock ? 'opacity-60 grayscale-[20%]' : ''}`}
-        style={{ touchAction: 'manipulation' }}
+        className={`group relative w-full min-w-0 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer ${isOutOfStock ? "opacity-60 grayscale-[20%]" : ""}`}
+        style={{ touchAction: "manipulation" }}
       >
         {/* 1. Image Area - Aspect 3:4 */}
         <div className="relative aspect-[3/4] w-full overflow-hidden bg-gray-50">
@@ -99,7 +115,9 @@ export default React.memo(function ProductCard({ product, priority = false, hide
             onClick={handleCardClick}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleCardClick(); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleCardClick();
+            }}
           >
             <Image
               src={imgSrc}
@@ -108,7 +126,7 @@ export default React.memo(function ProductCard({ product, priority = false, hide
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               priority={priority}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              onError={() => setImgSrc('/placeholder.jpg')}
+              onError={() => setImgSrc("/placeholder.jpg")}
             />
           </div>
 
@@ -130,14 +148,28 @@ export default React.memo(function ProductCard({ product, priority = false, hide
                     {t.product.new_arrival}
                   </span>
                 )}
+                {product.detailTags &&
+                  product.detailTags.length > 0 &&
+                  product.detailTags.map((tag, idx) => {
+                    const parts = tag.split("|");
+                    const label = parts[0];
+                    const color = parts[1] || "#12403C";
+                    return (
+                      <span
+                        key={idx}
+                        className="px-2.5 py-1 text-[10px] md:text-[11px] font-extrabold text-white rounded-full tracking-tight uppercase shadow-sm"
+                        style={{ backgroundColor: color }}
+                      >
+                        {label}
+                      </span>
+                    );
+                  })}
               </>
             )}
           </div>
 
           {/* Desktop: Hover Actions (Restored 3 buttons + Comparison) */}
           <div className="hidden md:flex absolute bottom-4 left-0 right-0 justify-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 px-4">
-
-
             {/* Add to Cart */}
             <button
               onClick={(e) => {
@@ -157,10 +189,21 @@ export default React.memo(function ProductCard({ product, priority = false, hide
                 e.stopPropagation();
                 toggleFav(String(product.id));
               }}
-              className={`w-10 h-10 rounded-full bg-white flex items-center justify-center transition-colors shadow-lg hover:bg-[#12403C] hover:text-white ${isClient && isFav(String(product.id)) ? 'text-[#12403C]' : 'text-gray-700'}`}
+              className={`w-10 h-10 rounded-full bg-white flex items-center justify-center transition-colors shadow-lg hover:bg-[#12403C] hover:text-white ${isClient && isFav(String(product.id)) ? "text-[#12403C]" : "text-gray-700"}`}
               title={t.product.favorite}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill={isClient && isFav(String(product.id)) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill={
+                  isClient && isFav(String(product.id))
+                    ? "currentColor"
+                    : "none"
+                }
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
               </svg>
             </button>
@@ -170,7 +213,10 @@ export default React.memo(function ProductCard({ product, priority = false, hide
               className="w-10 h-10 rounded-full bg-white text-gray-700 hover:bg-[#12403C] hover:text-white flex items-center justify-center transition-colors shadow-lg cursor-pointer"
               onClick={(e) => e.stopPropagation()}
             >
-              <AddToCompareButton product={product} className="!p-0 !bg-transparent !border-0 hover:!bg-transparent hover:!text-white w-full h-full flex items-center justify-center" />
+              <AddToCompareButton
+                product={product}
+                className="!p-0 !bg-transparent !border-0 hover:!bg-transparent hover:!text-white w-full h-full flex items-center justify-center"
+              />
             </div>
           </div>
 
@@ -198,10 +244,21 @@ export default React.memo(function ProductCard({ product, priority = false, hide
                 e.stopPropagation();
                 toggleFav(String(product.id));
               }}
-              className={`w-9 h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center active:scale-90 transition-transform ${isClient && isFav(String(product.id)) ? 'text-[#12403C]' : 'text-gray-600'}`}
+              className={`w-9 h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center active:scale-90 transition-transform ${isClient && isFav(String(product.id)) ? "text-[#12403C]" : "text-gray-600"}`}
               aria-label={t.product.favorite}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill={isClient && isFav(String(product.id)) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill={
+                  isClient && isFav(String(product.id))
+                    ? "currentColor"
+                    : "none"
+                }
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
               </svg>
             </button>
@@ -209,7 +266,10 @@ export default React.memo(function ProductCard({ product, priority = false, hide
         </div>
 
         {/* 2. Content Area */}
-        <div className="p-2.5 sm:p-3 md:p-4 bg-white text-center" onClick={handleCardClick}>
+        <div
+          className="p-2.5 sm:p-3 md:p-4 bg-white text-center"
+          onClick={handleCardClick}
+        >
           <div className="mb-1 flex items-center justify-center min-h-[2.5em]">
             <h3 className="text-xs sm:text-[13px] md:text-[15px] font-medium text-gray-900 leading-tight line-clamp-2 group-hover:text-[#d4af37] transition-colors cursor-pointer">
               {product.name}

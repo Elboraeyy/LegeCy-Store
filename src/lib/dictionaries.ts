@@ -325,8 +325,8 @@ export const dictionary = {
       checkout: "Checkout",
       secure_checkout: "Secure Checkout",
       free_shipping_progress: {
-        add_more: "Add {amount} for Free Express Shipping",
-        unlocked: "You've unlocked Free Express Shipping!",
+        add_more: "Add {amount} for Free Shipping",
+        unlocked: "You've unlocked Free Shipping!",
       },
       summary: "Order Summary",
       total: "Total",
@@ -1795,8 +1795,8 @@ export const dictionary = {
       checkout: "إتمام الشراء",
       secure_checkout: "دفع آمن",
       free_shipping_progress: {
-        add_more: "أضف {amount} لتحصل على شحن سريع مجاني",
-        unlocked: "استمتع بشحن سريع مجاني الآن!",
+        add_more: "أضف {amount} لتحصل على شحن مجاني",
+        unlocked: "استمتع بشحن مجاني الآن!",
       },
       summary: "ملخص الطلب",
       total: "الإجمالي",
