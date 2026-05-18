@@ -10,17 +10,21 @@ export const revalidate = 60; // ISR: Revalidate every 60 seconds
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Shop Premium Accessories | Legacy Store",
-    description: "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more. Filter by category, brand, price, and more.",
-    keywords: "shop, accessories, watches, wallets, sunglasses, perfumes, handbags, legacy store, egypt",
+    description:
+      "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more. Filter by category, brand, price, and more.",
+    keywords:
+      "shop, accessories, watches, wallets, sunglasses, perfumes, handbags, legacy store, egypt",
     openGraph: {
       title: "Shop Premium Accessories | Legacy Store",
-      description: "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more.",
+      description:
+        "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more.",
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "Shop Premium Accessories | Legacy Store",
-      description: "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more.",
+      description:
+        "Browse our full collection of premium accessories - watches, wallets, sunglasses, perfumes, handbags and more.",
     },
     alternates: {
       canonical: "/shop",
@@ -40,7 +44,7 @@ export default async function Shop() {
 
   return (
     <ShopClient
-      initialProducts={shopProducts.map(p => ({
+      initialProducts={shopProducts.map((p) => ({
         id: p.id,
         name: p.name,
         price: p.price,
@@ -59,18 +63,19 @@ export default async function Shop() {
         sku: p.variants?.[0]?.sku,
         brandName: p.brand,
         categoryName: p.category,
+        detailTags: p.detailTags,
       }))}
-      categories={categories.map(c => ({
+      categories={categories.map((c) => ({
         id: c.id,
         name: c.name,
         nameAr: c.nameAr,
         slug: c.slug,
       }))}
-      brands={brands.map(b => ({
+      brands={brands.map((b) => ({
         id: b.id,
         name: b.name,
       }))}
-      materials={materials.map(m => ({
+      materials={materials.map((m) => ({
         id: m.id,
         name: m.name,
       }))}
