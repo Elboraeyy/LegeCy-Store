@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 export default function CartClient() {
-  const { cart, addToCart, decFromCart, removeFromCart, isLoading: storeLoading, isLoggedIn, setBuyNowItem } = useStore();
+  const { cart, addToCart, decFromCart, removeFromCart, isLoading: storeLoading, setBuyNowItem } = useStore();
   const isClient = useIsClient();
   const { t, language } = useLanguage();
   const router = useRouter();

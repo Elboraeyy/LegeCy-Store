@@ -351,7 +351,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
       const variantMap = new Map(variants.map(v => [v.id, v]));
       const inventoryMap = new Map(inventoryRecords.map(i => [i.variantId, i]));
 
-      const insufficientStockItems: string[] = [];
+      // const insufficientStockItems: string[] = [];
       const unavailableProducts: string[] = [];
       const variantSkuMap: Record<string, string> = {};
       const variantCostMap: Record<string, number> = {};
@@ -373,7 +373,7 @@ export async function placeOrderWithShipping(input: CheckoutInput): Promise<Chec
             }
           }
 
-          const inventory = inventoryMap.get(item.variantId);
+          // const inventory = inventoryMap.get(item.variantId);
           // ENABLE OVERSOLD/BACKORDERS
           // if (!inventory || inventory.available < item.qty) {
           //   const available = inventory?.available || 0;

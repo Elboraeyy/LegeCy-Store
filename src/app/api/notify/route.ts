@@ -96,11 +96,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, message: 'Notification scheduled' });
 
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
     console.error('Notify API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error', details: error?.message || String(error) }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

@@ -11,7 +11,7 @@ import { previewSitewideDiscount } from "@/lib/services/discountService";
 import styles from "./CartDrawer.module.css";
 
 export default function CartDrawer() {
-  const { cart, isCartOpen, closeCart, removeFromCart, addToCart, decFromCart, isLoggedIn, setBuyNowItem } = useStore();
+  const { cart, isCartOpen, closeCart, removeFromCart, addToCart, decFromCart, setBuyNowItem } = useStore();
   const drawerRef = useRef<HTMLDivElement>(null);
   const isClient = useIsClient();
   const { t, language } = useLanguage();

@@ -1030,8 +1030,8 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                               toast.error(data.details || data.error || t.product.notify_me.error);
                             }
                           }
-                        } catch (err: any) {
-                          toast.error(err?.message || t.product.notify_me.error);
+                        } catch (err) {
+                          toast.error(err instanceof Error ? err.message : t.product.notify_me.error);
                         } finally {
                           setNotifyLoading(false);
                         }

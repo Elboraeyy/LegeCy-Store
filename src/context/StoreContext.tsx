@@ -404,8 +404,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const stock = variant?.stock ?? 0;
 
         // Check current qty in cart
-        const currentItem = cart.find(i => i.id === id && (i.variantId || "") === vId);
-        const currentQty = currentItem?.qty || 0;
+        // const currentItem = cart.find(i => i.id === id && (i.variantId || "") === vId);
+        // const currentQty = currentItem?.qty || 0;
 
         // ENABLE OVERSOLD/BACKORDERS - disable stock limitation
         // if (currentQty + qty > stock) {
