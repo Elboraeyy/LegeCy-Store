@@ -106,7 +106,7 @@ export async function POST(request: Request) {
 
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid input', details: error.errors.map(e => e.message).join(', ') }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid input', details: error.issues.map((e: { message: string }) => e.message).join(', ') }, { status: 400 });
     }
     console.error('Notify API Error:', error);
     return NextResponse.json({ error: 'Internal Server Error', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
