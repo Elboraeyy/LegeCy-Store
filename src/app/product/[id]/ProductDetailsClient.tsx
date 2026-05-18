@@ -1027,11 +1027,11 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                               toast.info(t.product.notify_me.already_subscribed);
                               setNotifyDone(true);
                             } else {
-                              toast.error(t.product.notify_me.error);
+                              toast.error(data.details || data.error || t.product.notify_me.error);
                             }
                           }
-                        } catch {
-                          toast.error(t.product.notify_me.error);
+                        } catch (err: any) {
+                          toast.error(err?.message || t.product.notify_me.error);
                         } finally {
                           setNotifyLoading(false);
                         }
