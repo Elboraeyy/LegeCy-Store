@@ -14,6 +14,7 @@ export default function HelpSupportClient() {
   const [activeTab, setActiveTab] = useState<"faq" | "contact">("contact");
   const [subject, setSubject] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get categories from dictionary
   const categories = [
@@ -53,6 +54,9 @@ export default function HelpSupportClient() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
 
@@ -72,6 +76,8 @@ export default function HelpSupportClient() {
       }
     } catch {
       if (showToast) showToast(language === 'ar' ? "فشل إرسال الرسالة" : "Failed to send message", "danger");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -381,12 +387,12 @@ export default function HelpSupportClient() {
                           )}
                         </div>
                       </div>
-                    <button type="submit" className="btn btn-primary btn-block">
+                    <button type="submit" className="btn btn-primary btn-block" disabled={isSubmitting}>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <line x1="22" y1="2" x2="11" y2="13"/>
                         <polygon points="22 2 15 22 11 13 2 9 22 2"/>
                       </svg>
-                        {t.help.contact.form.submit}
+                        {isSubmitting ? (language === 'ar' ? 'جاري الإرسال...' : 'Sending...') : t.help.contact.form.submit}
                     </button>
                   </form>
                 </motion.div>
