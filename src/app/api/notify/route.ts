@@ -72,6 +72,16 @@ export async function POST(request: Request) {
       });
     }
 
+    // Notify admins about the restock request
+    const { createAdminNotification } = await import('@/lib/services/notification');
+    await createAdminNotification({
+      title: 'Restock Requested',
+      body: `Restock request for ${product.name} via ${data.channel === 'whatsapp' ? data.whatsapp : data.email}`,
+      category: 'restock',
+      referenceId: data.productId,
+      referenceType: 'Product',
+    });
+
     return NextResponse.json({ success: true, message: 'Notification scheduled' });
 
   } catch (error) {

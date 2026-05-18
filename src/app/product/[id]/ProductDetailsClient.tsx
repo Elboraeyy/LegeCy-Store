@@ -987,7 +987,7 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                         e.preventDefault();
                         if (notifyChannel === 'whatsapp') {
                           const cleaned = notifyContact.replace(/\s/g, '');
-                          if (!/^01[0125]\d{8}$/.test(cleaned)) {
+                          if (cleaned.length < 10) {
                             toast.error(t.product.notify_me.invalid_whatsapp);
                             return;
                           }

@@ -92,7 +92,7 @@ export function AdminSidebar() {
                         { label: t.admin.sidebar.customers, href: '/admin/customers' }, // List
                         { label: t.admin.sidebar.reviews, href: '/admin/reviews' },
                         { label: t.admin.sidebar.messages, href: '/admin/messages' },
-                        { label: t.admin.sidebar.restock_requests, href: '/admin/restock-requests' },
+                        { label: t.admin.sidebar.restock_requests, href: '/admin/inventory/requests' },
                     ]
                 },
                 { label: t.admin.sidebar.coupons, href: '/admin/coupons' }, // Promos & Discounts
