@@ -1035,7 +1035,8 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                               toast.info(t.product.notify_me.already_subscribed);
                               setNotifyDone(true);
                             } else {
-                              toast.error(data.details || data.error || t.product.notify_me.error);
+                              const errMsg = typeof data.error === 'object' ? data.error?.message : data.error;
+                              toast.error(data.details || errMsg || t.product.notify_me.error);
                             }
                           }
                         } catch (err) {

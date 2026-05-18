@@ -81,7 +81,6 @@ export async function middleware(request: NextRequest) {
         '/api/pos',        // Point of Sale requires authentication
         '/api/upload',     // File uploads
         '/api/test-email', // Testing tools
-        '/api/notify'      // Internal notifications
     ];
 
     if (securedRoutes.some(route => path.startsWith(route))) {
