@@ -1013,16 +1013,24 @@ export default function ProductDetailsClient({ id }: ProductDetailsClientProps) 
                           });
 
                           if (res.ok) {
+                            let data;
+                            try { data = await res.json(); } catch { data = {}; }
                             if (notifyChannel === 'whatsapp') {
                               // Track Lead
-                              const { trackGALead } = await import('@/components/GoogleAnalytics');
-                              const { trackMetaContact } = await import('@/components/MetaPixel');
-                              trackGALead('WhatsApp');
-                              trackMetaContact('NotifyMe');
+                              try {
+                                const { trackGALead } = await import('@/components/GoogleAnalytics');
+                                const { trackMetaContact } = await import('@/components/MetaPixel');
+                                trackGALead('WhatsApp');
+                                trackMetaContact('NotifyMe');
+                              } catch { /* tracking optional */ }
+                            }
+                            if (data.message === 'already_subscribed') {
+                              toast.info(t.product.notify_me.already_subscribed);
                             }
                             setNotifyDone(true);
                           } else {
-                            const data = await res.json();
+                            let data;
+                            try { data = await res.json(); } catch { data = {}; }
                             if (data.message === 'already_subscribed') {
                               toast.info(t.product.notify_me.already_subscribed);
                               setNotifyDone(true);
