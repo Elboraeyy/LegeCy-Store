@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
-import { createAdminNotification } from '@/lib/services/notification';
 
 const notifySchema = z.object({
   email: z.string().email().optional(),
@@ -28,7 +27,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    // Check if already subscribed
+    // Handle email channel
     if (data.channel === 'email' && data.email) {
       const existing = await prisma.stockNotification.findFirst({
         where: {
@@ -56,7 +55,10 @@ export async function POST(request: Request) {
           }
         });
       }
-    } else if (data.channel === 'whatsapp' && data.whatsapp) {
+    }
+
+    // Handle whatsapp channel
+    if (data.channel === 'whatsapp' && data.whatsapp) {
       const existing = await prisma.stockNotification.findFirst({
         where: {
           whatsapp: data.whatsapp,
@@ -85,20 +87,26 @@ export async function POST(request: Request) {
       }
     }
 
-    // Notify admins about the restock request
-    await createAdminNotification({
-      title: 'Restock Requested',
-      body: `Restock request for ${product.name} via ${data.channel === 'whatsapp' ? data.whatsapp : data.email}`,
-      category: 'restock',
-      referenceId: data.productId,
-      referenceType: 'Product',
-    });
+    // Notify admins (non-blocking, don't let this fail the request)
+    try {
+      await prisma.adminNotification.create({
+        data: {
+          title: 'Restock Requested',
+          body: `Restock request for ${product.name} via ${data.channel === 'whatsapp' ? data.whatsapp : data.email}`,
+          category: 'restock',
+          referenceId: data.productId,
+          referenceType: 'Product',
+        },
+      });
+    } catch (notifErr) {
+      console.error('Admin notification failed (non-critical):', notifErr);
+    }
 
     return NextResponse.json({ success: true, message: 'Notification scheduled' });
 
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid input', details: error.errors.map(e => e.message).join(', ') }, { status: 400 });
     }
     console.error('Notify API Error:', error);
     return NextResponse.json({ error: 'Internal Server Error', details: error instanceof Error ? error.message : String(error) }, { status: 500 });

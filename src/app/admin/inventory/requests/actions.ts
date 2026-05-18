@@ -38,7 +38,7 @@ export async function updateRequestStatus(id: string, status: 'pending' | 'sent'
             where: { id },
             data: { status }
         });
-        revalidatePath('/admin/inventory/requests');
+        revalidatePath('/admin/restock-requests');
         return { success: true };
     } catch (error) {
         console.error('Error updating request status:', error);
@@ -51,7 +51,7 @@ export async function deleteRequest(id: string) {
         await prisma.stockNotification.delete({
             where: { id }
         });
-        revalidatePath('/admin/inventory/requests');
+        revalidatePath('/admin/restock-requests');
         return { success: true };
     } catch (error) {
         console.error('Error deleting request:', error);

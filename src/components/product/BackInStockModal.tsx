@@ -2,18 +2,17 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { subscribeToRestockAction } from '@/lib/actions/inv-notifications';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { BellRing } from 'lucide-react';
 
 interface BackInStockModalProps {
-    variantId: string;
+    productId: string;
     available: number;
 }
 
-export function BackInStockModal({ variantId, available }: BackInStockModalProps) {
+export function BackInStockModal({ productId, available }: BackInStockModalProps) {
     const [open, setOpen] = useState(false);
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
@@ -24,19 +23,34 @@ export function BackInStockModal({ variantId, available }: BackInStockModalProps
         e.preventDefault();
         setLoading(true);
         
-        const formData = new FormData();
-        formData.append('email', email);
-        formData.append('variantId', variantId);
+        try {
+            const res = await fetch('/api/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productId,
+                    channel: 'email',
+                    email,
+                }),
+            });
 
-        const res = await subscribeToRestockAction(formData);
-        
-        if (res?.error) {
-            toast.error(res.error);
-        } else {
-            toast.success("You're on the list! We'll email you when it's back.");
-            setOpen(false);
-            setEmail('');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.message === 'already_subscribed') {
+                    toast.info("You're already on the waitlist!");
+                } else {
+                    toast.success("You're on the list! We'll email you when it's back.");
+                }
+                setOpen(false);
+                setEmail('');
+            } else {
+                const data = await res.json();
+                toast.error(data.error || 'Something went wrong');
+            }
+        } catch {
+            toast.error('Failed to subscribe. Please try again.');
         }
+        
         setLoading(false);
     };
 
