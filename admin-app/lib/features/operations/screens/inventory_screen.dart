@@ -14,22 +14,18 @@ class InventoryScreen extends StatefulWidget {
   State<InventoryScreen> createState() => _InventoryScreenState();
 }
 
-class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProviderStateMixin {
+class _InventoryScreenState extends State<InventoryScreen> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _inventory = [];
   List<dynamic> _filteredInventory = [];
-  List<dynamic> _alerts = [];
   Map<String, dynamic> _summary = {};
   final TextEditingController _searchController = TextEditingController();
   String _filter = 'all'; // all, low, out
 
-  late TabController _tabController;
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _loadInventory();
     _searchController.addListener(_applyFilter);
   }
@@ -37,7 +33,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   @override
   void dispose() {
     _searchController.dispose();
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -51,7 +46,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       if (mounted) {
         setState(() {
           _inventory = data['inventory'] ?? [];
-          _alerts = data['alerts'] ?? [];
           _summary = data['summary'] ?? {};
           _applyFilter();
           _isLoading = false;
@@ -86,45 +80,12 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Container(
-            height: 50,
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.cardBorder),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              indicator: BoxDecoration(
-                color: AppColors.primaryDark,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              labelColor: Colors.white,
-              unselectedLabelColor: AppColors.textMuted,
-              labelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
-              unselectedLabelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
-              tabs: [
-                Tab(text: 'Stock (${_inventory.length})'),
-                Tab(text: 'Alerts (${_alerts.length})'),
-              ],
-            ),
-          ),
-        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
           : _error != null
               ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error), const SizedBox(height: 16), Text(_error!, style: GoogleFonts.inter(color: AppColors.error)), const SizedBox(height: 16), ElevatedButton(onPressed: _loadInventory, child: const Text('Retry'))]))
-              : TabBarView(
-                  controller: _tabController,
-                  children: [_buildStockTab(), _buildAlertsTab()],
-                ),
+              : _buildStockTab(),
     );
   }
 
@@ -358,64 +319,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   }
 
 
-  Widget _buildAlertsTab() {
-    if (_alerts.isEmpty) {
-      return Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(LucideIcons.checkCircle2, size: 48, color: AppColors.success)),
-          const SizedBox(height: 24),
-          Text('All Clear!', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-          const SizedBox(height: 8),
-          Text('No active stock alerts at this time.', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted)),
-        ]),
-      );
-    }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: _alerts.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final alert = _alerts[index];
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), shape: BoxShape.circle),
-                child: const Icon(LucideIcons.alertTriangle, size: 20, color: AppColors.error),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(alert['productName'] ?? '', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    Text('${alert['alertType']} • SKU: ${alert['sku']}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-                    Text('Warehouse: ${alert['warehouseName']}', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('${alert['currentStock']}', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.error)),
-                  Text('min: ${alert['threshold']}', style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted)),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildSummaryCard(String label, String value, IconData icon, Color color) {
     return Container(

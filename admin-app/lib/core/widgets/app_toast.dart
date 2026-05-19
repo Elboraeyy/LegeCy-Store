@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 
@@ -27,7 +28,7 @@ class AppToast {
     final tone = _toneFromColor(backgroundColor);
     final message = _messageFromContent(content);
     final normalized = _normalizeMessage(message, tone);
-    final placement = _bottomPlacement();
+    final placement = _topPlacement();
 
     return SnackBar(
       key: key,
@@ -43,9 +44,7 @@ class AppToast {
       duration: duration,
       animation: animation,
       onVisible: onVisible,
-      dismissDirection: dismissDirection == DismissDirection.up
-          ? DismissDirection.down
-          : dismissDirection,
+      dismissDirection: dismissDirection,
       clipBehavior: clipBehavior,
       content: _ToastCard(
         tone: tone,
@@ -111,13 +110,26 @@ class AppToast {
     return _NormalizedToast(title: message);
   }
 
-  static _ToastPlacement _bottomPlacement() {
+  static _ToastPlacement _topPlacement() {
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final mediaQuery = MediaQueryData.fromView(view);
     const horizontalGap = 16.0;
+    const topGap = 12.0;
+    const estimatedToastHeight = 74.0;
+    final screenHeight = mediaQuery.size.height;
+    final topInset = mediaQuery.padding.top;
+    final bottomMargin =
+        (screenHeight - topInset - estimatedToastHeight - topGap).clamp(
+          24.0,
+          screenHeight,
+        );
+
     return _ToastPlacement(
-      margin: const EdgeInsets.only(
+      margin: EdgeInsets.only(
         left: horizontalGap,
         right: horizontalGap,
-        bottom: 24,
+        top: topInset + topGap,
+        bottom: bottomMargin,
       ),
     );
   }

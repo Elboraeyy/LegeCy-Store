@@ -19,7 +19,7 @@ void main() {
     expect(find.byType(LegacyAdminApp), findsOneWidget);
   });
 
-  testWidgets('App toast is visible near the bottom of the screen', (
+  testWidgets('App toast is visible near the top of the screen', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -54,7 +54,7 @@ void main() {
     final toastFinder = find.text('Toast is visible');
     expect(toastFinder, findsOneWidget);
     final toastY = tester.getTopLeft(toastFinder).dy;
-    expect(toastY, greaterThan(500));
+    expect(toastY, lessThan(140));
     expect(
       tester.getSize(find.byKey(const ValueKey('app-toast-card'))).height,
       lessThan(70),
