@@ -42,7 +42,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     super.dispose();
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -55,7 +54,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       final data = await client.get('/api/admin/auth/orders/${widget.orderId}');
-      if (mounted) setState(() { _order = data; _isLoading = false; });
+      if (mounted) {
+        setState(() {
+          _order = data;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -67,7 +71,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      await client.patch('/api/admin/auth/orders/${widget.orderId}', body: {'status': newStatus});
+      await client.patch(
+        '/api/admin/auth/orders/${widget.orderId}',
+        body: {'status': newStatus},
+      );
       await _loadOrder();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -75,14 +82,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             content: Text('Status updated to $newStatus'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -92,18 +104,30 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Color _statusColorFor(String status) {
     switch (status.toLowerCase()) {
-      case 'payment_pending': return const Color(0xFF7C3AED);
-      case 'pending': return const Color(0xFFB76E00);
-      case 'paid': return const Color(0xFF166534);
-      case 'confirmed': return const Color(0xFF166534);
-      case 'preparing': return const Color(0xFF0D9488);
-      case 'shipped': return const Color(0xFF1E40AF);
-      case 'delivered': return const Color(0xFF166534);
-      case 'cancelled': return const Color(0xFF991B1B);
-      case 'refunded': return const Color(0xFFCA8A04);
-      case 'payment_failed': return const Color(0xFF991B1B);
-      case 'cash_received': return const Color(0xFF166534);
-      default: return AppColors.textMuted;
+      case 'payment_pending':
+        return const Color(0xFF7C3AED);
+      case 'pending':
+        return const Color(0xFFB76E00);
+      case 'paid':
+        return const Color(0xFF166534);
+      case 'confirmed':
+        return const Color(0xFF166534);
+      case 'preparing':
+        return const Color(0xFF0D9488);
+      case 'shipped':
+        return const Color(0xFF1E40AF);
+      case 'delivered':
+        return const Color(0xFF166534);
+      case 'cancelled':
+        return const Color(0xFF991B1B);
+      case 'refunded':
+        return const Color(0xFFCA8A04);
+      case 'payment_failed':
+        return const Color(0xFF991B1B);
+      case 'cash_received':
+        return const Color(0xFF166534);
+      default:
+        return AppColors.textMuted;
     }
   }
 
@@ -116,67 +140,82 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         appBar: AppBar(
           title: Text(
             _order != null ? '#${_order!['orderNumber']}' : 'Order Details',
-          style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700),
-        ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          if (_order != null) ...[
-            IconButton(
-              icon: const Icon(LucideIcons.edit, color: AppColors.primaryDark, size: 20),
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CreateManualOrderScreen(existingOrder: _order),
-                  ),
-                );
-                if (result == true) {
-                  _loadOrder();
-                }
-              },
+            style: GoogleFonts.playfairDisplay(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
             ),
-          ],
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: _isLoading
-          ? _buildOrderDetailSkeleton()
-          : _order == null
-              ? Center(child: Text('Order not found', style: GoogleFonts.inter(color: AppColors.textMuted)))
-              : RefreshIndicator(
+          ),
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          centerTitle: true,
+          actions: [
+            if (_order != null) ...[
+              IconButton(
+                icon: const Icon(
+                  LucideIcons.edit,
                   color: AppColors.primaryDark,
-                  onRefresh: _loadOrder,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatusCard(),
-                        const SizedBox(height: 20),
-                        _buildCustomerCard(),
-                        const SizedBox(height: 20),
-                        _buildOrderInfoCard(),
-                        const SizedBox(height: 20),
-                        _buildItemsCard(),
-                        const SizedBox(height: 24),
-                        _buildQuickActions(),
-                        const SizedBox(height: 32),
-                      ],
+                  size: 20,
+                ),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          CreateManualOrderScreen(existingOrder: _order),
                     ),
+                  );
+                  if (result == true) {
+                    _loadOrder();
+                  }
+                },
+              ),
+            ],
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: _isLoading
+            ? _buildOrderDetailSkeleton()
+            : _order == null
+            ? Center(
+                child: Text(
+                  'Order not found',
+                  style: GoogleFonts.inter(color: AppColors.textMuted),
+                ),
+              )
+            : RefreshIndicator(
+                color: AppColors.primaryDark,
+                onRefresh: _loadOrder,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildStatusCard(),
+                      const SizedBox(height: 20),
+                      _buildCustomerCard(),
+                      const SizedBox(height: 20),
+                      _buildOrderInfoCard(),
+                      const SizedBox(height: 20),
+                      _buildItemsCard(),
+                      const SizedBox(height: 24),
+                      _buildQuickActions(),
+                      const SizedBox(height: 32),
+                    ],
                   ),
                 ),
-      bottomNavigationBar: _isLoading || _order == null ? null : Container(
-        color: AppColors.background,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: _buildFinancialCard(),
-          ),
-        ),
-      ),
+              ),
+        bottomNavigationBar: _isLoading || _order == null
+            ? null
+            : Container(
+                color: AppColors.background,
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    child: _buildFinancialCard(),
+                  ),
+                ),
+              ),
       ),
     );
   }
@@ -214,9 +253,25 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Order Status', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w500, letterSpacing: 0.5)),
+                Text(
+                  'Order Status',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.5,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(status.toUpperCase(), style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.5)),
+                Text(
+                  status.toUpperCase(),
+                  style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ],
             ),
           ),
@@ -224,7 +279,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             IconButton.filled(
               onPressed: _isUpdating ? null : () => _showStatusPicker(),
               icon: _isUpdating
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                   : const Icon(LucideIcons.chevronDown, size: 20),
               style: IconButton.styleFrom(backgroundColor: color),
             ),
@@ -236,7 +298,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void _showStatusPicker() {
     final status = (_order!['status'] ?? '').toString().toLowerCase();
     final allowed = OrderConstants.allowedTransitions[status] ?? [];
-    
+
     if (allowed.isEmpty) return;
 
     showModalBottomSheet(
@@ -257,11 +319,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               child: Container(
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
             const SizedBox(height: 24),
-            Text('Update Status', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+            Text(
+              'Update Status',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryDark,
+              ),
+            ),
             const SizedBox(height: 24),
             ListView.separated(
               shrinkWrap: true,
@@ -272,11 +344,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 final s = allowed[index];
                 final color = _statusColorFor(s);
                 return InkWell(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      Navigator.pop(context);
-                      _updateStatus(s);
-                    },
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pop(context);
+                    _updateStatus(s);
+                  },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
                     padding: const EdgeInsets.all(16),
@@ -287,9 +359,23 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ),
                     child: Row(
                       children: [
-                        Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
                         const SizedBox(width: 16),
-                        Text(s.toUpperCase(), style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: color)),
+                        Text(
+                          s.toUpperCase(),
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: color,
+                          ),
+                        ),
                         const Spacer(),
                         Icon(LucideIcons.chevronRight, size: 18, color: color),
                       ],
@@ -304,9 +390,49 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
+  String _customerNotesText() {
+    final candidates = [
+      _order!['shippingNotes'],
+      _order!['customerNotes'],
+      _order!['orderNotes'],
+      _order!['customerNote'],
+      _order!['orderNote'],
+    ];
+
+    for (final candidate in candidates) {
+      String text = '';
+      if (candidate is List) {
+        text = candidate
+            .map(
+              (e) => e is Map ? e['content']?.toString() ?? '' : e.toString(),
+            )
+            .where((e) => e.trim().isNotEmpty)
+            .join(' - ');
+      } else if (candidate is Map) {
+        text =
+            (candidate['content'] ??
+                    candidate['text'] ??
+                    candidate['note'] ??
+                    '')
+                .toString();
+      } else if (candidate != null) {
+        text = candidate.toString();
+      }
+
+      text = text.trim();
+      if (text.isEmpty) continue;
+
+      // Manual orders are stored as "[SOURCE] note"; hide the source-only marker
+      // and show only the actual customer/admin-entered order note.
+      text = text.replaceFirst(RegExp(r'^\\[[^\\]]+\\]\\s*'), '').trim();
+      if (text.isNotEmpty) return text;
+    }
+
+    return '';
+  }
+
   Widget _buildCustomerCard() {
-    final rawNotes = _order!['orderNotes'] ?? _order!['customerNotes'];
-    String notesText = rawNotes?.toString().trim() ?? '';
+    final notesText = _customerNotesText();
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -320,36 +446,96 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         children: [
           Row(
             children: [
-              const Icon(LucideIcons.user, size: 18, color: AppColors.primaryDark),
+              const Icon(
+                LucideIcons.user,
+                size: 18,
+                color: AppColors.primaryDark,
+              ),
               const SizedBox(width: 8),
-              Text('Customer Info', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+              Text(
+                'Customer Info',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryDark,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
-          _infoRow(LucideIcons.user, 'Name', 
-            (_order!['displayName']?.toString().isNotEmpty == true) ? _order!['displayName'] : 
-            (_order!['customer']?['name']?.toString().isNotEmpty == true) ? _order!['customer']['name'] : 'Guest'),
-          _infoRow(LucideIcons.phone, 'Phone', 
-            (_order!['phone']?.toString().isNotEmpty == true) ? _order!['phone'] : 
-            (_order!['shippingPhone']?.toString().isNotEmpty == true) ? _order!['shippingPhone'] :
-            (_order!['customerPhone']?.toString().isNotEmpty == true) ? _order!['customerPhone'] :
-            (_order!['phoneNumber']?.toString().isNotEmpty == true) ? _order!['phoneNumber'] :
-            (_order!['customer']?['phone']?.toString().isNotEmpty == true) ? _order!['customer']['phone'] : '-'),
-          if ((_order!['alternativePhone'] ?? _order!['customer']?['alternativePhone']) != null && (_order!['alternativePhone'] ?? _order!['customer']?['alternativePhone']).toString().trim().isNotEmpty)
-            _infoRow(LucideIcons.phoneCall, 'Alt. Phone', _order!['alternativePhone'] ?? _order!['customer']['alternativePhone']),
-          if ((_order!['email'] ?? _order!['customer']?['email']) != null && (_order!['email'] ?? _order!['customer']?['email']).toString().trim().isNotEmpty)
-            _infoRow(LucideIcons.mail, 'Email', _order!['email'] ?? _order!['customer']['email']),
-          _infoRow(LucideIcons.mapPin, 'Address', [
-            _order!['shippingAddress'],
-            _order!['shippingCity'],
-            _order!['shippingGovernorate']
-          ].where((e) => e != null && e.toString().trim().isNotEmpty).join(', ').isEmpty ? '-' : 
-          [
-            _order!['shippingAddress'],
-            _order!['shippingCity'],
-            _order!['shippingGovernorate']
-          ].where((e) => e != null && e.toString().trim().isNotEmpty).join(', ')),
-          _infoRow(LucideIcons.fileText, 'Customer Notes', notesText.isNotEmpty ? notesText : '-'),
+          _infoRow(
+            LucideIcons.user,
+            'Name',
+            (_order!['displayName']?.toString().isNotEmpty == true)
+                ? _order!['displayName']
+                : (_order!['customer']?['name']?.toString().isNotEmpty == true)
+                ? _order!['customer']['name']
+                : 'Guest',
+          ),
+          _infoRow(
+            LucideIcons.phone,
+            'Phone',
+            (_order!['phone']?.toString().isNotEmpty == true)
+                ? _order!['phone']
+                : (_order!['shippingPhone']?.toString().isNotEmpty == true)
+                ? _order!['shippingPhone']
+                : (_order!['customerPhone']?.toString().isNotEmpty == true)
+                ? _order!['customerPhone']
+                : (_order!['phoneNumber']?.toString().isNotEmpty == true)
+                ? _order!['phoneNumber']
+                : (_order!['customer']?['phone']?.toString().isNotEmpty == true)
+                ? _order!['customer']['phone']
+                : '-',
+          ),
+          if ((_order!['alternativePhone'] ??
+                      _order!['customer']?['alternativePhone']) !=
+                  null &&
+              (_order!['alternativePhone'] ??
+                      _order!['customer']?['alternativePhone'])
+                  .toString()
+                  .trim()
+                  .isNotEmpty)
+            _infoRow(
+              LucideIcons.phoneCall,
+              'Alt. Phone',
+              _order!['alternativePhone'] ??
+                  _order!['customer']['alternativePhone'],
+            ),
+          if ((_order!['email'] ?? _order!['customer']?['email']) != null &&
+              (_order!['email'] ?? _order!['customer']?['email'])
+                  .toString()
+                  .trim()
+                  .isNotEmpty)
+            _infoRow(
+              LucideIcons.mail,
+              'Email',
+              _order!['email'] ?? _order!['customer']['email'],
+            ),
+          _infoRow(
+            LucideIcons.mapPin,
+            'Address',
+            [
+                      _order!['shippingAddress'],
+                      _order!['shippingCity'],
+                      _order!['shippingGovernorate'],
+                    ]
+                    .where((e) => e != null && e.toString().trim().isNotEmpty)
+                    .join(', ')
+                    .isEmpty
+                ? '-'
+                : [
+                        _order!['shippingAddress'],
+                        _order!['shippingCity'],
+                        _order!['shippingGovernorate'],
+                      ]
+                      .where((e) => e != null && e.toString().trim().isNotEmpty)
+                      .join(', '),
+          ),
+          _infoRow(
+            LucideIcons.fileText,
+            'Customer Notes',
+            notesText.isNotEmpty ? notesText : '-',
+          ),
         ],
       ),
     );
@@ -357,7 +543,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Widget _buildOrderInfoCard() {
     final source = (_order!['source'] ?? 'website').toString().toUpperCase();
-    final payment = (_order!['paymentMethod'] ?? 'cod').toString().toUpperCase();
+    final payment = (_order!['paymentMethod'] ?? 'cod')
+        .toString()
+        .toUpperCase();
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -371,9 +559,20 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         children: [
           Row(
             children: [
-              const Icon(LucideIcons.info, size: 18, color: AppColors.primaryDark),
+              const Icon(
+                LucideIcons.info,
+                size: 18,
+                color: AppColors.primaryDark,
+              ),
               const SizedBox(width: 8),
-              Text('Additional Info', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+              Text(
+                'Additional Info',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryDark,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -401,49 +600,100 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(LucideIcons.shoppingBag, size: 18, color: AppColors.primaryDark),
+                  const Icon(
+                    LucideIcons.shoppingBag,
+                    size: 18,
+                    color: AppColors.primaryDark,
+                  ),
                   const SizedBox(width: 8),
-                  Text('Order Items', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                  Text(
+                    'Order Items',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryDark,
+                    ),
+                  ),
                 ],
               ),
-              Text('${items.length} items', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+              Text(
+                '${items.length} items',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
-          ...items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    color: AppColors.background,
-                    child: (item['imageUrl'] ?? item['product']?['imageUrl']) != null
-                      ? CachedNetworkImage(
-                          imageUrl: item['imageUrl'] ?? item['product']['imageUrl'],
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(color: AppColors.shimmer),
-                          errorWidget: (context, url, error) => const Icon(LucideIcons.image, color: AppColors.textMuted, size: 20),
-                        )
-                      : const Icon(LucideIcons.image, color: AppColors.textMuted, size: 20),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      color: AppColors.background,
+                      child:
+                          (item['imageUrl'] ?? item['product']?['imageUrl']) !=
+                              null
+                          ? CachedNetworkImage(
+                              imageUrl:
+                                  item['imageUrl'] ??
+                                  item['product']['imageUrl'],
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) =>
+                                  Container(color: AppColors.shimmer),
+                              errorWidget: (context, url, error) => const Icon(
+                                LucideIcons.image,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                            )
+                          : const Icon(
+                              LucideIcons.image,
+                              color: AppColors.textMuted,
+                              size: 20,
+                            ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item['name'] ?? 'Product', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
-                      Text('Quantity: ${item['quantity']}', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
-                    ],
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['name'] ?? 'Product',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          'Quantity: ${item['quantity']}',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Text('${item['price']} EGP', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-              ],
+                  Text(
+                    '${item['price']} EGP',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryDark,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )),
+          ),
         ],
       ),
     );
@@ -451,8 +701,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Widget _buildFinancialCard() {
     final double total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
-    final double shipping = (_order!['shippingCost'] as num?)?.toDouble() ?? 0.0;
-    final double discount = (_order!['discountAmount'] as num?)?.toDouble() ?? 0.0;
+    final double shipping =
+        (_order!['shippingCost'] as num?)?.toDouble() ?? 0.0;
+    final double discount =
+        (_order!['discountAmount'] as num?)?.toDouble() ?? 0.0;
     final double subtotal = total - shipping + discount;
 
     return Container(
@@ -471,12 +723,24 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _financeRow('Subtotal', '${subtotal.toStringAsFixed(0)} EGP', Colors.white70),
+          _financeRow(
+            'Subtotal',
+            '${subtotal.toStringAsFixed(0)} EGP',
+            Colors.white70,
+          ),
           const SizedBox(height: 12),
-          _financeRow('Shipping', '${shipping.toStringAsFixed(0)} EGP', Colors.white70),
+          _financeRow(
+            'Shipping',
+            '${shipping.toStringAsFixed(0)} EGP',
+            Colors.white70,
+          ),
           if (discount > 0) ...[
             const SizedBox(height: 12),
-            _financeRow('Discount', '-${discount.toStringAsFixed(0)} EGP', Colors.greenAccent),
+            _financeRow(
+              'Discount',
+              '-${discount.toStringAsFixed(0)} EGP',
+              Colors.greenAccent,
+            ),
           ],
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
@@ -485,8 +749,22 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
-              Text('${total.toStringAsFixed(0)} EGP', style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.accent)),
+              Text(
+                'Total',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                '${total.toStringAsFixed(0)} EGP',
+                style: GoogleFonts.inter(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.accent,
+                ),
+              ),
             ],
           ),
         ],
@@ -557,7 +835,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           children: [
                             AppShimmer(width: 60, height: 10),
                             const SizedBox(height: 4),
-                            AppShimmer(width: i == 3 ? 200.0 : 140.0, height: 14),
+                            AppShimmer(
+                              width: i == 3 ? 200.0 : 140.0,
+                              height: 14,
+                            ),
                           ],
                         ),
                       ),
@@ -693,9 +974,23 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(value, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -709,7 +1004,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: GoogleFonts.inter(fontSize: 13, color: color)),
-        Text(value, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+        Text(
+          value,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
       ],
     );
   }
@@ -747,7 +1049,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  Widget _buildActionBtn({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+  Widget _buildActionBtn({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -761,7 +1068,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           children: [
             Icon(icon, color: color, size: 24),
             const SizedBox(height: 8),
-            Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
           ],
         ),
       ),
@@ -780,7 +1094,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             return Container(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-                top: 24, left: 24, right: 24,
+                top: 24,
+                left: 24,
+                right: 24,
               ),
               decoration: const BoxDecoration(
                 color: AppColors.background,
@@ -792,16 +1108,31 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 children: [
                   Center(
                     child: Container(
-                      width: 40, height: 4,
-                      decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.divider,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      const Icon(LucideIcons.messageSquare, size: 20, color: AppColors.primaryDark),
+                      const Icon(
+                        LucideIcons.messageSquare,
+                        size: 20,
+                        color: AppColors.primaryDark,
+                      ),
                       const SizedBox(width: 12),
-                      Text('Admin Notes', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                      Text(
+                        'Admin Notes',
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -827,38 +1158,77 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Expanded(
-                                        child: Text(n['content'] ?? '', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
+                                        child: Text(
+                                          n['content'] ?? '',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
                                       ),
                                       GestureDetector(
                                         onTap: () async {
                                           HapticFeedback.lightImpact();
-                                          setModalState(() => _isAddingNote = true);
+                                          setModalState(
+                                            () => _isAddingNote = true,
+                                          );
                                           try {
-                                            final token = context.read<AuthProvider>().token;
-                                            final client = ApiClient(token: token);
-                                            await client.patch('/api/admin/auth/orders/${widget.orderId}', body: {
-                                              'action': 'delete_note',
-                                              'noteId': n['id']
-                                            });
+                                            final token = context
+                                                .read<AuthProvider>()
+                                                .token;
+                                            final client = ApiClient(
+                                              token: token,
+                                            );
+                                            await client.patch(
+                                              '/api/admin/auth/orders/${widget.orderId}',
+                                              body: {
+                                                'action': 'delete_note',
+                                                'noteId': n['id'],
+                                              },
+                                            );
                                             await _loadOrder();
-                                            if (context.mounted) setModalState(() {});
+                                            if (context.mounted) {
+                                              setModalState(() {});
+                                            }
                                           } catch (e) {
-                                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Failed: $e'),
+                                                  backgroundColor:
+                                                      AppColors.error,
+                                                ),
+                                              );
+                                            }
                                           } finally {
-                                            if (mounted) setModalState(() => _isAddingNote = false);
+                                            if (mounted) {
+                                              setModalState(
+                                                () => _isAddingNote = false,
+                                              );
+                                            }
                                           }
                                         },
-                                        child: const Icon(LucideIcons.trash2, size: 16, color: Colors.red),
+                                        child: const Icon(
+                                          LucideIcons.trash2,
+                                          size: 16,
+                                          color: Colors.red,
+                                        ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     _formatDate(n['createdAt']),
-                                    style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: AppColors.textMuted,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -870,7 +1240,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   ] else
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20),
-                      child: Center(child: Text('No notes added yet.', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted))),
+                      child: Center(
+                        child: Text(
+                          'No notes added yet.',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ),
                     ),
                   const SizedBox(height: 20),
                   Row(
@@ -881,9 +1259,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           style: GoogleFonts.inter(fontSize: 14),
                           decoration: InputDecoration(
                             hintText: 'Add an internal note...',
-                            hintStyle: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                            hintStyle: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: AppColors.textMuted,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
                             filled: true,
                             fillColor: AppColors.surface,
                           ),
@@ -891,37 +1278,63 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       ),
                       const SizedBox(width: 12),
                       IconButton.filled(
-                        onPressed: _isAddingNote ? null : () async {
-                          final text = _noteController.text.trim();
-                          if (text.isEmpty) return;
-                          
-                          HapticFeedback.lightImpact();
-                          FocusScope.of(context).unfocus();
-                          setModalState(() => _isAddingNote = true);
-                          try {
-                            final token = context.read<AuthProvider>().token;
-                            final client = ApiClient(token: token);
-                            await client.patch('/api/admin/auth/orders/${widget.orderId}', body: {'note': text});
-                            _noteController.clear();
-                            await _loadOrder();
-                            if (mounted) setModalState(() {});
-                          } catch (e) {
-                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
-                          } finally {
-                            if (mounted) setModalState(() => _isAddingNote = false);
-                          }
-                        },
-                        icon: _isAddingNote 
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Icon(LucideIcons.send, size: 20),
-                        style: IconButton.styleFrom(backgroundColor: AppColors.primaryDark, padding: const EdgeInsets.all(14)),
+                        onPressed: _isAddingNote
+                            ? null
+                            : () async {
+                                final text = _noteController.text.trim();
+                                if (text.isEmpty) return;
+
+                                HapticFeedback.lightImpact();
+                                FocusScope.of(context).unfocus();
+                                setModalState(() => _isAddingNote = true);
+                                try {
+                                  final token = context
+                                      .read<AuthProvider>()
+                                      .token;
+                                  final client = ApiClient(token: token);
+                                  await client.patch(
+                                    '/api/admin/auth/orders/${widget.orderId}',
+                                    body: {'note': text},
+                                  );
+                                  _noteController.clear();
+                                  await _loadOrder();
+                                  if (mounted) setModalState(() {});
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Failed: $e'),
+                                        backgroundColor: AppColors.error,
+                                      ),
+                                    );
+                                  }
+                                } finally {
+                                  if (mounted) {
+                                    setModalState(() => _isAddingNote = false);
+                                  }
+                                }
+                              },
+                        icon: _isAddingNote
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(LucideIcons.send, size: 20),
+                        style: IconButton.styleFrom(
+                          backgroundColor: AppColors.primaryDark,
+                          padding: const EdgeInsets.all(14),
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
             );
-          }
+          },
         );
       },
     );
@@ -929,15 +1342,16 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   String _getWhatsAppMessageText() {
     final status = _order!['status']?.toString().toLowerCase() ?? 'pending';
-    
-    final name = _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer';
+
+    final name =
+        _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer';
     final orderNo = _order!['orderNumber']?.toString() ?? '';
     final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
     final shipping = (_order!['shippingCost'] as num?)?.toDouble() ?? 0.0;
-    
+
     if (status == 'delivered' || status == 'cash_received') {
       return '''مرحبًا $name ✨
-نتمنى إن طلبك من LegaCy وصلك بأمان وبالشكل اللي كنت متوقعه. 
+نتمنى إن طلبك من LegaCy وصلك بأمان وبالشكل اللي كنت متوقعه.
 يسعدنا جدًا نسمع رأيك.
 ولو عندك أي ملاحظة أو استفسار، يشرفنا تواصلك معنا.
 شكرًا لثقتك بنا 💚''';
@@ -976,32 +1390,61 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           itemsText += '\n                     $itemName';
         }
       }
-      
-      String shippingText = shipping <= 0 ? 'Free Shipping' : '$shipping EGP Shipping';
-      
-      final shippingAddrObj = _order!['shippingAddress'] is Map ? _order!['shippingAddress'] : null;
-      final shippingAddrStr = _order!['shippingAddress'] is String ? _order!['shippingAddress'] : '';
-      final address = shippingAddrStr.isNotEmpty ? shippingAddrStr : (shippingAddrObj?['address'] ?? _order!['address'] ?? '');
-      final gov = shippingAddrObj?['governorate'] ?? shippingAddrObj?['state'] ?? _order!['shippingGovernorate'] ?? _order!['governorate'] ?? _order!['customer']?['governorate'] ?? '';
-      final city = shippingAddrObj?['city'] ?? _order!['shippingCity'] ?? _order!['city'] ?? _order!['customer']?['city'] ?? '';
-      
+
+      String shippingText = shipping <= 0
+          ? 'Free Shipping'
+          : '$shipping EGP Shipping';
+
+      final shippingAddrObj = _order!['shippingAddress'] is Map
+          ? _order!['shippingAddress']
+          : null;
+      final shippingAddrStr = _order!['shippingAddress'] is String
+          ? _order!['shippingAddress']
+          : '';
+      final address = shippingAddrStr.isNotEmpty
+          ? shippingAddrStr
+          : (shippingAddrObj?['address'] ?? _order!['address'] ?? '');
+      final gov =
+          shippingAddrObj?['governorate'] ??
+          shippingAddrObj?['state'] ??
+          _order!['shippingGovernorate'] ??
+          _order!['governorate'] ??
+          _order!['customer']?['governorate'] ??
+          '';
+      final city =
+          shippingAddrObj?['city'] ??
+          _order!['shippingCity'] ??
+          _order!['city'] ??
+          _order!['customer']?['city'] ??
+          '';
+
       final List<String> addressParts = [];
       if (gov.toString().isNotEmpty) addressParts.add(gov.toString());
       if (city.toString().isNotEmpty) addressParts.add(city.toString());
       if (address.toString().isNotEmpty) addressParts.add(address.toString());
       final fullAddress = addressParts.join(' ، ');
 
-      final phone1 = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
-      final phone2 = _order!['alternativePhone'] ?? _order!['altPhone'] ?? _order!['customer']?['alternativePhone'] ?? '';
+      final phone1 =
+          _order!['phone'] ??
+          _order!['shippingPhone'] ??
+          _order!['customerPhone'] ??
+          _order!['phoneNumber'] ??
+          _order!['customer']?['phone'] ??
+          '';
+      final phone2 =
+          _order!['alternativePhone'] ??
+          _order!['altPhone'] ??
+          _order!['customer']?['alternativePhone'] ??
+          '';
 
       return '''Thank you for choosing LegaCy 💚
 
 Order : #$orderNo
-Name : $name 
-$itemsText 
-💰 Total Due : EGP $total + $shippingText 
+Name : $name
+$itemsText
+💰 Total Due : EGP $total + $shippingText
 📍 Address : $fullAddress
-Delivered in (1 : 4) Days 
+Delivered in (1 : 4) Days
 Phone 1 : $phone1${phone2.toString().trim().isNotEmpty ? '\nPhone 2 : $phone2' : ''}
 
 Thanks for shopping with us! 💚''';
@@ -1009,16 +1452,23 @@ Thanks for shopping with us! 💚''';
   }
 
   void _shareViaWhatsApp() async {
-    final phone = _order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone'] ?? '';
+    final phone =
+        _order!['phone'] ??
+        _order!['shippingPhone'] ??
+        _order!['customerPhone'] ??
+        _order!['phoneNumber'] ??
+        _order!['customer']?['phone'] ??
+        '';
     final text = _getWhatsAppMessageText();
-    
+
     String formattedPhone = phone.replaceAll(RegExp(r'\D'), '');
     if (formattedPhone.startsWith('0')) {
       formattedPhone = '2$formattedPhone'; // Egypt country code fallback
     }
 
-    final url = "https://wa.me/$formattedPhone?text=${Uri.encodeComponent(text)}";
-    
+    final url =
+        "https://wa.me/$formattedPhone?text=${Uri.encodeComponent(text)}";
+
     if (Platform.isAndroid) {
       try {
         final intent = AndroidIntent(
@@ -1039,7 +1489,10 @@ Thanks for shopping with us! 💚''';
   Future<void> _launchWhatsAppFallback(String url) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final bool launched = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      final bool launched = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
       if (!launched) {
         await launchUrl(Uri.parse(url), mode: LaunchMode.platformDefault);
       }
@@ -1047,7 +1500,12 @@ Thanks for shopping with us! 💚''';
       try {
         await launchUrl(Uri.parse(url), mode: LaunchMode.platformDefault);
       } catch (e2) {
-        messenger.showSnackBar(const SnackBar(content: Text('WhatsApp is not installed or supported.'), backgroundColor: AppColors.error));
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('WhatsApp is not installed or supported.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     }
   }
@@ -1066,9 +1524,23 @@ Thanks for shopping with us! 💚''';
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2))),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
               const SizedBox(height: 24),
-              Text('Invoice Options', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+              Text(
+                'Invoice Options',
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
               const SizedBox(height: 24),
               _buildOptionTile(
                 icon: LucideIcons.fileText,
@@ -1103,11 +1575,16 @@ Thanks for shopping with us! 💚''';
             ],
           ),
         );
-      }
+      },
     );
   }
 
-  Widget _buildOptionTile({required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) {
+  Widget _buildOptionTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -1121,7 +1598,10 @@ Thanks for shopping with us! 💚''';
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AppColors.primaryDark.withValues(alpha: 0.05), shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: AppColors.primaryDark.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
               child: Icon(icon, color: AppColors.primaryDark),
             ),
             const SizedBox(width: 16),
@@ -1129,13 +1609,30 @@ Thanks for shopping with us! 💚''';
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted)),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const Icon(LucideIcons.chevronRight, color: AppColors.textMuted, size: 20),
+            const Icon(
+              LucideIcons.chevronRight,
+              color: AppColors.textMuted,
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -1155,7 +1652,7 @@ Thanks for shopping with us! 💚''';
         final dir = await getTemporaryDirectory();
         final file = File('${dir.path}/Invoice_$orderNo.png');
         await file.writeAsBytes(pngBytes);
-        
+
         if (action == 'save_image') {
           // Check permissions
           bool hasAccess = await Gal.hasAccess(toAlbum: true);
@@ -1164,14 +1661,26 @@ Thanks for shopping with us! 💚''';
           }
           if (hasAccess) {
             await Gal.putImage(file.path, album: 'LegaCy');
-            messenger.showSnackBar(const SnackBar(content: Text('Image saved to gallery successfully!'), backgroundColor: AppColors.success));
+            messenger.showSnackBar(
+              const SnackBar(
+                content: Text('Image saved to gallery successfully!'),
+                backgroundColor: AppColors.success,
+              ),
+            );
           } else {
-            messenger.showSnackBar(const SnackBar(content: Text('Storage permission denied.'), backgroundColor: AppColors.error));
+            messenger.showSnackBar(
+              const SnackBar(
+                content: Text('Storage permission denied.'),
+                backgroundColor: AppColors.error,
+              ),
+            );
           }
         } else {
           // Share image
           // ignore: deprecated_member_use
-          await Share.shareXFiles([XFile(file.path)], text: 'Invoice #$orderNo');
+          await Share.shareXFiles([
+            XFile(file.path),
+          ], text: 'Invoice #$orderNo');
         }
       } else {
         await Printing.layoutPdf(
@@ -1180,55 +1689,93 @@ Thanks for shopping with us! 💚''';
         );
       }
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+      );
     }
   }
 
   Future<pw.Document> _generateInvoicePdf() async {
     final pdfDoc = pw.Document();
-    
+
     final font = await PdfGoogleFonts.cairoRegular();
     final boldFont = await PdfGoogleFonts.cairoBold();
-    
+
     const primaryColor = PdfColor.fromInt(0xFF12403C);
     const accentColor = PdfColor.fromInt(0xFFD4AF37);
     const bgColor = PdfColor.fromInt(0xFFFCF8F3);
-    
+
     String reshape(String text) => ArabicReshaper.instance.reshape(text);
-    
+
     String safeString(dynamic val) {
       if (val == null) return '';
       if (val is List) {
-        return val.map((e) {
-          if (e is Map) return e['content']?.toString() ?? '';
-          return e.toString();
-        }).where((e) => e.toString().trim().isNotEmpty).join(' - ');
+        return val
+            .map((e) {
+              if (e is Map) return e['content']?.toString() ?? '';
+              return e.toString();
+            })
+            .where((e) => e.toString().trim().isNotEmpty)
+            .join(' - ');
       }
       if (val is Map) return val['content']?.toString() ?? '';
       return val.toString();
     }
-    
-    final name = reshape(safeString(_order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer'));
-    final phone = safeString(_order!['phone'] ?? _order!['shippingPhone'] ?? _order!['customerPhone'] ?? _order!['phoneNumber'] ?? _order!['customer']?['phone']);
-    
-    final shippingAddrObj = _order!['shippingAddress'] is Map ? _order!['shippingAddress'] : null;
-    final shippingAddrStr = _order!['shippingAddress'] is String ? _order!['shippingAddress'] : '';
-    final rawAddress = safeString(shippingAddrStr.isNotEmpty ? shippingAddrStr : (shippingAddrObj?['address'] ?? _order!['address']));
-    
-    final rawGov = safeString(shippingAddrObj?['governorate'] ?? shippingAddrObj?['state'] ?? _order!['shippingGovernorate'] ?? _order!['governorate'] ?? _order!['customer']?['governorate']);
-    final rawCity = safeString(shippingAddrObj?['city'] ?? _order!['shippingCity'] ?? _order!['city'] ?? _order!['customer']?['city']);
-    
+
+    final name = reshape(
+      safeString(
+        _order!['displayName'] ?? _order!['customer']?['name'] ?? 'Customer',
+      ),
+    );
+    final phone = safeString(
+      _order!['phone'] ??
+          _order!['shippingPhone'] ??
+          _order!['customerPhone'] ??
+          _order!['phoneNumber'] ??
+          _order!['customer']?['phone'],
+    );
+
+    final shippingAddrObj = _order!['shippingAddress'] is Map
+        ? _order!['shippingAddress']
+        : null;
+    final shippingAddrStr = _order!['shippingAddress'] is String
+        ? _order!['shippingAddress']
+        : '';
+    final rawAddress = safeString(
+      shippingAddrStr.isNotEmpty
+          ? shippingAddrStr
+          : (shippingAddrObj?['address'] ?? _order!['address']),
+    );
+
+    final rawGov = safeString(
+      shippingAddrObj?['governorate'] ??
+          shippingAddrObj?['state'] ??
+          _order!['shippingGovernorate'] ??
+          _order!['governorate'] ??
+          _order!['customer']?['governorate'],
+    );
+    final rawCity = safeString(
+      shippingAddrObj?['city'] ??
+          _order!['shippingCity'] ??
+          _order!['city'] ??
+          _order!['customer']?['city'],
+    );
+
     final List<String> addressParts = [];
     if (rawGov.isNotEmpty) addressParts.add(rawGov);
     if (rawCity.isNotEmpty) addressParts.add(rawCity);
     if (rawAddress.isNotEmpty) addressParts.add(rawAddress);
     final fullAddress = reshape(addressParts.join(' - '));
-    
-    final altPhone = safeString(_order!['alternativePhone'] ?? _order!['altPhone'] ?? _order!['customer']?['alternativePhone']);
-    
+
+    final altPhone = safeString(
+      _order!['alternativePhone'] ??
+          _order!['altPhone'] ??
+          _order!['customer']?['alternativePhone'],
+    );
+
     final orderNo = _order!['orderNumber']?.toString() ?? 'N/A';
     final items = (_order!['items'] as List? ?? []);
-    
+
     final Map<int, pw.ImageProvider> itemImages = {};
     for (int i = 0; i < items.length; i++) {
       final item = items[i];
@@ -1243,17 +1790,22 @@ Thanks for shopping with us! 💚''';
     final subtotal = (_order!['subtotal'] as num?)?.toDouble() ?? 0.0;
     final shipping = (_order!['shippingCost'] as num?)?.toDouble() ?? 0.0;
     final total = (_order!['totalPrice'] as num?)?.toDouble() ?? 0.0;
-    
+
     double discount = (_order!['discount'] as num?)?.toDouble() ?? 0.0;
     if (discount <= 0) {
       double diff = (subtotal + shipping) - total;
       if (diff > 0.5) discount = diff;
     }
-    
+
     final paymentMethod = _order!['paymentMethod'] ?? 'COD';
     final orderDate = _formatDate(_order!['createdAt']);
-    
-    pw.Widget buildInfoRow(String label, String value, {bool isRtl = false, bool isBold = false}) {
+
+    pw.Widget buildInfoRow(
+      String label,
+      String value, {
+      bool isRtl = false,
+      bool isBold = false,
+    }) {
       if (value.toString().trim().isEmpty) return pw.SizedBox();
       return pw.Padding(
         padding: const pw.EdgeInsets.only(bottom: 6),
@@ -1262,21 +1814,36 @@ Thanks for shopping with us! 💚''';
           children: [
             pw.SizedBox(
               width: 80,
-              child: pw.Text(label, style: pw.TextStyle(fontSize: 12, color: primaryColor, fontWeight: pw.FontWeight.bold)),
+              child: pw.Text(
+                label,
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  color: primaryColor,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
             ),
             pw.Expanded(
               child: pw.Text(
                 value.toString(),
                 textAlign: pw.TextAlign.left,
-                textDirection: isRtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
-                style: pw.TextStyle(fontSize: 12, color: isBold ? primaryColor : PdfColors.grey800, fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal)
+                textDirection: isRtl
+                    ? pw.TextDirection.rtl
+                    : pw.TextDirection.ltr,
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  color: isBold ? primaryColor : PdfColors.grey800,
+                  fontWeight: isBold
+                      ? pw.FontWeight.bold
+                      : pw.FontWeight.normal,
+                ),
               ),
             ),
-          ]
-        )
+          ],
+        ),
       );
     }
-    
+
     pdfDoc.addPage(
       pw.MultiPage(
         pageTheme: pw.PageTheme(
@@ -1303,67 +1870,162 @@ Thanks for shopping with us! 💚''';
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text('LegaCy', style: pw.TextStyle(color: accentColor, fontSize: 32, fontWeight: pw.FontWeight.bold)),
+                      pw.Text(
+                        'LegaCy',
+                        style: pw.TextStyle(
+                          color: accentColor,
+                          fontSize: 32,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
                       pw.SizedBox(height: 4),
-                      pw.Text('Premium Watches', style: const pw.TextStyle(color: PdfColors.white, fontSize: 14)),
-                    ]
+                      pw.Text(
+                        'Premium Watches',
+                        style: const pw.TextStyle(
+                          color: PdfColors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
-                      pw.Text('INVOICE', style: pw.TextStyle(color: PdfColors.white, fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                      pw.Text(
+                        'INVOICE',
+                        style: pw.TextStyle(
+                          color: PdfColors.white,
+                          fontSize: 24,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
                       pw.SizedBox(height: 8),
-                      pw.Text('#$orderNo', style: pw.TextStyle(color: accentColor, fontSize: 18)),
-                      pw.Text('Date: $orderDate', style: const pw.TextStyle(color: PdfColors.white, fontSize: 12)),
-                    ]
+                      pw.Text(
+                        '#$orderNo',
+                        style: pw.TextStyle(color: accentColor, fontSize: 18),
+                      ),
+                      pw.Text(
+                        'Date: $orderDate',
+                        style: const pw.TextStyle(
+                          color: PdfColors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
             pw.SizedBox(height: 32),
-            
+
             // Customer Info & Payment Method
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('BILLED TO:', style: pw.TextStyle(color: primaryColor, fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                pw.Text(
+                  'BILLED TO:',
+                  style: pw.TextStyle(
+                    color: primaryColor,
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
                 pw.SizedBox(height: 12),
                 pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Expanded(child: buildInfoRow('Name:', name, isRtl: true, isBold: true)),
-                    pw.Expanded(child: buildInfoRow('Payment:', paymentMethod.toString().toUpperCase(), isBold: true)),
-                  ]
+                    pw.Expanded(
+                      child: buildInfoRow(
+                        'Name:',
+                        name,
+                        isRtl: true,
+                        isBold: true,
+                      ),
+                    ),
+                    pw.Expanded(
+                      child: buildInfoRow(
+                        'Payment:',
+                        paymentMethod.toString().toUpperCase(),
+                        isBold: true,
+                      ),
+                    ),
+                  ],
                 ),
                 pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Expanded(child: buildInfoRow('Phone:', phone)),
-                    pw.Expanded(child: buildInfoRow('Alt Phone:', altPhone.toString())),
-                  ]
+                    pw.Expanded(
+                      child: buildInfoRow('Alt Phone:', altPhone.toString()),
+                    ),
+                  ],
                 ),
                 buildInfoRow('Address:', fullAddress, isRtl: true),
-              ]
+              ],
             ),
             pw.SizedBox(height: 32),
-            
+
             // Table Header
             pw.Container(
               decoration: pw.BoxDecoration(
                 color: bgColor,
-                border: const pw.Border(bottom: pw.BorderSide(color: primaryColor, width: 2)),
+                border: const pw.Border(
+                  bottom: pw.BorderSide(color: primaryColor, width: 2),
+                ),
               ),
-              padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              padding: const pw.EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 8,
+              ),
               child: pw.Row(
                 children: [
-                  pw.Expanded(flex: 4, child: pw.Text('ITEM', style: pw.TextStyle(color: primaryColor, fontWeight: pw.FontWeight.bold))),
-                  pw.Expanded(flex: 1, child: pw.Text('QTY', textAlign: pw.TextAlign.center, style: pw.TextStyle(color: primaryColor, fontWeight: pw.FontWeight.bold))),
-                  pw.Expanded(flex: 2, child: pw.Text('PRICE', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: primaryColor, fontWeight: pw.FontWeight.bold))),
-                  pw.Expanded(flex: 2, child: pw.Text('TOTAL', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: primaryColor, fontWeight: pw.FontWeight.bold))),
-                ]
-              )
+                  pw.Expanded(
+                    flex: 4,
+                    child: pw.Text(
+                      'ITEM',
+                      style: pw.TextStyle(
+                        color: primaryColor,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  pw.Expanded(
+                    flex: 1,
+                    child: pw.Text(
+                      'QTY',
+                      textAlign: pw.TextAlign.center,
+                      style: pw.TextStyle(
+                        color: primaryColor,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  pw.Expanded(
+                    flex: 2,
+                    child: pw.Text(
+                      'PRICE',
+                      textAlign: pw.TextAlign.right,
+                      style: pw.TextStyle(
+                        color: primaryColor,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  pw.Expanded(
+                    flex: 2,
+                    child: pw.Text(
+                      'TOTAL',
+                      textAlign: pw.TextAlign.right,
+                      style: pw.TextStyle(
+                        color: primaryColor,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            
+
             // Table Items
             ...items.asMap().entries.map((entry) {
               final i = entry.key;
@@ -1371,20 +2033,27 @@ Thanks for shopping with us! 💚''';
               final qty = item['quantity'] ?? 1;
               final price = (item['price'] as num?)?.toDouble() ?? 0.0;
               final itemTotal = price * qty;
-              
+
               String cleanItemName = item['name']?.toString() ?? '';
-              cleanItemName = cleanItemName.replaceAll(RegExp(r'\s*\([^)]*\)$'), '').trim();
+              cleanItemName = cleanItemName
+                  .replaceAll(RegExp(r'\s*\([^)]*\)$'), '')
+                  .trim();
               final itemName = reshape(cleanItemName);
               return pw.Container(
                 decoration: const pw.BoxDecoration(
-                  border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 1)),
+                  border: pw.Border(
+                    bottom: pw.BorderSide(color: PdfColors.grey300, width: 1),
+                  ),
                 ),
-                padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                padding: const pw.EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 8,
+                ),
                 child: pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
                     pw.Expanded(
-                      flex: 4, 
+                      flex: 4,
                       child: pw.Row(
                         crossAxisAlignment: pw.CrossAxisAlignment.center,
                         children: [
@@ -1393,26 +2062,61 @@ Thanks for shopping with us! 💚''';
                               width: 24,
                               height: 24,
                               decoration: pw.BoxDecoration(
-                                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-                                image: pw.DecorationImage(image: itemImages[i]!, fit: pw.BoxFit.cover),
+                                borderRadius: const pw.BorderRadius.all(
+                                  pw.Radius.circular(4),
+                                ),
+                                image: pw.DecorationImage(
+                                  image: itemImages[i]!,
+                                  fit: pw.BoxFit.cover,
+                                ),
                               ),
                             ),
                             pw.SizedBox(width: 8),
                           ],
-                          pw.Expanded(child: pw.Text(itemName, textDirection: pw.TextDirection.rtl, style: const pw.TextStyle(fontSize: 12))),
+                          pw.Expanded(
+                            child: pw.Text(
+                              itemName,
+                              textDirection: pw.TextDirection.rtl,
+                              style: const pw.TextStyle(fontSize: 12),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    pw.Expanded(flex: 1, child: pw.Text(qty.toString(), textAlign: pw.TextAlign.center, style: const pw.TextStyle(fontSize: 12))),
-                    pw.Expanded(flex: 2, child: pw.Text('${price.toStringAsFixed(2)} EGP', textAlign: pw.TextAlign.right, style: const pw.TextStyle(fontSize: 12))),
-                    pw.Expanded(flex: 2, child: pw.Text('${itemTotal.toStringAsFixed(2)} EGP', textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold))),
-                  ]
-                )
+                    pw.Expanded(
+                      flex: 1,
+                      child: pw.Text(
+                        qty.toString(),
+                        textAlign: pw.TextAlign.center,
+                        style: const pw.TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    pw.Expanded(
+                      flex: 2,
+                      child: pw.Text(
+                        '${price.toStringAsFixed(2)} EGP',
+                        textAlign: pw.TextAlign.right,
+                        style: const pw.TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    pw.Expanded(
+                      flex: 2,
+                      child: pw.Text(
+                        '${itemTotal.toStringAsFixed(2)} EGP',
+                        textAlign: pw.TextAlign.right,
+                        style: pw.TextStyle(
+                          fontSize: 12,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               );
             }),
-            
+
             pw.SizedBox(height: 24),
-            
+
             // Summary
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.end,
@@ -1424,66 +2128,130 @@ Thanks for shopping with us! 💚''';
                       pw.Row(
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
-                          pw.Text('Subtotal', style: const pw.TextStyle(fontSize: 14)),
-                          pw.Text('${subtotal.toStringAsFixed(2)} EGP', style: const pw.TextStyle(fontSize: 14)),
-                        ]
+                          pw.Text(
+                            'Subtotal',
+                            style: const pw.TextStyle(fontSize: 14),
+                          ),
+                          pw.Text(
+                            '${subtotal.toStringAsFixed(2)} EGP',
+                            style: const pw.TextStyle(fontSize: 14),
+                          ),
+                        ],
                       ),
                       pw.SizedBox(height: 8),
                       pw.Row(
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
-                          pw.Text('Shipping', style: const pw.TextStyle(fontSize: 14)),
-                          pw.Text('${shipping.toStringAsFixed(2)} EGP', style: const pw.TextStyle(fontSize: 14)),
-                        ]
+                          pw.Text(
+                            'Shipping',
+                            style: const pw.TextStyle(fontSize: 14),
+                          ),
+                          pw.Text(
+                            '${shipping.toStringAsFixed(2)} EGP',
+                            style: const pw.TextStyle(fontSize: 14),
+                          ),
+                        ],
                       ),
                       if (discount > 0) ...[
                         pw.SizedBox(height: 8),
                         pw.Row(
                           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                           children: [
-                            pw.Text('Discount', style: pw.TextStyle(fontSize: 14, color: primaryColor, fontWeight: pw.FontWeight.bold)),
-                            pw.Text('-${discount.toStringAsFixed(2)} EGP', style: pw.TextStyle(fontSize: 14, color: primaryColor, fontWeight: pw.FontWeight.bold)),
-                          ]
+                            pw.Text(
+                              'Discount',
+                              style: pw.TextStyle(
+                                fontSize: 14,
+                                color: primaryColor,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
+                            ),
+                            pw.Text(
+                              '-${discount.toStringAsFixed(2)} EGP',
+                              style: pw.TextStyle(
+                                fontSize: 14,
+                                color: primaryColor,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                       pw.SizedBox(height: 12),
                       pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        padding: const pw.EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
                         decoration: const pw.BoxDecoration(
                           color: primaryColor,
-                          borderRadius: pw.BorderRadius.all(pw.Radius.circular(8)),
+                          borderRadius: pw.BorderRadius.all(
+                            pw.Radius.circular(8),
+                          ),
                         ),
                         child: pw.Row(
                           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                           children: [
-                            pw.Text('Total', style: pw.TextStyle(color: PdfColors.white, fontSize: 18, fontWeight: pw.FontWeight.bold)),
-                            pw.Text('${total.toStringAsFixed(2)} EGP', style: pw.TextStyle(color: accentColor, fontSize: 18, fontWeight: pw.FontWeight.bold)),
-                          ]
+                            pw.Text(
+                              'Total',
+                              style: pw.TextStyle(
+                                color: PdfColors.white,
+                                fontSize: 18,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
+                            ),
+                            pw.Text(
+                              '${total.toStringAsFixed(2)} EGP',
+                              style: pw.TextStyle(
+                                color: accentColor,
+                                fontSize: 18,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ]
-                  )
-                )
-              ]
+                    ],
+                  ),
+                ),
+              ],
             ),
-            
+
             pw.SizedBox(height: 48),
-            
+
             // Footer
             pw.Center(
               child: pw.Column(
                 children: [
-                  pw.Text('Thank you for shopping with LegaCy!', style: pw.TextStyle(color: primaryColor, fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                  pw.Text(
+                    'Thank you for shopping with LegaCy!',
+                    style: pw.TextStyle(
+                      color: primaryColor,
+                      fontSize: 16,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
                   pw.SizedBox(height: 6),
-                  pw.Text('Please note that a 14-day exchange and return policy applies to all orders in case of any issues.', style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 10)),
+                  pw.Text(
+                    'Please note that a 14-day exchange and return policy applies to all orders in case of any issues.',
+                    style: const pw.TextStyle(
+                      color: PdfColors.grey600,
+                      fontSize: 10,
+                    ),
+                  ),
                   pw.SizedBox(height: 2),
-                  pw.Text('For inquiries, please contact us on WhatsApp.', style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 10)),
-                ]
-              )
-            )
+                  pw.Text(
+                    'For inquiries, please contact us on WhatsApp.',
+                    style: const pw.TextStyle(
+                      color: PdfColors.grey600,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ];
-        }
-      )
+        },
+      ),
     );
     return pdfDoc;
   }

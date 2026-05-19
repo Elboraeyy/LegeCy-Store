@@ -120,7 +120,6 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
     final deadlineText = _selectedDeadline != null
         ? DateFormat('EEE, d MMM - h:mm a').format(_selectedDeadline!)
         : 'Select deadline';
@@ -144,195 +143,195 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: AppColors.divider),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: AppColors.divider)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Add New Todo',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark,
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Add New Todo',
-                          style: GoogleFonts.playfairDisplay(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryDark,
-                          ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: AppColors.cardBorder,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardBorder,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              LucideIcons.x,
-                              size: 14,
-                              color: AppColors.textMuted,
-                            ),
-                          ),
+                        child: const Icon(
+                          LucideIcons.x,
+                          size: 14,
+                          color: AppColors.textMuted,
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel('Task Title'),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _titleController,
-                          hint: 'e.g., Update inventory stock, Follow up with supplier',
-                          maxLines: 2,
-                          minLines: 1,
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildLabel('Task Title'),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                      controller: _titleController,
+                      hint:
+                          'e.g., Update inventory stock, Follow up with supplier',
+                      maxLines: 2,
+                      minLines: 1,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildLabel('Description (Optional)'),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                      controller: _descriptionController,
+                      hint: 'Add more details about this task...',
+                      maxLines: 3,
+                      minLines: 2,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildLabel('Deadline'),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: _selectDeadline,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
                         ),
-                        const SizedBox(height: 20),
-                        _buildLabel('Description (Optional)'),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _descriptionController,
-                          hint: 'Add more details about this task...',
-                          maxLines: 3,
-                          minLines: 2,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildLabel('Deadline'),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: _selectDeadline,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: _selectedDeadline != null
-                                    ? AppColors.accent
-                                    : AppColors.cardBorder,
-                                width: _selectedDeadline != null ? 2 : 1,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              color: AppColors.background,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        LucideIcons.calendar,
-                                        size: 16,
-                                        color: _selectedDeadline != null
-                                            ? AppColors.accent
-                                            : AppColors.textMuted,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          deadlineText,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 13,
-                                            color: _selectedDeadline != null
-                                                ? AppColors.textPrimary
-                                                : AppColors.textMuted,
-                                            fontWeight: _selectedDeadline != null
-                                                ? FontWeight.w600
-                                                : FontWeight.w400,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Icon(
-                                  LucideIcons.chevronRight,
-                                  size: 16,
-                                  color: AppColors.textMuted,
-                                ),
-                              ],
-                            ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: _selectedDeadline != null
+                                ? AppColors.accent
+                                : AppColors.cardBorder,
+                            width: _selectedDeadline != null ? 2 : 1,
                           ),
+                          borderRadius: BorderRadius.circular(12),
+                          color: AppColors.background,
                         ),
-                        const SizedBox(height: 24),
-                        Row(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
-                              child: GestureDetector(
-                                onTap: () => Navigator.pop(context),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: AppColors.cardBorder),
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: AppColors.background,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    LucideIcons.calendar,
+                                    size: 16,
+                                    color: _selectedDeadline != null
+                                        ? AppColors.accent
+                                        : AppColors.textMuted,
                                   ),
-                                  child: Text(
-                                    'Cancel',
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textSecondary,
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      deadlineText,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        color: _selectedDeadline != null
+                                            ? AppColors.textPrimary
+                                            : AppColors.textMuted,
+                                        fontWeight: _selectedDeadline != null
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: _isSubmitting ? null : _submit,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primaryDark,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: _isSubmitting
-                                      ? const SizedBox(
-                                          height: 16,
-                                          width: 16,
-                                          child: CircularProgressIndicator(
-                                            valueColor: AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : Text(
-                                          'Add Todo',
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                ),
-                              ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              LucideIcons.chevronRight,
+                              size: 16,
+                              color: AppColors.textMuted,
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.cardBorder),
+                                borderRadius: BorderRadius.circular(12),
+                                color: AppColors.background,
+                              ),
+                              child: Text(
+                                'Cancel',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: _isSubmitting ? null : _submit,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryDark,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: _isSubmitting
+                                  ? const SizedBox(
+                                      height: 16,
+                                      width: 16,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      'Add Todo',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-      );
+        ),
+      ),
+    );
   }
 
   Widget _buildLabel(String label) {
@@ -357,16 +356,10 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
       controller: controller,
       maxLines: maxLines,
       minLines: minLines,
-      style: GoogleFonts.inter(
-        fontSize: 14,
-        color: AppColors.textPrimary,
-      ),
+      style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: GoogleFonts.inter(
-          fontSize: 13,
-          color: AppColors.textMuted,
-        ),
+        hintStyle: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 12,
@@ -381,10 +374,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppColors.accent,
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: AppColors.accent, width: 2),
         ),
         filled: true,
         fillColor: AppColors.background,
