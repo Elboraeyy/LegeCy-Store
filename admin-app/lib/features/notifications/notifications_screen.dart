@@ -73,6 +73,11 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 backgroundColor: AppColors.surface,
                 surfaceTintColor: Colors.transparent,
                 elevation: 0,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(20),
+                  ),
+                ),
                 leading: IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(8),
@@ -80,7 +85,11 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                       color: AppColors.background,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(LucideIcons.arrowLeft, size: 18, color: AppColors.primaryDark),
+                    child: const Icon(
+                      LucideIcons.arrowLeft,
+                      size: 18,
+                      color: AppColors.primaryDark,
+                    ),
                   ),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -91,7 +100,11 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         HapticFeedback.lightImpact();
                         provider.markAllAsRead();
                       },
-                      icon: const Icon(LucideIcons.checkCheck, size: 16, color: AppColors.primaryDark),
+                      icon: const Icon(
+                        LucideIcons.checkCheck,
+                        size: 16,
+                        color: AppColors.primaryDark,
+                      ),
                       label: Text(
                         'Read All',
                         style: GoogleFonts.inter(
@@ -103,8 +116,13 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     ),
                   if (provider.notifications.isNotEmpty)
                     PopupMenuButton<String>(
-                      icon: const Icon(LucideIcons.moreVertical, color: AppColors.primaryDark),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      icon: const Icon(
+                        LucideIcons.moreVertical,
+                        color: AppColors.primaryDark,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       onSelected: (v) {
                         if (v == 'clear') {
                           _confirmClearAll(provider);
@@ -115,9 +133,16 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                           value: 'clear',
                           child: Row(
                             children: [
-                              const Icon(LucideIcons.trash2, size: 16, color: Colors.red),
+                              const Icon(
+                                LucideIcons.trash2,
+                                size: 16,
+                                color: Colors.red,
+                              ),
                               const SizedBox(width: 10),
-                              Text('Clear All', style: GoogleFonts.inter(color: Colors.red)),
+                              Text(
+                                'Clear All',
+                                style: GoogleFonts.inter(color: Colors.red),
+                              ),
                             ],
                           ),
                         ),
@@ -163,9 +188,21 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
                       _buildFilterChip('All', 'all', LucideIcons.bell),
-                      _buildFilterChip('Unread', 'unread', LucideIcons.mailOpen),
-                      _buildFilterChip('Orders', 'order', LucideIcons.shoppingBag),
-                      _buildFilterChip('Stock', 'inventory', LucideIcons.alertTriangle),
+                      _buildFilterChip(
+                        'Unread',
+                        'unread',
+                        LucideIcons.mailOpen,
+                      ),
+                      _buildFilterChip(
+                        'Orders',
+                        'order',
+                        LucideIcons.shoppingBag,
+                      ),
+                      _buildFilterChip(
+                        'Stock',
+                        'inventory',
+                        LucideIcons.alertTriangle,
+                      ),
                       _buildFilterChip('Reviews', 'review', LucideIcons.star),
                       _buildFilterChip('Messages', 'message', LucideIcons.mail),
                     ],
@@ -176,7 +213,11 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               // ── Loading State ──
               if (provider.isLoading)
                 const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator(color: AppColors.primaryDark)),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primaryDark,
+                    ),
+                  ),
                 )
               // ── Empty State ──
               else if (_getFiltered(provider).isEmpty)
@@ -202,17 +243,22 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
 
-    final todayItems = filtered.where((n) =>
-      n.createdAt.isAfter(today) || n.createdAt.isAtSameMomentAs(today)
-    ).toList();
+    final todayItems = filtered
+        .where(
+          (n) =>
+              n.createdAt.isAfter(today) || n.createdAt.isAtSameMomentAs(today),
+        )
+        .toList();
 
-    final yesterdayItems = filtered.where((n) =>
-      n.createdAt.isAfter(yesterday) && n.createdAt.isBefore(today)
-    ).toList();
+    final yesterdayItems = filtered
+        .where(
+          (n) => n.createdAt.isAfter(yesterday) && n.createdAt.isBefore(today),
+        )
+        .toList();
 
-    final earlierItems = filtered.where((n) =>
-      n.createdAt.isBefore(yesterday)
-    ).toList();
+    final earlierItems = filtered
+        .where((n) => n.createdAt.isBefore(yesterday))
+        .toList();
 
     if (todayItems.isNotEmpty) {
       slivers.add(_buildSectionHeader('Today', todayItems.length));
@@ -267,21 +313,21 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     );
   }
 
-  Widget _buildNotificationSliver(List<AppNotification> items, NotificationProvider provider) {
+  Widget _buildNotificationSliver(
+    List<AppNotification> items,
+    NotificationProvider provider,
+  ) {
     return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          return FadeTransition(
-            opacity: _fadeAnim,
-            child: _NotificationTile(
-              notification: items[index],
-              onTap: () => _handleNotificationTap(items[index], provider),
-              onDismiss: () => provider.deleteNotification(items[index].id),
-            ),
-          );
-        },
-        childCount: items.length,
-      ),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        return FadeTransition(
+          opacity: _fadeAnim,
+          child: _NotificationTile(
+            notification: items[index],
+            onTap: () => _handleNotificationTap(items[index], provider),
+            onDismiss: () => provider.deleteNotification(items[index].id),
+          ),
+        );
+      }, childCount: items.length),
     );
   }
 
@@ -304,13 +350,23 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               color: isSelected ? AppColors.primaryDark : AppColors.cardBorder,
             ),
             boxShadow: isSelected
-                ? [BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 2))]
+                ? [
+                    BoxShadow(
+                      color: AppColors.primaryDark.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
                 : [],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: isSelected ? Colors.white : AppColors.textMuted),
+              Icon(
+                icon,
+                size: 14,
+                color: isSelected ? Colors.white : AppColors.textMuted,
+              ),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -341,7 +397,9 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                _filter == 'unread' ? LucideIcons.checkCheck : LucideIcons.bellOff,
+                _filter == 'unread'
+                    ? LucideIcons.checkCheck
+                    : LucideIcons.bellOff,
                 size: 48,
                 color: AppColors.accent.withValues(alpha: 0.5),
               ),
@@ -373,7 +431,10 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     );
   }
 
-  void _handleNotificationTap(AppNotification notification, NotificationProvider provider) {
+  void _handleNotificationTap(
+    AppNotification notification,
+    NotificationProvider provider,
+  ) {
     HapticFeedback.lightImpact();
     provider.markAsRead(notification.id);
 
@@ -412,7 +473,13 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           children: [
             const Icon(LucideIcons.alertCircle, color: Colors.red, size: 22),
             const SizedBox(width: 10),
-            Text('Clear All?', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+            Text(
+              'Clear All?',
+              style: GoogleFonts.playfairDisplay(
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryDark,
+              ),
+            ),
           ],
         ),
         content: Text(
@@ -422,7 +489,13 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.inter(
+                color: AppColors.textMuted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -433,10 +506,15 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               elevation: 0,
             ),
-            child: Text('Clear All', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+            child: Text(
+              'Clear All',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -528,7 +606,9 @@ class _NotificationTile extends StatelessWidget {
                             notification.title,
                             style: GoogleFonts.inter(
                               fontSize: 14,
-                              fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w700,
+                              fontWeight: notification.isRead
+                                  ? FontWeight.w500
+                                  : FontWeight.w700,
                               color: AppColors.textPrimary,
                             ),
                             maxLines: 1,
@@ -552,7 +632,9 @@ class _NotificationTile extends StatelessWidget {
                       notification.body,
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: notification.isRead ? AppColors.textMuted : AppColors.textSecondary,
+                        color: notification.isRead
+                            ? AppColors.textMuted
+                            : AppColors.textSecondary,
                         height: 1.4,
                       ),
                       maxLines: 2,
@@ -563,7 +645,10 @@ class _NotificationTile extends StatelessWidget {
                       children: [
                         // Category badge
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: notification.color.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(6),
@@ -579,7 +664,11 @@ class _NotificationTile extends StatelessWidget {
                         ),
                         const Spacer(),
                         // Time
-                        Icon(LucideIcons.clock, size: 11, color: AppColors.textMuted.withValues(alpha: 0.5)),
+                        Icon(
+                          LucideIcons.clock,
+                          size: 11,
+                          color: AppColors.textMuted.withValues(alpha: 0.5),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           _formatTime(notification.createdAt),
@@ -602,13 +691,20 @@ class _NotificationTile extends StatelessWidget {
 
   String _categoryLabel(String cat) {
     switch (cat) {
-      case 'order': return 'ORDER';
-      case 'inventory': return 'STOCK';
-      case 'review': return 'REVIEW';
-      case 'message': return 'MESSAGE';
-      case 'restock': return 'RESTOCK';
-      case 'finance': return 'FINANCE';
-      default: return 'SYSTEM';
+      case 'order':
+        return 'ORDER';
+      case 'inventory':
+        return 'STOCK';
+      case 'review':
+        return 'REVIEW';
+      case 'message':
+        return 'MESSAGE';
+      case 'restock':
+        return 'RESTOCK';
+      case 'finance':
+        return 'FINANCE';
+      default:
+        return 'SYSTEM';
     }
   }
 

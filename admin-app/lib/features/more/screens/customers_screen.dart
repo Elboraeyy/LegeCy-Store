@@ -34,11 +34,14 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
   }
 
   Future<void> _loadCustomers() async {
-    setState(() { _isLoading = true; _error = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      
+
       String query = '?limit=50';
       if (_searchController.text.isNotEmpty) {
         query += '&search=${Uri.encodeComponent(_searchController.text)}';
@@ -53,7 +56,11 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _isLoading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
     }
   }
 
@@ -64,96 +71,148 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: CustomScrollView(
-        slivers: [
-          // AppBar
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: AppColors.surface,
-            surfaceTintColor: Colors.transparent,
-            expandedHeight: 130,
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(20))),
-            leading: IconButton(
-              icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 60, bottom: 16),
+          slivers: [
+            // AppBar
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: AppColors.surface,
+              surfaceTintColor: Colors.transparent,
+              toolbarHeight: 64,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(20),
+                ),
+              ),
+              leading: IconButton(
+                icon: const Icon(
+                  LucideIcons.arrowLeft,
+                  color: AppColors.primaryDark,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
               title: Text(
                 'Customers CRM',
-                style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryDark,
+                ),
               ),
             ),
-          ),
 
-          // Search
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$_totalCustomers Total Customers',
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.cardBorder),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onSubmitted: (_) => _loadCustomers(),
-                      style: GoogleFonts.inter(fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: 'Search by name or email...',
-                        hintStyle: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted),
-                        prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppColors.textMuted),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(icon: const Icon(LucideIcons.x, size: 16), onPressed: () { _searchController.clear(); _loadCustomers(); })
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            // Search
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$_totalCustomers Total Customers',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Content
-          if (_isLoading)
-            const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primaryDark)))
-          else if (_error != null)
-            SliverFillRemaining(child: Center(child: Text(_error!, style: const TextStyle(color: AppColors.error))))
-          else if (_customers.isEmpty)
-            SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(LucideIcons.users, size: 48, color: AppColors.textMuted.withValues(alpha: 0.5)),
-                    const SizedBox(height: 16),
-                    Text('No Customers Found', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.cardBorder),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        onSubmitted: (_) => _loadCustomers(),
+                        style: GoogleFonts.inter(fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: 'Search by name or email...',
+                          hintStyle: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: AppColors.textMuted,
+                          ),
+                          prefixIcon: const Icon(
+                            LucideIcons.search,
+                            size: 18,
+                            color: AppColors.textMuted,
+                          ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(LucideIcons.x, size: 16),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _loadCustomers();
+                                  },
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildCustomerCard(_customers[index]),
-                  childCount: _customers.length,
+            ),
+
+            // Content
+            if (_isLoading)
+              const SliverFillRemaining(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryDark,
+                  ),
+                ),
+              )
+            else if (_error != null)
+              SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(color: AppColors.error),
+                  ),
+                ),
+              )
+            else if (_customers.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        LucideIcons.users,
+                        size: 48,
+                        color: AppColors.textMuted.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No Customers Found',
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => _buildCustomerCard(_customers[index]),
+                    childCount: _customers.length,
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -163,7 +222,7 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
     final String initial = name.isNotEmpty ? name[0].toUpperCase() : 'G';
     final num totalSpend = customer['totalSpend'] ?? 0;
     final int totalOrders = customer['totalOrders'] ?? 0;
-    final String joinedAt = customer['joinedAt'] != null 
+    final String joinedAt = customer['joinedAt'] != null
         ? DateFormat('MMM d, yyyy').format(DateTime.parse(customer['joinedAt']))
         : 'Unknown';
 
@@ -175,7 +234,11 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.cardBorder),
         boxShadow: [
-          BoxShadow(color: AppColors.primaryDark.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: AppColors.primaryDark.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -193,12 +256,16 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
                 child: Center(
                   child: Text(
                     initial,
-                    style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700, color: const Color(0xFF10B981)),
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF10B981),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // Name & Email
               Expanded(
                 child: Column(
@@ -206,30 +273,52 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
                   children: [
                     Text(
                       name,
-                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       customer['email'] ?? 'No email',
-                      style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary),
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
           Divider(height: 1, color: AppColors.divider),
           const SizedBox(height: 16),
-          
+
           // Stats Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatDetail(LucideIcons.shoppingBag, 'Orders', totalOrders.toString(), const Color(0xFF3B82F6)),
-              _buildStatDetail(LucideIcons.banknote, 'Total Spend', '${totalSpend.toStringAsFixed(2)} EGP', const Color(0xFFF59E0B)),
-              _buildStatDetail(LucideIcons.calendar, 'Joined', joinedAt, const Color(0xFF8B5CF6)),
+              _buildStatDetail(
+                LucideIcons.shoppingBag,
+                'Orders',
+                totalOrders.toString(),
+                const Color(0xFF3B82F6),
+              ),
+              _buildStatDetail(
+                LucideIcons.banknote,
+                'Total Spend',
+                '${totalSpend.toStringAsFixed(2)} EGP',
+                const Color(0xFFF59E0B),
+              ),
+              _buildStatDetail(
+                LucideIcons.calendar,
+                'Joined',
+                joinedAt,
+                const Color(0xFF8B5CF6),
+              ),
             ],
           ),
         ],
@@ -237,7 +326,12 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
     );
   }
 
-  Widget _buildStatDetail(IconData icon, String label, String value, Color color) {
+  Widget _buildStatDetail(
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -245,11 +339,25 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
           children: [
             Icon(icon, size: 12, color: color),
             const SizedBox(width: 4),
-            Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textMuted)),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textMuted,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 4),
-        Text(value, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        Text(
+          value,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
       ],
     );
   }

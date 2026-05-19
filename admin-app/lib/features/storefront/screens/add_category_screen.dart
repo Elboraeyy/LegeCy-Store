@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -80,7 +81,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
           content: Text(widget.category != null ? 'Category updated' : 'Category created', style: const TextStyle(color: Colors.white)),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
@@ -89,7 +90,7 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
         setState(() => _isLoading = false);
       }
     }

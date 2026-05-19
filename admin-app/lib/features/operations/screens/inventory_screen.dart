@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -316,10 +317,10 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                       if (ctx.mounted) Navigator.pop(ctx);
                       _loadInventory();
                       if (!mounted) return;
-                      messenger.showSnackBar(const SnackBar(content: Text('Stock updated successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+                      messenger.showSnackBar(AppToast.snackBar(content: Text('Stock updated successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
                     } catch (e) {
                       setModalState(() => isSaving = false);
-                      messenger.showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+                      messenger.showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
                     }
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { cancellationOrderStatusFilter, revenueOrderStatusFilter } from '@/lib/order-metrics';
 
 /**
  * GET /api/admin/auth/statistics
@@ -69,35 +70,35 @@ export async function GET(request: NextRequest) {
             fulfillmentOrders,
         ] = await Promise.all([
             // Total orders (all time or filtered)
-            prisma.order.count({ where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined }),
-            prisma.order.aggregate({ where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { ...dateFilter, status: revenueOrderStatusFilter } }),
+            prisma.order.aggregate({ where: { ...dateFilter, status: revenueOrderStatusFilter }, _sum: { totalPrice: true } }),
 
             // Today
-            prisma.order.count({ where: { createdAt: { gte: today } } }),
-            prisma.order.aggregate({ where: { createdAt: { gte: today } }, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { createdAt: { gte: today }, status: revenueOrderStatusFilter } }),
+            prisma.order.aggregate({ where: { createdAt: { gte: today }, status: revenueOrderStatusFilter }, _sum: { totalPrice: true } }),
 
             // Yesterday
-            prisma.order.count({ where: { createdAt: { gte: yesterday, lt: today } } }),
-            prisma.order.aggregate({ where: { createdAt: { gte: yesterday, lt: today } }, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { createdAt: { gte: yesterday, lt: today }, status: revenueOrderStatusFilter } }),
+            prisma.order.aggregate({ where: { createdAt: { gte: yesterday, lt: today }, status: revenueOrderStatusFilter }, _sum: { totalPrice: true } }),
 
             // Last 7 days
-            prisma.order.aggregate({ where: { createdAt: { gte: sevenDaysAgo } }, _sum: { totalPrice: true } }),
-            prisma.order.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+            prisma.order.aggregate({ where: { createdAt: { gte: sevenDaysAgo }, status: revenueOrderStatusFilter }, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { createdAt: { gte: sevenDaysAgo }, status: revenueOrderStatusFilter } }),
 
             // This month
-            prisma.order.aggregate({ where: { createdAt: { gte: startOfMonth } }, _sum: { totalPrice: true } }),
-            prisma.order.count({ where: { createdAt: { gte: startOfMonth } } }),
+            prisma.order.aggregate({ where: { createdAt: { gte: startOfMonth }, status: revenueOrderStatusFilter }, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { createdAt: { gte: startOfMonth }, status: revenueOrderStatusFilter } }),
 
             // Last month
-            prisma.order.aggregate({ where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } }, _sum: { totalPrice: true } }),
-            prisma.order.count({ where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } } }),
+            prisma.order.aggregate({ where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth }, status: revenueOrderStatusFilter }, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth }, status: revenueOrderStatusFilter } }),
 
             // Status counts
             prisma.order.count({ where: { status: 'pending', ...dateFilter } }),
             prisma.order.count({ where: { status: 'processing', ...dateFilter } }),
             prisma.order.count({ where: { status: 'shipped', ...dateFilter } }),
             prisma.order.count({ where: { status: 'delivered', ...dateFilter } }),
-            prisma.order.count({ where: { status: { in: ['cancelled', 'CANCELLED'] }, ...dateFilter } }),
+            prisma.order.count({ where: { status: cancellationOrderStatusFilter, ...dateFilter } }),
             prisma.user.count({ where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined }),
             prisma.product.count({ where: { status: 'active' } }),
             prisma.inventory.count({ where: { available: { lte: 5 } } }),
@@ -105,7 +106,7 @@ export async function GET(request: NextRequest) {
             // Top 10 products
             prisma.orderItem.groupBy({
                 by: ['name'],
-                where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined,
+                where: { order: { ...dateFilter, status: revenueOrderStatusFilter } },
                 _sum: { quantity: true },
                 _count: true,
                 orderBy: { _sum: { quantity: 'desc' } },
@@ -115,7 +116,7 @@ export async function GET(request: NextRequest) {
             // Top 10 customers
             prisma.order.groupBy({
                 by: ['customerName'],
-                where: { customerName: { not: null }, ...dateFilter },
+                where: { customerName: { not: null }, ...dateFilter, status: revenueOrderStatusFilter },
                 _count: true,
                 _sum: { totalPrice: true },
                 orderBy: { _sum: { totalPrice: 'desc' } },
@@ -134,7 +135,7 @@ export async function GET(request: NextRequest) {
             // Order sources
             prisma.order.groupBy({
                 by: ['orderSource'],
-                where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined,
+                where: { ...dateFilter, status: revenueOrderStatusFilter },
                 _count: true,
                 _sum: { totalPrice: true },
             }),
@@ -142,14 +143,14 @@ export async function GET(request: NextRequest) {
             // Payment methods
             prisma.order.groupBy({
                 by: ['paymentMethod'],
-                where: Object.keys(dateFilter).length > 0 ? dateFilter : undefined,
+                where: { ...dateFilter, status: revenueOrderStatusFilter },
                 _count: true,
                 _sum: { totalPrice: true },
             }),
 
             // Trend daily data for charts
             prisma.order.findMany({
-                where: { createdAt: { gte: trendStart, lte: trendEnd } },
+                where: { createdAt: { gte: trendStart, lte: trendEnd }, status: revenueOrderStatusFilter },
                 select: { createdAt: true, totalPrice: true, status: true },
                 orderBy: { createdAt: 'asc' },
             }),
@@ -157,35 +158,35 @@ export async function GET(request: NextRequest) {
             // Average order value
             prisma.order.aggregate({
                 _avg: { totalPrice: true },
-                where: { status: { notIn: ['cancelled', 'CANCELLED'] }, ...dateFilter },
+                where: { status: revenueOrderStatusFilter, ...dateFilter },
             }),
 
             // Repeat customers
             prisma.order.groupBy({
                 by: ['customerEmail'],
-                where: { customerEmail: { not: null }, ...dateFilter },
+                where: { customerEmail: { not: null }, ...dateFilter, status: revenueOrderStatusFilter },
                 _count: true,
                 having: { customerEmail: { _count: { gt: 1 } } },
             }),
             // NEW: Shipping costs
             prisma.order.aggregate({
-                where: { status: { notIn: ['cancelled', 'CANCELLED'] }, ...dateFilter },
+                where: { status: revenueOrderStatusFilter, ...dateFilter },
                 _sum: { shippingCost: true },
             }),
             // NEW: Discount impact
             prisma.order.aggregate({
-                where: { discountAmount: { gt: 0 }, ...dateFilter },
+                where: { discountAmount: { gt: 0 }, ...dateFilter, status: revenueOrderStatusFilter },
                 _sum: { discountAmount: true },
                 _count: true,
             }),
             // NEW: Out of stock
             prisma.inventory.count({ where: { available: { lte: 0 } } }),
             // NEW: This week
-            prisma.order.aggregate({ where: { createdAt: { gte: sevenDaysAgo } }, _sum: { totalPrice: true } }),
-            prisma.order.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+            prisma.order.aggregate({ where: { createdAt: { gte: sevenDaysAgo }, status: revenueOrderStatusFilter }, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { createdAt: { gte: sevenDaysAgo }, status: revenueOrderStatusFilter } }),
             // NEW: Last week
-            prisma.order.aggregate({ where: { createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } }, _sum: { totalPrice: true } }),
-            prisma.order.count({ where: { createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } }),
+            prisma.order.aggregate({ where: { createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo }, status: revenueOrderStatusFilter }, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo }, status: revenueOrderStatusFilter } }),
             // NEW: Fulfillment time
             prisma.order.findMany({
                 where: { status: 'delivered', deliveredAt: { not: null }, ...dateFilter },
@@ -241,7 +242,8 @@ export async function GET(request: NextRequest) {
 
         // NEW calculations
         const totRevNum = totalRevenue._sum.totalPrice?.toNumber() || 0;
-        const cancellationRate = totalOrders > 0 ? Math.round((cancelledOrders / totalOrders) * 1000) / 10 : 0;
+        const cancellationBase = totalOrders + cancelledOrders;
+        const cancellationRate = cancellationBase > 0 ? Math.round((cancelledOrders / cancellationBase) * 1000) / 10 : 0;
         const totalShipping = shippingCosts._sum.shippingCost?.toNumber() || 0;
         const shippingPct = totRevNum > 0 ? Math.round((totalShipping / totRevNum) * 1000) / 10 : 0;
         const totalDiscounts = discountImpact._sum.discountAmount?.toNumber() || 0;

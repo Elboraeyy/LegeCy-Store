@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import DailyOrdersClient from './DailyOrdersClient';
+import { isRevenueOrderStatus } from '@/lib/order-metrics';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,8 +66,8 @@ export default async function DailyOrdersPage({ searchParams }: Props) {
         orderBy: { createdAt: 'desc' }
     });
     
-    // Calculate stats (Exclude cancelled)
-    const validOrders = orders.filter(o => o.status !== 'cancelled');
+    // Calculate stats (exclude cancelled/failed/refunded from operational money)
+    const validOrders = orders.filter(o => isRevenueOrderStatus(o.status));
     const totalOrders = validOrders.length;
     const totalRevenue = validOrders.reduce((sum, o) => sum + (Number(o.totalPrice) - Number(o.shippingCost || 0)), 0);
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;

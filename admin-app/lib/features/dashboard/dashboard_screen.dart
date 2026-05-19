@@ -15,10 +15,13 @@ import 'package:admin_app/features/reports/daily_report_screen.dart';
 import 'package:admin_app/features/reports/statistics_screen.dart';
 import 'package:admin_app/features/notifications/notification_provider.dart';
 import 'package:admin_app/features/notifications/notifications_screen.dart';
+import 'package:admin_app/features/operations/screens/inventory_screen.dart';
+import 'package:admin_app/features/marketing/screens/coupons_screen.dart';
 
 import 'package:admin_app/features/products/add_product_screen.dart';
 
 import 'package:admin_app/features/orders/order_details_screen.dart';
+import 'package:admin_app/features/orders/create_manual_order_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -125,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               expandedHeight: 110,
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(30),
+                  bottom: Radius.circular(20),
                 ),
               ),
               flexibleSpace: FlexibleSpaceBar(
@@ -195,7 +198,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 top: -4,
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
-                                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 18,
+                                    minHeight: 18,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: AppColors.error,
                                     borderRadius: BorderRadius.circular(10),
@@ -205,7 +211,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppColors.error.withValues(alpha: 0.3),
+                                        color: AppColors.error.withValues(
+                                          alpha: 0.3,
+                                        ),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
@@ -340,6 +348,79 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
         const SizedBox(height: 24),
 
+        // ── Quick Actions ──
+        const DashboardSectionHeader(title: 'QUICK ACTIONS'),
+        SizedBox(
+          height: 120,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              QuickActionButton(
+                icon: LucideIcons.filePlus2,
+                label: 'Manual\nOrder',
+                color: AppColors.primaryDark,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CreateManualOrderScreen(),
+                  ),
+                ),
+              ),
+              QuickActionButton(
+                icon: LucideIcons.plusCircle,
+                label: 'New\nProduct',
+                color: const Color(0xFF10B981),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AddProductScreen()),
+                ),
+              ),
+              QuickActionButton(
+                icon: LucideIcons.warehouse,
+                label: 'Inventory',
+                color: _int('lowStockCount') > 0
+                    ? AppColors.error
+                    : const Color(0xFF0EA5E9),
+                badge: _int('lowStockCount') > 0
+                    ? '${_int('lowStockCount')}'
+                    : null,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const InventoryScreen()),
+                ),
+              ),
+              QuickActionButton(
+                icon: LucideIcons.ticket,
+                label: 'Coupons',
+                color: const Color(0xFFF59E0B),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CouponsScreen()),
+                ),
+              ),
+              QuickActionButton(
+                icon: LucideIcons.calendarDays,
+                label: 'Daily\nReport',
+                color: const Color(0xFF0EA5E9),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DailyReportScreen()),
+                ),
+              ),
+              QuickActionButton(
+                icon: LucideIcons.barChart3,
+                label: 'Analytics',
+                color: const Color(0xFF8B5CF6),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StatisticsScreen()),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
         // ── Stats Grid (2×2) ──
         Row(
           children: [
@@ -399,66 +480,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           processing: _int('processingOrders'),
           shipped: _int('shippedOrders'),
           delivered: _int('deliveredOrders'),
-        ),
-        const SizedBox(height: 24),
-
-
-
-        // ── Quick Actions ──
-        const DashboardSectionHeader(title: 'QUICK ACTIONS'),
-        SizedBox(
-          height: 120,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              QuickActionButton(
-                icon: LucideIcons.calendarDays,
-                label: 'Daily\nReport',
-                color: const Color(0xFF0EA5E9),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DailyReportScreen()),
-                ),
-              ),
-              QuickActionButton(
-                icon: LucideIcons.barChart3,
-                label: 'Analytics',
-                color: const Color(0xFF8B5CF6),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const StatisticsScreen()),
-                ),
-              ),
-
-              QuickActionButton(
-                icon: LucideIcons.plusCircle,
-                label: 'New\nProduct',
-                color: const Color(0xFF10B981),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AddProductScreen()),
-                ),
-              ),
-              QuickActionButton(
-                icon: LucideIcons.mail,
-                label: 'Messages',
-                color: const Color(0xFF6366F1),
-                badge: _int('pendingMessages') > 0
-                    ? '${_int('pendingMessages')}'
-                    : null,
-                onTap: () {},
-              ),
-              QuickActionButton(
-                icon: LucideIcons.star,
-                label: 'Reviews',
-                color: const Color(0xFFF59E0B),
-                badge: _int('recentReviews') > 0
-                    ? '${_int('recentReviews')}'
-                    : null,
-                onTap: () {},
-              ),
-            ],
-          ),
         ),
         const SizedBox(height: 24),
 

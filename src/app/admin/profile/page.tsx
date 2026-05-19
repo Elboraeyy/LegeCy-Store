@@ -2,6 +2,7 @@ import { validateAdminSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import ProfileClient from './ProfileClient';
+import { revenueOrderStatusFilter } from '@/lib/order-metrics';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,15 +17,15 @@ export default async function AdminProfilePage() {
         totalRevenue,
         activeSessions
     ] = await prisma.$transaction([
-        prisma.order.count({ where: { status: { not: 'cancelled' } } }),
+        prisma.order.count({ where: { status: revenueOrderStatusFilter } }),
         prisma.order.count({
             where: {
                 createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
-                status: { not: 'cancelled' }
+                status: revenueOrderStatusFilter
             }
         }),
         prisma.order.aggregate({
-            where: { status: { not: 'cancelled' } },
+            where: { status: revenueOrderStatusFilter },
             _sum: { totalPrice: true, shippingCost: true }
         }),
         prisma.adminSession.count({

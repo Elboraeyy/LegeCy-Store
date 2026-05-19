@@ -1,3 +1,5 @@
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -75,7 +77,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
   void _snack(String m, {bool ok = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      AppToast.snackBar(
         content: Text(
           m,
           style: GoogleFonts.inter(
@@ -292,7 +294,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primaryDark.withValues(alpha: 0.3),
+                                  color: AppColors.primaryDark.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -1122,7 +1126,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(
             'Add Manual Review',
             style: GoogleFonts.playfairDisplay(
@@ -1204,17 +1210,22 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   return;
                 }
                 Navigator.pop(ctx);
-                
+
                 setState(() => _isLoading = true);
                 try {
-                  final client = ApiClient(token: context.read<AuthProvider>().token);
-                  await client.post('/api/admin/auth/reviews', body: {
-                    'name': name,
-                    'rating': rating.toInt(),
-                    'text': comment,
-                    'productId': _product['id'],
-                    'featured': false,
-                  });
+                  final client = ApiClient(
+                    token: context.read<AuthProvider>().token,
+                  );
+                  await client.post(
+                    '/api/admin/auth/reviews',
+                    body: {
+                      'name': name,
+                      'rating': rating.toInt(),
+                      'text': comment,
+                      'productId': _product['id'],
+                      'featured': false,
+                    },
+                  );
                   _snack('Review added successfully', ok: true);
                   _loadReviews();
                 } catch (e) {
@@ -1242,7 +1253,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -1279,652 +1289,675 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 320,
-                pinned: true,
-                backgroundColor: AppColors.background,
-                leading: IconButton(
-                  icon: CircleAvatar(
-                    backgroundColor: Colors.white.withValues(alpha: 0.8),
-                    child: const Icon(
-                      LucideIcons.arrowLeft,
-                      color: AppColors.primaryDark,
-                      size: 20,
+          children: [
+            CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 320,
+                  pinned: true,
+                  backgroundColor: AppColors.background,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(20),
                     ),
                   ),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                actions: [
-                  IconButton(
+                  leading: IconButton(
                     icon: CircleAvatar(
                       backgroundColor: Colors.white.withValues(alpha: 0.8),
                       child: const Icon(
-                        LucideIcons.edit2,
+                        LucideIcons.arrowLeft,
                         color: AppColors.primaryDark,
                         size: 20,
                       ),
                     ),
-                    onPressed: _navigateToEdit,
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  const SizedBox(width: 8),
-                ],
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(24),
-                  child: Container(
-                    height: 32,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(32),
+                  actions: [
+                    IconButton(
+                      icon: CircleAvatar(
+                        backgroundColor: Colors.white.withValues(alpha: 0.8),
+                        child: const Icon(
+                          LucideIcons.edit2,
+                          color: AppColors.primaryDark,
+                          size: 20,
+                        ),
+                      ),
+                      onPressed: _navigateToEdit,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  bottom: PreferredSize(
+                    preferredSize: const Size.fromHeight(24),
+                    child: Container(
+                      height: 32,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(32),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  background: imageUrl != null
-                      ? CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) =>
-                              Container(color: AppColors.shimmer),
-                          errorWidget: (context, url, error) => Container(
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: imageUrl != null
+                        ? CachedNetworkImage(
+                            cacheManager: AppImageCacheManager.instance,
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) =>
+                                Container(color: AppColors.shimmer),
+                            errorWidget: (context, url, error) => Container(
+                              color: AppColors.shimmer,
+                              child: const Icon(
+                                LucideIcons.imageOff,
+                                size: 48,
+                                color: AppColors.textMuted,
+                              ),
+                            ),
+                          )
+                        : Container(
                             color: AppColors.shimmer,
                             child: const Icon(
-                              LucideIcons.imageOff,
-                              size: 48,
+                              LucideIcons.package,
+                              size: 64,
                               color: AppColors.textMuted,
                             ),
                           ),
-                        )
-                      : Container(
-                          color: AppColors.shimmer,
-                          child: const Icon(
-                            LucideIcons.package,
-                            size: 64,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
+                  ),
                 ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Info
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _product['name'] ?? 'Unnamed Product',
-                                  style: GoogleFonts.playfairDisplay(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.primaryDark,
-                                    height: 1.2,
-                                  ),
-                                ),
-                                if ((_product['detailTags'] as List?)
-                                            ?.isNotEmpty ==
-                                        true ||
-                                    (compareAtNum != null &&
-                                        compareAtNum > (priceNum ?? 0))) ...[
-                                  const SizedBox(height: 12),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: [
-                                      if (compareAtNum != null &&
-                                          compareAtNum > (priceNum ?? 0))
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFEF4444),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: const Color(
-                                                  0xFFEF4444,
-                                                ).withValues(alpha: 0.2),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                LucideIcons.flame,
-                                                size: 12,
-                                                color: Colors.white,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                '-${(((compareAtNum - (priceNum ?? 0)) / compareAtNum) * 100).round()}%',
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: Colors.white,
-                                                  letterSpacing: 0.5,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ...(_product['detailTags'] as List? ?? [])
-                                          .map((tagRaw) {
-                                            final tagStr = tagRaw.toString();
-                                            if (tagStr.isEmpty) {
-                                              return const SizedBox.shrink();
-                                            }
-                                            String label = tagStr;
-                                            Color badgeColor =
-                                                AppColors.primaryDark;
-                                            if (tagStr.contains('|')) {
-                                              final parts = tagStr.split('|');
-                                              label = parts[0];
-                                              if (parts.length > 1 &&
-                                                  parts[1].isNotEmpty) {
-                                                badgeColor = _parseColor(
-                                                  parts[1],
-                                                  AppColors.primaryDark,
-                                                );
-                                              }
-                                            }
-                                            return Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 4,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: badgeColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: badgeColor
-                                                        .withValues(alpha: 0.2),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 2),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  const Icon(
-                                                    LucideIcons.sparkles,
-                                                    size: 12,
-                                                    color: Colors.white,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    label.toUpperCase(),
-                                                    style: GoogleFonts.inter(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      color: Colors.white,
-                                                      letterSpacing: 0.5,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          }),
-                                    ],
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: statusColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: statusColor.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Text(
-                              status.toUpperCase(),
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: statusColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '$price EGP',
-                                style: GoogleFonts.inter(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primaryDark,
-                                ),
-                              ),
-                              if (compareAt != null) ...[
-                                const SizedBox(width: 8),
-                                Text(
-                                  '$compareAt EGP',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.textMuted,
-                                    decoration: TextDecoration.lineThrough,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                'In Stock',
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
-                              Text(
-                                '$stock Units',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: stock > 0
-                                      ? AppColors.success
-                                      : AppColors.error,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Quick Actions (Controls requested by User)
-                      _buildSectionTitle('Quick Controls', LucideIcons.zap),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildActionCard(
-                              title: 'Add Stock',
-                              subtitle: '$stock in stock',
-                              icon: LucideIcons.packagePlus,
-                              color: const Color(0xFF3B82F6),
-                              onTap: _showStockDialog,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildActionCard(
-                              title: 'Discount',
-                              subtitle:
-                                  (compareAtNum != null &&
-                                      compareAtNum > (priceNum ?? 0))
-                                  ? '-${(((compareAtNum - (priceNum ?? 0)) / compareAtNum) * 100).round()}% Active'
-                                  : 'Apply offer',
-                              icon: LucideIcons.tag,
-                              color: const Color(0xFFF59E0B),
-                              onTap: _showDiscountBottomSheet,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildActionCard(
-                              title: 'Badge',
-                              subtitle:
-                                  (_product['detailTags'] as List?)
-                                          ?.isNotEmpty ==
-                                      true
-                                  ? '${(_product['detailTags'] as List).length} active'
-                                  : 'e.g. New',
-                              icon: LucideIcons.sparkles,
-                              color: const Color(0xFF8B5CF6),
-                              onTap: _showBadgeBottomSheet,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Specifications Card
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.cardBorder),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primaryDark.withValues(
-                                alpha: 0.03,
-                              ),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header Info
+                        Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSectionTitle(
-                              'Organization',
-                              LucideIcons.folderTree,
-                            ),
-                            const SizedBox(height: 16),
-                            _buildDetailRow(
-                              'Category',
-                              _product['category'] ??
-                                  _product['categoryRel']?['name'] ??
-                                  'N/A',
-                            ),
-                            const Divider(
-                              height: 24,
-                              color: AppColors.cardBorder,
-                            ),
-                            _buildDetailRow(
-                              'Brand',
-                              _product['brand']?['name'] ?? 'N/A',
-                            ),
-                            const Divider(
-                              height: 24,
-                              color: AppColors.cardBorder,
-                            ),
-                            _buildDetailRow(
-                              'Material',
-                              _product['material']?['name'] ?? 'N/A',
-                            ),
-                            const Divider(
-                              height: 24,
-                              color: AppColors.cardBorder,
-                            ),
-                            _buildDetailRow('SKU', sku),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Compact Information Tabs (Overview, Details, Specs)
-                      _buildSectionTitle('Information', LucideIcons.info),
-                      const SizedBox(height: 12),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.cardBorder),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primaryDark.withValues(
-                                alpha: 0.03,
-                              ),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Container(
-                              height: 50,
-                              margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: AppColors.cardBorder),
-                              ),
-                              child: TabBar(
-                                controller: _infoTabController,
-                                indicatorSize: TabBarIndicatorSize.tab,
-                                dividerColor: Colors.transparent,
-                                indicator: BoxDecoration(
-                                  color: AppColors.primaryDark,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                labelColor: Colors.white,
-                                unselectedLabelColor: AppColors.textMuted,
-                                labelStyle: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                unselectedLabelStyle: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                tabs: const [
-                                  Tab(text: 'Overview'),
-                                  Tab(text: 'Details'),
-                                  Tab(text: 'Specs'),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 220,
-                              child: TabBarView(
-                                controller: _infoTabController,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _buildTabText(
-                                    _product['description']
-                                                ?.toString()
-                                                .isNotEmpty ==
-                                            true
-                                        ? _product['description']
-                                        : 'No overview available.',
+                                  Text(
+                                    _product['name'] ?? 'Unnamed Product',
+                                    style: GoogleFonts.playfairDisplay(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primaryDark,
+                                      height: 1.2,
+                                    ),
                                   ),
-                                  _buildTabText(
-                                    _product['detailedDescription']
-                                                ?.toString()
-                                                .isNotEmpty ==
-                                            true
-                                        ? _product['detailedDescription']
-                                        : 'No details available.',
-                                  ),
-                                  _buildSpecsContent(),
+                                  if ((_product['detailTags'] as List?)
+                                              ?.isNotEmpty ==
+                                          true ||
+                                      (compareAtNum != null &&
+                                          compareAtNum > (priceNum ?? 0))) ...[
+                                    const SizedBox(height: 12),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: [
+                                        if (compareAtNum != null &&
+                                            compareAtNum > (priceNum ?? 0))
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFEF4444),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(
+                                                    0xFFEF4444,
+                                                  ).withValues(alpha: 0.2),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  LucideIcons.flame,
+                                                  size: 12,
+                                                  color: Colors.white,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '-${(((compareAtNum - (priceNum ?? 0)) / compareAtNum) * 100).round()}%',
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: Colors.white,
+                                                    letterSpacing: 0.5,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ...(_product['detailTags'] as List? ??
+                                                [])
+                                            .map((tagRaw) {
+                                              final tagStr = tagRaw.toString();
+                                              if (tagStr.isEmpty) {
+                                                return const SizedBox.shrink();
+                                              }
+                                              String label = tagStr;
+                                              Color badgeColor =
+                                                  AppColors.primaryDark;
+                                              if (tagStr.contains('|')) {
+                                                final parts = tagStr.split('|');
+                                                label = parts[0];
+                                                if (parts.length > 1 &&
+                                                    parts[1].isNotEmpty) {
+                                                  badgeColor = _parseColor(
+                                                    parts[1],
+                                                    AppColors.primaryDark,
+                                                  );
+                                                }
+                                              }
+                                              return Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 4,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: badgeColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: badgeColor
+                                                          .withValues(
+                                                            alpha: 0.2,
+                                                          ),
+                                                      blurRadius: 4,
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                      LucideIcons.sparkles,
+                                                      size: 12,
+                                                      color: Colors.white,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      label.toUpperCase(),
+                                                      style: GoogleFonts.inter(
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        color: Colors.white,
+                                                        letterSpacing: 0.5,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            }),
+                                      ],
+                                    ),
+                                  ],
                                 ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: statusColor.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Text(
+                                status.toUpperCase(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: statusColor,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Gallery
-                      if (gallery.isNotEmpty) ...[
-                        _buildSectionTitle('Gallery', LucideIcons.image),
                         const SizedBox(height: 12),
-                        SizedBox(
-                          height: 100,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: gallery.length,
-                            itemBuilder: (context, index) {
-                              final img = gallery[index]['url'];
-                              return Container(
-                                width: 100,
-                                margin: const EdgeInsets.only(right: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '$price EGP',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                                if (compareAt != null) ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '$compareAt EGP',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.textMuted,
+                                      decoration: TextDecoration.lineThrough,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'In Stock',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: AppColors.textMuted,
+                                  ),
+                                ),
+                                Text(
+                                  '$stock Units',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: stock > 0
+                                        ? AppColors.success
+                                        : AppColors.error,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Quick Actions (Controls requested by User)
+                        _buildSectionTitle('Quick Controls', LucideIcons.zap),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildActionCard(
+                                title: 'Add Stock',
+                                subtitle: '$stock in stock',
+                                icon: LucideIcons.packagePlus,
+                                color: const Color(0xFF3B82F6),
+                                onTap: _showStockDialog,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildActionCard(
+                                title: 'Discount',
+                                subtitle:
+                                    (compareAtNum != null &&
+                                        compareAtNum > (priceNum ?? 0))
+                                    ? '-${(((compareAtNum - (priceNum ?? 0)) / compareAtNum) * 100).round()}% Active'
+                                    : 'Apply offer',
+                                icon: LucideIcons.tag,
+                                color: const Color(0xFFF59E0B),
+                                onTap: _showDiscountBottomSheet,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildActionCard(
+                                title: 'Badge',
+                                subtitle:
+                                    (_product['detailTags'] as List?)
+                                            ?.isNotEmpty ==
+                                        true
+                                    ? '${(_product['detailTags'] as List).length} active'
+                                    : 'e.g. New',
+                                icon: LucideIcons.sparkles,
+                                color: const Color(0xFF8B5CF6),
+                                onTap: _showBadgeBottomSheet,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Specifications Card
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.cardBorder),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryDark.withValues(
+                                  alpha: 0.03,
+                                ),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle(
+                                'Organization',
+                                LucideIcons.folderTree,
+                              ),
+                              const SizedBox(height: 16),
+                              _buildDetailRow(
+                                'Category',
+                                _product['category'] ??
+                                    _product['categoryRel']?['name'] ??
+                                    'N/A',
+                              ),
+                              const Divider(
+                                height: 24,
+                                color: AppColors.cardBorder,
+                              ),
+                              _buildDetailRow(
+                                'Brand',
+                                _product['brand']?['name'] ?? 'N/A',
+                              ),
+                              const Divider(
+                                height: 24,
+                                color: AppColors.cardBorder,
+                              ),
+                              _buildDetailRow(
+                                'Material',
+                                _product['material']?['name'] ?? 'N/A',
+                              ),
+                              const Divider(
+                                height: 24,
+                                color: AppColors.cardBorder,
+                              ),
+                              _buildDetailRow('SKU', sku),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Compact Information Tabs (Overview, Details, Specs)
+                        _buildSectionTitle('Information', LucideIcons.info),
+                        const SizedBox(height: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.cardBorder),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryDark.withValues(
+                                  alpha: 0.03,
+                                ),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Container(
+                                height: 50,
+                                margin: const EdgeInsets.fromLTRB(
+                                  16,
+                                  16,
+                                  16,
+                                  0,
+                                ),
+                                padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
                                     color: AppColors.cardBorder,
                                   ),
                                 ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: CachedNetworkImage(
-                                    imageUrl: img,
-                                    fit: BoxFit.cover,
-                                    placeholder: (ctx, url) =>
-                                        Container(color: AppColors.shimmer),
+                                child: TabBar(
+                                  controller: _infoTabController,
+                                  indicatorSize: TabBarIndicatorSize.tab,
+                                  dividerColor: Colors.transparent,
+                                  indicator: BoxDecoration(
+                                    color: AppColors.primaryDark,
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
+                                  labelColor: Colors.white,
+                                  unselectedLabelColor: AppColors.textMuted,
+                                  labelStyle: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  unselectedLabelStyle: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  tabs: const [
+                                    Tab(text: 'Overview'),
+                                    Tab(text: 'Details'),
+                                    Tab(text: 'Specs'),
+                                  ],
                                 ),
-                              );
-                            },
+                              ),
+                              SizedBox(
+                                height: 220,
+                                child: TabBarView(
+                                  controller: _infoTabController,
+                                  children: [
+                                    _buildTabText(
+                                      _product['description']
+                                                  ?.toString()
+                                                  .isNotEmpty ==
+                                              true
+                                          ? _product['description']
+                                          : 'No overview available.',
+                                    ),
+                                    _buildTabText(
+                                      _product['detailedDescription']
+                                                  ?.toString()
+                                                  .isNotEmpty ==
+                                              true
+                                          ? _product['detailedDescription']
+                                          : 'No details available.',
+                                    ),
+                                    _buildSpecsContent(),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 32),
-                      ],
-                      // Reviews Section
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildSectionTitle(
-                            'Customer Reviews',
-                            LucideIcons.star,
-                          ),
-                          TextButton.icon(
-                            onPressed: () => _showAddReviewDialog(),
-                            icon: const Icon(LucideIcons.plus, size: 16),
-                            label: const Text('Add'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.primaryDark,
-                              textStyle: GoogleFonts.inter(
-                                fontWeight: FontWeight.w600,
-                              ),
+
+                        // Gallery
+                        if (gallery.isNotEmpty) ...[
+                          _buildSectionTitle('Gallery', LucideIcons.image),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 100,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: gallery.length,
+                              itemBuilder: (context, index) {
+                                final img = gallery[index]['url'];
+                                return Container(
+                                  width: 100,
+                                  margin: const EdgeInsets.only(right: 12),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: AppColors.cardBorder,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: CachedNetworkImage(
+                                      cacheManager:
+                                          AppImageCacheManager.instance,
+                                      imageUrl: img,
+                                      fit: BoxFit.cover,
+                                      placeholder: (ctx, url) =>
+                                          Container(color: AppColors.shimmer),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
+                          const SizedBox(height: 32),
                         ],
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 120,
-                        child: _reviews.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'No reviews for this product.',
-                                  style: GoogleFonts.inter(
-                                    color: AppColors.textMuted,
-                                  ),
+                        // Reviews Section
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildSectionTitle(
+                              'Customer Reviews',
+                              LucideIcons.star,
+                            ),
+                            TextButton.icon(
+                              onPressed: () => _showAddReviewDialog(),
+                              icon: const Icon(LucideIcons.plus, size: 16),
+                              label: const Text('Add'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.primaryDark,
+                                textStyle: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
                                 ),
-                              )
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: _reviews.length,
-                                itemBuilder: (context, index) {
-                                  final r = _reviews[index];
-                                  return Container(
-                                    width: 280,
-                                    margin: const EdgeInsets.only(right: 12),
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surface,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: AppColors.cardBorder,
-                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 120,
+                          child: _reviews.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'No reviews for this product.',
+                                    style: GoogleFonts.inter(
+                                      color: AppColors.textMuted,
                                     ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              children: List.generate(
-                                                5,
-                                                (starIndex) => Icon(
-                                                  LucideIcons.star,
-                                                  size: 14,
-                                                  color:
-                                                      starIndex <
-                                                          (r['rating'] ?? 0)
-                                                      ? const Color(0xFFF59E0B)
-                                                      : AppColors.textMuted
-                                                            .withValues(
-                                                              alpha: 0.3,
-                                                            ),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _reviews.length,
+                                  itemBuilder: (context, index) {
+                                    final r = _reviews[index];
+                                    return Container(
+                                      width: 280,
+                                      margin: const EdgeInsets.only(right: 12),
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surface,
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: AppColors.cardBorder,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Row(
+                                                children: List.generate(
+                                                  5,
+                                                  (starIndex) => Icon(
+                                                    LucideIcons.star,
+                                                    size: 14,
+                                                    color:
+                                                        starIndex <
+                                                            (r['rating'] ?? 0)
+                                                        ? const Color(
+                                                            0xFFF59E0B,
+                                                          )
+                                                        : AppColors.textMuted
+                                                              .withValues(
+                                                                alpha: 0.3,
+                                                              ),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                            const Icon(
-                                              LucideIcons.messageSquare,
-                                              size: 16,
-                                              color: AppColors.textMuted,
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          r['reviewerName'] ?? 'Anonymous',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.textPrimary,
+                                              const Icon(
+                                                LucideIcons.messageSquare,
+                                                size: 16,
+                                                color: AppColors.textMuted,
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Expanded(
-                                          child: Text(
-                                            r['comment'] ?? '',
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            r['reviewerName'] ?? 'Anonymous',
                                             style: GoogleFonts.inter(
-                                              fontSize: 12,
-                                              color: AppColors.textSecondary,
-                                              height: 1.4,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.textPrimary,
                                             ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
-                      const SizedBox(height: 32),
-                    ],
+                                          const SizedBox(height: 4),
+                                          Expanded(
+                                            child: Text(
+                                              r['comment'] ?? '',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 12,
+                                                color: AppColors.textSecondary,
+                                                height: 1.4,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          if (_isLoading)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 56,
-              left: 0,
-              right: 0,
-              child: const LinearProgressIndicator(
-                backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
-              ),
+              ],
             ),
-        ],
-      ),
+            if (_isLoading)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 56,
+                left: 0,
+                right: 0,
+                child: const LinearProgressIndicator(
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

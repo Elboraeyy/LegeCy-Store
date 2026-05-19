@@ -2,6 +2,7 @@ import BackButton from '@/components/admin/BackButton';
 import { validateAdminSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
+import { revenueOrderStatusFilter } from '@/lib/order-metrics';
 import '@/app/admin/admin.css';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +16,7 @@ export default async function TopCustomersPage() {
         by: ['userId'],
         where: {
             userId: { not: null },
-            status: { not: 'cancelled' }
+            status: revenueOrderStatusFilter
         },
         _sum: { totalPrice: true },
         _count: { id: true },

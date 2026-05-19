@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -139,7 +140,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
       await client.delete('/api/admin/auth/materials/$id');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        AppToast.snackBar(
           content: Text('Material deleted'),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
@@ -149,7 +150,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        AppToast.snackBar(
           content: Text('$e'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
@@ -251,7 +252,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                     } catch (e) {
                       if (!context.mounted) return;
                       messenger.showSnackBar(
-                        SnackBar(
+                        AppToast.snackBar(
                           content: Text('$e'),
                           backgroundColor: AppColors.error,
                         ),
@@ -560,7 +561,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '$productCount products • /${mat['slug']}',
+                                      '$productCount products - /${mat['slug']}',
                                       style: GoogleFonts.inter(
                                         fontSize: 12,
                                         color: AppColors.textMuted,

@@ -1,3 +1,5 @@
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -121,7 +123,7 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        AppToast.snackBar(
           content: Row(
             children: [
               const Icon(
@@ -147,7 +149,7 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        AppToast.snackBar(
           content: Text('Error: $e'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
@@ -165,7 +167,7 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
       await client.put(_apiPath, body: {'useCustomOrder': value});
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        AppToast.snackBar(
           content: Text(
             value
                 ? 'Custom order enabled on website'
@@ -199,7 +201,7 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
             surfaceTintColor: Colors.transparent,
             expandedHeight: 180,
             shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             ),
             leading: IconButton(
               icon: const Icon(
@@ -336,7 +338,11 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
                     ),
                     child: Row(
                       children: [
-                        const AppShimmer(width: 56, height: 56, borderRadius: 12),
+                        const AppShimmer(
+                          width: 56,
+                          height: 56,
+                          borderRadius: 12,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -348,7 +354,11 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
                             ],
                           ),
                         ),
-                        const AppShimmer(width: 20, height: 20, borderRadius: 4),
+                        const AppShimmer(
+                          width: 20,
+                          height: 20,
+                          borderRadius: 4,
+                        ),
                       ],
                     ),
                   ),
@@ -523,6 +533,8 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
                                       imageUrl != null &&
                                           imageUrl.toString().isNotEmpty
                                       ? CachedNetworkImage(
+                                          cacheManager:
+                                              AppImageCacheManager.instance,
                                           imageUrl: imageUrl.startsWith('http')
                                               ? imageUrl
                                               : '${ApiConfig.baseUrl}$imageUrl',

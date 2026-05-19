@@ -7,6 +7,7 @@ import Link from 'next/link';
 import CustomerRiskWidget from './_components/dashboard/CustomerRiskWidget';
 import BatchExpiryWidget from './_components/dashboard/BatchExpiryWidget';
 import SystemHealthWidget from './_components/dashboard/SystemHealthWidget';
+import { revenueOrderStatusFilter } from '@/lib/order-metrics';
 
 // Fetch command center stats
 async function getCommandCenterStats() {
@@ -51,8 +52,7 @@ async function getCommandCenterStats() {
             prisma.order.aggregate({
                 where: {
                     createdAt: { gte: today },
-                    // Fix: Exclude PENDING (abandoned) and other invalid statuses
-                    status: { notIn: ['CANCELLED', 'PENDING', 'REJECTED', 'FAILED'] }
+                    status: revenueOrderStatusFilter
                 },
                 _sum: { totalPrice: true }
             })
@@ -123,7 +123,7 @@ async function getExecutiveStats() {
             prisma.order.aggregate({
                 where: {
                     createdAt: { gte: monthStart },
-                    status: { in: ['Paid', 'Shipped', 'Delivered'] }
+                    status: revenueOrderStatusFilter
                 },
                 _sum: { totalPrice: true }
             }),

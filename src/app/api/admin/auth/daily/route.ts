@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { cancellationOrderStatusFilter, revenueOrderStatusFilter } from '@/lib/order-metrics';
 
 /**
  * GET /api/admin/auth/daily
@@ -39,6 +40,8 @@ export async function GET(request: NextRequest) {
 
         const where = { createdAt: { gte: startOfDay, lte: endOfDay } };
         const prevWhere = { createdAt: { gte: prevStart, lte: prevEnd } };
+        const revenueWhere = { ...where, status: revenueOrderStatusFilter };
+        const prevRevenueWhere = { ...prevWhere, status: revenueOrderStatusFilter };
 
         const [
             orders,
@@ -57,15 +60,16 @@ export async function GET(request: NextRequest) {
             shippingData,
             discountData,
             returnsCount,
+            cancelledOrders,
         ] = await Promise.all([
-            prisma.order.count({ where }),
+            prisma.order.count({ where: revenueWhere }),
             prisma.order.aggregate({
-                where: { ...where, status: { notIn: ['CANCELLED', 'REJECTED', 'FAILED'] } },
+                where: revenueWhere,
                 _sum: { totalPrice: true },
             }),
-            prisma.order.count({ where: prevWhere }),
+            prisma.order.count({ where: prevRevenueWhere }),
             prisma.order.aggregate({
-                where: { ...prevWhere, status: { notIn: ['CANCELLED', 'REJECTED', 'FAILED'] } },
+                where: prevRevenueWhere,
                 _sum: { totalPrice: true },
             }),
             prisma.order.groupBy({
@@ -75,7 +79,7 @@ export async function GET(request: NextRequest) {
             }),
             prisma.orderItem.groupBy({
                 by: ['name'],
-                where: { order: where },
+                where: { order: revenueWhere },
                 _sum: { quantity: true },
                 _count: true,
                 orderBy: { _sum: { quantity: 'desc' } },
@@ -83,17 +87,17 @@ export async function GET(request: NextRequest) {
             }),
             prisma.order.groupBy({
                 by: ['orderSource'],
-                where,
+                where: revenueWhere,
                 _count: true,
             }),
             prisma.order.groupBy({
                 by: ['paymentMethod'],
-                where,
+                where: revenueWhere,
                 _count: true,
             }),
             prisma.order.groupBy({
                 by: ['shippingCity'],
-                where: { ...where, shippingCity: { not: null } },
+                where: { ...revenueWhere, shippingCity: { not: null } },
                 _count: true,
                 orderBy: { _count: { shippingCity: 'desc' } },
                 take: 5,
@@ -114,20 +118,20 @@ export async function GET(request: NextRequest) {
                 take: 15,
             }),
             prisma.order.aggregate({
-                where: { ...where, status: { notIn: ['CANCELLED', 'REJECTED', 'FAILED'] } },
+                where: revenueWhere,
                 _avg: { totalPrice: true },
             }),
             prisma.user.count({ where: { createdAt: { gte: startOfDay, lte: endOfDay } } }),
             
             // NEW: Shipping revenue for the period
             prisma.order.aggregate({
-                where: { ...where, status: { notIn: ['CANCELLED', 'REJECTED', 'FAILED'] } },
+                where: revenueWhere,
                 _sum: { shippingCost: true }
             }),
 
             // NEW: Discount costs for the period
             prisma.order.aggregate({
-                where: { ...where, status: { notIn: ['CANCELLED', 'REJECTED', 'FAILED'] }, discountAmount: { gt: 0 } },
+                where: { ...revenueWhere, discountAmount: { gt: 0 } },
                 _sum: { discountAmount: true }
             }),
 
@@ -135,6 +139,7 @@ export async function GET(request: NextRequest) {
             prisma.returnRequest.count({
                 where
             }),
+            prisma.order.count({ where: { ...where, status: cancellationOrderStatusFilter } }),
         ]);
 
         const todayRev = revenue._sum.totalPrice?.toNumber() || 0;
@@ -164,6 +169,10 @@ export async function GET(request: NextRequest) {
             shippingRevenue: periodShipping,
             discountsGiven: periodDiscounts,
             returnsCount,
+            cancelledOrders,
+            cancellationRate: orders + cancelledOrders > 0
+                ? Math.round((cancelledOrders / (orders + cancelledOrders)) * 1000) / 10
+                : 0,
             
             statusBreakdown: ordersByStatus.map(s => ({
                 status: s.status,

@@ -1,3 +1,5 @@
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -202,7 +204,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       if (_nameController.text.trim().isEmpty ||
           _phoneController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          AppToast.snackBar(
             content: Text('Please enter full name and phone number'),
           ),
         );
@@ -211,7 +213,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       if (_selectedGovernorate == null ||
           _addressController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          AppToast.snackBar(
             content: Text(
               'Please select a governorate and enter detailed address',
             ),
@@ -224,7 +226,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       // Validate Products Step
       if (_selectedItems.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please add at least one product')),
+          AppToast.snackBar(content: Text('Please add at least one product')),
         );
         return;
       }
@@ -514,6 +516,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
               color: AppColors.shimmer,
               child: item['imageUrl'] != null
                   ? CachedNetworkImage(
+                      cacheManager: AppImageCacheManager.instance,
                       imageUrl: item['imageUrl'],
                       fit: BoxFit.cover,
                       placeholder: (context, url) =>
@@ -577,7 +580,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
                       });
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        AppToast.snackBar(
                           content: Text('Cannot exceed available stock'),
                         ),
                       );
@@ -981,7 +984,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
           _isLoadingShipping = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          AppToast.snackBar(
             content: Text(
               'Could not fetch shipping rate from server. Please check connection.',
             ),
@@ -1108,7 +1111,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to fetch customer details')),
+          AppToast.snackBar(content: Text('Failed to fetch customer details')),
         );
       }
     } finally {
@@ -1253,7 +1256,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
             }
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            AppToast.snackBar(
               content: Text('${item['name']} added to order'),
               duration: const Duration(seconds: 1),
               behavior: SnackBarBehavior.floating,
@@ -1270,7 +1273,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
         _phoneController.text.isEmpty ||
         _selectedItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        AppToast.snackBar(
           content: Text('Please fill required fields and add products'),
         ),
       );
@@ -1278,7 +1281,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
     }
     if (_selectedGovernorate == null || _addressController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        AppToast.snackBar(
           content: Text('Please select a governorate and enter an address'),
         ),
       );
@@ -1339,7 +1342,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       if (mounted) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          AppToast.snackBar(
             content: Text(
               widget.existingOrder != null
                   ? 'Order updated successfully'
@@ -1353,7 +1356,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          AppToast.snackBar(
             content: Text('Error: $e'),
             backgroundColor: AppColors.error,
           ),
@@ -1459,6 +1462,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                             color: AppColors.shimmer,
                             child: p['imageUrl'] != null
                                 ? CachedNetworkImage(
+                                    cacheManager: AppImageCacheManager.instance,
                                     imageUrl: p['imageUrl'],
                                     fit: BoxFit.cover,
                                     placeholder: (context, url) =>
@@ -1815,6 +1819,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                   color: AppColors.shimmer,
                   child: widget.product['imageUrl'] != null
                       ? CachedNetworkImage(
+                          cacheManager: AppImageCacheManager.instance,
                           imageUrl: widget.product['imageUrl'],
                           fit: BoxFit.cover,
                           placeholder: (context, url) =>
@@ -1974,7 +1979,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                       try {
                         if (_selectedVariant == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            AppToast.snackBar(
                               content: Text('Please select a variant'),
                             ),
                           );
@@ -2000,7 +2005,9 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                         widget.onAdd(item);
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error adding product: $e')),
+                          AppToast.snackBar(
+                            content: Text('Error adding product: $e'),
+                          ),
                         );
                       }
                     },

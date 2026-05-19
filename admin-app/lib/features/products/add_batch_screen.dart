@@ -1,3 +1,5 @@
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -67,7 +69,9 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
   Future<void> _fetchData() async {
     try {
       final client = ApiClient(token: context.read<AuthProvider>().token);
-      final productsRes = await client.get('${ApiConfig.authProductsEndpoint}?limit=200');
+      final productsRes = await client.get(
+        '${ApiConfig.authProductsEndpoint}?limit=200',
+      );
       final optionsRes = await client.get(
         '${ApiConfig.authProductsEndpoint}/options',
       );
@@ -177,7 +181,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
 
   void _showSnack(String msg, {bool isSuccess = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      AppToast.snackBar(
         content: Text(
           msg,
           style: GoogleFonts.inter(fontWeight: FontWeight.w600),
@@ -196,71 +200,82 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark),
-          onPressed: _prevStep,
-        ),
-        title: Text(
-          'New Product Batch',
-          style: GoogleFonts.playfairDisplay(
-            color: AppColors.primaryDark,
-            fontWeight: FontWeight.w700,
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(
+              LucideIcons.arrowLeft,
+              color: AppColors.primaryDark,
+            ),
+            onPressed: _prevStep,
           ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4),
-          child: LinearProgressIndicator(
-            value: (_currentStep + 1) / _totalSteps,
-            backgroundColor: AppColors.cardBorder,
-            valueColor: const AlwaysStoppedAnimation<Color>(
-              AppColors.primaryDark,
+          title: Text(
+            'New Product Batch',
+            style: GoogleFonts.playfairDisplay(
+              color: AppColors.primaryDark,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4),
+            child: LinearProgressIndicator(
+              value: (_currentStep + 1) / _totalSteps,
+              backgroundColor: AppColors.cardBorder,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.primaryDark,
+              ),
             ),
           ),
         ),
-      ),
-      body: _isLoadingData
-          ? SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const AppShimmer(width: 48, height: 48, shape: BoxShape.circle),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            AppShimmer(width: 150, height: 20),
-                            SizedBox(height: 8),
-                            AppShimmer(width: 250, height: 14),
-                          ],
+        body: _isLoadingData
+            ? SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const AppShimmer(
+                          width: 48,
+                          height: 48,
+                          shape: BoxShape.circle,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              AppShimmer(width: 150, height: 20),
+                              SizedBox(height: 8),
+                              AppShimmer(width: 250, height: 14),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    const AppShimmer(width: 120, height: 16),
+                    const SizedBox(height: 8),
+                    const AppShimmer(
+                      width: double.infinity,
+                      height: 56,
+                      borderRadius: 16,
+                    ),
+                  ],
+                ),
+              )
+            : Column(
+                children: [
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [_buildStep1(), _buildStep2(), _buildStep3()],
+                    ),
                   ),
-                  const SizedBox(height: 32),
-                  const AppShimmer(width: 120, height: 16),
-                  const SizedBox(height: 8),
-                  const AppShimmer(width: double.infinity, height: 56, borderRadius: 16),
+                  _buildBottomBar(),
                 ],
               ),
-            )
-          : Column(
-              children: [
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: [_buildStep1(), _buildStep2(), _buildStep3()],
-                  ),
-                ),
-                _buildBottomBar(),
-              ],
-            ),
       ),
     );
   }
@@ -444,6 +459,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: CachedNetworkImage(
+                                  cacheManager: AppImageCacheManager.instance,
                                   imageUrl: p['imageUrl'],
                                   width: 40,
                                   height: 40,
@@ -588,13 +604,21 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
-                icon: const Icon(LucideIcons.chevronDown, color: AppColors.textMuted, size: 20),
+                icon: const Icon(
+                  LucideIcons.chevronDown,
+                  color: AppColors.textMuted,
+                  size: 20,
+                ),
                 dropdownColor: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 elevation: 4,
                 hint: Row(
                   children: [
-                    const Icon(LucideIcons.user, color: AppColors.textMuted, size: 20),
+                    const Icon(
+                      LucideIcons.user,
+                      color: AppColors.textMuted,
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Text(
                       'Select Supplier',
@@ -615,10 +639,16 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: AppColors.primaryDark.withValues(alpha: 0.1),
+                                color: AppColors.primaryDark.withValues(
+                                  alpha: 0.1,
+                                ),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(LucideIcons.user, size: 14, color: AppColors.primaryDark),
+                              child: const Icon(
+                                LucideIcons.user,
+                                size: 14,
+                                color: AppColors.primaryDark,
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Text(

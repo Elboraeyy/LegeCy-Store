@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -128,7 +129,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        AppToast.snackBar(
           content: Text('Category deleted'),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
@@ -138,7 +139,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        AppToast.snackBar(
           content: Text('Error: $e'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
@@ -704,7 +705,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             Navigator.pop(ctx);
                             _loadCategories();
                             messenger.showSnackBar(
-                              SnackBar(
+                              AppToast.snackBar(
                                 content: Text(
                                   category != null
                                       ? 'Category updated'
@@ -717,7 +718,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           } catch (e) {
                             setSheetState(() => isSaving = false);
                             messenger.showSnackBar(
-                              SnackBar(
+                              AppToast.snackBar(
                                 content: Text('Error: $e'),
                                 backgroundColor: AppColors.error,
                                 behavior: SnackBarBehavior.floating,

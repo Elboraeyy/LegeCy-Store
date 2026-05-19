@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { OrderStatus } from '@/lib/orderStatus';
 import { requireAdminPermission } from '@/lib/auth/guards';
 import { AdminPermissions } from '@/lib/auth/permissions';
+import { revenueOrderStatusFilter } from '@/lib/order-metrics';
 
 /**
  * Fetch orders for the admin list.
@@ -119,14 +120,14 @@ export async function fetchOrderStats() {
         monthlyRevenue,
         recentOrders
     ] = await Promise.all([
-        prisma.order.count({ where: { status: { not: 'cancelled' } } }),
+        prisma.order.count({ where: { status: revenueOrderStatusFilter } }),
         prisma.order.count({ where: { status: 'pending' } }),
         prisma.order.count({ where: { status: 'delivered' } }),
         prisma.order.aggregate({
             _sum: { totalPrice: true, shippingCost: true },
             where: {
                 createdAt: { gte: firstDayOfMonth },
-                status: { notIn: ['cancelled'] }
+                status: revenueOrderStatusFilter
             }
         }),
         prisma.order.findMany({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { revenueOrderStatusFilter } from '@/lib/order-metrics';
 
 /**
  * GET /api/admin/auth/dashboard
@@ -56,23 +57,23 @@ export async function GET(request: NextRequest) {
         ] = await Promise.all([
             // Today's order count
             prisma.order.count({
-                where: { createdAt: { gte: today } },
+                where: { createdAt: { gte: today }, status: revenueOrderStatusFilter },
             }),
 
             // Today's revenue
             prisma.order.aggregate({
-                where: { createdAt: { gte: today }, status: { notIn: ['cancelled', 'returned'] } },
+                where: { createdAt: { gte: today }, status: revenueOrderStatusFilter },
                 _sum: { totalPrice: true },
             }),
 
             // Yesterday's order count (for comparison)
             prisma.order.count({
-                where: { createdAt: { gte: yesterday, lt: today } },
+                where: { createdAt: { gte: yesterday, lt: today }, status: revenueOrderStatusFilter },
             }),
 
             // Yesterday's revenue (for comparison)
             prisma.order.aggregate({
-                where: { createdAt: { gte: yesterday, lt: today }, status: { notIn: ['cancelled', 'returned'] } },
+                where: { createdAt: { gte: yesterday, lt: today }, status: revenueOrderStatusFilter },
                 _sum: { totalPrice: true },
             }),
 
@@ -116,13 +117,13 @@ export async function GET(request: NextRequest) {
 
             // Monthly revenue
             prisma.order.aggregate({
-                where: { createdAt: { gte: thirtyDaysAgo }, status: { notIn: ['cancelled', 'returned'] } },
+                where: { createdAt: { gte: thirtyDaysAgo }, status: revenueOrderStatusFilter },
                 _sum: { totalPrice: true },
             }),
 
             // Total orders this month
             prisma.order.count({
-                where: { createdAt: { gte: thirtyDaysAgo } },
+                where: { createdAt: { gte: thirtyDaysAgo }, status: revenueOrderStatusFilter },
             }),
 
             // Recent 8 orders
@@ -149,7 +150,7 @@ export async function GET(request: NextRequest) {
             prisma.orderItem.groupBy({
                 by: ['productId', 'name'],
                 where: {
-                    order: { createdAt: { gte: thirtyDaysAgo }, status: { notIn: ['cancelled', 'returned'] } },
+                    order: { createdAt: { gte: thirtyDaysAgo }, status: revenueOrderStatusFilter },
                 },
                 _sum: { quantity: true },
                 _count: true,
@@ -167,7 +168,7 @@ export async function GET(request: NextRequest) {
             prisma.order.findMany({
                 where: {
                     createdAt: { gte: sevenDaysAgo },
-                    status: { notIn: ['cancelled', 'returned'] },
+                    status: revenueOrderStatusFilter,
                 },
                 select: {
                     totalPrice: true,

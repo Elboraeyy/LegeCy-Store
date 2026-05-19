@@ -1,3 +1,5 @@
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -389,7 +391,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   void _snack(String m, {bool ok = false}) =>
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        AppToast.snackBar(
           content: Text(m, style: const TextStyle(color: Colors.white)),
           backgroundColor: ok ? AppColors.success : AppColors.error,
           behavior: SnackBarBehavior.floating,
@@ -434,17 +436,41 @@ class _AddProductScreenState extends State<AddProductScreen> {
             children: [
               Row(
                 children: [
-                  Expanded(child: AppShimmer(width: double.infinity, height: 56, borderRadius: 16)),
+                  Expanded(
+                    child: AppShimmer(
+                      width: double.infinity,
+                      height: 56,
+                      borderRadius: 16,
+                    ),
+                  ),
                   SizedBox(width: 12),
-                  Expanded(child: AppShimmer(width: double.infinity, height: 56, borderRadius: 16)),
+                  Expanded(
+                    child: AppShimmer(
+                      width: double.infinity,
+                      height: 56,
+                      borderRadius: 16,
+                    ),
+                  ),
                 ],
               ),
               SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: AppShimmer(width: double.infinity, height: 56, borderRadius: 16)),
+                  Expanded(
+                    child: AppShimmer(
+                      width: double.infinity,
+                      height: 56,
+                      borderRadius: 16,
+                    ),
+                  ),
                   SizedBox(width: 12),
-                  Expanded(child: AppShimmer(width: double.infinity, height: 56, borderRadius: 16)),
+                  Expanded(
+                    child: AppShimmer(
+                      width: double.infinity,
+                      height: 56,
+                      borderRadius: 16,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -922,6 +948,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(14),
                     child: CachedNetworkImage(
+                      cacheManager: AppImageCacheManager.instance,
                       imageUrl: _imageUrl!,
                       fit: BoxFit.cover,
                     ),
@@ -1061,6 +1088,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: CachedNetworkImage(
+                            cacheManager: AppImageCacheManager.instance,
                             imageUrl: _gallery[i],
                             fit: BoxFit.cover,
                           ),
@@ -1177,6 +1205,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: CachedNetworkImage(
+                                  cacheManager: AppImageCacheManager.instance,
                                   imageUrl: p['image'],
                                   width: 40,
                                   height: 40,
@@ -1380,6 +1409,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(6),
                                       child: CachedNetworkImage(
+                                        cacheManager:
+                                            AppImageCacheManager.instance,
                                         imageUrl: imgUrl.toString(),
                                         width: 40,
                                         height: 40,

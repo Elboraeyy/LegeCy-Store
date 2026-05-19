@@ -1,3 +1,5 @@
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -78,7 +80,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       await _loadOrder();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          AppToast.snackBar(
             content: Text('Status updated to $newStatus'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
@@ -91,7 +93,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          AppToast.snackBar(
             content: Text('Failed: $e'),
             backgroundColor: AppColors.error,
           ),
@@ -641,6 +643,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           (item['imageUrl'] ?? item['product']?['imageUrl']) !=
                               null
                           ? CachedNetworkImage(
+                              cacheManager: AppImageCacheManager.instance,
                               imageUrl:
                                   item['imageUrl'] ??
                                   item['product']['imageUrl'],
@@ -1199,7 +1202,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                               ScaffoldMessenger.of(
                                                 context,
                                               ).showSnackBar(
-                                                SnackBar(
+                                                AppToast.snackBar(
                                                   content: Text('Failed: $e'),
                                                   backgroundColor:
                                                       AppColors.error,
@@ -1302,7 +1305,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 } catch (e) {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
+                                      AppToast.snackBar(
                                         content: Text('Failed: $e'),
                                         backgroundColor: AppColors.error,
                                       ),
@@ -1501,7 +1504,7 @@ Thanks for shopping with us! 💚''';
         await launchUrl(Uri.parse(url), mode: LaunchMode.platformDefault);
       } catch (e2) {
         messenger.showSnackBar(
-          const SnackBar(
+          AppToast.snackBar(
             content: Text('WhatsApp is not installed or supported.'),
             backgroundColor: AppColors.error,
           ),
@@ -1662,14 +1665,14 @@ Thanks for shopping with us! 💚''';
           if (hasAccess) {
             await Gal.putImage(file.path, album: 'LegaCy');
             messenger.showSnackBar(
-              const SnackBar(
+              AppToast.snackBar(
                 content: Text('Image saved to gallery successfully!'),
                 backgroundColor: AppColors.success,
               ),
             );
           } else {
             messenger.showSnackBar(
-              const SnackBar(
+              AppToast.snackBar(
                 content: Text('Storage permission denied.'),
                 backgroundColor: AppColors.error,
               ),
@@ -1690,7 +1693,10 @@ Thanks for shopping with us! 💚''';
       }
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+        AppToast.snackBar(
+          content: Text('Failed: $e'),
+          backgroundColor: AppColors.error,
+        ),
       );
     }
   }
@@ -1782,7 +1788,10 @@ Thanks for shopping with us! 💚''';
       final imageUrl = item['product']?['imageUrl'] ?? item['imageUrl'];
       if (imageUrl != null && imageUrl.toString().startsWith('http')) {
         try {
-          itemImages[i] = await networkImage(imageUrl.toString());
+          final imageFile = await AppImageCacheManager.instance.getSingleFile(
+            imageUrl.toString(),
+          );
+          itemImages[i] = pw.MemoryImage(await imageFile.readAsBytes());
         } catch (_) {}
       }
     }

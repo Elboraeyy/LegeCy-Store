@@ -1,3 +1,5 @@
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,6 +17,7 @@ import 'package:admin_app/core/config/api_config.dart';
 import '../storefront/screens/categories_screen.dart';
 import '../storefront/screens/brands_screen.dart';
 import '../storefront/screens/materials_screen.dart';
+import '../storefront/screens/merchandising_screen.dart';
 import '../../core/widgets/app_shimmer.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -315,7 +318,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   void _showSnack(String msg, {bool isSuccess = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      AppToast.snackBar(
         content: Text(msg, style: const TextStyle(color: Colors.white)),
         backgroundColor: isSuccess ? AppColors.success : AppColors.error,
         behavior: SnackBarBehavior.floating,
@@ -380,220 +383,220 @@ class _ProductsScreenState extends State<ProductsScreen>
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: AppColors.surface,
-              surfaceTintColor: Colors.transparent,
-              expandedHeight: _selectionMode ? 60 : 130,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(20),
-                ),
-              ),
-              leading: _selectionMode
-                  ? IconButton(
-                      icon: const Icon(
-                        LucideIcons.x,
-                        color: AppColors.primaryDark,
-                      ),
-                      onPressed: _exitSelection,
-                    )
-                  : null,
-              title: _selectionMode
-                  ? Text(
-                      '${_selectedIds.length} selected',
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryDark,
-                      ),
-                    )
-                  : Text(
-                      'Catalog',
-                      style: GoogleFonts.playfairDisplay(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryDark,
-                      ),
-                    ),
-              actions: _selectionMode
-                  ? [
-                      IconButton(
-                        icon: Icon(
-                          _selectedIds.length == _products.length
-                              ? LucideIcons.checkSquare
-                              : LucideIcons.square,
-                          color: AppColors.primaryDark,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            if (_selectedIds.length == _products.length) {
-                              _selectedIds.clear();
-                              _selectionMode = false;
-                            } else {
-                              _selectedIds.addAll(
-                                _products.map((p) => p['id'].toString()),
-                              );
-                            }
-                          });
-                        },
-                      ),
-                      PopupMenuButton<String>(
-                        icon: const Icon(
-                          LucideIcons.moreVertical,
-                          color: AppColors.primaryDark,
-                        ),
-                        onSelected: (v) => v == 'delete'
-                            ? _bulkAction('delete')
-                            : _bulkAction('status', status: v),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        itemBuilder: (_) => [
-                          PopupMenuItem(
-                            value: 'active',
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.success,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                const Text('Set Active'),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'draft',
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.warning,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                const Text('Set Draft'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuDivider(),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  LucideIcons.trash2,
-                                  size: 16,
-                                  color: Colors.red,
-                                ),
-                                SizedBox(width: 10),
-                                Text(
-                                  'Delete',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ]
-                  : [
-                      if (_tabController.index == 0)
-                        IconButton(
-                          icon: const Icon(
-                            LucideIcons.checkSquare,
-                            size: 20,
-                            color: AppColors.primaryDark,
-                          ),
-                          onPressed: () =>
-                              setState(() => _selectionMode = true),
-                        ),
-                      const SizedBox(width: 8),
-                    ],
-              bottom: _selectionMode
-                  ? null
-                  : PreferredSize(
-                      preferredSize: const Size.fromHeight(60),
-                      child: Container(
-                        height: 50,
-                        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.cardBorder),
-                        ),
-                        child: TabBar(
-                          controller: _tabController,
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          dividerColor: Colors.transparent,
-                          indicator: BoxDecoration(
-                            color: AppColors.primaryDark,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          labelColor: Colors.white,
-                          unselectedLabelColor: AppColors.textMuted,
-                          labelStyle: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          unselectedLabelStyle: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          tabs: const [
-                            Tab(text: 'Products'),
-                            Tab(text: 'Organize'),
-                          ],
-                        ),
-                      ),
-                    ),
-            ),
-          ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            // Tab 1: Products
-            _buildProductsTab(),
-            // Tab 2: Storefront
-            _buildStorefrontTab(),
-          ],
-        ),
-      ),
-      floatingActionButton: _selectionMode || _tabController.index != 0
-          ? null
-          : Padding(
-              padding: const EdgeInsets.only(bottom: 90),
-              child: FloatingActionButton.extended(
-                onPressed: _showAddOptions,
-                backgroundColor: AppColors.primaryDark,
-                foregroundColor: Colors.white,
-                elevation: 4,
-                icon: const Icon(LucideIcons.plus, size: 20),
-                label: Text(
-                  'New Product',
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                pinned: true,
+                backgroundColor: AppColors.surface,
+                surfaceTintColor: Colors.transparent,
+                expandedHeight: _selectionMode ? 60 : 130,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(20),
                   ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                leading: _selectionMode
+                    ? IconButton(
+                        icon: const Icon(
+                          LucideIcons.x,
+                          color: AppColors.primaryDark,
+                        ),
+                        onPressed: _exitSelection,
+                      )
+                    : null,
+                title: _selectionMode
+                    ? Text(
+                        '${_selectedIds.length} selected',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryDark,
+                        ),
+                      )
+                    : Text(
+                        'Catalog',
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+                actions: _selectionMode
+                    ? [
+                        IconButton(
+                          icon: Icon(
+                            _selectedIds.length == _products.length
+                                ? LucideIcons.checkSquare
+                                : LucideIcons.square,
+                            color: AppColors.primaryDark,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              if (_selectedIds.length == _products.length) {
+                                _selectedIds.clear();
+                                _selectionMode = false;
+                              } else {
+                                _selectedIds.addAll(
+                                  _products.map((p) => p['id'].toString()),
+                                );
+                              }
+                            });
+                          },
+                        ),
+                        PopupMenuButton<String>(
+                          icon: const Icon(
+                            LucideIcons.moreVertical,
+                            color: AppColors.primaryDark,
+                          ),
+                          onSelected: (v) => v == 'delete'
+                              ? _bulkAction('delete')
+                              : _bulkAction('status', status: v),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          itemBuilder: (_) => [
+                            PopupMenuItem(
+                              value: 'active',
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.success,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Text('Set Active'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'draft',
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.warning,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Text('Set Draft'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    LucideIcons.trash2,
+                                    size: 16,
+                                    color: Colors.red,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Delete',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ]
+                    : [
+                        if (_tabController.index == 0)
+                          IconButton(
+                            icon: const Icon(
+                              LucideIcons.checkSquare,
+                              size: 20,
+                              color: AppColors.primaryDark,
+                            ),
+                            onPressed: () =>
+                                setState(() => _selectionMode = true),
+                          ),
+                        const SizedBox(width: 8),
+                      ],
+                bottom: _selectionMode
+                    ? null
+                    : PreferredSize(
+                        preferredSize: const Size.fromHeight(60),
+                        child: Container(
+                          height: 50,
+                          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.cardBorder),
+                          ),
+                          child: TabBar(
+                            controller: _tabController,
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            dividerColor: Colors.transparent,
+                            indicator: BoxDecoration(
+                              color: AppColors.primaryDark,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            labelColor: Colors.white,
+                            unselectedLabelColor: AppColors.textMuted,
+                            labelStyle: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            unselectedLabelStyle: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            tabs: const [
+                              Tab(text: 'Products'),
+                              Tab(text: 'Organize'),
+                            ],
+                          ),
+                        ),
+                      ),
+              ),
+            ];
+          },
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              // Tab 1: Products
+              _buildProductsTab(),
+              // Tab 2: Storefront
+              _buildStorefrontTab(),
+            ],
+          ),
+        ),
+        floatingActionButton: _selectionMode || _tabController.index != 0
+            ? null
+            : Padding(
+                padding: const EdgeInsets.only(bottom: 90),
+                child: FloatingActionButton.extended(
+                  onPressed: _showAddOptions,
+                  backgroundColor: AppColors.primaryDark,
+                  foregroundColor: Colors.white,
+                  elevation: 4,
+                  icon: const Icon(LucideIcons.plus, size: 20),
+                  label: Text(
+                    'New Product',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
-            ),
-        ),
+      ),
     );
   }
 
@@ -952,6 +955,18 @@ class _ProductsScreenState extends State<ProductsScreen>
             MaterialPageRoute(builder: (_) => const MaterialsScreen()),
           ),
         ),
+        const SizedBox(height: 16),
+
+        _buildStorefrontCard(
+          title: 'Home & Shop Products',
+          subtitle: 'Control featured, new arrivals, and shop ordering',
+          icon: LucideIcons.slidersHorizontal,
+          color: AppColors.primaryDark,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MerchandisingScreen()),
+          ),
+        ),
       ],
     );
   }
@@ -1214,14 +1229,22 @@ class _ProductsScreenState extends State<ProductsScreen>
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String?>(
                                       isExpanded: true,
-                                      icon: const Icon(LucideIcons.chevronDown, color: AppColors.textMuted, size: 20),
+                                      icon: const Icon(
+                                        LucideIcons.chevronDown,
+                                        color: AppColors.textMuted,
+                                        size: 20,
+                                      ),
                                       dropdownColor: AppColors.surface,
                                       borderRadius: BorderRadius.circular(16),
                                       elevation: 4,
                                       value: _categoryFilter,
                                       hint: Row(
                                         children: [
-                                          const Icon(LucideIcons.layoutGrid, color: AppColors.textMuted, size: 20),
+                                          const Icon(
+                                            LucideIcons.layoutGrid,
+                                            color: AppColors.textMuted,
+                                            size: 20,
+                                          ),
                                           const SizedBox(width: 12),
                                           Text(
                                             'All Categories',
@@ -1237,7 +1260,11 @@ class _ProductsScreenState extends State<ProductsScreen>
                                           value: null,
                                           child: Row(
                                             children: [
-                                              const Icon(LucideIcons.layoutGrid, color: AppColors.textMuted, size: 18),
+                                              const Icon(
+                                                LucideIcons.layoutGrid,
+                                                color: AppColors.textMuted,
+                                                size: 18,
+                                              ),
                                               const SizedBox(width: 12),
                                               Text(
                                                 'All Categories',
@@ -1256,12 +1283,20 @@ class _ProductsScreenState extends State<ProductsScreen>
                                             child: Row(
                                               children: [
                                                 Container(
-                                                  padding: const EdgeInsets.all(6),
+                                                  padding: const EdgeInsets.all(
+                                                    6,
+                                                  ),
                                                   decoration: BoxDecoration(
-                                                    color: AppColors.primaryDark.withValues(alpha: 0.1),
+                                                    color: AppColors.primaryDark
+                                                        .withValues(alpha: 0.1),
                                                     shape: BoxShape.circle,
                                                   ),
-                                                  child: const Icon(LucideIcons.layoutGrid, size: 14, color: AppColors.primaryDark),
+                                                  child: const Icon(
+                                                    LucideIcons.layoutGrid,
+                                                    size: 14,
+                                                    color:
+                                                        AppColors.primaryDark,
+                                                  ),
                                                 ),
                                                 const SizedBox(width: 12),
                                                 Text(
@@ -1269,7 +1304,8 @@ class _ProductsScreenState extends State<ProductsScreen>
                                                   style: GoogleFonts.inter(
                                                     fontSize: 15,
                                                     fontWeight: FontWeight.w600,
-                                                    color: AppColors.primaryDark,
+                                                    color:
+                                                        AppColors.primaryDark,
                                                   ),
                                                 ),
                                               ],
@@ -1312,14 +1348,22 @@ class _ProductsScreenState extends State<ProductsScreen>
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String?>(
                                       isExpanded: true,
-                                      icon: const Icon(LucideIcons.chevronDown, color: AppColors.textMuted, size: 20),
+                                      icon: const Icon(
+                                        LucideIcons.chevronDown,
+                                        color: AppColors.textMuted,
+                                        size: 20,
+                                      ),
                                       dropdownColor: AppColors.surface,
                                       borderRadius: BorderRadius.circular(16),
                                       elevation: 4,
                                       value: _brandFilter,
                                       hint: Row(
                                         children: [
-                                          const Icon(LucideIcons.tag, color: AppColors.textMuted, size: 20),
+                                          const Icon(
+                                            LucideIcons.tag,
+                                            color: AppColors.textMuted,
+                                            size: 20,
+                                          ),
                                           const SizedBox(width: 12),
                                           Text(
                                             'All Brands',
@@ -1335,7 +1379,11 @@ class _ProductsScreenState extends State<ProductsScreen>
                                           value: null,
                                           child: Row(
                                             children: [
-                                              const Icon(LucideIcons.tag, color: AppColors.textMuted, size: 18),
+                                              const Icon(
+                                                LucideIcons.tag,
+                                                color: AppColors.textMuted,
+                                                size: 18,
+                                              ),
                                               const SizedBox(width: 12),
                                               Text(
                                                 'All Brands',
@@ -1354,12 +1402,20 @@ class _ProductsScreenState extends State<ProductsScreen>
                                             child: Row(
                                               children: [
                                                 Container(
-                                                  padding: const EdgeInsets.all(6),
+                                                  padding: const EdgeInsets.all(
+                                                    6,
+                                                  ),
                                                   decoration: BoxDecoration(
-                                                    color: AppColors.primaryDark.withValues(alpha: 0.1),
+                                                    color: AppColors.primaryDark
+                                                        .withValues(alpha: 0.1),
                                                     shape: BoxShape.circle,
                                                   ),
-                                                  child: const Icon(LucideIcons.tag, size: 14, color: AppColors.primaryDark),
+                                                  child: const Icon(
+                                                    LucideIcons.tag,
+                                                    size: 14,
+                                                    color:
+                                                        AppColors.primaryDark,
+                                                  ),
                                                 ),
                                                 const SizedBox(width: 12),
                                                 Text(
@@ -1367,7 +1423,8 @@ class _ProductsScreenState extends State<ProductsScreen>
                                                   style: GoogleFonts.inter(
                                                     fontSize: 15,
                                                     fontWeight: FontWeight.w600,
-                                                    color: AppColors.primaryDark,
+                                                    color:
+                                                        AppColors.primaryDark,
                                                   ),
                                                 ),
                                               ],
@@ -1409,14 +1466,22 @@ class _ProductsScreenState extends State<ProductsScreen>
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String?>(
                                       isExpanded: true,
-                                      icon: const Icon(LucideIcons.chevronDown, color: AppColors.textMuted, size: 20),
+                                      icon: const Icon(
+                                        LucideIcons.chevronDown,
+                                        color: AppColors.textMuted,
+                                        size: 20,
+                                      ),
                                       dropdownColor: AppColors.surface,
                                       borderRadius: BorderRadius.circular(16),
                                       elevation: 4,
                                       value: _materialFilter,
                                       hint: Row(
                                         children: [
-                                          const Icon(LucideIcons.layers, color: AppColors.textMuted, size: 20),
+                                          const Icon(
+                                            LucideIcons.layers,
+                                            color: AppColors.textMuted,
+                                            size: 20,
+                                          ),
                                           const SizedBox(width: 12),
                                           Text(
                                             'All Materials',
@@ -1432,7 +1497,11 @@ class _ProductsScreenState extends State<ProductsScreen>
                                           value: null,
                                           child: Row(
                                             children: [
-                                              const Icon(LucideIcons.layers, color: AppColors.textMuted, size: 18),
+                                              const Icon(
+                                                LucideIcons.layers,
+                                                color: AppColors.textMuted,
+                                                size: 18,
+                                              ),
                                               const SizedBox(width: 12),
                                               Text(
                                                 'All Materials',
@@ -1451,12 +1520,20 @@ class _ProductsScreenState extends State<ProductsScreen>
                                             child: Row(
                                               children: [
                                                 Container(
-                                                  padding: const EdgeInsets.all(6),
+                                                  padding: const EdgeInsets.all(
+                                                    6,
+                                                  ),
                                                   decoration: BoxDecoration(
-                                                    color: AppColors.primaryDark.withValues(alpha: 0.1),
+                                                    color: AppColors.primaryDark
+                                                        .withValues(alpha: 0.1),
                                                     shape: BoxShape.circle,
                                                   ),
-                                                  child: const Icon(LucideIcons.layers, size: 14, color: AppColors.primaryDark),
+                                                  child: const Icon(
+                                                    LucideIcons.layers,
+                                                    size: 14,
+                                                    color:
+                                                        AppColors.primaryDark,
+                                                  ),
                                                 ),
                                                 const SizedBox(width: 12),
                                                 Text(
@@ -1464,7 +1541,8 @@ class _ProductsScreenState extends State<ProductsScreen>
                                                   style: GoogleFonts.inter(
                                                     fontSize: 15,
                                                     fontWeight: FontWeight.w600,
-                                                    color: AppColors.primaryDark,
+                                                    color:
+                                                        AppColors.primaryDark,
                                                   ),
                                                 ),
                                               ],
@@ -1932,6 +2010,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                       children: [
                         product['imageUrl'] != null
                             ? CachedNetworkImage(
+                                cacheManager: AppImageCacheManager.instance,
                                 imageUrl: product['imageUrl'],
                                 fit: BoxFit.cover,
                                 placeholder: (_, _) =>

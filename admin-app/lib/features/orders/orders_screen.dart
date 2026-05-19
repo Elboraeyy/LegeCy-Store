@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -673,7 +674,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          AppToast.snackBar(
             content: Text('Order status updated successfully'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
@@ -686,7 +687,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update status: $e'), backgroundColor: AppColors.error),
+          AppToast.snackBar(content: Text('Failed to update status: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -787,7 +788,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                         onPressed: () {
                           if (tempStart != null && tempEnd != null && tempEnd!.isBefore(tempStart!)) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('End date must be after start date.'), backgroundColor: AppColors.error),
+                              AppToast.snackBar(content: Text('End date must be after start date.'), backgroundColor: AppColors.error),
                             );
                             return;
                           }
@@ -868,7 +869,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     final hasDifferentStatus = selectedOrders.any((o) => (o['status'] ?? '').toString().toLowerCase() != firstStatus);
 
     if (hasDifferentStatus) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
         content: Text('All selected orders must have the same status to be updated together.'),
         backgroundColor: AppColors.error,
       ));
@@ -877,7 +878,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
     final allowed = OrderConstants.allowedTransitions[firstStatus] ?? [];
     if (allowed.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
         content: Text('No further status updates are allowed for these orders.'),
         backgroundColor: AppColors.error,
       ));
@@ -958,7 +959,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         'status': newStatus,
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Orders updated successfully'), backgroundColor: AppColors.success));
+        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Orders updated successfully'), backgroundColor: AppColors.success));
         setState(() {
           _isSelectionMode = false;
           _selectedOrderIds.clear();
@@ -968,7 +969,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
       }
     }
   }

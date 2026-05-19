@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import prisma from '@/lib/prisma';
 import { subDays, format } from 'date-fns';
+import { revenueOrderStatusFilter } from '@/lib/order-metrics';
 
 export async function GET() {
   try {
@@ -14,7 +15,7 @@ export async function GET() {
     const orders = await prisma.order.findMany({
       where: {
         createdAt: { gte: startDate },
-        status: { not: 'cancelled' } // Exclude cancelled
+        status: revenueOrderStatusFilter
       },
       select: {
         createdAt: true,

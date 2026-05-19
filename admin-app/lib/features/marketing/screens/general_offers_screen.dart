@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -42,7 +43,7 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
       _load();
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -70,11 +71,11 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
     setState(() => _isLoading = true);
     try {
       await _client.delete('/api/admin/auth/offers/$id');
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Offer deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Offer deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       _load();
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -351,7 +352,7 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                         child: ElevatedButton(
                           onPressed: () async {
                             if (nameCtrl.text.isEmpty || valueCtrl.text.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name and value are required'), behavior: SnackBarBehavior.floating));
+                              ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Name and value are required'), behavior: SnackBarBehavior.floating));
                               return;
                             }
                             Navigator.pop(ctx);
@@ -375,11 +376,11 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                               } else {
                                 await _client.post('/api/admin/auth/offers', body: body);
                               }
-                              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isEdit ? 'Offer updated' : 'Offer created'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+                              if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text(isEdit ? 'Offer updated' : 'Offer created'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
                               _load();
                             } catch (e) {
                               if (mounted) setState(() => _isLoading = false);
-                              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+                              if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
                             }
                           },
                           style: ElevatedButton.styleFrom(backgroundColor: _accent, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),

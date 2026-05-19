@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -88,7 +89,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
     final description = _descriptionController.text.trim();
     if (title.isEmpty || _selectedDeadline == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        AppToast.snackBar(
           content: Text('Please enter title and deadline'),
           backgroundColor: AppColors.error,
         ),
@@ -105,7 +106,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          AppToast.snackBar(
             content: Text('Error: $e'),
             backgroundColor: AppColors.error,
           ),

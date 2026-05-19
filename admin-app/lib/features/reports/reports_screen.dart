@@ -28,7 +28,7 @@ class ReportsScreen extends StatelessWidget {
             surfaceTintColor: Colors.transparent,
             expandedHeight: 110,
             shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             ),
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.only(left: 20, bottom: 20),
@@ -71,8 +71,10 @@ class ReportsScreen extends StatelessWidget {
                   subtitle: 'Revenue trends, KPIs, charts & deep insights',
                   gradient: const [Color(0xFF12403C), Color(0xFF1A5C56)],
                   iconBg: AppColors.accent,
-                  onTap: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const StatisticsScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const StatisticsScreen()),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -84,8 +86,12 @@ class ReportsScreen extends StatelessWidget {
                         icon: LucideIcons.calendarDays,
                         title: 'Daily\nReport',
                         color: const Color(0xFF0EA5E9),
-                        onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const DailyReportScreen())),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const DailyReportScreen(),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -94,8 +100,12 @@ class ReportsScreen extends StatelessWidget {
                         icon: LucideIcons.wallet,
                         title: 'Finance\nOverview',
                         color: const Color(0xFF10B981),
-                        onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const FinanceScreen())),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const FinanceScreen(),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -108,8 +118,12 @@ class ReportsScreen extends StatelessWidget {
                         icon: LucideIcons.users,
                         title: 'Partners &\nInvestors',
                         color: const Color(0xFF8B5CF6),
-                        onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const PartnersScreen())),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PartnersScreen(),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -118,8 +132,12 @@ class ReportsScreen extends StatelessWidget {
                         icon: LucideIcons.heart,
                         title: 'Customers &\nLoyalty',
                         color: const Color(0xFFE11D48),
-                        onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const CustomersScreen())),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CustomersScreen(),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -191,17 +209,23 @@ class _HeroReportCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  )),
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.white70,
-                    height: 1.3,
-                  )),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.white70,
+                      height: 1.3,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -211,7 +235,11 @@ class _HeroReportCard extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(LucideIcons.arrowRight, size: 18, color: Colors.white),
+              child: const Icon(
+                LucideIcons.arrowRight,
+                size: 18,
+                color: Colors.white,
+              ),
             ),
           ],
         ),
@@ -264,16 +292,26 @@ class _CompactReportCard extends StatelessWidget {
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 14),
-            Text(title, style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-              height: 1.3,
-            )),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+                height: 1.3,
+              ),
+            ),
             const SizedBox(height: 6),
             Row(
               children: [
-                Text('View', style: GoogleFonts.inter(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+                Text(
+                  'View',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(width: 4),
                 Icon(LucideIcons.arrowRight, size: 12, color: color),
               ],
@@ -306,7 +344,11 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       final data = await client.get('/api/admin/auth/dashboard');
-      if (mounted) setState(() { _stats = data; _loading = false; });
+      if (mounted)
+        setState(() {
+          _stats = data;
+          _loading = false;
+        });
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
@@ -317,9 +359,15 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('QUICK OVERVIEW',
-            style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600,
-                color: AppColors.textMuted, letterSpacing: 1.5)),
+        Text(
+          'QUICK OVERVIEW',
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textMuted,
+            letterSpacing: 1.5,
+          ),
+        ),
         const SizedBox(height: 12),
         if (_loading)
           Container(
@@ -332,13 +380,20 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
             child: Row(
               children: [
                 for (int i = 0; i < 4; i++) ...[
-                  if (i > 0) Container(width: 1, height: 40, color: AppColors.cardBorder),
+                  if (i > 0)
+                    Container(
+                      width: 1,
+                      height: 40,
+                      color: AppColors.cardBorder,
+                    ),
                   Expanded(
-                    child: Column(children: const [
-                      AppShimmer(width: 40, height: 24),
-                      SizedBox(height: 6),
-                      AppShimmer(width: 50, height: 10),
-                    ]),
+                    child: Column(
+                      children: const [
+                        AppShimmer(width: 40, height: 24),
+                        SizedBox(height: 6),
+                        AppShimmer(width: 50, height: 10),
+                      ],
+                    ),
                   ),
                 ],
               ],
@@ -354,13 +409,29 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
             ),
             child: Row(
               children: [
-                _miniStat("Today's\nOrders", '${_stats!['todayOrders'] ?? 0}', AppColors.info),
+                _miniStat(
+                  "Today's\nOrders",
+                  '${_stats!['todayOrders'] ?? 0}',
+                  AppColors.info,
+                ),
                 _divider(),
-                _miniStat('Revenue\n(EGP)', (_stats!['todayRevenue'] as num?)?.toStringAsFixed(0) ?? '0', AppColors.success),
+                _miniStat(
+                  'Revenue\n(EGP)',
+                  (_stats!['todayRevenue'] as num?)?.toStringAsFixed(0) ?? '0',
+                  AppColors.success,
+                ),
                 _divider(),
-                _miniStat('Pending', '${_stats!['pendingOrders'] ?? 0}', AppColors.warning),
+                _miniStat(
+                  'Pending',
+                  '${_stats!['pendingOrders'] ?? 0}',
+                  AppColors.warning,
+                ),
                 _divider(),
-                _miniStat('Low\nStock', '${_stats!['lowStockCount'] ?? 0}', AppColors.error),
+                _miniStat(
+                  'Low\nStock',
+                  '${_stats!['lowStockCount'] ?? 0}',
+                  AppColors.error,
+                ),
               ],
             ),
           ),
@@ -370,14 +441,31 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
 
   Widget _miniStat(String label, String value, Color color) {
     return Expanded(
-      child: Column(children: [
-        Text(value, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: color)),
-        const SizedBox(height: 4),
-        Text(label, textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted, height: 1.2)),
-      ]),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              color: AppColors.textMuted,
+              height: 1.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _divider() => Container(width: 1, height: 40, color: AppColors.cardBorder);
+  Widget _divider() =>
+      Container(width: 1, height: 40, color: AppColors.cardBorder);
 }

@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -67,10 +68,10 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
         ]
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Announcement settings saved'), backgroundColor: AppColors.success));
+        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Announcement settings saved'), backgroundColor: AppColors.success));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

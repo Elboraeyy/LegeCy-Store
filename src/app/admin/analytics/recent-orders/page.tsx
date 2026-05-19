@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { validateAdminSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
+import { isRevenueOrderStatus, netOrderRevenue } from '@/lib/order-metrics';
 import '@/app/admin/admin.css';
 
 export const dynamic = 'force-dynamic';
@@ -28,8 +29,10 @@ export default async function RecentOrdersPage() {
         return orderDate.toDateString() === today.toDateString();
     });
     
-    const totalRevenue = orders.reduce((sum, o) => sum + Number(o.totalPrice), 0);
-    const todayRevenue = todayOrders.reduce((sum, o) => sum + Number(o.totalPrice), 0);
+    const revenueOrders = orders.filter(o => isRevenueOrderStatus(o.status));
+    const todayRevenueOrders = todayOrders.filter(o => isRevenueOrderStatus(o.status));
+    const totalRevenue = revenueOrders.reduce((sum, o) => sum + netOrderRevenue(o), 0);
+    const todayRevenue = todayRevenueOrders.reduce((sum, o) => sum + netOrderRevenue(o), 0);
 
     return (
         <div>
@@ -65,7 +68,7 @@ export default async function RecentOrdersPage() {
                         <div>
                             <div style={{ fontSize: '11px', color: '#166534', textTransform: 'uppercase', fontWeight: 600 }}>Total Orders</div>
                             <div style={{ fontSize: '24px', fontWeight: 700, color: '#166534' }}>
-                                {orders.length}
+                                {revenueOrders.length}
                             </div>
                         </div>
                     </div>
@@ -87,7 +90,7 @@ export default async function RecentOrdersPage() {
                         <div>
                             <div style={{ fontSize: '11px', color: '#1e40af', textTransform: 'uppercase', fontWeight: 600 }}>Orders Today</div>
                             <div style={{ fontSize: '24px', fontWeight: 700, color: '#1e40af' }}>
-                                {todayOrders.length}
+                                {todayRevenueOrders.length}
                             </div>
                         </div>
                     </div>

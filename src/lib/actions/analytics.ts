@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { requireAdminPermission } from '@/lib/auth/guards';
 import { AdminPermissions } from '@/lib/auth/permissions';
 import { getLowStockProductsCount } from '@/lib/utils/inventory-utils';
+import { cancellationOrderStatusFilter, revenueOrderStatusFilter } from '@/lib/order-metrics';
 
 export interface AnalyticsData {
     // Core KPIs
@@ -134,7 +135,7 @@ export async function getAnalyticsSummary(
         prisma.order.findMany({
             where: {
                 createdAt: { gte: periodStart },
-                status: { not: 'cancelled' }
+                status: revenueOrderStatusFilter
             },
             select: { 
                 totalPrice: true, 
@@ -151,7 +152,7 @@ export async function getAnalyticsSummary(
         prisma.order.findMany({
             where: {
                 createdAt: { gte: previousPeriodStart, lt: previousPeriodEnd },
-                status: { not: 'cancelled' }
+                status: revenueOrderStatusFilter
             },
             select: { totalPrice: true, shippingCost: true }
         }),
@@ -174,7 +175,7 @@ export async function getAnalyticsSummary(
         prisma.orderItem.groupBy({
             by: ['productId', 'name'],
             where: {
-                order: { createdAt: { gte: periodStart } }
+                order: { createdAt: { gte: periodStart }, status: revenueOrderStatusFilter }
             },
             _sum: { quantity: true, price: true },
             orderBy: { _sum: { quantity: 'desc' } },
@@ -191,14 +192,14 @@ export async function getAnalyticsSummary(
         // Return requests count
         prisma.returnRequest.count({
             where: { 
-                order: { createdAt: { gte: periodStart } }
+                order: { createdAt: { gte: periodStart }, status: revenueOrderStatusFilter }
             }
         }),
         // Orders with coupons
         prisma.order.count({
             where: {
                 createdAt: { gte: periodStart },
-                status: { not: 'cancelled' },
+                status: revenueOrderStatusFilter,
                 couponId: { not: null }
             }
         }),
@@ -207,7 +208,7 @@ export async function getAnalyticsSummary(
             where: {
                 order: {
                     createdAt: { gte: periodStart },
-                    status: { not: 'cancelled' }
+                    status: revenueOrderStatusFilter
                 }
             },
             _sum: { quantity: true }
@@ -215,9 +216,9 @@ export async function getAnalyticsSummary(
         // Repeat customers (users with 2+ orders)
         prisma.user.count({
             where: {
-                orders: { some: { status: { not: 'cancelled' } } },
+                orders: { some: { status: revenueOrderStatusFilter } },
                 AND: {
-                    orders: { some: { createdAt: { gte: periodStart }, status: { not: 'cancelled' } } }
+                    orders: { some: { createdAt: { gte: periodStart }, status: revenueOrderStatusFilter } }
                 }
             }
         }),
@@ -236,7 +237,7 @@ export async function getAnalyticsSummary(
         prisma.order.count({
             where: {
                 createdAt: { gte: periodStart },
-                status: 'cancelled'
+                status: cancellationOrderStatusFilter
             }
         }),
         // All orders in period (including cancelled for funnel)
@@ -249,7 +250,7 @@ export async function getAnalyticsSummary(
             by: ['userId'],
             where: {
                 createdAt: { gte: periodStart },
-                status: { not: 'cancelled' },
+                status: revenueOrderStatusFilter,
                 userId: { not: null }
             },
             _sum: { totalPrice: true, shippingCost: true },
@@ -389,7 +390,7 @@ export async function getAnalyticsSummary(
     // Revenue by Category
     const categoryRevenueRaw = await prisma.orderItem.groupBy({
         by: ['productId'],
-        where: { order: { createdAt: { gte: periodStart } } },
+        where: { order: { createdAt: { gte: periodStart }, status: revenueOrderStatusFilter } },
         _sum: { price: true, quantity: true }
     });
 
@@ -448,7 +449,7 @@ export async function getAnalyticsSummary(
     const monthlyOrdersRaw = await prisma.order.findMany({
         where: {
             createdAt: { gte: sixMonthsAgo },
-            status: { not: 'cancelled' }
+            status: revenueOrderStatusFilter
         },
         select: { totalPrice: true, shippingCost: true, createdAt: true, userId: true }
     });
@@ -477,7 +478,7 @@ export async function getAnalyticsSummary(
     const weeklyOrdersRaw = await prisma.order.findMany({
         where: {
             createdAt: { gte: fourWeeksAgo },
-            status: { not: 'cancelled' }
+            status: revenueOrderStatusFilter
         },
         select: { totalPrice: true, shippingCost: true, createdAt: true }
     });
@@ -548,8 +549,8 @@ export async function getAnalyticsSummary(
 
     // Get total stats (all time)
     const [totalOrdersAll, totalRevenueAll, totalCustomersAll] = await prisma.$transaction([
-        prisma.order.count({ where: { status: { not: 'cancelled' } } }),
-        prisma.order.aggregate({ _sum: { totalPrice: true, shippingCost: true }, where: { status: { not: 'cancelled' } } }),
+        prisma.order.count({ where: { status: revenueOrderStatusFilter } }),
+        prisma.order.aggregate({ _sum: { totalPrice: true, shippingCost: true }, where: { status: revenueOrderStatusFilter } }),
         prisma.user.count()
     ]);
 

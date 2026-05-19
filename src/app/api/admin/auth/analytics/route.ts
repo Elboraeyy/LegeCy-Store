@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { cancellationOrderStatusFilter, revenueOrderStatusFilter } from '@/lib/order-metrics';
 
 /**
  * GET /api/admin/auth/analytics
@@ -24,23 +25,25 @@ export async function GET(request: NextRequest) {
             topProducts,
             topCustomers,
             recentOrders,
+            cancelledOrders,
         ] = await Promise.all([
-            prisma.order.count(),
-            prisma.order.aggregate({ _sum: { totalPrice: true } }),
-            prisma.order.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+            prisma.order.count({ where: { status: revenueOrderStatusFilter } }),
+            prisma.order.aggregate({ where: { status: revenueOrderStatusFilter }, _sum: { totalPrice: true } }),
+            prisma.order.count({ where: { createdAt: { gte: sevenDaysAgo }, status: revenueOrderStatusFilter } }),
             prisma.order.aggregate({
-                where: { createdAt: { gte: sevenDaysAgo } },
+                where: { createdAt: { gte: sevenDaysAgo }, status: revenueOrderStatusFilter },
                 _sum: { totalPrice: true },
             }),
             prisma.orderItem.groupBy({
                 by: ['name'],
+                where: { order: { status: revenueOrderStatusFilter } },
                 _sum: { quantity: true },
                 orderBy: { _sum: { quantity: 'desc' } },
                 take: 10,
             }),
             prisma.order.groupBy({
                 by: ['customerName'],
-                where: { customerName: { not: null } },
+                where: { customerName: { not: null }, status: revenueOrderStatusFilter },
                 _count: true,
                 _sum: { totalPrice: true },
                 orderBy: { _sum: { totalPrice: 'desc' } },
@@ -58,6 +61,7 @@ export async function GET(request: NextRequest) {
                 orderBy: { createdAt: 'desc' },
                 take: 10,
             }),
+            prisma.order.count({ where: { status: cancellationOrderStatusFilter } }),
         ]);
 
         return NextResponse.json({
@@ -66,6 +70,12 @@ export async function GET(request: NextRequest) {
             last7Days: {
                 orders: last7DaysOrders,
                 revenue: last7DaysRevenue._sum.totalPrice?.toNumber() || 0,
+            },
+            cancellations: {
+                orders: cancelledOrders,
+                rate: totalOrders + cancelledOrders > 0
+                    ? Math.round((cancelledOrders / (totalOrders + cancelledOrders)) * 1000) / 10
+                    : 0,
             },
             topProducts: topProducts.map(p => ({
                 name: p.name,

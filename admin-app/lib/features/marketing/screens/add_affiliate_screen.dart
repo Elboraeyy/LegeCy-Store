@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -79,7 +80,7 @@ class _AddAffiliateScreenState extends State<AddAffiliateScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
           content: Text(widget.affiliate != null ? 'Affiliate updated' : 'Affiliate created', style: const TextStyle(color: Colors.white)),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
@@ -88,7 +89,7 @@ class _AddAffiliateScreenState extends State<AddAffiliateScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
         setState(() => _isLoading = false);
       }
     }

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { validateAdminSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
+import { revenueOrderStatusFilter } from '@/lib/order-metrics';
 import '@/app/admin/admin.css';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,7 @@ export default async function TopProductsPage() {
     // Get all-time top products with more details
     const topProducts = await prisma.orderItem.groupBy({
         by: ['productId', 'name'],
+        where: { order: { status: revenueOrderStatusFilter } },
         _sum: { quantity: true, price: true },
         _count: { id: true },
         orderBy: { _sum: { quantity: 'desc' } },

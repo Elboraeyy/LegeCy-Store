@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -156,7 +157,7 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
 
       if (!mounted) return;
       messenger.showSnackBar(
-        const SnackBar(
+        AppToast.snackBar(
           content: Text('Shipping settings saved'),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
@@ -165,7 +166,7 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(
+        AppToast.snackBar(
           content: Text('Error: $e'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
@@ -202,7 +203,7 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
   void _resetDefaults() {
     setState(() => _applySettings(_defaultSettings()));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      AppToast.snackBar(
         content: Text('Defaults loaded. Tap Save Changes to apply.'),
         behavior: SnackBarBehavior.floating,
       ),
@@ -578,7 +579,7 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
     final exists = cities.any((entry) => entry['governorate'] == governorate && entry['city'] == city);
     if (exists) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This city is already in this zone'), backgroundColor: AppColors.error),
+        AppToast.snackBar(content: Text('This city is already in this zone'), backgroundColor: AppColors.error),
       );
       return;
     }

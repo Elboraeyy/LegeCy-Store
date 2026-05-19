@@ -1,3 +1,5 @@
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -18,6 +20,7 @@ import '../operations/screens/delivery_zones_screen.dart';
 import '../operations/screens/procurement_screen.dart';
 import 'screens/customers_screen.dart';
 import 'screens/stock_requests_screen.dart';
+
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
 
@@ -42,31 +45,48 @@ class _MoreScreenState extends State<MoreScreen> {
       final token = context.read<AuthProvider>().token;
       if (token == null) return;
       final client = ApiClient(token: token);
-      
+
       final results = await Future.wait([
-        client.get('/api/admin/auth/reviews').catchError((_) => {'reviews': []}),
-        client.get('/api/admin/auth/messages').catchError((_) => {'messages': []}),
-        client.get('/api/admin/auth/stock-requests').catchError((_) => {'requests': []}),
+        client
+            .get('/api/admin/auth/reviews')
+            .catchError((_) => {'reviews': []}),
+        client
+            .get('/api/admin/auth/messages')
+            .catchError((_) => {'messages': []}),
+        client
+            .get('/api/admin/auth/stock-requests')
+            .catchError((_) => {'requests': []}),
       ]);
-      
+
       if (mounted) {
         setState(() {
           // For reviews, count those not featured and created in the last 7 days as 'new' (since there's no explicit unread status)
           final reviews = results[0]['reviews'] as List?;
-          _newReviewsCount = reviews?.where((r) {
-            if (r['featured'] == true) return false;
-            if (r['createdAt'] != null) {
-              final dt = DateTime.tryParse(r['createdAt']);
-              if (dt != null && DateTime.now().difference(dt).inDays <= 7) return true;
-            }
-            return false;
-          }).length ?? 0;
+          _newReviewsCount =
+              reviews?.where((r) {
+                if (r['featured'] == true) return false;
+                if (r['createdAt'] != null) {
+                  final dt = DateTime.tryParse(r['createdAt']);
+                  if (dt != null && DateTime.now().difference(dt).inDays <= 7)
+                    return true;
+                }
+                return false;
+              }).length ??
+              0;
 
           // For messages, status NEW means unread
-          _newMessagesCount = (results[1]['messages'] as List?)?.where((m) => m['status'] == 'NEW').length ?? 0;
-          
+          _newMessagesCount =
+              (results[1]['messages'] as List?)
+                  ?.where((m) => m['status'] == 'NEW')
+                  .length ??
+              0;
+
           // For stock requests, status pending means waiting
-          _newRestockCount = (results[2]['requests'] as List?)?.where((r) => r['status'] == 'pending').length ?? 0;
+          _newRestockCount =
+              (results[2]['requests'] as List?)
+                  ?.where((r) => r['status'] == 'pending')
+                  .length ??
+              0;
         });
       }
     } catch (e) {
@@ -76,7 +96,10 @@ class _MoreScreenState extends State<MoreScreen> {
 
   Future<void> _pickAndUploadAvatar() async {
     final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final file = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (file == null) return;
 
     if (!mounted) return;
@@ -106,14 +129,22 @@ class _MoreScreenState extends State<MoreScreen> {
         auth.updateAvatar(imageUrl);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile picture updated successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating),
+            AppToast.snackBar(
+              content: Text('Profile picture updated successfully'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating),
+          AppToast.snackBar(
+            content: Text('Upload failed: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } finally {
@@ -138,6 +169,9 @@ class _MoreScreenState extends State<MoreScreen> {
             backgroundColor: AppColors.background,
             surfaceTintColor: Colors.transparent,
             elevation: 0,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+            ),
             titleSpacing: 20,
             title: Text(
               'Menu',
@@ -195,25 +229,50 @@ class _MoreScreenState extends State<MoreScreen> {
                               ),
                               clipBehavior: Clip.antiAlias,
                               child: _isUploadingAvatar
-                                  ? const Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator(color: AppColors.primaryDark, strokeWidth: 2))
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(16.0),
+                                      child: CircularProgressIndicator(
+                                        color: AppColors.primaryDark,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
                                   : avatarUrl != null && avatarUrl.isNotEmpty
-                                      ? CachedNetworkImage(
-                                          imageUrl: avatarUrl,
-                                          fit: BoxFit.cover,
-                                          placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryDark)),
-                                          errorWidget: (context, url, error) => Center(
-                                            child: Text(
-                                              initial,
-                                              style: GoogleFonts.playfairDisplay(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                                  ? CachedNetworkImage(
+                                      cacheManager:
+                                          AppImageCacheManager.instance,
+                                      imageUrl: avatarUrl,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) =>
+                                          const Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColors.primaryDark,
                                             ),
                                           ),
-                                        )
-                                      : Center(
-                                          child: Text(
-                                            initial,
-                                            style: GoogleFonts.playfairDisplay(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                                      errorWidget: (context, url, error) =>
+                                          Center(
+                                            child: Text(
+                                              initial,
+                                              style:
+                                                  GoogleFonts.playfairDisplay(
+                                                    fontSize: 26,
+                                                    fontWeight: FontWeight.w800,
+                                                    color:
+                                                        AppColors.primaryDark,
+                                                  ),
+                                            ),
                                           ),
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        initial,
+                                        style: GoogleFonts.playfairDisplay(
+                                          fontSize: 26,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.primaryDark,
                                         ),
+                                      ),
+                                    ),
                             ),
                             Positioned(
                               bottom: -2,
@@ -223,7 +282,10 @@ class _MoreScreenState extends State<MoreScreen> {
                                 decoration: BoxDecoration(
                                   color: AppColors.accent,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.primaryDark, width: 2),
+                                  border: Border.all(
+                                    color: AppColors.primaryDark,
+                                    width: 2,
+                                  ),
                                 ),
                                 child: const Icon(
                                   LucideIcons.camera,
@@ -252,7 +314,10 @@ class _MoreScreenState extends State<MoreScreen> {
                             ),
                             const SizedBox(height: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
@@ -260,7 +325,11 @@ class _MoreScreenState extends State<MoreScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(LucideIcons.shieldCheck, size: 12, color: AppColors.accentLight),
+                                  const Icon(
+                                    LucideIcons.shieldCheck,
+                                    size: 12,
+                                    color: AppColors.accentLight,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Super Admin',
@@ -280,14 +349,18 @@ class _MoreScreenState extends State<MoreScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                
-
 
                 _buildSection(
                   title: 'Marketing & Growth',
                   icon: LucideIcons.trendingUp,
                   items: [
-                    _MenuItem(title: 'Promos & Discounts', subtitle: 'Coupons, BOGO & flash sales', icon: LucideIcons.badgePercent, color: const Color(0xFFEF4444), screen: const PromotionsScreen()),
+                    _MenuItem(
+                      title: 'Promos & Discounts',
+                      subtitle: 'Coupons, BOGO & flash sales',
+                      icon: LucideIcons.badgePercent,
+                      color: const Color(0xFFEF4444),
+                      screen: const PromotionsScreen(),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -296,10 +369,43 @@ class _MoreScreenState extends State<MoreScreen> {
                   title: 'Audience & Engagement',
                   icon: LucideIcons.heart,
                   items: [
-                    _MenuItem(title: 'Customers', subtitle: 'Client CRM & history', icon: LucideIcons.userCheck, color: const Color(0xFF10B981), screen: const CustomersListScreen()),
-                    _MenuItem(title: 'Reviews', subtitle: 'Moderate product reviews', icon: LucideIcons.star, color: const Color(0xFFF59E0B), screen: const ReviewsListScreen(), badge: _newReviewsCount > 0 ? _newReviewsCount.toString() : null),
-                    _MenuItem(title: 'Messages', subtitle: 'Contact form submissions', icon: LucideIcons.mail, color: const Color(0xFF6366F1), screen: const MessagesListScreen(), badge: _newMessagesCount > 0 ? _newMessagesCount.toString() : null),
-                    _MenuItem(title: 'Restock Requests', subtitle: 'Waitlists and back in stock', icon: LucideIcons.bellRing, color: const Color(0xFF0EA5E9), screen: const StockRequestsScreen(), badge: _newRestockCount > 0 ? _newRestockCount.toString() : null),
+                    _MenuItem(
+                      title: 'Customers',
+                      subtitle: 'Client CRM & history',
+                      icon: LucideIcons.userCheck,
+                      color: const Color(0xFF10B981),
+                      screen: const CustomersListScreen(),
+                    ),
+                    _MenuItem(
+                      title: 'Reviews',
+                      subtitle: 'Moderate product reviews',
+                      icon: LucideIcons.star,
+                      color: const Color(0xFFF59E0B),
+                      screen: const ReviewsListScreen(),
+                      badge: _newReviewsCount > 0
+                          ? _newReviewsCount.toString()
+                          : null,
+                    ),
+                    _MenuItem(
+                      title: 'Messages',
+                      subtitle: 'Contact form submissions',
+                      icon: LucideIcons.mail,
+                      color: const Color(0xFF6366F1),
+                      screen: const MessagesListScreen(),
+                      badge: _newMessagesCount > 0
+                          ? _newMessagesCount.toString()
+                          : null,
+                    ),
+                    _MenuItem(
+                      title: 'Restock Requests',
+                      subtitle: 'Waitlists and back in stock',
+                      icon: LucideIcons.bellRing,
+                      color: const Color(0xFF0EA5E9),
+                      screen: const StockRequestsScreen(),
+                      badge: _newRestockCount > 0
+                          ? _newRestockCount.toString()
+                          : null,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -308,9 +414,27 @@ class _MoreScreenState extends State<MoreScreen> {
                   title: 'Operations',
                   icon: LucideIcons.truck,
                   items: [
-                    _MenuItem(title: 'Inventory', subtitle: 'Stock control & alerts', icon: LucideIcons.package, color: const Color(0xFF64748B), screen: const InventoryScreen()),
-                    _MenuItem(title: 'Delivery Zones', subtitle: 'Shipping rates & rules', icon: LucideIcons.map, color: const Color(0xFF0EA5E9), screen: const DeliveryZonesScreen()),
-                    _MenuItem(title: 'Procurement', subtitle: 'Supplier orders', icon: LucideIcons.shoppingBag, color: const Color(0xFF8B5CF6), screen: const ProcurementScreen()),
+                    _MenuItem(
+                      title: 'Inventory',
+                      subtitle: 'Stock control & alerts',
+                      icon: LucideIcons.package,
+                      color: const Color(0xFF64748B),
+                      screen: const InventoryScreen(),
+                    ),
+                    _MenuItem(
+                      title: 'Delivery Zones',
+                      subtitle: 'Shipping rates & rules',
+                      icon: LucideIcons.map,
+                      color: const Color(0xFF0EA5E9),
+                      screen: const DeliveryZonesScreen(),
+                    ),
+                    _MenuItem(
+                      title: 'Procurement',
+                      subtitle: 'Supplier orders',
+                      icon: LucideIcons.shoppingBag,
+                      color: const Color(0xFF8B5CF6),
+                      screen: const ProcurementScreen(),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -319,7 +443,13 @@ class _MoreScreenState extends State<MoreScreen> {
                   title: 'System Settings',
                   icon: LucideIcons.settings,
                   items: [
-                    _MenuItem(title: 'Notifications', subtitle: 'Push alerts setup', icon: LucideIcons.bellRing, color: const Color(0xFFD946EF), screen: const NotificationsSettingsScreen()),
+                    _MenuItem(
+                      title: 'Notifications',
+                      subtitle: 'Push alerts setup',
+                      icon: LucideIcons.bellRing,
+                      color: const Color(0xFFD946EF),
+                      screen: const NotificationsSettingsScreen(),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 32),
@@ -334,12 +464,15 @@ class _MoreScreenState extends State<MoreScreen> {
                   onTap: () async {
                     final uri = Uri.parse('https://www.legecy.store/admin');
                     if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
                     }
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Logout Button
                 _buildActionCard(
                   context,
@@ -364,9 +497,22 @@ class _MoreScreenState extends State<MoreScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Text('Legacy Admin Hub', style: GoogleFonts.playfairDisplay(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                      Text(
+                        'Legacy Admin Hub',
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text('Version 1.0.0 • Production', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+                      Text(
+                        'Version 1.0.0 • Production',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -378,8 +524,11 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-
-  Widget _buildSection({required String title, required IconData icon, required List<_MenuItem> items}) {
+  Widget _buildSection({
+    required String title,
+    required IconData icon,
+    required List<_MenuItem> items,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -411,7 +560,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 color: AppColors.cardBorder.withValues(alpha: 0.5),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
-              )
+              ),
             ],
           ),
           child: Column(
@@ -432,22 +581,38 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  Widget _buildActionCard(BuildContext context, {required String title, required String subtitle, required IconData icon, required Color color, required VoidCallback onTap, bool isDestructive = false}) {
+  Widget _buildActionCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDestructive ? color.withValues(alpha: 0.05) : AppColors.surface,
+          color: isDestructive
+              ? color.withValues(alpha: 0.05)
+              : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isDestructive ? color.withValues(alpha: 0.2) : AppColors.cardBorder),
-          boxShadow: isDestructive ? [] : [
-            BoxShadow(
-              color: AppColors.cardBorder.withValues(alpha: 0.5),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            )
-          ],
+          border: Border.all(
+            color: isDestructive
+                ? color.withValues(alpha: 0.2)
+                : AppColors.cardBorder,
+          ),
+          boxShadow: isDestructive
+              ? []
+              : [
+                  BoxShadow(
+                    color: AppColors.cardBorder.withValues(alpha: 0.5),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
         ),
         child: Row(
           children: [
@@ -477,13 +642,21 @@ class _MoreScreenState extends State<MoreScreen> {
                     subtitle,
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: isDestructive ? color.withValues(alpha: 0.8) : AppColors.textMuted,
+                      color: isDestructive
+                          ? color.withValues(alpha: 0.8)
+                          : AppColors.textMuted,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(LucideIcons.chevronRight, size: 18, color: isDestructive ? color.withValues(alpha: 0.5) : AppColors.textMuted),
+            Icon(
+              LucideIcons.chevronRight,
+              size: 18,
+              color: isDestructive
+                  ? color.withValues(alpha: 0.5)
+                  : AppColors.textMuted,
+            ),
           ],
         ),
       ),
@@ -501,15 +674,24 @@ class _MoreScreenState extends State<MoreScreen> {
           children: [
             Icon(LucideIcons.alertCircle, color: AppColors.error),
             const SizedBox(width: 12),
-            Text('Sign Out', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w600)),
+            Text(
+              'Sign Out',
+              style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w600),
+            ),
           ],
         ),
-        content: Text('Are you sure you want to end your secure session? You will need to log in again.', style: GoogleFonts.inter(color: AppColors.textSecondary, height: 1.5)),
+        content: Text(
+          'Are you sure you want to end your secure session? You will need to log in again.',
+          style: GoogleFonts.inter(color: AppColors.textSecondary, height: 1.5),
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx), 
+            onPressed: () => Navigator.pop(ctx),
             style: TextButton.styleFrom(foregroundColor: AppColors.textMuted),
-            child: Text('Cancel', style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -520,9 +702,14 @@ class _MoreScreenState extends State<MoreScreen> {
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: Text('Sign Out', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+            child: Text(
+              'Sign Out',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -559,7 +746,10 @@ class _MenuItemWidget extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => item.screen));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => item.screen),
+          );
         },
         highlightColor: item.color.withValues(alpha: 0.05),
         splashColor: item.color.withValues(alpha: 0.1),
@@ -585,33 +775,51 @@ class _MenuItemWidget extends StatelessWidget {
                       children: [
                         Text(
                           item.title,
-                          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                         if (item.badge != null) ...[
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: item.color,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               item.badge!,
-                              style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                        ]
+                        ],
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
                       item.subtitle,
-                      style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                      ),
                     ),
                   ],
                 ),
               ),
-              Icon(LucideIcons.chevronRight, size: 16, color: AppColors.textMuted.withValues(alpha: 0.5)),
+              Icon(
+                LucideIcons.chevronRight,
+                size: 16,
+                color: AppColors.textMuted.withValues(alpha: 0.5),
+              ),
             ],
           ),
         ),

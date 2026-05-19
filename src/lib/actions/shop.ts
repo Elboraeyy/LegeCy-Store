@@ -29,71 +29,253 @@ export interface ShopProduct {
   detailTags?: string[];
 }
 
+type MerchandisingSection = {
+  randomize: boolean;
+  selectedProductIds: string[];
+  categoryIds: string[];
+  includeSoldOut: boolean;
+  limit: number;
+  sortMode: "manual" | "newest" | "oldest" | "priceAsc" | "priceDesc" | "nameAsc";
+  requireNewArrivalFlag?: boolean;
+  selectedOnly?: boolean;
+};
+
+type MerchandisingSettings = {
+  featured: MerchandisingSection;
+  newArrivals: MerchandisingSection;
+  shop: MerchandisingSection & { showOnlySelectedFirst: boolean };
+};
+
+const sortModes = new Set<MerchandisingSection["sortMode"]>([
+  "manual",
+  "newest",
+  "oldest",
+  "priceAsc",
+  "priceDesc",
+  "nameAsc",
+]);
+
+const defaultMerchandisingSettings: MerchandisingSettings = {
+  featured: {
+    randomize: true,
+    selectedProductIds: [],
+    categoryIds: [],
+    includeSoldOut: false,
+    limit: 10,
+    sortMode: "manual",
+    selectedOnly: false,
+  },
+  newArrivals: {
+    randomize: false,
+    selectedProductIds: [],
+    categoryIds: [],
+    includeSoldOut: false,
+    limit: 10,
+    sortMode: "newest",
+    requireNewArrivalFlag: true,
+    selectedOnly: false,
+  },
+  shop: {
+    randomize: false,
+    selectedProductIds: [],
+    categoryIds: [],
+    includeSoldOut: true,
+    limit: 0,
+    sortMode: "manual",
+    showOnlySelectedFirst: true,
+    selectedOnly: false,
+  },
+};
+
+async function getMerchandisingSettings(): Promise<MerchandisingSettings> {
+  const config = await prisma.storeConfig.findUnique({
+    where: { key: "merchandising_settings" },
+  });
+  const saved = (config?.value || {}) as Partial<MerchandisingSettings>;
+  return {
+    featured: normalizeSection(defaultMerchandisingSettings.featured, saved.featured),
+    newArrivals: normalizeSection(defaultMerchandisingSettings.newArrivals, saved.newArrivals),
+    shop: {
+      ...normalizeSection(defaultMerchandisingSettings.shop, saved.shop),
+      showOnlySelectedFirst:
+        typeof saved.shop?.showOnlySelectedFirst === "boolean"
+          ? saved.shop.showOnlySelectedFirst
+          : defaultMerchandisingSettings.shop.showOnlySelectedFirst,
+    },
+  };
+}
+
+function normalizeSection(
+  defaults: MerchandisingSection,
+  incoming?: Partial<MerchandisingSection>,
+): MerchandisingSection {
+  const section = { ...defaults, ...(incoming || {}) };
+  return {
+    ...section,
+    selectedProductIds: Array.isArray(section.selectedProductIds)
+      ? section.selectedProductIds.filter((id): id is string => typeof id === "string")
+      : [],
+    categoryIds: Array.isArray(section.categoryIds)
+      ? section.categoryIds.filter((id): id is string => typeof id === "string")
+      : [],
+    includeSoldOut: section.includeSoldOut === true,
+    randomize: section.randomize === true,
+    limit: Number.isFinite(section.limit) ? Math.max(0, Math.min(120, Number(section.limit))) : defaults.limit,
+    sortMode: sortModes.has(section.sortMode) ? section.sortMode : defaults.sortMode,
+    requireNewArrivalFlag: section.requireNewArrivalFlag === true,
+    selectedOnly: section.selectedOnly === true,
+  };
+}
+
+const productInclude = {
+  variants: {
+    include: {
+      inventory: true,
+    },
+  },
+  images: true,
+  categoryRel: true,
+  brand: true,
+  material: true,
+} satisfies Prisma.ProductInclude;
+
+type ProductWithRelations = Prisma.ProductGetPayload<{ include: typeof productInclude }>;
+
+function mapShopProduct(product: ProductWithRelations): ShopProduct {
+  const mainVariant = product.variants[0];
+  const totalStock = product.variants.reduce(
+    (acc, v) => acc + v.inventory.reduce((sum, i) => sum + i.available, 0),
+    0,
+  );
+
+  return {
+    id: product.id,
+    name: product.name,
+    price: mainVariant ? Number(mainVariant.price) : 0,
+    compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+    category: product.categoryRel?.name || product.category,
+    categoryAr: product.categoryRel?.nameAr || null,
+    categorySlug: product.categoryRel?.slug || null,
+    brand: product.brand?.slug || null,
+    brandId: product.brandId,
+    material: product.material?.slug || null,
+    materialId: product.materialId,
+    imageUrl: product.imageUrl,
+    images: product.images.map((img) => img.url),
+    strap: product.material?.name || null,
+    status: "active",
+    variantCount: product.variants.length,
+    inStock: totalStock > 0,
+    defaultVariantId: mainVariant?.id || null,
+    isNew: new Date().getTime() - product.createdAt.getTime() < 5 * 24 * 60 * 60 * 1000,
+    specs: (product.specs ?? undefined) as ProductSpecs | undefined,
+    detailTags: product.detailTags,
+    variants: product.variants.map((v) => ({
+      id: v.id,
+      sku: v.sku,
+      price: Number(v.price),
+      stock: v.inventory.reduce((sum, i) => sum + i.available, 0),
+    })),
+  };
+}
+
+function sortProducts(products: ProductWithRelations[], section: MerchandisingSection) {
+  if (section.randomize) return [...products].sort(() => Math.random() - 0.5);
+
+  const manualOrder = new Map(section.selectedProductIds.map((id, index) => [id, index]));
+  return [...products].sort((a, b) => {
+    const aManual = manualOrder.get(a.id);
+    const bManual = manualOrder.get(b.id);
+    if (aManual !== undefined || bManual !== undefined) {
+      return (aManual ?? 999999) - (bManual ?? 999999);
+    }
+
+    switch (section.sortMode) {
+      case "oldest":
+        return a.createdAt.getTime() - b.createdAt.getTime();
+      case "priceAsc":
+        return Number(a.variants[0]?.price || 0) - Number(b.variants[0]?.price || 0);
+      case "priceDesc":
+        return Number(b.variants[0]?.price || 0) - Number(a.variants[0]?.price || 0);
+      case "nameAsc":
+        return a.name.localeCompare(b.name);
+      case "newest":
+      default:
+        return b.createdAt.getTime() - a.createdAt.getTime();
+    }
+  });
+}
+
+function stockFiltered(products: ProductWithRelations[], includeSoldOut: boolean) {
+  if (includeSoldOut) return products;
+  return products.filter((product) =>
+    product.variants.some((variant) =>
+      variant.inventory.some((inventory) => inventory.available > 0),
+    ),
+  );
+}
+
+async function fetchMerchandisedProducts(section: MerchandisingSection): Promise<ShopProduct[]> {
+  const where: Prisma.ProductWhereInput = {
+    status: "active",
+    ...(section.categoryIds.length ? { categoryId: { in: section.categoryIds } } : {}),
+    ...(section.requireNewArrivalFlag ? { showInNewArrivals: true } : {}),
+  };
+
+  const pool = await prisma.product.findMany({
+    where,
+    take: 120,
+    orderBy: { createdAt: "desc" },
+    include: productInclude,
+  });
+
+  const selected = section.selectedProductIds.length
+    ? await prisma.product.findMany({
+        where: {
+          id: { in: section.selectedProductIds },
+          status: "active",
+          ...(section.requireNewArrivalFlag ? { showInNewArrivals: true } : {}),
+        },
+        include: productInclude,
+      })
+    : [];
+
+  if (section.selectedOnly && selected.length === 0) return [];
+
+  const deduped = new Map<string, ProductWithRelations>();
+  [...selected, ...(section.selectedOnly ? [] : pool)].forEach((product) =>
+    deduped.set(product.id, product),
+  );
+  const filtered = stockFiltered(Array.from(deduped.values()), section.includeSoldOut);
+  const sorted = sortProducts(filtered, section);
+  return sorted.slice(0, section.limit || sorted.length).map(mapShopProduct);
+}
+
 export async function fetchShopProducts(): Promise<ShopProduct[]> {
+  const settings = (await getMerchandisingSettings()).shop;
   const products = await prisma.product.findMany({
     where: {
       // Only show active products on the frontend
       status: "active",
+      ...(settings.categoryIds.length ? { categoryId: { in: settings.categoryIds } } : {}),
     },
     orderBy: { createdAt: "desc" },
-    include: {
-      variants: {
-        include: {
-          inventory: true,
-        },
-      },
-      images: true,
-      categoryRel: true,
-      brand: true,
-      material: true,
-    },
+    include: productInclude,
   });
 
-  const shuffledProducts = [...products].sort(() => Math.random() - 0.5);
-
-  return shuffledProducts.map((product) => {
-    const mainVariant = product.variants[0];
-    const totalStock = product.variants.reduce(
-      (acc, v) => acc + v.inventory.reduce((sum, i) => sum + i.available, 0),
-      0,
-    );
-
-    return {
-      id: product.id,
-      name: product.name,
-      price: mainVariant ? Number(mainVariant.price) : 0,
-      compareAtPrice: product.compareAtPrice
-        ? Number(product.compareAtPrice)
-        : null,
-      // Prioritize category relation slug, fallback to legacy string
-      category: product.categoryRel?.name || product.category,
-      categoryAr: product.categoryRel?.nameAr || null,
-      categorySlug: product.categoryRel?.slug || null,
-      brand: product.brand?.slug || null,
-      brandId: product.brandId,
-      material: product.material?.slug || null, // Map to slug for filtering
-      materialId: product.materialId,
-      imageUrl: product.imageUrl,
-      images: product.images.map((img) => img.url),
-      // Legacy fields mapped below or handled above
-      strap: product.material?.name || null, // for display if needed
-      status: "active",
-      variantCount: product.variants.length,
-      inStock: totalStock > 0,
-      defaultVariantId: mainVariant?.id || null,
-      isNew:
-        new Date().getTime() - product.createdAt.getTime() <
-        5 * 24 * 60 * 60 * 1000,
-      specs: (product.specs ?? undefined) as ProductSpecs | undefined,
-      detailTags: product.detailTags,
-      variants: product.variants.map((v) => ({
-        id: v.id,
-        sku: v.sku,
-        price: Number(v.price),
-        stock: v.inventory.reduce((sum, i) => sum + i.available, 0),
-      })),
-    };
-  });
+  const selected = settings.selectedProductIds.length
+    ? await prisma.product.findMany({
+        where: { id: { in: settings.selectedProductIds }, status: "active" },
+        include: productInclude,
+      })
+    : [];
+  const deduped = new Map<string, ProductWithRelations>();
+  [
+    ...(settings.showOnlySelectedFirst ? selected : []),
+    ...(settings.showOnlySelectedFirst || selected.length === 0 ? products : selected),
+  ].forEach((product) => deduped.set(product.id, product));
+  return sortProducts(stockFiltered(Array.from(deduped.values()), settings.includeSoldOut), settings)
+    .map(mapShopProduct);
 }
 
 export async function fetchProductById(id: string) {
@@ -325,6 +507,13 @@ export async function fetchFeaturedProducts(
 export async function fetchNewArrivals(
   limit: number = 8,
 ): Promise<ShopProduct[]> {
+  const settings = (await getMerchandisingSettings()).newArrivals;
+  return fetchMerchandisedProducts({ ...settings, limit });
+}
+
+export async function fetchLegacyNewArrivals(
+  limit: number = 8,
+): Promise<ShopProduct[]> {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -393,68 +582,26 @@ export async function fetchNewArrivals(
 export async function fetchForYouProducts(
   limit: number = 8,
 ): Promise<ShopProduct[]> {
-  const products = await prisma.product.findMany({
-    where: {
-      status: "active",
-      showInForYou: true,
-    },
-    take: 50, // Fetch a larger pool for better randomization
-    orderBy: { updatedAt: "desc" }, // Show recently updated/curated items
-    include: {
-      variants: {
-        include: {
-          inventory: true,
-        },
-      },
-      images: true,
-      brand: true,
-      categoryRel: true,
-      material: true,
-    },
-  });
+  const settings = (await getMerchandisingSettings()).featured;
+  const hasExplicitCuration =
+    !settings.randomize ||
+    settings.selectedProductIds.length > 0 ||
+    settings.categoryIds.length > 0;
+  if (!hasExplicitCuration) {
+    const legacyProducts = await prisma.product.findMany({
+      where: { status: "active", showInForYou: true },
+      take: 50,
+      orderBy: { updatedAt: "desc" },
+      include: productInclude,
+    });
+    return stockFiltered(legacyProducts, settings.includeSoldOut)
+      .map(mapShopProduct)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, limit);
+  }
 
-  return products
-    .map((product) => {
-      const mainVariant = product.variants[0];
-      const totalStock = product.variants.reduce(
-        (acc, v) => acc + v.inventory.reduce((sum, i) => sum + i.available, 0),
-        0,
-      );
-
-      return {
-        id: product.id,
-        name: product.name,
-        price: mainVariant ? Number(mainVariant.price) : 0,
-        compareAtPrice: product.compareAtPrice
-          ? Number(product.compareAtPrice)
-          : null,
-        category: product.categoryRel?.name || product.category,
-        categoryAr: product.categoryRel?.nameAr || null,
-        categorySlug: product.categoryRel?.slug || null,
-        imageUrl: product.imageUrl,
-        images: product.images.map((img) => img.url),
-        brand: product.brand?.slug || null,
-        material: product.material?.slug || null,
-        strap: product.material?.name || null,
-        status: "active",
-        variantCount: product.variants.length,
-        inStock: totalStock > 0,
-        defaultVariantId: mainVariant?.id || null,
-        isNew:
-          new Date().getTime() - product.createdAt.getTime() <
-          5 * 24 * 60 * 60 * 1000,
-        specs: (product.specs ?? undefined) as ProductSpecs | undefined,
-        detailTags: product.detailTags,
-        variants: product.variants.map((v) => ({
-          id: v.id,
-          sku: v.sku,
-          price: Number(v.price),
-          stock: v.inventory.reduce((sum, i) => sum + i.available, 0),
-        })),
-      };
-    })
-    .sort(() => Math.random() - 0.5)
-    .slice(0, limit);
+  const products = await fetchMerchandisedProducts({ ...settings, limit });
+  return products;
 }
 
 // Fetch random products (for cart recommendations)

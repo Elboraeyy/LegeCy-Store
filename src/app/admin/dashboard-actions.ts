@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { AdminPermissions } from "@/lib/auth/permissions";
 import { requireAdminPermission } from "@/lib/auth/guards";
 import { subDays, subMonths, format } from "date-fns";
+import { revenueOrderStatusFilter } from "@/lib/order-metrics";
 
 export type DateRangeType = '7d' | '30d' | '90d' | '12m' | 'all';
 
@@ -63,21 +64,21 @@ export async function fetchDashboardStats({ range = '30d' }: DashboardStatsParam
         statusDistribution
     ] = await Promise.all([
         // 1. Current Period Orders (Count)
-        prisma.order.count({ where: { createdAt: { gte: startDate, lte: endDate }, status: { not: 'cancelled' } } }),
+        prisma.order.count({ where: { createdAt: { gte: startDate, lte: endDate }, status: revenueOrderStatusFilter } }),
         
         // 2. Prev Period Orders (Count)
-        prisma.order.count({ where: { createdAt: { gte: prevStartDate, lte: prevEndDate }, status: { not: 'cancelled' } } }),
+        prisma.order.count({ where: { createdAt: { gte: prevStartDate, lte: prevEndDate }, status: revenueOrderStatusFilter } }),
 
         // 3. Current Revenue
         prisma.order.aggregate({
             _sum: { totalPrice: true, shippingCost: true },
-            where: { createdAt: { gte: startDate, lte: endDate }, status: { not: 'cancelled' } }
+            where: { createdAt: { gte: startDate, lte: endDate }, status: revenueOrderStatusFilter }
         }),
 
         // 4. Prev Revenue
         prisma.order.aggregate({
             _sum: { totalPrice: true, shippingCost: true },
-            where: { createdAt: { gte: prevStartDate, lte: prevEndDate }, status: { not: 'cancelled' } }
+            where: { createdAt: { gte: prevStartDate, lte: prevEndDate }, status: revenueOrderStatusFilter }
         }),
 
         // 5. Global Pending
@@ -90,7 +91,7 @@ export async function fetchDashboardStats({ range = '30d' }: DashboardStatsParam
         prisma.orderItem.groupBy({
             by: ['name'],
             _sum: { quantity: true, price: true },
-            where: { order: { createdAt: { gte: startDate, lte: endDate }, status: 'paid' } },
+            where: { order: { createdAt: { gte: startDate, lte: endDate }, status: revenueOrderStatusFilter } },
             orderBy: { _sum: { quantity: 'desc' } },
             take: 5
         }),
@@ -112,7 +113,7 @@ export async function fetchDashboardStats({ range = '30d' }: DashboardStatsParam
 
     // Fetch Daily Sales for Chart
     const ordersForChart = await prisma.order.findMany({
-        where: { createdAt: { gte: startDate, lte: endDate }, status: { not: 'cancelled' } },
+        where: { createdAt: { gte: startDate, lte: endDate }, status: revenueOrderStatusFilter },
         select: { createdAt: true, totalPrice: true, shippingCost: true }
     });
 
