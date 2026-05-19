@@ -156,7 +156,7 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
       });
 
       if (!mounted) return;
-      messenger.showSnackBar(
+      messenger.showAppToast(
         AppToast.snackBar(
           content: Text('Shipping settings saved'),
           backgroundColor: AppColors.success,
@@ -165,7 +165,7 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(
+      messenger.showAppToast(
         AppToast.snackBar(
           content: Text('Error: $e'),
           backgroundColor: AppColors.error,
@@ -202,7 +202,7 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
 
   void _resetDefaults() {
     setState(() => _applySettings(_defaultSettings()));
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showAppToast(
       AppToast.snackBar(
         content: Text('Defaults loaded. Tap Save Changes to apply.'),
         behavior: SnackBarBehavior.floating,
@@ -578,7 +578,7 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
     final cities = List<Map<String, dynamic>>.from(zone['cities'] as List);
     final exists = cities.any((entry) => entry['governorate'] == governorate && entry['city'] == city);
     if (exists) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(content: Text('This city is already in this zone'), backgroundColor: AppColors.error),
       );
       return;

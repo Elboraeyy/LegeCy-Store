@@ -88,10 +88,10 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
         ]
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Offer settings saved'), backgroundColor: AppColors.success));
+        ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Offer settings saved'), backgroundColor: AppColors.success));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -121,7 +121,7 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
               Text(icon, style: const TextStyle(fontSize: 20)),
               const SizedBox(width: 8),
               Expanded(child: Text(title, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primaryDark))),
-              Switch(value: enabled, onChanged: onToggle, activeColor: const Color(0xFF14B8A6)),
+              Switch(value: enabled, onChanged: onToggle, activeTrackColor: const Color(0xFF14B8A6)),
             ],
           ),
           const SizedBox(height: 4),
@@ -180,7 +180,7 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                           Switch(
                             value: _enabled,
                             onChanged: (v) => setState(() => _enabled = v),
-                            activeColor: color,
+                            activeTrackColor: color,
                           ),
                         ],
                       ),
@@ -300,3 +300,4 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
     );
   }
 }
+

@@ -76,7 +76,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   }
 
   void _snack(String m, {bool ok = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showAppToast(
       AppToast.snackBar(
         content: Text(
           m,
@@ -267,7 +267,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         ),
                         Switch(
                           value: hasDiscount,
-                          activeTrackColor: AppColors.primaryDark.withValues(
+                          activeColor: AppColors.primaryDark.withValues(
                             alpha: 0.5,
                           ),
                           onChanged: (val) {
@@ -2131,3 +2131,5 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     }
   }
 }
+
+

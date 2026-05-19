@@ -317,7 +317,7 @@ class _ProductsScreenState extends State<ProductsScreen>
   }
 
   void _showSnack(String msg, {bool isSuccess = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showAppToast(
       AppToast.snackBar(
         content: Text(msg, style: const TextStyle(color: Colors.white)),
         backgroundColor: isSuccess ? AppColors.success : AppColors.error,

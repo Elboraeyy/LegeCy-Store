@@ -88,7 +88,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
     final title = _titleController.text.trim();
     final description = _descriptionController.text.trim();
     if (title.isEmpty || _selectedDeadline == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('Please enter title and deadline'),
           backgroundColor: AppColors.error,
@@ -105,7 +105,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showAppToast(
           AppToast.snackBar(
             content: Text('Error: $e'),
             backgroundColor: AppColors.error,

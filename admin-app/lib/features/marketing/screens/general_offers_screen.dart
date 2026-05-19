@@ -43,7 +43,7 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
       _load();
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -71,11 +71,11 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
     setState(() => _isLoading = true);
     try {
       await _client.delete('/api/admin/auth/offers/$id');
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Offer deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Offer deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       _load();
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -340,7 +340,7 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Active', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                            Switch(value: isActive, onChanged: (v) => setModalState(() => isActive = v), activeColor: _GeneralOffersScreenState._accent),
+                            Switch(value: isActive, onChanged: (v) => setModalState(() => isActive = v), activeTrackColor: _GeneralOffersScreenState._accent),
                           ],
                         ),
                       ),
@@ -352,7 +352,7 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                         child: ElevatedButton(
                           onPressed: () async {
                             if (nameCtrl.text.isEmpty || valueCtrl.text.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Name and value are required'), behavior: SnackBarBehavior.floating));
+                              ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Name and value are required'), behavior: SnackBarBehavior.floating));
                               return;
                             }
                             Navigator.pop(ctx);
@@ -376,11 +376,11 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                               } else {
                                 await _client.post('/api/admin/auth/offers', body: body);
                               }
-                              if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text(isEdit ? 'Offer updated' : 'Offer created'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+                              if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text(isEdit ? 'Offer updated' : 'Offer created'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
                               _load();
                             } catch (e) {
                               if (mounted) setState(() => _isLoading = false);
-                              if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+                              if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
                             }
                           },
                           style: ElevatedButton.styleFrom(backgroundColor: _accent, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
@@ -537,7 +537,7 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                         ],
                       ),
                     ),
-                    Switch(value: isActive, onChanged: (v) => _toggleActive(o['id'], isActive), activeColor: _accent),
+                    Switch(value: isActive, onChanged: (v) => _toggleActive(o['id'], isActive), activeTrackColor: _accent),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -626,3 +626,4 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
     return DateFormat('MMM d, yyyy').format(dt);
   }
 }
+

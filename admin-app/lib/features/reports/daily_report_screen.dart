@@ -176,7 +176,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
                           if (tempStart != null &&
                               tempEnd != null &&
                               tempEnd!.isBefore(tempStart!)) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            ScaffoldMessenger.of(context).showAppToast(
                               AppToast.snackBar(
                                 content: Text(
                                   'End date must be after start date.',

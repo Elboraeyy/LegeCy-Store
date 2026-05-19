@@ -31,7 +31,7 @@ void main() {
               return Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(context).showAppToast(
                       AppToast.snackBar(
                         content: const Text('Toast is visible'),
                         backgroundColor: AppColors.success,
@@ -54,7 +54,8 @@ void main() {
     final toastFinder = find.text('Toast is visible');
     expect(toastFinder, findsOneWidget);
     final toastY = tester.getTopLeft(toastFinder).dy;
-    expect(toastY, lessThan(140));
+    expect(toastY, greaterThan(60));
+    expect(toastY, lessThan(220));
     expect(
       tester.getSize(find.byKey(const ValueKey('app-toast-card'))).height,
       lessThan(70),

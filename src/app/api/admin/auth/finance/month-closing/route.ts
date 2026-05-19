@@ -1,0 +1,302 @@
+import { NextRequest, NextResponse } from 'next/server';
+import prismaClient from '@/lib/prisma';
+const prisma = prismaClient!;
+import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+
+/**
+ * GET /api/admin/finance/month-closing
+ * Get month closing data (preview or historical)
+ * Query: ?month=5&year=2026
+ */
+export async function GET(request: NextRequest) {
+    const admin = await validateMobileToken(request);
+    if (!admin) return unauthorizedResponse();
+
+    try {
+        const { searchParams } = new URL(request.url);
+        const month = parseInt(searchParams.get('month') || String(new Date().getMonth() + 1));
+        const year = parseInt(searchParams.get('year') || String(new Date().getFullYear()));
+
+        // Check if already closed
+        const existing = await prisma.monthClosing.findUnique({
+            where: { month_year: { month, year } },
+            include: {
+                partnerDistributions: {
+                    include: { investor: { select: { name: true } } },
+                },
+            },
+        });
+
+        if (existing) {
+            return NextResponse.json({
+                closing: {
+                    ...existing,
+                    totalRevenue: existing.totalRevenue.toNumber(),
+                    totalCOGS: existing.totalCOGS.toNumber(),
+                    totalShippingCosts: existing.totalShippingCosts.toNumber(),
+                    totalPackagingCosts: existing.totalPackagingCosts.toNumber(),
+                    totalExtraExpenses: existing.totalExtraExpenses.toNumber(),
+                    totalDiscounts: existing.totalDiscounts.toNumber(),
+                    grossProfit: existing.grossProfit.toNumber(),
+                    totalOperatingExpenses: existing.totalOperatingExpenses.toNumber(),
+                    totalAmortizedExpenses: existing.totalAmortizedExpenses.toNumber(),
+                    netProfit: existing.netProfit.toNumber(),
+                    reinvestmentAmount: existing.reinvestmentAmount.toNumber(),
+                    distributionAmount: existing.distributionAmount.toNumber(),
+                    profitShareAmount: existing.profitShareAmount.toNumber(),
+                    salaryShareAmount: existing.salaryShareAmount.toNumber(),
+                    manualAdjustment: existing.manualAdjustment.toNumber(),
+                    partnerDistributions: existing.partnerDistributions.map(pd => ({
+                        ...pd,
+                        sharePercentage: pd.sharePercentage.toNumber(),
+                        profitShare: pd.profitShare.toNumber(),
+                        salaryShare: pd.salaryShare.toNumber(),
+                        totalShare: pd.totalShare.toNumber(),
+                    })),
+                },
+                isPreview: false,
+            });
+        }
+
+        // Generate preview from live data
+        const startOfMonth = new Date(year, month - 1, 1);
+        const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
+
+        // Get all audited delivered orders for this month
+        const auditedOrders = await prisma.order.findMany({
+            where: {
+                status: 'delivered',
+                deliveredAt: { gte: startOfMonth, lte: endOfMonth },
+                isFinanciallyAudited: true,
+            },
+        });
+
+        const pendingAuditCount = await prisma.order.count({
+            where: {
+                status: 'delivered',
+                deliveredAt: { gte: startOfMonth, lte: endOfMonth },
+                isFinanciallyAudited: false,
+            },
+        });
+
+        const cancelledCount = await prisma.order.count({
+            where: {
+                status: { in: ['cancelled', 'CANCELLED'] },
+                createdAt: { gte: startOfMonth, lte: endOfMonth },
+            },
+        });
+
+        // Calculate revenue & costs from audited orders
+        const totalRevenue = auditedOrders.reduce((s, o) => s + o.totalPrice.toNumber(), 0);
+        const totalCOGS = auditedOrders.reduce((s, o) => s + (o.wholesaleCost?.toNumber() || 0), 0);
+        const totalShippingCosts = auditedOrders.reduce((s, o) => s + (o.actualShippingCost?.toNumber() || 0), 0);
+        const totalPackagingCosts = auditedOrders.reduce((s, o) => s + (o.packagingCost?.toNumber() || 0), 0);
+        const totalExtraExpenses = auditedOrders.reduce((s, o) => s + (o.extraExpenses?.toNumber() || 0), 0);
+        const totalDiscounts = auditedOrders.reduce((s, o) => s + (o.discountAmount?.toNumber() || 0), 0);
+        const grossProfit = totalRevenue - totalCOGS - totalShippingCosts - totalPackagingCosts - totalExtraExpenses;
+
+        // Get direct operating expenses for this month (non-amortized)
+        const directExpenses = await prisma.expense.aggregate({
+            where: {
+                date: { gte: startOfMonth, lte: endOfMonth },
+                isAmortized: false,
+                status: 'PAID',
+            },
+            _sum: { amount: true },
+        });
+
+        // Get amortized expenses affecting this month
+        const allAmortized = await prisma.expense.findMany({
+            where: { isAmortized: true, amortStartDate: { lte: endOfMonth } },
+        });
+        const amortizedThisMonth = allAmortized
+            .filter(e => {
+                if (!e.amortStartDate) return false;
+                const start = new Date(e.amortStartDate);
+                const startM = start.getFullYear() * 12 + start.getMonth();
+                const currentM = year * 12 + (month - 1);
+                const endM = startM + e.spreadMonths - 1;
+                return currentM >= startM && currentM <= endM;
+            })
+            .reduce((s, e) => s + (e.monthlyAmount?.toNumber() || 0), 0);
+
+        const totalOperatingExpenses = directExpenses._sum.amount?.toNumber() || 0;
+        const netProfit = grossProfit - totalOperatingExpenses - amortizedThisMonth;
+
+        // Distribution calculation (40% reinvestment, 60% distribution)
+        const reinvestmentAmount = Math.round(netProfit * 0.40 * 100) / 100;
+        const distributionAmount = Math.round(netProfit * 0.60 * 100) / 100;
+        const profitShareAmount = Math.round(distributionAmount * 0.70 * 100) / 100; // 70% by shares
+        const salaryShareAmount = Math.round(distributionAmount * 0.30 * 100) / 100; // 30% equal salary
+
+        // Get active partners
+        const partners = await prisma.investor.findMany({
+            where: { isActive: true, type: 'PARTNER' },
+            orderBy: { name: 'asc' },
+        });
+
+        const partnerDistributions = partners.map(p => {
+            const pSalaryShare = Math.round(salaryShareAmount * p.salaryShare.toNumber() * 100) / 100;
+            const pProfitShare = Math.round(profitShareAmount * p.currentShare.toNumber() * 100) / 100;
+            return {
+                investorId: p.id,
+                partnerName: p.name,
+                sharePercentage: p.currentShare.toNumber(),
+                profitShare: pProfitShare,
+                salaryShare: pSalaryShare,
+                totalShare: Math.round((pProfitShare + pSalaryShare) * 100) / 100,
+            };
+        });
+
+        return NextResponse.json({
+            closing: {
+                month, year,
+                status: 'DRAFT',
+                totalRevenue, totalCOGS, totalShippingCosts, totalPackagingCosts,
+                totalExtraExpenses, totalDiscounts, grossProfit,
+                totalOperatingExpenses, totalAmortizedExpenses: amortizedThisMonth,
+                netProfit,
+                reinvestmentAmount, distributionAmount,
+                profitShareAmount, salaryShareAmount,
+                manualAdjustment: 0,
+                totalOrders: auditedOrders.length + pendingAuditCount,
+                auditedOrders: auditedOrders.length,
+                cancelledOrders: cancelledCount,
+                partnerDistributions,
+            },
+            pendingAuditCount,
+            isPreview: true,
+        });
+    } catch (error) {
+        console.error('Month Closing GET Error:', error);
+        return NextResponse.json({ error: 'Failed to fetch month closing data' }, { status: 500 });
+    }
+}
+
+/**
+ * POST /api/admin/finance/month-closing
+ * Close the month - saves snapshot and distributes profits to partners
+ */
+export async function POST(request: NextRequest) {
+    const admin = await validateMobileToken(request);
+    if (!admin) return unauthorizedResponse();
+
+    try {
+        const body = await request.json();
+        const {
+            month, year, manualAdjustment = 0, adjustmentNote, notes,
+            // All the calculated values from preview
+            totalRevenue, totalCOGS, totalShippingCosts, totalPackagingCosts,
+            totalExtraExpenses, totalDiscounts, grossProfit,
+            totalOperatingExpenses, totalAmortizedExpenses,
+            netProfit: rawNetProfit,
+            totalOrders, auditedOrders, cancelledOrders,
+        } = body;
+
+        // Apply manual adjustment
+        const netProfit = rawNetProfit + manualAdjustment;
+        const reinvestmentAmount = Math.round(netProfit * 0.40 * 100) / 100;
+        const distributionAmount = Math.round(netProfit * 0.60 * 100) / 100;
+        const profitShareAmount = Math.round(distributionAmount * 0.70 * 100) / 100;
+        const salaryShareAmount = Math.round(distributionAmount * 0.30 * 100) / 100;
+
+        const partners = await prisma.investor.findMany({
+            where: { isActive: true, type: 'PARTNER' },
+        });
+
+        const result = await prisma.$transaction(async (tx) => {
+            // Create/update the month closing record
+            const closing = await tx.monthClosing.upsert({
+                where: { month_year: { month, year } },
+                create: {
+                    month, year,
+                    status: 'CLOSED',
+                    totalRevenue, totalCOGS, totalShippingCosts, totalPackagingCosts,
+                    totalExtraExpenses, totalDiscounts, grossProfit,
+                    totalOperatingExpenses, totalAmortizedExpenses,
+                    netProfit,
+                    reinvestmentAmount, distributionAmount,
+                    profitShareAmount, salaryShareAmount,
+                    manualAdjustment,
+                    adjustmentNote: adjustmentNote || undefined,
+                    totalOrders: totalOrders || 0,
+                    auditedOrders: auditedOrders || 0,
+                    cancelledOrders: cancelledOrders || 0,
+                    closedBy: admin.id,
+                    closedAt: new Date(),
+                    notes: notes || undefined,
+                },
+                update: {
+                    status: 'CLOSED',
+                    totalRevenue, totalCOGS, totalShippingCosts, totalPackagingCosts,
+                    totalExtraExpenses, totalDiscounts, grossProfit,
+                    totalOperatingExpenses, totalAmortizedExpenses,
+                    netProfit,
+                    reinvestmentAmount, distributionAmount,
+                    profitShareAmount, salaryShareAmount,
+                    manualAdjustment,
+                    adjustmentNote: adjustmentNote || undefined,
+                    totalOrders: totalOrders || 0,
+                    auditedOrders: auditedOrders || 0,
+                    cancelledOrders: cancelledOrders || 0,
+                    closedBy: admin.id,
+                    closedAt: new Date(),
+                    notes: notes || undefined,
+                },
+            });
+
+            // Delete old distributions if re-closing
+            await tx.monthClosingPartner.deleteMany({
+                where: { monthClosingId: closing.id },
+            });
+
+            // Distribute profits to each partner
+            for (const partner of partners) {
+                const profitShare = Math.round(profitShareAmount * partner.currentShare.toNumber() * 100) / 100;
+                const salaryShare = Math.round(salaryShareAmount * partner.salaryShare.toNumber() * 100) / 100;
+                const totalShare = profitShare + salaryShare;
+
+                // Create distribution record
+                await tx.monthClosingPartner.create({
+                    data: {
+                        monthClosingId: closing.id,
+                        investorId: partner.id,
+                        partnerName: partner.name,
+                        sharePercentage: partner.currentShare.toNumber(),
+                        profitShare,
+                        salaryShare,
+                        totalShare,
+                    },
+                });
+
+                // Add to partner's wallet
+                await tx.investor.update({
+                    where: { id: partner.id },
+                    data: {
+                        walletBalance: { increment: totalShare },
+                        totalEarnings: { increment: totalShare },
+                    },
+                });
+            }
+
+            // Add reinvestment to capital
+            // (This increases the total capital pool)
+
+            return closing;
+        });
+
+        return NextResponse.json({
+            success: true,
+            closing: {
+                id: result.id,
+                month: result.month,
+                year: result.year,
+                status: result.status,
+                netProfit: result.netProfit.toNumber(),
+            },
+        });
+    } catch (error) {
+        console.error('Month Closing POST Error:', error);
+        return NextResponse.json({ error: 'Failed to close month' }, { status: 500 });
+    }
+}

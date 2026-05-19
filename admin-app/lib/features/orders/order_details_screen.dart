@@ -79,7 +79,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       );
       await _loadOrder();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showAppToast(
           AppToast.snackBar(
             content: Text('Status updated to $newStatus'),
             backgroundColor: AppColors.success,
@@ -92,7 +92,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showAppToast(
           AppToast.snackBar(
             content: Text('Failed: $e'),
             backgroundColor: AppColors.error,
@@ -1201,7 +1201,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(
                                                 context,
-                                              ).showSnackBar(
+                                              ).showAppToast(
                                                 AppToast.snackBar(
                                                   content: Text('Failed: $e'),
                                                   backgroundColor:
@@ -1304,7 +1304,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                   if (mounted) setModalState(() {});
                                 } catch (e) {
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    ScaffoldMessenger.of(context).showAppToast(
                                       AppToast.snackBar(
                                         content: Text('Failed: $e'),
                                         backgroundColor: AppColors.error,
@@ -1503,7 +1503,7 @@ Thanks for shopping with us! 💚''';
       try {
         await launchUrl(Uri.parse(url), mode: LaunchMode.platformDefault);
       } catch (e2) {
-        messenger.showSnackBar(
+        messenger.showAppToast(
           AppToast.snackBar(
             content: Text('WhatsApp is not installed or supported.'),
             backgroundColor: AppColors.error,
@@ -1664,14 +1664,14 @@ Thanks for shopping with us! 💚''';
           }
           if (hasAccess) {
             await Gal.putImage(file.path, album: 'LegaCy');
-            messenger.showSnackBar(
+            messenger.showAppToast(
               AppToast.snackBar(
                 content: Text('Image saved to gallery successfully!'),
                 backgroundColor: AppColors.success,
               ),
             );
           } else {
-            messenger.showSnackBar(
+            messenger.showAppToast(
               AppToast.snackBar(
                 content: Text('Storage permission denied.'),
                 backgroundColor: AppColors.error,
@@ -1692,7 +1692,7 @@ Thanks for shopping with us! 💚''';
         );
       }
     } catch (e) {
-      messenger.showSnackBar(
+      messenger.showAppToast(
         AppToast.snackBar(
           content: Text('Failed: $e'),
           backgroundColor: AppColors.error,

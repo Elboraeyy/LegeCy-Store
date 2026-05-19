@@ -128,7 +128,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       await client.delete('/api/admin/auth/categories/$id');
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('Category deleted'),
           backgroundColor: AppColors.success,
@@ -138,7 +138,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       _loadCategories();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('Error: $e'),
           backgroundColor: AppColors.error,
@@ -704,7 +704,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             if (!context.mounted) return;
                             Navigator.pop(ctx);
                             _loadCategories();
-                            messenger.showSnackBar(
+                            messenger.showAppToast(
                               AppToast.snackBar(
                                 content: Text(
                                   category != null
@@ -717,7 +717,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             );
                           } catch (e) {
                             setSheetState(() => isSaving = false);
-                            messenger.showSnackBar(
+                            messenger.showAppToast(
                               AppToast.snackBar(
                                 content: Text('Error: $e'),
                                 backgroundColor: AppColors.error,

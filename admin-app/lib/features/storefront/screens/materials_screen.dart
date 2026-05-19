@@ -139,7 +139,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
       final client = ApiClient(token: token);
       await client.delete('/api/admin/auth/materials/$id');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('Material deleted'),
           backgroundColor: AppColors.success,
@@ -149,7 +149,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
       _loadMaterials();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('$e'),
           backgroundColor: AppColors.error,
@@ -251,7 +251,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                       _loadMaterials();
                     } catch (e) {
                       if (!context.mounted) return;
-                      messenger.showSnackBar(
+                      messenger.showAppToast(
                         AppToast.snackBar(
                           content: Text('$e'),
                           backgroundColor: AppColors.error,

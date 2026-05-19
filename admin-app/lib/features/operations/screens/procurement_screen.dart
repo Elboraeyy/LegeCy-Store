@@ -69,11 +69,11 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
       final client = ApiClient(token: token);
       await client.delete('/api/admin/auth/procurement/$id');
       if (!mounted) return;
-      messenger.showSnackBar(AppToast.snackBar(content: Text('Supplier deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+      messenger.showAppToast(AppToast.snackBar(content: Text('Supplier deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       _loadAllData();
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      messenger.showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -152,7 +152,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
                         _loadAllData();
                       } catch (e) {
                         if (!context.mounted) return;
-                        messenger.showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+                        messenger.showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
                       }
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
@@ -188,11 +188,11 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
       final client = ApiClient(token: token);
       await client.delete('/api/admin/auth/procurement/invoices/$id');
       if (!mounted) return;
-      messenger.showSnackBar(AppToast.snackBar(content: Text('Invoice deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+      messenger.showAppToast(AppToast.snackBar(content: Text('Invoice deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       _loadAllData();
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      messenger.showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -281,7 +281,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
                         _loadAllData();
                       } catch (e) {
                         if (!context.mounted) return;
-                        messenger.showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+                        messenger.showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
                       }
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),

@@ -20,6 +20,12 @@ import '../operations/screens/delivery_zones_screen.dart';
 import '../operations/screens/procurement_screen.dart';
 import 'screens/customers_screen.dart';
 import 'screens/stock_requests_screen.dart';
+import '../finance/screens/treasury_screen.dart';
+import '../finance/screens/orders_audit_screen.dart';
+import '../finance/screens/expenses_screen.dart';
+import '../finance/screens/month_closing_screen.dart';
+import '../finance/screens/partner_wallet_screen.dart';
+import '../finance/screens/finance_approvals_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -128,7 +134,7 @@ class _MoreScreenState extends State<MoreScreen> {
 
         auth.updateAvatar(imageUrl);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showAppToast(
             AppToast.snackBar(
               content: Text('Profile picture updated successfully'),
               backgroundColor: AppColors.success,
@@ -139,7 +145,7 @@ class _MoreScreenState extends State<MoreScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showAppToast(
           AppToast.snackBar(
             content: Text('Upload failed: $e'),
             backgroundColor: AppColors.error,
@@ -449,6 +455,66 @@ class _MoreScreenState extends State<MoreScreen> {
                       icon: LucideIcons.bellRing,
                       color: const Color(0xFFD946EF),
                       screen: const NotificationsSettingsScreen(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                if (auth.role == 'SUPER_ADMIN') ...[
+                  _buildSection(
+                    title: 'Finance & Analytics',
+                    icon: LucideIcons.pieChart,
+                    items: [
+                      _MenuItem(
+                        title: 'Treasury & Safes',
+                        subtitle: 'Cash, bank & wallets',
+                        icon: LucideIcons.landmark,
+                        color: const Color(0xFF059669),
+                        screen: const TreasuryScreen(),
+                      ),
+                      _MenuItem(
+                        title: 'Orders Audit',
+                        subtitle: 'P&L tracking per order',
+                        icon: LucideIcons.clipboardCheck,
+                        color: const Color(0xFF3B82F6),
+                        screen: const OrdersAuditScreen(),
+                      ),
+                      _MenuItem(
+                        title: 'Expenses',
+                        subtitle: 'Operating costs & ads',
+                        icon: LucideIcons.receipt,
+                        color: const Color(0xFFDC2626),
+                        screen: const ExpensesScreen(),
+                      ),
+                      _MenuItem(
+                        title: 'Approvals',
+                        subtitle: 'Partner withdrawals',
+                        icon: LucideIcons.checkCircle2,
+                        color: const Color(0xFFF59E0B),
+                        screen: const FinanceApprovalsScreen(),
+                      ),
+                      _MenuItem(
+                        title: 'Month Closing',
+                        subtitle: 'P&L & profit sharing',
+                        icon: LucideIcons.calendarCheck,
+                        color: const Color(0xFF8B5CF6),
+                        screen: const MonthClosingScreen(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
+                _buildSection(
+                  title: 'Partner Area',
+                  icon: LucideIcons.users,
+                  items: [
+                    _MenuItem(
+                      title: 'My Wallet',
+                      subtitle: 'Earnings & withdrawals',
+                      icon: LucideIcons.wallet,
+                      color: const Color(0xFF10B981),
+                      screen: const PartnerWalletScreen(),
                     ),
                   ],
                 ),
@@ -827,3 +893,4 @@ class _MenuItemWidget extends StatelessWidget {
     );
   }
 }
+

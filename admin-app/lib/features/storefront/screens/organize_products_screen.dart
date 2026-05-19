@@ -122,7 +122,7 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
         body: {'items': items, 'useCustomOrder': _useCustomOrder},
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Row(
             children: [
@@ -148,7 +148,7 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('Error: $e'),
           backgroundColor: AppColors.error,
@@ -166,7 +166,7 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
       final client = ApiClient(token: context.read<AuthProvider>().token);
       await client.put(_apiPath, body: {'useCustomOrder': value});
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text(
             value

@@ -184,7 +184,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
   }
 
   void _toast(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showAppToast(
       AppToast.snackBar(content: Text(message), backgroundColor: color),
     );
   }

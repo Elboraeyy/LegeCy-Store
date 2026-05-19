@@ -1,12 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
+
 import 'package:admin_app/core/theme/app_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 enum AppToastTone { success, error, warning, info }
 
 class AppToast {
   AppToast._();
+
+  static OverlayEntry? _activeEntry;
+  static Timer? _activeTimer;
 
   static SnackBar snackBar({
     Key? key,
@@ -28,15 +32,14 @@ class AppToast {
     final tone = _toneFromColor(backgroundColor);
     final message = _messageFromContent(content);
     final normalized = _normalizeMessage(message, tone);
-    final placement = _topPlacement();
 
     return SnackBar(
       key: key,
-      behavior: SnackBarBehavior.floating,
+      behavior: behavior ?? SnackBarBehavior.floating,
       elevation: elevation ?? 0,
       backgroundColor: Colors.transparent,
       width: width,
-      margin: margin ?? placement.margin,
+      margin: margin ?? _defaultMargin(),
       padding: padding ?? EdgeInsets.zero,
       shape:
           shape ??
@@ -53,6 +56,47 @@ class AppToast {
         action: action,
       ),
     );
+  }
+
+  static void show(BuildContext context, SnackBar snackBar) {
+    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) {
+      return;
+    }
+
+    _activeTimer?.cancel();
+    _activeEntry?.remove();
+
+    final directionality = Directionality.maybeOf(context) ?? TextDirection.ltr;
+    final resolvedMargin =
+        (snackBar.margin ?? _defaultMargin()).resolve(directionality);
+    final topOffset = resolvedMargin.top;
+    final horizontalMargin = snackBar.width == null ? resolvedMargin.right : 0.0;
+
+    final entry = OverlayEntry(
+      builder: (overlayContext) {
+        return _ToastOverlay(
+          top: topOffset,
+          left: resolvedMargin.left,
+          right: horizontalMargin,
+          width: snackBar.width,
+          child: snackBar.content,
+        );
+      },
+    );
+
+    _activeEntry = entry;
+    overlay.insert(entry);
+    snackBar.onVisible?.call();
+
+    _activeTimer = Timer(snackBar.duration, hide);
+  }
+
+  static void hide() {
+    _activeTimer?.cancel();
+    _activeTimer = null;
+    _activeEntry?.remove();
+    _activeEntry = null;
   }
 
   static SnackBar success(String message) =>
@@ -110,26 +154,93 @@ class AppToast {
     return _NormalizedToast(title: message);
   }
 
-  static _ToastPlacement _topPlacement() {
-    final view = WidgetsBinding.instance.platformDispatcher.views.first;
-    final mediaQuery = MediaQueryData.fromView(view);
-    const horizontalGap = 16.0;
-    const topGap = 12.0;
-    const estimatedToastHeight = 74.0;
-    final screenHeight = mediaQuery.size.height;
-    final topInset = mediaQuery.padding.top;
-    final bottomMargin =
-        (screenHeight - topInset - estimatedToastHeight - topGap).clamp(
-          24.0,
-          screenHeight,
-        );
+  static EdgeInsets _defaultMargin() {
+    return const EdgeInsets.fromLTRB(16, 96, 16, 0);
+  }
+}
 
-    return _ToastPlacement(
-      margin: EdgeInsets.only(
-        left: horizontalGap,
-        right: horizontalGap,
-        top: topInset + topGap,
-        bottom: bottomMargin,
+extension AppToastMessenger on ScaffoldMessengerState {
+  void showAppToast(SnackBar snackBar) {
+    AppToast.show(context, snackBar);
+  }
+}
+
+class _ToastOverlay extends StatefulWidget {
+  final double top;
+  final double left;
+  final double right;
+  final double? width;
+  final Widget child;
+
+  const _ToastOverlay({
+    required this.top,
+    required this.left,
+    required this.right,
+    required this.width,
+    required this.child,
+  });
+
+  @override
+  State<_ToastOverlay> createState() => _ToastOverlayState();
+}
+
+class _ToastOverlayState extends State<_ToastOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<Offset> _slide;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+    );
+    _slide = Tween<Offset>(
+      begin: const Offset(0, -0.18),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: widget.top,
+      left: widget.left,
+      right: widget.width == null ? widget.right : null,
+      child: IgnorePointer(
+        ignoring: false,
+        child: Material(
+          type: MaterialType.transparency,
+          child: SafeArea(
+            bottom: false,
+            child: SlideTransition(
+              position: _slide,
+              child: FadeTransition(
+                opacity: _fade,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: widget.width ?? 640,
+                    ),
+                    child: widget.child,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -152,86 +263,83 @@ class _ToastCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = _ToastColors.forTone(tone);
 
-    return Container(
-      key: const ValueKey('app-toast-card'),
-      constraints: const BoxConstraints(minHeight: 50),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colors.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryDark.withValues(alpha: 0.14),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
-          BoxShadow(
-            color: colors.accent.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(17),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(width: 4, height: 50, color: colors.accent),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: colors.badge,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        _iconForTone(tone),
-                        color: colors.accent,
-                        size: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: originalContent != null
-                          ? DefaultTextStyle(
-                              style: GoogleFonts.inter(
-                                color: AppColors.textPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                height: 1.35,
-                              ),
-                              child: originalContent!,
-                            )
-                          : Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.inter(
-                                    color: AppColors.textPrimary,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    height: 1.25,
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                    if (action != null) ...[const SizedBox(width: 8), action!],
-                  ],
-                ),
-              ),
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        key: const ValueKey('app-toast-card'),
+        constraints: const BoxConstraints(minHeight: 50),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: colors.border),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryDark.withValues(alpha: 0.14),
+              blurRadius: 28,
+              offset: const Offset(0, 14),
+            ),
+            BoxShadow(
+              color: colors.accent.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(17),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(width: 4, height: 50, color: colors.accent),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: colors.badge,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _iconForTone(tone),
+                          color: colors.accent,
+                          size: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: originalContent != null
+                            ? DefaultTextStyle(
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.35,
+                                ),
+                                child: originalContent!,
+                              )
+                            : Text(
+                                title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.25,
+                                ),
+                              ),
+                      ),
+                      if (action != null) ...[const SizedBox(width: 8), action!],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -294,10 +402,4 @@ class _NormalizedToast {
   final String title;
 
   const _NormalizedToast({required this.title});
-}
-
-class _ToastPlacement {
-  final EdgeInsetsGeometry margin;
-
-  const _ToastPlacement({required this.margin});
 }

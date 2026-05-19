@@ -40,7 +40,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
       await client.put('/api/admin/auth/messages/$id', body: { 'status': status });
       _load();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e')));
     }
   }
 
@@ -55,7 +55,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
       _load();
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e')));
     }
   }
 

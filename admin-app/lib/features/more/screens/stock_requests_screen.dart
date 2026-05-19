@@ -80,7 +80,7 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
       );
       _loadRequests();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('Status updated successfully'),
           backgroundColor: AppColors.success,
@@ -92,7 +92,7 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
       if (mounted)
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(AppToast.snackBar(content: Text('Error: $e')));
+        ).showAppToast(AppToast.snackBar(content: Text('Error: $e')));
     }
   }
 
@@ -157,7 +157,7 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
       if (mounted)
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(AppToast.snackBar(content: Text('Error: $e')));
+        ).showAppToast(AppToast.snackBar(content: Text('Error: $e')));
     }
   }
 

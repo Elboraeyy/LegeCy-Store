@@ -125,6 +125,9 @@ model AdminUser {
   createdTransfers    StockTransfer[]  @relation("TransferCreatedBy")
   managedWarehouses   Warehouse[]
   todos               Todo[]
+  auditedOrders       Order[]              @relation("OrderAuditedBy")
+  investorProfile     Investor?
+  approvedWithdrawals PartnerWithdrawal[]  @relation("WithdrawalApprovedBy")
 }
 
 model AdminRole {
@@ -192,11 +195,24 @@ model Order {
   lastName            String?
   paymentPhoneNumber  String?
   paymentRef          String?
+  // === Financial Audit Fields ===
+  wholesaleCost         Decimal?             // تكلفة الجملة (COGS)
+  packagingCost         Decimal?             // تكلفة التغليف
+  actualShippingCost    Decimal?             // تكلفة الشحن الفعلية المدفوعة لشركة الشحن
+  extraExpenses         Decimal?             // مصاريف نثرية إضافية
+  netProfit             Decimal?             // صافي الربح بعد خصم كل التكاليف
+  isFinanciallyAudited  Boolean              @default(false)
+  auditedAt             DateTime?
+  auditedById           String?
+  auditSafeId           String?              // الخزنة التي دخلت فيها فلوس الأوردر
+  auditNotes            String?
   couponUsage         CouponUsage?
   loyaltyTransactions LoyaltyTransaction[]
   coupon              Coupon?              @relation(fields: [couponId], references: [id])
   orderStatus         OrderStatusEnum      @relation(fields: [status], references: [value])
   user                User?                @relation(fields: [userId], references: [id])
+  auditedBy           AdminUser?           @relation("OrderAuditedBy", fields: [auditedById], references: [id])
+  auditSafe           Safe?                @relation(fields: [auditSafeId], references: [id])
   adjustments         OrderAdjustment[]
   disputes            OrderDispute[]
   events              OrderEvent[]
@@ -215,6 +231,7 @@ model Order {
   @@index([customerEmail])
   @@index([paymentMethod])
   @@index([orderSource])
+  @@index([isFinanciallyAudited])
 }
 
 model PaymentIntent {
@@ -988,14 +1005,22 @@ model TransactionLine {
 }
 
 model Investor {
-  id             String               @id @default(uuid())
-  name           String
-  type           InvestorType         @default(PARTNER)
-  netContributed Decimal              @default(0)
-  currentShare   Decimal              @default(0)
-  isActive       Boolean              @default(true)
-  joinedAt       DateTime             @default(now())
-  transactions   CapitalTransaction[]
+  id               String               @id @default(uuid())
+  name             String
+  type             InvestorType         @default(PARTNER)
+  netContributed   Decimal              @default(0)
+  currentShare     Decimal              @default(0)  // نسبة الشراكة (من أرباح הـ 70%)
+  salaryShare      Decimal              @default(0)  // نسبة الشريك من الراتب (من الـ 30%)
+  isActive         Boolean              @default(true)
+  joinedAt         DateTime             @default(now())
+  adminUserId      String?              @unique       // ربط الشريك بحساب الأدمن للدخول على التطبيق
+  walletBalance    Decimal              @default(0)   // الرصيد المتاح للسحب
+  totalEarnings    Decimal              @default(0)   // إجمالي ما كسبه الشريك
+  totalWithdrawn   Decimal              @default(0)   // إجمالي ما سحبه الشريك
+  adminUser        AdminUser?           @relation(fields: [adminUserId], references: [id])
+  transactions     CapitalTransaction[]
+  withdrawals      PartnerWithdrawal[]
+  monthDistributions MonthClosingPartner[]
 }
 
 model CapitalTransaction {
@@ -1014,27 +1039,48 @@ model CapitalTransaction {
 }
 
 model Expense {
-  id             String          @id @default(uuid())
-  description    String
-  amount         Decimal
-  date           DateTime        @default(now())
-  categoryId     String
-  status         ExpenseStatus   @default(PENDING)
-  receiptUrl     String?
-  journalEntryId String?         @unique
-  paidBy         String?
-  approvedBy     String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  category       ExpenseCategory @relation(fields: [categoryId], references: [id])
+  id               String           @id @default(uuid())
+  description      String
+  amount           Decimal
+  date             DateTime         @default(now())
+  categoryId       String
+  subcategoryId    String?          // الفئة الفرعية
+  status           ExpenseStatus    @default(PAID)
+  receiptUrl       String?
+  journalEntryId   String?          @unique
+  paidBy           String?
+  approvedBy       String?
+  safeId           String?          // الخزنة اللي اتدفع منها
+  // === نظام التقسيط (Amortization) ===
+  isAmortized      Boolean          @default(false)  // هل يتقسم على شهور؟
+  spreadMonths     Int              @default(1)      // يتقسم على كام شهر
+  monthlyAmount    Decimal?         // المبلغ الشهري بعد التقسيم
+  amortStartDate   DateTime?        // بداية التقسيط
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  category         ExpenseCategory  @relation("ExpenseToCategory", fields: [categoryId], references: [id])
+  subcategory      ExpenseCategory? @relation("ExpenseToSubcategory", fields: [subcategoryId], references: [id])
+  safe             Safe?            @relation(fields: [safeId], references: [id])
+
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([safeId])
+  @@index([date])
+  @@index([isAmortized])
 }
 
 model ExpenseCategory {
-  id          String    @id @default(uuid())
-  name        String    @unique
-  code        String?
-  budgetLimit Decimal?
-  expenses    Expense[]
+  id                String            @id @default(uuid())
+  name              String            @unique
+  code              String?
+  budgetLimit       Decimal?
+  parentId          String?           // لدعم الفئات الفرعية
+  parent            ExpenseCategory?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children          ExpenseCategory[] @relation("CategoryTree")
+  expenses          Expense[]         @relation("ExpenseToCategory")
+  subExpenses       Expense[]         @relation("ExpenseToSubcategory")
+
+  @@index([parentId])
 }
 
 model Supplier {
@@ -1914,4 +1960,159 @@ enum ExpenseStatus {
   APPROVED
   REJECTED
   PAID
+}
+
+// ====================================================================
+// === نظام الخزن والإدارة المالية (Treasury & Financial Management) ===
+// ====================================================================
+
+/// الخزن والحسابات البنكية (كاش، بنك، محفظة إلكترونية)
+model Safe {
+  id           String            @id @default(uuid())
+  name         String            @unique   // مثلاً: "درج الكاش"، "CIB بنك"، "فودافون كاش"
+  type         SafeType          @default(CASH)
+  balance      Decimal           @default(0)
+  description  String?
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  transactions SafeTransaction[]
+  orders       Order[]           // الأوردرات المربوطة بالخزنة دي
+  expenses     Expense[]         // المصروفات المدفوعة من الخزنة دي
+  withdrawals  PartnerWithdrawal[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+/// سجل كل حركة مالية على أي خزنة
+model SafeTransaction {
+  id          String              @id @default(uuid())
+  safeId      String
+  type        SafeTransactionType
+  amount      Decimal
+  balanceAfter Decimal            // الرصيد بعد الحركة
+  description String?
+  referenceType String?           // "ORDER" | "EXPENSE" | "WITHDRAWAL" | "TRANSFER" | "DEPOSIT" | "MONTH_CLOSING"
+  referenceId   String?           // ID الأوردر أو المصروف أو طلب السحب
+  createdBy   String?
+  createdAt   DateTime            @default(now())
+  safe        Safe                @relation(fields: [safeId], references: [id])
+
+  @@index([safeId])
+  @@index([type])
+  @@index([referenceType, referenceId])
+  @@index([createdAt])
+}
+
+/// تقفيل الشهر - لقطة نهائية لحسابات الشهر
+model MonthClosing {
+  id                  String                @id @default(uuid())
+  month               Int                   // رقم الشهر (1-12)
+  year                Int                   // السنة
+  status              MonthClosingStatus    @default(DRAFT)
+  // === إيرادات ===
+  totalRevenue        Decimal               @default(0)  // إجمالي المبيعات
+  totalCOGS           Decimal               @default(0)  // إجمالي تكلفة البضاعة المباعة
+  totalShippingCosts  Decimal               @default(0)  // إجمالي تكاليف الشحن
+  totalPackagingCosts Decimal               @default(0)  // إجمالي تكاليف التغليف
+  totalExtraExpenses  Decimal               @default(0)  // مصاريف نثرية
+  totalDiscounts      Decimal               @default(0)  // إجمالي الخصومات
+  grossProfit         Decimal               @default(0)  // مجمل الربح (الإيرادات - تكلفة المبيعات)
+  // === مصاريف تشغيلية ===
+  totalOperatingExpenses Decimal            @default(0)  // مصاريف الشهر (إعلانات، مرتبات، إيجار...)
+  totalAmortizedExpenses Decimal            @default(0)  // نصيب الشهر من المصاريف المقسطة
+  // === صافي الربح ===
+  netProfit           Decimal               @default(0)  // صافي الربح النهائي
+  // === التوزيع ===
+  reinvestmentAmount  Decimal               @default(0)  // 40% إعادة استثمار
+  distributionAmount  Decimal               @default(0)  // 60% المتاح للتوزيع
+  profitShareAmount   Decimal               @default(0)  // 70% من المتاح (أرباح بالنسب)
+  salaryShareAmount   Decimal               @default(0)  // 30% من المتاح (مرتبات بالتساوي)
+  // === تعديلات يدوية ===
+  manualAdjustment    Decimal               @default(0)  // تسوية يدوية (+/-)
+  adjustmentNote      String?               // سبب التسوية
+  // === أعداد الأوردرات ===
+  totalOrders         Int                   @default(0)
+  auditedOrders       Int                   @default(0)
+  cancelledOrders     Int                   @default(0)
+  // === بيانات التقفيل ===
+  closedBy            String?
+  closedAt            DateTime?
+  notes               String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  partnerDistributions MonthClosingPartner[]
+
+  @@unique([month, year])
+  @@index([status])
+  @@index([year])
+}
+
+/// توزيع أرباح شهر معين على شريك معين
+model MonthClosingPartner {
+  id                String       @id @default(uuid())
+  monthClosingId    String
+  investorId        String
+  partnerName       String       // اسم الشريك (للحفظ التاريخي)
+  sharePercentage   Decimal      // نسبة الشريك وقت التقفيل
+  profitShare       Decimal      @default(0)  // نصيبه من الأرباح (حسب النسبة)
+  salaryShare       Decimal      @default(0)  // نصيبه من المرتب (بالتساوي)
+  totalShare        Decimal      @default(0)  // المجموع (الأرباح + المرتب)
+  createdAt         DateTime     @default(now())
+  monthClosing      MonthClosing @relation(fields: [monthClosingId], references: [id])
+  investor          Investor     @relation(fields: [investorId], references: [id])
+
+  @@unique([monthClosingId, investorId])
+  @@index([investorId])
+}
+
+/// طلبات سحب الشركاء
+model PartnerWithdrawal {
+  id             String           @id @default(uuid())
+  investorId     String
+  amount         Decimal
+  status         WithdrawalStatus @default(PENDING)
+  safeId         String?          // الخزنة اللي هتطلع منها الفلوس
+  approvedById   String?          // مسئول الماليات اللي وافق
+  approvedAt     DateTime?
+  rejectedReason String?
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  investor       Investor         @relation(fields: [investorId], references: [id])
+  safe           Safe?            @relation(fields: [safeId], references: [id])
+  approvedBy     AdminUser?       @relation("WithdrawalApprovedBy", fields: [approvedById], references: [id])
+
+  @@index([investorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// === Enums ===
+
+enum SafeType {
+  CASH        // درج كاش
+  BANK        // حساب بنكي
+  WALLET      // محفظة إلكترونية (فودافون كاش / إنستاباي)
+  OTHER
+}
+
+enum SafeTransactionType {
+  CREDIT      // وارد (فلوس دخلت)
+  DEBIT       // منصرف (فلوس خرجت)
+  TRANSFER_IN // تحويل داخلي وارد
+  TRANSFER_OUT// تحويل داخلي صادر
+}
+
+enum WithdrawalStatus {
+  PENDING     // في انتظار الموافقة
+  APPROVED    // تمت الموافقة وصرف الفلوس
+  REJECTED    // مرفوض
+}
+
+enum MonthClosingStatus {
+  DRAFT       // مسودة (جاري التجهيز)
+  CLOSED      // مقفول رسمياً
+  LOCKED      // مقفل ومغلق (لا يمكن التعديل)
 }

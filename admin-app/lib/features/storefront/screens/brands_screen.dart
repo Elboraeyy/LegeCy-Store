@@ -139,7 +139,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
       final client = ApiClient(token: token);
       await client.delete('/api/admin/auth/brands/$id');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('Brand deleted'),
           backgroundColor: AppColors.success,
@@ -149,7 +149,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
       _loadBrands();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('$e'),
           backgroundColor: AppColors.error,
@@ -248,7 +248,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
                       _loadBrands();
                     } catch (e) {
                       if (!context.mounted) return;
-                      messenger.showSnackBar(
+                      messenger.showAppToast(
                         AppToast.snackBar(
                           content: Text('$e'),
                           backgroundColor: AppColors.error,

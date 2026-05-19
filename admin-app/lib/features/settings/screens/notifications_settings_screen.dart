@@ -224,7 +224,6 @@ class NotificationsSettingsScreen extends StatelessWidget {
               HapticFeedback.mediumImpact();
               provider.setGlobalEnabled(v);
             },
-            activeColor: AppColors.accent,
             activeTrackColor: AppColors.accent.withValues(alpha: 0.3),
           ),
         ],
@@ -419,7 +418,6 @@ class NotificationsSettingsScreen extends StatelessWidget {
             Switch.adaptive(
               value: value,
               onChanged: onChanged,
-              activeColor: color,
               activeTrackColor: color.withValues(alpha: 0.3),
             ),
           ],
@@ -428,3 +426,5 @@ class NotificationsSettingsScreen extends StatelessWidget {
     );
   }
 }
+
+

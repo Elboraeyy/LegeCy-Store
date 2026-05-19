@@ -140,10 +140,10 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Loyalty settings saved'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Loyalty settings saved'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -241,11 +241,11 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
                   'reason': reasonCtrl.text,
                 });
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Points adjusted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+                  ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Points adjusted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
                   _searchMembers(_memberSearchCtrl.text);
                 }
               } catch (e) {
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+                if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: _accent, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
@@ -425,7 +425,7 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
                   ],
                 ),
               ),
-              Switch(value: _enabled, onChanged: (v) => setState(() => _enabled = v), activeColor: _accent),
+              Switch(value: _enabled, onChanged: (v) => setState(() => _enabled = v), activeTrackColor: _accent),
             ],
           ),
         ),
@@ -642,3 +642,4 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
     );
   }
 }
+

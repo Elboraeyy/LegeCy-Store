@@ -1162,7 +1162,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                           if (tempStart != null &&
                               tempEnd != null &&
                               tempEnd!.isBefore(tempStart!)) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            ScaffoldMessenger.of(context).showAppToast(
                               AppToast.snackBar(
                                 content: Text(
                                   'End date must be after start date',

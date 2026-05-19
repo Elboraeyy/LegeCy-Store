@@ -390,7 +390,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   void _snack(String m, {bool ok = false}) =>
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text(m, style: const TextStyle(color: Colors.white)),
           backgroundColor: ok ? AppColors.success : AppColors.error,
@@ -1942,3 +1942,5 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 }
+
+

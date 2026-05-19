@@ -278,10 +278,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       if (ctx.mounted) Navigator.pop(ctx);
                       _loadInventory();
                       if (!mounted) return;
-                      messenger.showSnackBar(AppToast.snackBar(content: Text('Stock updated successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+                      messenger.showAppToast(AppToast.snackBar(content: Text('Stock updated successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
                     } catch (e) {
                       setModalState(() => isSaving = false);
-                      messenger.showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+                      messenger.showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
                     }
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),

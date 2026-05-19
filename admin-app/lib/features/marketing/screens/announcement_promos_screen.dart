@@ -68,10 +68,10 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
         ]
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Announcement settings saved'), backgroundColor: AppColors.success));
+        ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Announcement settings saved'), backgroundColor: AppColors.success));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -131,7 +131,7 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
                           Switch(
                             value: _enabled,
                             onChanged: (v) => setState(() => _enabled = v),
-                            activeColor: color,
+                            activeTrackColor: color,
                           ),
                         ],
                       ),
@@ -233,3 +233,4 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
     );
   }
 }
+

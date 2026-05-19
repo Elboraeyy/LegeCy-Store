@@ -87,10 +87,10 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
         ]
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Settings saved successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Settings saved successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     } finally {
       if (mounted) setState(() => _savingSettings = false);
     }
@@ -105,7 +105,7 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
       await client.put('/api/admin/auth/coupons/$id', body: {'isActive': !currentStatus});
       await _loadShippingCoupons();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     } finally {
       if (mounted) setState(() => _couponsLoading = false);
     }
@@ -138,11 +138,11 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
       final client = ApiClient(token: token);
       await client.delete('/api/admin/auth/coupons/$id');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Coupon deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Coupon deleted'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       }
       await _loadShippingCoupons();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
     } finally {
       if (mounted) setState(() => _couponsLoading = false);
     }
@@ -199,7 +199,7 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
                             Switch(
                               value: _isFreeShippingEnabled,
                               onChanged: (v) => setState(() => _isFreeShippingEnabled = v),
-                              activeColor: color,
+                              activeTrackColor: color,
                             ),
                           ],
                         ),
@@ -464,3 +464,4 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
     );
   }
 }
+

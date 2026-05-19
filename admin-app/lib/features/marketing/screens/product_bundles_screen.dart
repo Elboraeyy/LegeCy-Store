@@ -43,7 +43,7 @@ class _ProductBundlesScreenState extends State<ProductBundlesScreen> {
       _load();
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e')));
     }
   }
 
@@ -77,7 +77,7 @@ class _ProductBundlesScreenState extends State<ProductBundlesScreen> {
       _load();
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e')));
     }
   }
 
@@ -151,7 +151,7 @@ class _ProductBundlesScreenState extends State<ProductBundlesScreen> {
                 _load();
               } catch (e) {
                 if (mounted) setState(() => _isLoading = false);
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(content: Text('Error: $e')));
+                if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e')));
               }
             },
             style: ElevatedButton.styleFrom(

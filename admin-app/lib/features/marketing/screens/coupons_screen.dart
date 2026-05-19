@@ -122,7 +122,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
       final client = ApiClient(token: token);
       final res = await client.delete('/api/admin/auth/coupons/$id');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text(
             res['message'] ?? 'Deleted successfully',
@@ -135,7 +135,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
       _loadCoupons();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('Error: $e'),
           backgroundColor: AppColors.error,
@@ -158,7 +158,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
       _loadCoupons();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('Error: $e'),
           backgroundColor: AppColors.error,
