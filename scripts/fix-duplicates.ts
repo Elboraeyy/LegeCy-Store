@@ -4,7 +4,7 @@ async function main() {
     console.log('Finding investors with 0 profit and 0 salary...');
     const result = await prisma.investor.deleteMany({
         where: {
-            profitShare: 0,
+            currentShare: 0,
             salaryShare: 0
         }
     });
