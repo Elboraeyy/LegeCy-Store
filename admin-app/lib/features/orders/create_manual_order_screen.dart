@@ -477,10 +477,24 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _sectionTitle('Selected Products'),
-              TextButton.icon(
+              OutlinedButton.icon(
                 onPressed: _showProductPicker,
-                icon: const Icon(LucideIcons.plus, size: 16),
-                label: const Text('Add Product'),
+                icon: const Icon(LucideIcons.plus, size: 14, color: AppColors.primaryDark),
+                label: Text(
+                  'Add Product',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primaryDark,
+                  side: const BorderSide(color: AppColors.primaryDark, width: 1.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
               ),
             ],
           ),
