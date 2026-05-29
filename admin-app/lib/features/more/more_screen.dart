@@ -460,7 +460,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                if (auth.role == 'SUPER_ADMIN') ...[
+                if (auth.role == 'SUPER_ADMIN' || auth.role == 'owner' || auth.role == 'super_admin') ...[
                   _buildSection(
                     title: 'Finance & Analytics',
                     icon: LucideIcons.pieChart,

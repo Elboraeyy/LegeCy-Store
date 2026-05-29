@@ -21,9 +21,16 @@ class CreateManualOrderScreen extends StatefulWidget {
 }
 
 class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
+  void _onTextChanged() {
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
+    _nameController.addListener(_onTextChanged);
+    _phoneController.addListener(_onTextChanged);
+    _addressController.addListener(_onTextChanged);
     if (widget.existingOrder != null) {
       final order = widget.existingOrder!;
       _nameController.text =
@@ -155,6 +162,9 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
 
   @override
   void dispose() {
+    _nameController.removeListener(_onTextChanged);
+    _phoneController.removeListener(_onTextChanged);
+    _addressController.removeListener(_onTextChanged);
     _pageController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
@@ -177,6 +187,25 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
 
   double get _total {
     return _subtotal + _shippingCost - _discountAmount;
+  }
+
+  bool get _canProceed {
+    if (_currentStep == 0) {
+      return _nameController.text.trim().isNotEmpty &&
+          _phoneController.text.trim().isNotEmpty &&
+          _selectedGovernorate != null &&
+          _addressController.text.trim().isNotEmpty;
+    } else if (_currentStep == 1) {
+      return _selectedItems.isNotEmpty;
+    } else if (_currentStep == 2) {
+      return !_isSubmitting &&
+          _nameController.text.trim().isNotEmpty &&
+          _phoneController.text.trim().isNotEmpty &&
+          _selectedGovernorate != null &&
+          _addressController.text.trim().isNotEmpty &&
+          _selectedItems.isNotEmpty;
+    }
+    return false;
   }
 
   String _displayOrderNotes(dynamic value) {
@@ -813,9 +842,9 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: _isSubmitting
-                  ? null
-                  : (_currentStep == 2 ? _submitOrder : _nextStep),
+              onPressed: _canProceed
+                  ? (_currentStep == 2 ? _submitOrder : _nextStep)
+                  : null,
               child: _isSubmitting
                   ? const SizedBox(
                       width: 20,
@@ -1393,7 +1422,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       final data = await client.get(
-        '/api/admin/auth/products?search=${Uri.encodeComponent(_searchController.text)}',
+        '/api/admin/auth/products?search=${Uri.encodeComponent(_searchController.text)}&hasStock=true',
       );
       setState(() => _results = data['products']);
     } catch (_) {
@@ -1657,7 +1686,7 @@ class _CustomerSearchSheetState extends State<_CustomerSearchSheet> {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       final data = await client.get(
-        '/api/admin/auth/customers?search=${Uri.encodeComponent(_searchController.text)}&limit=50',
+        '/api/admin/auth/customers/list?search=${Uri.encodeComponent(_searchController.text)}&limit=50',
       );
       setState(() => _results = data['data']);
     } catch (_) {
@@ -1750,7 +1779,9 @@ class _CustomerSearchSheetState extends State<_CustomerSearchSheet> {
                           ),
                         ),
                         subtitle: Text(
-                          c['email'] ?? '',
+                          c['phone'] != null && c['phone'].toString().trim().isNotEmpty
+                              ? '${c['phone']} • ${c['email'] ?? ''}'
+                              : (c['email'] ?? ''),
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppColors.textMuted,

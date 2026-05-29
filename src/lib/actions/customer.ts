@@ -9,6 +9,7 @@ export interface CustomerSummary {
     id: string;
     name: string | null;
     email: string;
+    phone: string | null;
     joinedAt: string;
     totalOrders: number;
     totalSpend: number;
@@ -34,7 +35,8 @@ export async function fetchCustomers(params: {
     if (params.search) {
         where.OR = [
             { email: { contains: params.search, mode: 'insensitive' as Prisma.QueryMode } },
-            { name: { contains: params.search, mode: 'insensitive' as Prisma.QueryMode } }
+            { name: { contains: params.search, mode: 'insensitive' as Prisma.QueryMode } },
+            { phone: { contains: params.search, mode: 'insensitive' as Prisma.QueryMode } }
         ];
     }
 
@@ -69,6 +71,7 @@ export async function fetchCustomers(params: {
             id: user.id,
             name: user.name,
             email: user.email,
+            phone: user.phone,
             joinedAt: user.createdAt.toISOString(),
             totalOrders: user.orders.length,
             totalSpend,

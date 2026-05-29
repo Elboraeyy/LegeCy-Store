@@ -19,8 +19,9 @@ export async function GET(request: NextRequest) {
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '20');
         const skip = (page - 1) * limit;
+        const hasStock = searchParams.get('hasStock') === 'true';
 
-        const where: Record<string, unknown> = {};
+        const where: Record<string, any> = {};
         if (status && status !== 'all') where.status = status;
         if (categoryId) where.categoryId = categoryId;
         if (search) {
@@ -28,6 +29,19 @@ export async function GET(request: NextRequest) {
                 { name: { contains: search, mode: 'insensitive' } },
                 { nameAr: { contains: search, mode: 'insensitive' } },
             ];
+        }
+        if (hasStock) {
+            where.variants = {
+                some: {
+                    inventory: {
+                        some: {
+                            available: {
+                                gt: 0
+                            }
+                        }
+                    }
+                }
+            };
         }
 
         const [products, total] = await Promise.all([
