@@ -60,7 +60,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      String path = '/api/admin/auth/orders?status=$_currentStatus';
+      String path = '/api/admin/auth/orders?status=$_currentStatus&limit=1000';
       if (_searchController.text.isNotEmpty) {
         path += '&search=${Uri.encodeComponent(_searchController.text)}';
       }
