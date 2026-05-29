@@ -140,7 +140,7 @@ interface ManualOrderInput {
         city: string;
         governorate?: string;
     };
-    items?: { variantId: string; quantity: number }[];
+    items?: { variantId: string | null; quantity: number }[];
     notes?: string;
     source?: string;
     couponCode?: string;
@@ -229,8 +229,12 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
         }
 
         // 2. Map items for createOrder service
+        const variantIds = items
+            .map(i => i.variantId)
+            .filter((id): id is string => !!id);
+
         const variants = await prisma.variant.findMany({
-            where: { id: { in: items.map(i => i.variantId) } },
+            where: { id: { in: variantIds } },
             include: { product: { select: { name: true } } }
         });
 
@@ -387,21 +391,49 @@ export async function adminUpdateOrder(orderId: string, input: ManualOrderInput)
         }[] | undefined;
         if (input.items) {
             console.log(`[AdminUpdateOrder] Processing ${input.items.length} items`);
+            
+            const currentOrder = await prisma.order.findUnique({
+                where: { id: orderId },
+                include: { items: true }
+            });
+            if (!currentOrder) throw new Error('Order not found');
+
+            const nonNullVariantIds = input.items
+                .map(i => i.variantId)
+                .filter((id): id is string => !!id);
+
             const variants = await prisma.variant.findMany({
-                where: { id: { in: input.items.map(i => i.variantId) } },
+                where: { id: { in: nonNullVariantIds } },
                 include: { product: { select: { name: true } } }
             });
 
+            const existingNullItems = currentOrder.items.filter(i => !i.variantId);
+            let nullItemIndex = 0;
+
             serviceItems = input.items.map(item => {
-                const variant = variants.find(v => v.id === item.variantId);
-                if (!variant) throw new Error(`Variant ${item.variantId} not found`);
-                return {
-                    productId: variant.productId,
-                    variantId: variant.id,
-                    name: `${variant.product.name} (${variant.sku})`,
-                    price: variant.price.toNumber(),
-                    quantity: item.quantity
-                };
+                if (item.variantId) {
+                    const variant = variants.find(v => v.id === item.variantId);
+                    if (!variant) throw new Error(`Variant ${item.variantId} not found`);
+                    return {
+                        productId: variant.productId,
+                        variantId: variant.id,
+                        name: `${variant.product.name} (${variant.sku})`,
+                        price: variant.price.toNumber(),
+                        quantity: item.quantity
+                    };
+                } else {
+                    const existingItem = existingNullItems[nullItemIndex++];
+                    if (!existingItem) {
+                        throw new Error('New items added to the order must have a valid variantId');
+                    }
+                    return {
+                        productId: existingItem.productId,
+                        variantId: null,
+                        name: existingItem.name,
+                        price: existingItem.price.toNumber(),
+                        quantity: item.quantity
+                    };
+                }
             });
         }
 
