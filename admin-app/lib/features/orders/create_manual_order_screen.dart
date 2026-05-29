@@ -286,9 +286,11 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          widget.existingOrder != null ? 'Edit Order' : 'Create Manual Order',
+          widget.existingOrder != null
+              ? 'Edit Order Details #${widget.existingOrder!['orderNumber'] ?? widget.existingOrder!['id'].toString().substring(0, 8)}'
+              : 'Create Manual Order',
           style: GoogleFonts.playfairDisplay(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -396,14 +398,12 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: _sectionTitle(
-              widget.existingOrder != null
-                  ? 'Edit Order Details #${widget.existingOrder!['orderNumber'] ?? widget.existingOrder!['id'].toString().substring(0, 8)}'
-                  : 'Customer Details',
+          if (widget.existingOrder == null) ...[
+            Center(
+              child: _sectionTitle('Customer Details'),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
+          ],
           _customerTypeToggle(),
           const SizedBox(height: 24),
           if (_isExistingCustomer) ...[
