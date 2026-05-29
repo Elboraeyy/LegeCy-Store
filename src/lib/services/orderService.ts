@@ -85,6 +85,9 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
 
         // 4. Return mapped order (Ensure types match)
         return mapToOrderType(order);
+    }, {
+        maxWait: 10000,
+        timeout: 30000
     });
 }
 
@@ -267,6 +270,9 @@ export async function updateOrder(orderId: string, updates: UpdateOrderServicePa
 
     logger.info(`Order updated: ${orderId}`, { prevTotal: currentOrder.totalPrice, newTotal: newTotalPrice });
     return mapToOrderType(updatedOrder);
+  }, {
+    maxWait: 10000,
+    timeout: 30000
   });
 }
 

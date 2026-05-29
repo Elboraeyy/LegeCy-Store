@@ -451,8 +451,12 @@ export async function adminUpdateOrder(orderId: string, input: ManualOrderInput)
             }
         }
 
-        revalidatePath(`/admin/orders/${orderId}`);
-        revalidatePath('/admin/orders');
+        try {
+            revalidatePath(`/admin/orders/${orderId}`);
+            revalidatePath('/admin/orders');
+        } catch (e) {
+            console.warn('[AdminUpdateOrder] Failed to revalidate paths (expected if not running in Next.js request context):', e);
+        }
         console.log('[AdminUpdateOrder] Update completed successfully');
         return { success: true, orderId };
     } catch (error) {
