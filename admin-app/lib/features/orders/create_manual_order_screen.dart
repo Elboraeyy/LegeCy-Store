@@ -1422,7 +1422,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       final data = await client.get(
-        '/api/admin/auth/products?search=${Uri.encodeComponent(_searchController.text)}&hasStock=true',
+        '/api/admin/auth/products?search=${Uri.encodeComponent(_searchController.text)}&hasStock=true&limit=1000',
       );
       setState(() => _results = data['products']);
     } catch (_) {
