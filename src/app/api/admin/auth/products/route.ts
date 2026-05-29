@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         const skip = (page - 1) * limit;
         const hasStock = searchParams.get('hasStock') === 'true';
 
-        const where: Record<string, any> = {};
+        const where: Record<string, unknown> = {};
         if (status && status !== 'all') where.status = status;
         if (categoryId) where.categoryId = categoryId;
         if (search) {
