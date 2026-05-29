@@ -61,6 +61,7 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
             customerPhone: data.customerPhone,
             customerEmail: data.customerEmail,
             alternativePhone: data.alternativePhone,
+            shippingAddress: data.shippingAddress,
             shippingGovernorate: data.shippingGovernorate,
             shippingCity: data.shippingCity,
             shippingNotes: data.shippingNotes,
