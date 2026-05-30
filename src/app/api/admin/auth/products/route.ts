@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { getPrimaryVariantId } from '@/lib/products/primary-variant';
 
 /**
  * GET /api/admin/auth/products
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
                             sku: true, 
                             price: true,
                             costPrice: true,
-                            inventory: { select: { available: true } }
+                            inventory: { select: { available: true, minStock: true } }
                         },
                     },
                     _count: { select: { variants: true } },
@@ -105,6 +106,8 @@ export async function GET(request: NextRequest) {
                 return {
                     ...p,
                     variants: variantsWithStock,
+                    defaultVariantId: getPrimaryVariantId(variantsWithStock),
+                    sku: variantsWithStock[0]?.sku || null,
                     price: variantsWithStock[0]?.price?.toNumber() || 0,
                     variantCount: p._count.variants,
                     totalStock: variantsWithStock.reduce((sum, v) => sum + v.stockQuantity, 0),
@@ -135,7 +138,7 @@ export async function POST(request: NextRequest) {
             detailedDescription, detailedDescriptionAr, compareAtPrice, costPrice,
             brandId, materialId, supplierId, showInNewArrivals, showInForYou,
             detailTags, metaTitle, metaTitleAr, metaDescription, metaDescriptionAr,
-            slug, specs, imageUrl, gallery, stock, purchaseDate
+            slug, specs, imageUrl, gallery, stock, purchaseDate, minStock
         } = body;
 
         if (!name || !sku || price === undefined) {
@@ -186,16 +189,17 @@ export async function POST(request: NextRequest) {
 
             // Handle Smart Inventory if stock is provided
             const initialStock = parseInt(stock) || 0;
+            const parsedMinStock = minStock !== undefined ? parseInt(minStock) : 5;
+            const variantId = created.variants[0].id;
+
+            let warehouse = await tx.warehouse.findFirst({ where: { type: 'MAIN' } });
+            if (!warehouse) {
+                warehouse = await tx.warehouse.create({
+                    data: { name: 'Main Warehouse', code: 'WH-MAIN', type: 'MAIN', country: 'Egypt' }
+                });
+            }
+
             if (initialStock > 0) {
-                const variantId = created.variants[0].id;
-
-                let warehouse = await tx.warehouse.findFirst({ where: { type: 'MAIN' } });
-                if (!warehouse) {
-                    warehouse = await tx.warehouse.create({
-                        data: { name: 'Main Warehouse', code: 'WH-MAIN', type: 'MAIN', country: 'Egypt' }
-                    });
-                }
-
                 let actualSupplierId = supplierId;
                 if (!actualSupplierId) {
                     const defSup = await tx.supplier.findFirst({ where: { name: 'Default Supplier' } });
@@ -264,7 +268,7 @@ export async function POST(request: NextRequest) {
                         warehouseId: warehouse.id,
                         variantId: variantId,
                         available: initialStock,
-                        minStock: 5,
+                        minStock: parsedMinStock,
                     }
                 });
 
@@ -277,6 +281,16 @@ export async function POST(request: NextRequest) {
                         quantity: initialStock,
                         reason: 'Initial stock on product creation',
                         adminId: admin.id,
+                    }
+                });
+            } else {
+                // If initial stock is 0, just create the Inventory record with the minStock threshold
+                await tx.inventory.create({
+                    data: {
+                        warehouseId: warehouse.id,
+                        variantId: variantId,
+                        available: 0,
+                        minStock: parsedMinStock,
                     }
                 });
             }

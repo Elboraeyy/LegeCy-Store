@@ -40,6 +40,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _slugCtrl = TextEditingController();
   final _metaTitleCtrl = TextEditingController();
   final _metaDescCtrl = TextEditingController();
+  final _minStockCtrl = TextEditingController();
 
   // Specs
   final _dialSizeCtrl = TextEditingController();
@@ -134,6 +135,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
     _stockCtrl.text =
         p['stock']?.toString() ?? p['totalStock']?.toString() ?? '';
 
+    String prefilledMinStock = '5';
+    if (p['minStock'] != null) {
+      prefilledMinStock = p['minStock'].toString();
+    } else if (p['variants'] != null && (p['variants'] as List).isNotEmpty) {
+      final v = p['variants'][0];
+      if (v['inventory'] != null && (v['inventory'] as List).isNotEmpty) {
+        final inv = v['inventory'][0];
+        if (inv['minStock'] != null) {
+          prefilledMinStock = inv['minStock'].toString();
+        }
+      }
+    }
+    _minStockCtrl.text = prefilledMinStock;
+
     _status = p['status'] ?? 'active';
     _catId = p['categoryId']?.toString() ?? p['categoryRel']?['id']?.toString();
     _brandId = p['brandId']?.toString() ?? p['brand']?['id']?.toString();
@@ -213,6 +228,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _slugCtrl,
       _metaTitleCtrl,
       _metaDescCtrl,
+      _minStockCtrl,
       _dialSizeCtrl,
       _dialColorCtrl,
       _caseColorCtrl,
@@ -357,6 +373,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
       if (_stockCtrl.text.isNotEmpty) {
         body['stock'] = int.tryParse(_stockCtrl.text);
+      }
+      if (_minStockCtrl.text.isNotEmpty) {
+        body['minStock'] = int.tryParse(_minStockCtrl.text);
       }
       final supplierP = double.tryParse(_supplierPriceCtrl.text) ?? 0;
       final additionalC = double.tryParse(_costCtrl.text) ?? 0;
@@ -626,6 +645,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                   ),
                 ],
+              ),
+              _field(
+                'Low Stock Alert Threshold',
+                _minStockCtrl,
+                num: true,
+                req: true,
+                icon: LucideIcons.alertTriangle,
               ),
               if (!_isEdit) ...[
                 const SizedBox(height: 12),

@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
             detailedDescription, detailedDescriptionAr, compareAtPrice, costPrice,
             brandId, materialId, supplierId, showInNewArrivals, showInForYou,
             detailTags, metaTitle, metaTitleAr, metaDescription, metaDescriptionAr,
-            slug, specs, imageUrl, gallery
+            slug, specs, imageUrl, gallery, minStock
         } = body;
 
         const product = await prisma.product.update({
@@ -50,15 +50,47 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
         });
 
         // Update the first variant's price/sku if provided (for simple products)
-        if (product.variants.length > 0 && (price !== undefined || sku !== undefined || costPrice !== undefined)) {
-            await prisma.variant.update({
-                where: { id: product.variants[0].id },
-                data: {
-                    ...(price !== undefined ? { price: parseFloat(price) } : {}),
-                    ...(sku !== undefined ? { sku } : {}),
-                    ...(costPrice !== undefined ? { costPrice: costPrice ? parseFloat(costPrice) : null } : {}),
+        if (product.variants.length > 0) {
+            const variantId = product.variants[0].id;
+            if (price !== undefined || sku !== undefined || costPrice !== undefined) {
+                await prisma.variant.update({
+                    where: { id: variantId },
+                    data: {
+                        ...(price !== undefined ? { price: parseFloat(price) } : {}),
+                        ...(sku !== undefined ? { sku } : {}),
+                        ...(costPrice !== undefined ? { costPrice: costPrice ? parseFloat(costPrice) : null } : {}),
+                    }
+                });
+            }
+
+            if (minStock !== undefined) {
+                const parsedMinStock = parseInt(minStock);
+                if (!isNaN(parsedMinStock)) {
+                    let warehouse = await prisma.warehouse.findFirst({ where: { type: 'MAIN' } });
+                    if (!warehouse) {
+                        warehouse = await prisma.warehouse.create({
+                            data: { name: 'Main Warehouse', code: 'WH-MAIN', type: 'MAIN', country: 'Egypt' }
+                        });
+                    }
+                    await prisma.inventory.upsert({
+                        where: {
+                            warehouseId_variantId: {
+                                warehouseId: warehouse.id,
+                                variantId: variantId,
+                            }
+                        },
+                        create: {
+                            warehouseId: warehouse.id,
+                            variantId: variantId,
+                            available: 0,
+                            minStock: parsedMinStock,
+                        },
+                        update: {
+                            minStock: parsedMinStock,
+                        }
+                    });
                 }
-            });
+            }
         }
 
         // Handle gallery update

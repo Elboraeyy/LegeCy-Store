@@ -18,7 +18,7 @@ export async function GET(_: NextRequest, { params }: Params) {
           orderBy: { createdAt: "asc" },
           include: {
             inventory: {
-              select: { available: true },
+              select: { available: true, minStock: true },
             },
           },
         },
@@ -54,6 +54,7 @@ export async function GET(_: NextRequest, { params }: Params) {
     const firstVariant = product.variants[0];
     const price = firstVariant ? Number(firstVariant.price) : 0;
     const totalStock = firstVariant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ?? 0;
+    const minStock = firstVariant?.inventory?.[0]?.minStock ?? 5;
 
     const transformedProduct = {
       id: product.id,
@@ -74,6 +75,7 @@ export async function GET(_: NextRequest, { params }: Params) {
       brand: product.brand,
       material: product.material,
       totalStock,
+      minStock,
       sku: firstVariant?.sku || null,
       inStock: totalStock > 0,
       createdAt: product.createdAt.toISOString(),
