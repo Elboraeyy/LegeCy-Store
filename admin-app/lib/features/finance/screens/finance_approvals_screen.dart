@@ -171,7 +171,7 @@ class _FinanceApprovalsScreenState extends State<FinanceApprovalsScreen> {
                             });
                             _loadWithdrawals();
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                              ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                                 content: const Text('Withdrawal approved ✓'),
                                 backgroundColor: AppColors.success,
                                 behavior: SnackBarBehavior.floating,
@@ -179,7 +179,7 @@ class _FinanceApprovalsScreenState extends State<FinanceApprovalsScreen> {
                             }
                           } catch (e) {
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                              ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                                 content: Text('Error: $e'),
                                 backgroundColor: AppColors.error,
                                 behavior: SnackBarBehavior.floating,

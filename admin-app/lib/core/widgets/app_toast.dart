@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:admin_app/core/theme/app_theme.dart';
+import 'package:admin_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -59,7 +60,10 @@ class AppToast {
   }
 
   static void show(BuildContext context, SnackBar snackBar) {
-    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    final navContext = appNavigatorKey.currentContext;
+    if (navContext == null) return;
+    
+    final overlay = appNavigatorKey.currentState?.overlay;
     if (overlay == null) {
       return;
     }
@@ -67,10 +71,13 @@ class AppToast {
     _activeTimer?.cancel();
     _activeEntry?.remove();
 
-    final directionality = Directionality.maybeOf(context) ?? TextDirection.ltr;
+    final directionality = Directionality.maybeOf(navContext) ?? TextDirection.ltr;
     final resolvedMargin =
         (snackBar.margin ?? _defaultMargin()).resolve(directionality);
-    final topOffset = resolvedMargin.top;
+    
+    final topPadding = MediaQuery.paddingOf(navContext).top;
+    final topOffset = resolvedMargin.top + topPadding;
+    
     final horizontalMargin = snackBar.width == null ? resolvedMargin.right : 0.0;
 
     final entry = OverlayEntry(
@@ -155,7 +162,7 @@ class AppToast {
   }
 
   static EdgeInsets _defaultMargin() {
-    return const EdgeInsets.fromLTRB(16, 96, 16, 0);
+    return const EdgeInsets.fromLTRB(16, 16, 16, 0); // Reduced from 96 to 16 because safe area top is now added dynamically
   }
 }
 

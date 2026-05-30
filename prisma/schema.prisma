@@ -109,6 +109,7 @@ model AdminUser {
   twoFactorEnabled    Boolean          @default(false)
   twoFactorExpiresAt  DateTime?
   twoFactorSecret     String?
+  fcmToken            String?
   sessions            AdminSession[]
   role                AdminRole?       @relation(fields: [roleId], references: [id])
   auditLogs           AuditLog[]

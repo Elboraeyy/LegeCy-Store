@@ -63,7 +63,7 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
       });
       _loadClosing();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+        ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
           content: Text('Month ${DateFormat('MMMM yyyy').format(DateTime(_year, _month))} closed successfully! ✓'),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
@@ -71,7 +71,7 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+        ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
           content: Text('Error: $e'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,

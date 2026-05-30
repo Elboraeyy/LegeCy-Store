@@ -9,6 +9,34 @@ import 'package:admin_app/features/notifications/notification_provider.dart';
 import 'package:admin_app/core/services/notification_service.dart';
 import 'package:admin_app/features/auth/login_screen.dart';
 import 'package:admin_app/features/home/home_shell.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  await NotificationService.instance.initialize();
+  
+  // Try to parse category from data payload
+  NotifCategory category = NotifCategory.system;
+  if (message.data['category'] != null) {
+    final catStr = message.data['category'] as String;
+    category = NotifCategory.values.firstWhere(
+      (e) => e.name == catStr,
+      orElse: () => NotifCategory.system,
+    );
+  }
+
+  await NotificationService.instance.show(
+    id: message.hashCode,
+    title: message.notification?.title ?? 'Notification',
+    body: message.notification?.body ?? '',
+    category: category,
+    payload: message.data.toString(),
+  );
+}
+
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +51,10 @@ void main() async {
 
   // Initialize notification service
   await NotificationService.instance.initialize();
+
+  // Initialize Firebase and messaging
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(
     MultiProvider(
@@ -66,6 +98,7 @@ class _LegacyAdminAppState extends State<LegacyAdminApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: appNavigatorKey,
       title: 'Legacy Admin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/core/services/notification_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 /// A single notification item
 class AppNotification {
@@ -151,13 +152,47 @@ class NotificationProvider extends ChangeNotifier {
     ).toList();
   }
 
-  /// Initialize with token and start polling
   Future<void> init(String? token) async {
     _token = token;
     await _loadSettings();
     if (token != null) {
       await fetchNotifications();
       _startPolling();
+
+      try {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null) {
+          final client = ApiClient(token: _token);
+          await client.put('/api/admin/auth/fcm-token', body: {'fcmToken': fcmToken});
+        }
+      } catch (e) {
+        // Ignore token error
+      }
+
+      FirebaseMessaging.onMessage.listen((message) {
+        if (!_globalEnabled) return;
+
+        NotifCategory category = NotifCategory.system;
+        String catStr = message.data['category'] ?? 'system';
+        category = NotifCategory.values.firstWhere(
+          (e) => e.name == catStr,
+          orElse: () => NotifCategory.system,
+        );
+
+        if (_pushEnabled[catStr] == true) {
+          NotificationService.instance.show(
+            id: message.hashCode,
+            title: message.notification?.title ?? 'Notification',
+            body: message.notification?.body ?? '',
+            category: category,
+            payload: message.data.toString(),
+            silent: _soundEnabled[catStr] != true,
+          );
+        }
+        
+        // Refresh notifications list
+        fetchNotifications();
+      });
     }
   }
 

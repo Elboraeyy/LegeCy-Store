@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { createAdminNotification } from '@/lib/services/notification';
 
 /**
  * GET /api/admin/auth/notifications
@@ -36,14 +37,12 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { title, body: notifBody, category, referenceId, referenceType } = body;
 
-        const notification = await prisma.adminNotification.create({
-            data: {
-                title,
-                body: notifBody,
-                category: category || 'system',
-                referenceId,
-                referenceType,
-            },
+        const notification = await createAdminNotification({
+            title,
+            body: notifBody,
+            category: category || 'system',
+            referenceId,
+            referenceType,
         });
 
         return NextResponse.json({ notification }, { status: 201 });

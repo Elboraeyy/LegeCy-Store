@@ -262,7 +262,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                           });
                           _loadExpenses();
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                            ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                               content: const Text('Expense added'),
                               backgroundColor: AppColors.success,
                               behavior: SnackBarBehavior.floating,
@@ -270,7 +270,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                           }
                         } catch (e) {
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                            ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                               content: Text('Error: $e'),
                               backgroundColor: AppColors.error,
                               behavior: SnackBarBehavior.floating,

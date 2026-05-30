@@ -168,7 +168,7 @@ class _TreasuryScreenState extends State<TreasuryScreen> {
                         });
                         _loadSafes();
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                          ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                             content: const Text('Safe created successfully'),
                             backgroundColor: AppColors.success,
                             behavior: SnackBarBehavior.floating,
@@ -176,7 +176,7 @@ class _TreasuryScreenState extends State<TreasuryScreen> {
                         }
                       } catch (e) {
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                          ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                             content: Text('Error: $e'),
                             backgroundColor: AppColors.error,
                             behavior: SnackBarBehavior.floating,
@@ -196,7 +196,7 @@ class _TreasuryScreenState extends State<TreasuryScreen> {
 
   void _showTransferDialog() {
     if (_safes.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+      ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
         content: const Text('You need at least 2 safes to transfer'),
         backgroundColor: AppColors.warning,
         behavior: SnackBarBehavior.floating,
@@ -292,7 +292,7 @@ class _TreasuryScreenState extends State<TreasuryScreen> {
                         });
                         _loadSafes();
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                          ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                             content: const Text('Transfer completed'),
                             backgroundColor: AppColors.success,
                             behavior: SnackBarBehavior.floating,
@@ -300,7 +300,7 @@ class _TreasuryScreenState extends State<TreasuryScreen> {
                         }
                       } catch (e) {
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                          ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                             content: Text('Error: $e'),
                             backgroundColor: AppColors.error,
                             behavior: SnackBarBehavior.floating,

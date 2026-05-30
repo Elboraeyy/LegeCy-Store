@@ -1,4 +1,6 @@
 import prismaClient from '@/lib/prisma';
+import admin from '@/lib/firebase-admin';
+
 const prisma = prismaClient!;
 
 export type NotificationCategory = 'order' | 'inventory' | 'review' | 'message' | 'restock' | 'finance' | 'system';
@@ -26,6 +28,37 @@ export async function createAdminNotification({
                 referenceType,
             },
         });
+
+        // Try to send push notifications via Firebase
+        try {
+            const admins = await prisma.adminUser.findMany({
+                where: {
+                    isActive: true,
+                    fcmToken: { not: null },
+                },
+                select: { fcmToken: true },
+            });
+
+            const tokens = admins.map(a => a.fcmToken).filter(Boolean) as string[];
+
+            if (tokens.length > 0) {
+                const payload = {
+                    notification: { title, body },
+                    data: {
+                        category,
+                        ...(referenceId && { referenceId }),
+                        ...(referenceType && { referenceType }),
+                    },
+                    tokens,
+                };
+                
+                const response = await admin.messaging().sendEachForMulticast(payload);
+                console.log(`FCM Notifications sent: ${response.successCount} successful, ${response.failureCount} failed.`);
+            }
+        } catch (fcmError) {
+            console.error('Failed to send FCM notifications:', fcmError);
+        }
+
         return notification;
     } catch (error) {
         console.error('Failed to create admin notification:', error);

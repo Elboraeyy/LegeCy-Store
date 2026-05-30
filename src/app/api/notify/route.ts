@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
+import { createAdminNotification } from '@/lib/services/notification';
 
 const notifySchema = z.object({
   email: z.string().email().optional(),
@@ -89,14 +90,12 @@ export async function POST(request: Request) {
 
     // Notify admins (non-blocking, don't let this fail the request)
     try {
-      await prisma.adminNotification.create({
-        data: {
-          title: 'Restock Requested',
-          body: `Restock request for ${product.name} via ${data.channel === 'whatsapp' ? data.whatsapp : data.email}`,
-          category: 'restock',
-          referenceId: data.productId,
-          referenceType: 'Product',
-        },
+      await createAdminNotification({
+        title: 'Restock Requested',
+        body: `Restock request for ${product.name} via ${data.channel === 'whatsapp' ? data.whatsapp : data.email}`,
+        category: 'restock',
+        referenceId: data.productId,
+        referenceType: 'Product',
       });
     } catch (notifErr) {
       console.error('Admin notification failed (non-critical):', notifErr);

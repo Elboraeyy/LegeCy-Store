@@ -266,7 +266,7 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
                           });
                           _loadOrders();
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                            ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                               content: Text('Order #${order['orderNumber']} audited ✓'),
                               backgroundColor: AppColors.success,
                               behavior: SnackBarBehavior.floating,
@@ -274,7 +274,7 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
                           }
                         } catch (e) {
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                            ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                               content: Text('Error: $e'),
                               backgroundColor: AppColors.error,
                               behavior: SnackBarBehavior.floating,

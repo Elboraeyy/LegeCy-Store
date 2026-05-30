@@ -120,7 +120,7 @@ class _PartnerWalletScreenState extends State<PartnerWalletScreen> {
                       });
                       _loadWallet(investorId: _wallet['investorId']);
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                        ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                           content: const Text('Withdrawal request submitted'),
                           backgroundColor: AppColors.success,
                           behavior: SnackBarBehavior.floating,
@@ -128,7 +128,7 @@ class _PartnerWalletScreenState extends State<PartnerWalletScreen> {
                       }
                     } catch (e) {
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(AppToast.snackBar(
+                        ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
                           content: Text('Error: $e'),
                           backgroundColor: AppColors.error,
                           behavior: SnackBarBehavior.floating,
