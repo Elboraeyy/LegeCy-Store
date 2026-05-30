@@ -1,4 +1,4 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -393,11 +393,11 @@ class _FinanceScreenState extends State<FinanceScreen> {
     final expenses = (_data!['recentExpenses'] as List?) ?? [];
 
     return [
-      // â”€â”€ Net Profit Hero â”€â”€
+      // ── Net Profit Hero ──
       _buildProfitHero(o),
       const SizedBox(height: 14),
 
-      // â”€â”€ Revenue / Expenses / Margin KPIs â”€â”€
+      // ── Revenue / Expenses / Margin KPIs ──
       Row(
         children: [
           Expanded(
@@ -465,35 +465,35 @@ class _FinanceScreenState extends State<FinanceScreen> {
       ),
       const SizedBox(height: 16),
 
-      // â”€â”€ Pending Alert â”€â”€
+      // ── Pending Alert ──
       if ((pending['count'] as num? ?? 0) > 0) ...[
         _buildPendingAlert(pending),
         const SizedBox(height: 16),
       ],
 
-      // â”€â”€ Monthly Comparison â”€â”€
+      // ── Monthly Comparison ──
       _buildMonthlyComparison(thisMonth, lastMonth, growth),
       const SizedBox(height: 16),
 
-      // â”€â”€ Monthly Revenue Chart â”€â”€
+      // ── Monthly Revenue Chart ──
       if (trend.isNotEmpty) ...[
         _buildRevenueChart(trend),
         const SizedBox(height: 16),
       ],
 
-      // â”€â”€ Payment Breakdown â”€â”€
+      // ── Payment Breakdown ──
       if (payments.isNotEmpty) ...[
         _buildPaymentBreakdown(payments),
         const SizedBox(height: 16),
       ],
 
-      // â”€â”€ Expense Categories â”€â”€
+      // ── Expense Categories ──
       if (categories.isNotEmpty) ...[
         _buildExpenseCategories(categories),
         const SizedBox(height: 16),
       ],
 
-      // â”€â”€ Recent Expenses â”€â”€
+      // ── Recent Expenses ──
       if (expenses.isNotEmpty) ...[
         _sectionHeader('RECENT EXPENSES', LucideIcons.receipt, AppColors.error),
         const SizedBox(height: 10),
@@ -502,7 +502,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     ];
   }
 
-  // â”€â”€ Hero Profit Card â”€â”€
+  // ── Hero Profit Card ──
   Widget _buildProfitHero(Map<String, dynamic> o) {
     final profit = (o['netProfit'] as num?)?.toDouble() ?? 0;
     final margin = (o['profitMargin'] as num?)?.toInt() ?? 0;
@@ -683,7 +683,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
-  // â”€â”€ Pending Alert â”€â”€
+  // ── Pending Alert ──
   Widget _buildPendingAlert(Map<String, dynamic> pending) {
     final count = (pending['count'] as num?)?.toInt() ?? 0;
     final total = (pending['total'] as num?)?.toDouble() ?? 0;
@@ -741,7 +741,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
-  // â”€â”€ Monthly Comparison â”€â”€
+  // ── Monthly Comparison ──
   Widget _buildMonthlyComparison(
     Map<String, dynamic> thisM,
     Map<String, dynamic> lastM,
@@ -866,7 +866,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
-  // â”€â”€ Revenue Chart â”€â”€
+  // ── Revenue Chart ──
   Widget _buildRevenueChart(List<dynamic> trend) {
     final maxY = trend.fold<double>(
       0,
@@ -976,7 +976,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
-  // â”€â”€ Payment Breakdown â”€â”€
+  // ── Payment Breakdown ──
   Widget _buildPaymentBreakdown(List<dynamic> payments) {
     final total = payments.fold<double>(
       0,
@@ -1067,7 +1067,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        '${pct.toStringAsFixed(0)}% Â· $orders orders',
+                        '${pct.toStringAsFixed(0)}% · $orders orders',
                         style: GoogleFonts.inter(
                           fontSize: 9,
                           color: AppColors.textMuted,
@@ -1084,7 +1084,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
-  // â”€â”€ Expense Categories â”€â”€
+  // ── Expense Categories ──
   Widget _buildExpenseCategories(List<dynamic> categories) {
     final totalExp = categories.fold<double>(
       0,
@@ -1166,7 +1166,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        '${pct.toStringAsFixed(0)}% Â· $count items',
+                        '${pct.toStringAsFixed(0)}% · $count items',
                         style: GoogleFonts.inter(
                           fontSize: 9,
                           color: AppColors.textMuted,
@@ -1195,7 +1195,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
-  // â”€â”€ Expense Card â”€â”€
+  // ── Expense Card ──
   Widget _buildExpenseCard(dynamic expense) {
     final status = (expense['status'] ?? '').toString();
     final color = _expenseStatusColor(status);
@@ -1245,7 +1245,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                     ),
                     if (expense['paidBy'] != null) ...[
                       Text(
-                        ' Â· ',
+                        ' · ',
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: AppColors.textMuted,
@@ -1314,7 +1314,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
-  // â”€â”€ Helpers â”€â”€
+  // ── Helpers ──
   Widget _kpiCard(String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1425,4 +1425,3 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 }
-

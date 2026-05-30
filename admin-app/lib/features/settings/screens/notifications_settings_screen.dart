@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -35,11 +35,11 @@ class NotificationsSettingsScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // â”€â”€ Master Toggle â”€â”€
+              // ── Master Toggle ──
               _buildMasterToggle(context, provider),
               const SizedBox(height: 24),
 
-              // â”€â”€ Order Alerts â”€â”€
+              // ── Order Alerts ──
               _buildSectionTitle('Order Alerts', LucideIcons.trendingUp),
               _buildCategoryCard(
                 context,
@@ -52,7 +52,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // â”€â”€ Inventory Alerts â”€â”€
+              // ── Inventory Alerts ──
               _buildSectionTitle('Inventory Alerts', LucideIcons.package),
               _buildCategoryCard(
                 context,
@@ -65,7 +65,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // â”€â”€ Customer Engagement â”€â”€
+              // ── Customer Engagement ──
               _buildSectionTitle('Customer Engagement', LucideIcons.heart),
               _buildCategoryCard(
                 context,
@@ -98,7 +98,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // â”€â”€ Financial â”€â”€
+              // ── Financial ──
               _buildSectionTitle('Financial', LucideIcons.dollarSign),
               _buildCategoryCard(
                 context,
@@ -111,7 +111,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // â”€â”€ System â”€â”€
+              // ── System ──
               _buildSectionTitle('System & Security', LucideIcons.shield),
               _buildCategoryCard(
                 context,
@@ -124,7 +124,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
 
-              // â”€â”€ Info Card â”€â”€
+              // ── Info Card ──
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -426,6 +426,5 @@ class NotificationsSettingsScreen extends StatelessWidget {
     );
   }
 }
-
 
 

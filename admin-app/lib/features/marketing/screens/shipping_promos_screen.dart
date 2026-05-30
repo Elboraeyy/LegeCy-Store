@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -172,7 +172,7 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  // â”€â”€â”€ SECTION 1: Free Shipping Settings â”€â”€â”€
+                  // ─── SECTION 1: Free Shipping Settings ───
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -243,11 +243,11 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
 
                   const SizedBox(height: 24),
 
-                  // â”€â”€â”€ SECTION 2: Shipping Promo Codes â”€â”€â”€
+                  // ─── SECTION 2: Shipping Promo Codes ───
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('ðŸŽ« Shipping Promo Codes', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                      Text('🎫 Shipping Promo Codes', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
                       ElevatedButton.icon(
                         onPressed: () async {
                           HapticFeedback.lightImpact();
@@ -464,5 +464,4 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
     );
   }
 }
-
 

@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -320,7 +320,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // â”€â”€ App Bar â”€â”€
+            // ── App Bar ──
             SliverAppBar(
               pinned: true,
               backgroundColor: AppColors.background,
@@ -362,7 +362,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
               ],
             ),
 
-            // â”€â”€ Body â”€â”€
+            // ── Body ──
             if (_isLoading)
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
@@ -602,15 +602,15 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     final ordGrowth = (growth['ordersGrowth'] as num?)?.toDouble() ?? 0;
 
     return [
-      // â”€â”€ Date Navigation â”€â”€
+      // ── Date Navigation ──
       _buildDateNav(),
       const SizedBox(height: 16),
 
-      // â”€â”€ Hero Summary â”€â”€
+      // ── Hero Summary ──
       _buildHeroCard(totalOrders, totalRevenue, revGrowth, ordGrowth),
       const SizedBox(height: 14),
 
-      // â”€â”€ KPI Row 1 â”€â”€
+      // ── KPI Row 1 ──
       Row(
         children: [
           Expanded(
@@ -634,7 +634,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
       ),
       const SizedBox(height: 10),
 
-      // â”€â”€ KPI Row 2 (NEW) â”€â”€
+      // ── KPI Row 2 (NEW) ──
       Row(
         children: [
           Expanded(
@@ -658,7 +658,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
       ),
       const SizedBox(height: 10),
 
-      // â”€â”€ KPI Row 3 (NEW) â”€â”€
+      // ── KPI Row 3 (NEW) ──
       Row(
         children: [
           Expanded(
@@ -675,7 +675,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
       ),
       const SizedBox(height: 20),
 
-      // â”€â”€ Status Breakdown â”€â”€
+      // ── Status Breakdown ──
       if (statusList.isNotEmpty) ...[
         _sectionHeader(
           'ORDER STATUS',
@@ -687,7 +687,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
         const SizedBox(height: 20),
       ],
 
-      // â”€â”€ Top Products â”€â”€
+      // ── Top Products ──
       if (topProducts.isNotEmpty) ...[
         _sectionHeader('TOP PRODUCTS', LucideIcons.package2, AppColors.accent),
         const SizedBox(height: 10),
@@ -695,7 +695,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
         const SizedBox(height: 20),
       ],
 
-      // â”€â”€ Order Sources â”€â”€
+      // ── Order Sources ──
       if (sources.isNotEmpty) ...[
         _sectionHeader(
           'ORDER SOURCES',
@@ -712,7 +712,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
         const SizedBox(height: 20),
       ],
 
-      // â”€â”€ Payment Methods â”€â”€
+      // ── Payment Methods ──
       if (payments.isNotEmpty) ...[
         _sectionHeader(
           'PAYMENT METHODS',
@@ -729,7 +729,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
         const SizedBox(height: 20),
       ],
 
-      // â”€â”€ Cities â”€â”€
+      // ── Cities ──
       if (cities.isNotEmpty) ...[
         _sectionHeader(
           'TOP CITIES',
@@ -741,7 +741,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
         const SizedBox(height: 20),
       ],
 
-      // â”€â”€ Recent Orders â”€â”€
+      // ── Recent Orders ──
       if (recentOrders.isNotEmpty) ...[
         _sectionHeader(
           'RECENT ORDERS',
@@ -754,7 +754,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     ];
   }
 
-  // â”€â”€ Date Navigation â”€â”€
+  // ── Date Navigation ──
   Widget _buildDateNav() {
     final bool isSingleDay =
         _selectedRange.start.year == _selectedRange.end.year &&
@@ -844,7 +844,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     );
   }
 
-  // â”€â”€ Hero Card â”€â”€
+  // ── Hero Card ──
   Widget _buildHeroCard(
     int orders,
     double revenue,
@@ -954,7 +954,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     );
   }
 
-  // â”€â”€ KPI Mini â”€â”€
+  // ── KPI Mini ──
   Widget _kpiMini(String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1001,7 +1001,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     );
   }
 
-  // â”€â”€ Section Header â”€â”€
+  // ── Section Header ──
   Widget _sectionHeader(String title, IconData icon, Color color) {
     return Row(
       children: [
@@ -1027,7 +1027,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     );
   }
 
-  // â”€â”€ Status Cards â”€â”€
+  // ── Status Cards ──
   Widget _buildStatusCards(List<dynamic> statuses) {
     final total = statuses.fold<int>(
       0,
@@ -1088,7 +1088,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     );
   }
 
-  // â”€â”€ Top Products â”€â”€
+  // ── Top Products ──
   Widget _buildTopProducts(List<dynamic> products) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1160,7 +1160,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Ã—$qty',
+                  '×$qty',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -1175,7 +1175,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     );
   }
 
-  // â”€â”€ Horizontal Chips â”€â”€
+  // ── Horizontal Chips ──
   Widget _buildHorizontalChips(
     List<dynamic> items,
     String Function(dynamic) getLabel,
@@ -1236,7 +1236,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     );
   }
 
-  // â”€â”€ Cities â”€â”€
+  // ── Cities ──
   Widget _buildCities(List<dynamic> cities) {
     final maxCount = cities.isNotEmpty
         ? ((cities[0]['count'] as num?)?.toInt() ?? 1)
@@ -1304,7 +1304,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     );
   }
 
-  // â”€â”€ Order Card â”€â”€
+  // ── Order Card ──
   Widget _buildOrderCard(dynamic order) {
     final status = (order['status'] ?? '').toString();
     final color = _statusColor(status);
@@ -1353,7 +1353,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${order['itemCount'] ?? 0} items Â· $timeStr',
+                  '${order['itemCount'] ?? 0} items · $timeStr',
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: AppColors.textMuted,
@@ -1450,4 +1450,3 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     );
   }
 }
-

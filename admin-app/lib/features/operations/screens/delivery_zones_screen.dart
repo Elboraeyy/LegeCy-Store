@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -463,4 +463,3 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
     return Column(children: results);
   }
 }
-

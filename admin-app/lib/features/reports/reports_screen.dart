@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -78,7 +78,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 140),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Hero Card â€” Statistics Dashboard
+                // Hero Card — Statistics Dashboard
                 _HeroReportCard(
                   icon: LucideIcons.barChart3,
                   title: 'Statistics Dashboard',
@@ -170,7 +170,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 }
 
-// â”€â”€ Hero Card â”€â”€
+// ── Hero Card ──
 class _HeroReportCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -263,7 +263,7 @@ class _HeroReportCard extends StatelessWidget {
   }
 }
 
-// â”€â”€ Compact Card â”€â”€
+// ── Compact Card ──
 class _CompactReportCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -338,7 +338,7 @@ class _CompactReportCard extends StatelessWidget {
   }
 }
 
-// â”€â”€ Quick Stats Preview (fetches from dashboard endpoint) â”€â”€
+// ── Quick Stats Preview (fetches from dashboard endpoint) ──
 class _QuickStatsPreview extends StatefulWidget {
   const _QuickStatsPreview({super.key});
 
@@ -486,4 +486,3 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
   Widget _divider() =>
       Container(width: 1, height: 40, color: AppColors.cardBorder);
 }
-

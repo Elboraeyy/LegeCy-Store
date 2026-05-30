@@ -1022,7 +1022,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       });
     } catch (e) {
       debugPrint('Shipping rate fetch error: $e');
-      // Do NOT use hardcoded fallback â€” show error instead
+      // Do NOT use hardcoded fallback — show error instead
       if (mounted) {
         setState(() {
           _isLoadingShipping = false;
@@ -1526,7 +1526,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                           ),
                         ),
                         subtitle: Text(
-                          '${p['price']} EGP â€¢ SKU: ${p['sku'] ?? 'N/A'}',
+                          '${p['price']} EGP • SKU: ${p['sku'] ?? 'N/A'}',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppColors.textMuted,
@@ -1796,7 +1796,7 @@ class _CustomerSearchSheetState extends State<_CustomerSearchSheet> {
                         ),
                         subtitle: Text(
                           c['phone'] != null && c['phone'].toString().trim().isNotEmpty
-                              ? '${c['phone']} â€¢ ${c['email'] ?? ''}'
+                              ? '${c['phone']} • ${c['email'] ?? ''}'
                               : (c['email'] ?? ''),
                           style: GoogleFonts.inter(
                             fontSize: 12,
@@ -2082,4 +2082,3 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
     );
   }
 }
-

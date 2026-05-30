@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_shimmer.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -702,4 +702,3 @@ class _CouponsScreenState extends State<CouponsScreen> {
     );
   }
 }
-

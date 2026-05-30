@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -70,7 +70,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-              // â”€â”€ Premium App Bar â”€â”€
+              // ── Premium App Bar ──
               SliverAppBar(
                 pinned: true,
                 expandedHeight: 130,
@@ -182,7 +182,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 ),
               ),
 
-              // â”€â”€ Filter Chips â”€â”€
+              // ── Filter Chips ──
               SliverToBoxAdapter(
                 child: Container(
                   height: 52,
@@ -214,7 +214,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 ),
               ),
 
-              // â”€â”€ Loading State â”€â”€
+              // ── Loading State ──
               if (provider.isLoading)
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -258,10 +258,10 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     ),
                   ),
                 )
-              // â”€â”€ Empty State â”€â”€
+              // ── Empty State ──
               else if (_getFiltered(provider).isEmpty)
                 SliverFillRemaining(child: _buildEmptyState())
-              // â”€â”€ Notification List â”€â”€
+              // ── Notification List ──
               else
                 ..._buildGroupedList(provider),
 
@@ -562,7 +562,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 }
 
-// â”€â”€ Individual Notification Tile â”€â”€
+// ── Individual Notification Tile ──
 class _NotificationTile extends StatelessWidget {
   final AppNotification notification;
   final VoidCallback onTap;
@@ -757,4 +757,3 @@ class _NotificationTile extends StatelessWidget {
     return DateFormat('d MMM').format(dt);
   }
 }
-

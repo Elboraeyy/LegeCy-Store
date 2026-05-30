@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -274,5 +274,4 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
     );
   }
 }
-
 

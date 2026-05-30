@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -273,4 +273,3 @@ class _AddAffiliateScreenState extends State<AddAffiliateScreen> {
     );
   }
 }
-

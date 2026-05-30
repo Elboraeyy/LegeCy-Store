@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -321,7 +321,7 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
     );
   }
 
-  // â”€â”€â”€ OVERVIEW TAB â”€â”€â”€
+  // ─── OVERVIEW TAB ───
   Widget _buildOverviewTab() {
     return RefreshIndicator(
       color: _accent,
@@ -354,17 +354,17 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
           // Stats Grid
           Row(
             children: [
-              Expanded(child: _buildStatCard('â­', 'Points in\nCirculation', _totalPoints.toString(), const Color(0xFF3B82F6))),
+              Expanded(child: _buildStatCard('⭐', 'Points in\nCirculation', _totalPoints.toString(), const Color(0xFF3B82F6))),
               const SizedBox(width: 12),
-              Expanded(child: _buildStatCard('ðŸŽ', 'Redeemed\n(Month)', _redeemedMonth.toString(), const Color(0xFF8B5CF6))),
+              Expanded(child: _buildStatCard('🎁', 'Redeemed\n(Month)', _redeemedMonth.toString(), const Color(0xFF8B5CF6))),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _buildStatCard('ðŸ‘¥', 'Active\nMembers', _activeMembers.toString(), const Color(0xFF10B981))),
+              Expanded(child: _buildStatCard('👥', 'Active\nMembers', _activeMembers.toString(), const Color(0xFF10B981))),
               const SizedBox(width: 12),
-              Expanded(child: _buildStatCard('âš¡', 'Earning\nRate', '$_earningRate pts/EGP', const Color(0xFFF59E0B))),
+              Expanded(child: _buildStatCard('⚡', 'Earning\nRate', '$_earningRate pts/EGP', const Color(0xFFF59E0B))),
             ],
           ),
         ],
@@ -403,7 +403,7 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
     );
   }
 
-  // â”€â”€â”€ SETTINGS TAB â”€â”€â”€
+  // ─── SETTINGS TAB ───
   Widget _buildSettingsTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -533,7 +533,7 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
     );
   }
 
-  // â”€â”€â”€ MEMBERS TAB â”€â”€â”€
+  // ─── MEMBERS TAB ───
   Widget _buildMembersTab() {
     return Column(
       children: [
@@ -629,7 +629,7 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
                 child: Text('$points pts', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF3B82F6))),
               ),
               const SizedBox(height: 4),
-              Text('â‰ˆ $egpValue EGP', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+              Text('≈ $egpValue EGP', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () => _showAdjustPointsDialog(member),
@@ -642,5 +642,4 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
     );
   }
 }
-
 

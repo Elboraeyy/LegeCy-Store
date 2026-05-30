@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -606,7 +606,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '$productCount products â€¢ /${brand['slug']}',
+                                      '$productCount products • /${brand['slug']}',
                                       style: GoogleFonts.inter(
                                         fontSize: 12,
                                         color: AppColors.textMuted,
@@ -689,4 +689,3 @@ class _BrandsScreenState extends State<BrandsScreen> {
     );
   }
 }
-

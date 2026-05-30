@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -278,8 +278,8 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                         const SizedBox(height: 24),
                         
                         _buildTierCard(
-                          title: '3+ Items â†’ Cheapest FREE',
-                          icon: 'ðŸŽ',
+                          title: '3+ Items → Cheapest FREE',
+                          icon: '🎁',
                           subtitle: 'Customer pays for the 2 most expensive items, cheapest is free',
                           enabled: _tier3Enabled,
                           onToggle: (v) => setState(() => _tier3Enabled = v),
@@ -295,8 +295,8 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                         ),
 
                         _buildTierCard(
-                          title: '2 Items â†’ 2nd at Discount',
-                          icon: 'ðŸ·ï¸',
+                          title: '2 Items → 2nd at Discount',
+                          icon: '🏷️',
                           subtitle: 'Pay full for most expensive, discount on the cheapest',
                           enabled: _tier2Enabled,
                           onToggle: (v) => setState(() => _tier2Enabled = v),
@@ -331,8 +331,8 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                         ),
 
                         _buildTierCard(
-                          title: '1 Item â†’ Discount',
-                          icon: 'ðŸ’°',
+                          title: '1 Item → Discount',
+                          icon: '💰',
                           subtitle: 'Percentage discount on any single item',
                           enabled: _tier1Enabled,
                           onToggle: (v) => setState(() => _tier1Enabled = v),
@@ -390,5 +390,4 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
     );
   }
 }
-
 

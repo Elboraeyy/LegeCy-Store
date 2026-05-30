@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
@@ -1183,4 +1183,3 @@ class _MerchMode {
 
   const _MerchMode(this.id, this.title, this.subtitle);
 }
-

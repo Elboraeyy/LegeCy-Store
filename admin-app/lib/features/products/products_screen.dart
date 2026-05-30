@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -751,7 +751,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          // â”€â”€ Search + Filter Bar â”€â”€
+          // ── Search + Filter Bar ──
           if (!_selectionMode)
             SliverToBoxAdapter(
               child: Padding(
@@ -844,7 +844,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               ),
             ),
 
-          // â”€â”€ Status filter chips â”€â”€
+          // ── Status filter chips ──
           if (!_selectionMode)
             SliverToBoxAdapter(
               child: Padding(
@@ -881,7 +881,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               ),
             ),
 
-          // â”€â”€ Content â”€â”€
+          // ── Content ──
           _isLoading
               ? SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
@@ -2008,7 +2008,7 @@ class _ProductsScreenState extends State<ProductsScreen>
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // â”€â”€ Image â”€â”€
+                // ── Image ──
                 Expanded(
                   flex: 5,
                   child: ClipRRect(
@@ -2072,7 +2072,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                   ),
                 ),
 
-                // â”€â”€ Info Section â”€â”€
+                // ── Info Section ──
                 Expanded(
                   flex: 3,
                   child: Padding(
@@ -2171,7 +2171,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               ],
             ),
 
-            // â”€â”€ Status Badge â”€â”€
+            // ── Status Badge ──
             Positioned(
               top: 10,
               right: 10,
@@ -2213,7 +2213,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               ),
             ),
 
-            // â”€â”€ Badges â”€â”€
+            // ── Badges ──
             if (badgeWidgets.isNotEmpty && !_selectionMode)
               Positioned(
                 top: 10,
@@ -2224,7 +2224,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                 ),
               ),
 
-            // â”€â”€ Selection Indicator â”€â”€
+            // ── Selection Indicator ──
             if (_selectionMode)
               Positioned(
                 top: 10,
@@ -2397,4 +2397,3 @@ class _ProductsScreenState extends State<ProductsScreen>
     );
   }
 }
-

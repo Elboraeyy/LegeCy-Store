@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -234,4 +234,3 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
     return '${dt.day}/${dt.month}/${dt.year}';
   }
 }
-

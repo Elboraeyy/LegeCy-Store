@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
@@ -992,6 +992,5 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
     );
   }
 }
-
 
 

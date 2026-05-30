@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -120,7 +120,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // â”€â”€ App Bar â”€â”€
+            // ── App Bar ──
             SliverAppBar(
               pinned: true,
               backgroundColor: AppColors.background,
@@ -246,7 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               ],
             ),
 
-            // â”€â”€ Content â”€â”€
+            // ── Content ──
             SliverPadding(
               padding: const EdgeInsets.all(16),
               sliver: SliverList(
@@ -322,11 +322,11 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // â”€â”€ Live Status Badge â”€â”€
+        // ── Live Status Badge ──
         _buildLiveStatus(),
         const SizedBox(height: 16),
 
-        // â”€â”€ TODO List Section â”€â”€
+        // ── TODO List Section ──
         TodoListSection(
           todos: todos,
           onAddTodo: () {
@@ -348,7 +348,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Quick Actions â”€â”€
+        // ── Quick Actions ──
         const DashboardSectionHeader(title: 'QUICK ACTIONS'),
         SizedBox(
           height: 120,
@@ -421,7 +421,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Stats Grid (2Ã—2) â”€â”€
+        // ── Stats Grid (2×2) ──
         Row(
           children: [
             Expanded(
@@ -474,7 +474,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Order Pipeline â”€â”€
+        // ── Order Pipeline ──
         OrderPipeline(
           pending: _int('pendingOrders'),
           processing: _int('processingOrders'),
@@ -483,11 +483,11 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Revenue Chart â”€â”€
+        // ── Revenue Chart ──
         RevenueChart(data: weeklyChart),
         const SizedBox(height: 24),
 
-        // â”€â”€ Monthly Overview â”€â”€
+        // ── Monthly Overview ──
         MonthlyOverviewCard(
           monthlyRevenue: _dbl('monthlyRevenue'),
           totalOrders: _int('totalOrdersThisMonth'),
@@ -496,7 +496,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Top Products â”€â”€
+        // ── Top Products ──
         if (topProducts.isNotEmpty) ...[
           const DashboardSectionHeader(
             title: 'TOP SELLING PRODUCTS',
@@ -535,7 +535,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           const SizedBox(height: 24),
         ],
 
-        // â”€â”€ Recent Orders â”€â”€
+        // ── Recent Orders ──
         DashboardSectionHeader(
           title: 'RECENT ORDERS',
           trailing: '${recentOrders.length} orders',
@@ -543,7 +543,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         ...recentOrders.map((order) => _recentOrderCard(order)),
         const SizedBox(height: 24),
 
-        // â”€â”€ Order Status Breakdown â”€â”€
+        // ── Order Status Breakdown ──
         _buildStatusBreakdown(),
         const SizedBox(height: 160),
       ],
@@ -552,7 +552,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildLiveStatus() {
     final now = DateTime.now();
-    final formatted = DateFormat('EEE, d MMM Â· h:mm a').format(now);
+    final formatted = DateFormat('EEE, d MMM · h:mm a').format(now);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -667,7 +667,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '${e.key[0].toUpperCase()}${e.key.substring(1)} ($count Â· $pct%)',
+                            '${e.key[0].toUpperCase()}${e.key.substring(1)} ($count · $pct%)',
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               color: AppColors.textSecondary,
@@ -763,7 +763,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Row(
                     children: [
                       Text(
-                        '${order['itemCount'] ?? 0} items Â· ${(order['totalPrice'] as num?)?.toStringAsFixed(0) ?? '0'} EGP',
+                        '${order['itemCount'] ?? 0} items · ${(order['totalPrice'] as num?)?.toStringAsFixed(0) ?? '0'} EGP',
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           color: AppColors.textMuted,
@@ -771,7 +771,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ),
                       if (timeStr.isNotEmpty) ...[
                         Text(
-                          ' Â· ',
+                          ' · ',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppColors.textMuted,
@@ -912,4 +912,3 @@ class _DashboardScreenState extends State<DashboardScreen>
     return 'Good evening,';
   }
 }
-

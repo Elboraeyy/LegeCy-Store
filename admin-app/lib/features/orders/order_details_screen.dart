@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1353,33 +1353,33 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final shipping = (_order!['shippingCost'] as num?)?.toDouble() ?? 0.0;
 
     if (status == 'delivered' || status == 'cash_received') {
-      return '''Ù…Ø±Ø­Ø¨Ù‹Ø§ $name âœ¨
-Ù†ØªÙ…Ù†Ù‰ Ø¥Ù† Ø·Ù„Ø¨Ùƒ Ù…Ù† LegaCy ÙˆØµÙ„Ùƒ Ø¨Ø£Ù…Ø§Ù† ÙˆØ¨Ø§Ù„Ø´ÙƒÙ„ Ø§Ù„Ù„ÙŠ ÙƒÙ†Øª Ù…ØªÙˆÙ‚Ø¹Ù‡.
-ÙŠØ³Ø¹Ø¯Ù†Ø§ Ø¬Ø¯Ù‹Ø§ Ù†Ø³Ù…Ø¹ Ø±Ø£ÙŠÙƒ.
-ÙˆÙ„Ùˆ Ø¹Ù†Ø¯Ùƒ Ø£ÙŠ Ù…Ù„Ø§Ø­Ø¸Ø© Ø£Ùˆ Ø§Ø³ØªÙØ³Ø§Ø±ØŒ ÙŠØ´Ø±ÙÙ†Ø§ ØªÙˆØ§ØµÙ„Ùƒ Ù…Ø¹Ù†Ø§.
-Ø´ÙƒØ±Ù‹Ø§ Ù„Ø«Ù‚ØªÙƒ Ø¨Ù†Ø§ ðŸ’š''';
+      return '''مرحبًا $name ✨
+نتمنى إن طلبك من LegaCy وصلك بأمان وبالشكل اللي كنت متوقعه.
+يسعدنا جدًا نسمع رأيك.
+ولو عندك أي ملاحظة أو استفسار، يشرفنا تواصلك معنا.
+شكرًا لثقتك بنا 💚''';
     } else if (status == 'shipped' || status == 'out_for_delivery') {
-      return '''Ù…Ø±Ø­Ø¨Ù‹Ø§ $name âœ¨
-Ø·Ù„Ø¨Ùƒ Ø±Ù‚Ù… #$orderNo Ù…Ù† LegaCy Ø®Ø±Ø¬ Ù„Ù„Ø´Ø­Ù† ÙˆÙÙŠ Ø·Ø±ÙŠÙ‚Ù‡ Ù„ÙŠÙƒ! ðŸšš
-Ù‚ÙŠÙ…Ø© Ø§Ù„Ø·Ù„Ø¨: $total EGP
-Ø§Ù„Ù…Ù†Ø¯ÙˆØ¨ Ù‡ÙŠØªÙˆØ§ØµÙ„ Ù…Ø¹Ø§Ùƒ Ù‚Ø±ÙŠØ¨ Ø¬Ø¯Ø§Ù‹ Ù„Ù„ØªØ³Ù„ÙŠÙ….
-Ù„Ùˆ Ø¹Ù†Ø¯Ùƒ Ø£ÙŠ Ø§Ø³ØªÙØ³Ø§Ø±ØŒ Ø¥Ø­Ù†Ø§ Ø¯Ø§ÙŠÙ…Ø§Ù‹ Ù…Ø¹Ø§Ùƒ ðŸ’š''';
+      return '''مرحبًا $name ✨
+طلبك رقم #$orderNo من LegaCy خرج للشحن وفي طريقه ليك! 🚚
+قيمة الطلب: $total EGP
+المندوب هيتواصل معاك قريب جداً للتسليم.
+لو عندك أي استفسار، إحنا دايماً معاك 💚''';
     } else if (status == 'preparing') {
-      return '''Ù…Ø±Ø­Ø¨Ù‹Ø§ $name âœ¨
-Ø·Ù„Ø¨Ùƒ Ø±Ù‚Ù… #$orderNo Ù…Ù† LegaCy Ù‚ÙŠØ¯ Ø§Ù„ØªØ¬Ù‡ÙŠØ² Ø­Ø§Ù„ÙŠØ§Ù‹! â³
-Ø¨Ù†Ø¬Ø§Ù‡Ø²Ù‡ Ø¨ÙƒÙ„ Ø­Ø¨ ÙˆØ§Ù‡ØªÙ…Ø§Ù… Ø¹Ø´Ø§Ù† ÙŠÙˆØµÙ„Ùƒ ÙÙŠ Ø£Ø­Ø³Ù† ØµÙˆØ±Ø©.
-Ù‡Ù†Ø¨Ù„ØºÙƒ Ø£ÙˆÙ„ Ù…Ø§ ÙŠØ®Ø±Ø¬ Ù„Ù„Ø´Ø­Ù†.
-Ø´ÙƒØ±Ù‹Ø§ Ù„Ø«Ù‚ØªÙƒ Ø¨Ù†Ø§ ðŸ’š''';
+      return '''مرحبًا $name ✨
+طلبك رقم #$orderNo من LegaCy قيد التجهيز حالياً! ⏳
+بنجاهزه بكل حب واهتمام عشان يوصلك في أحسن صورة.
+هنبلغك أول ما يخرج للشحن.
+شكرًا لثقتك بنا 💚''';
     } else if (status == 'cancelled' || status == 'payment_failed') {
-      return '''Ù…Ø±Ø­Ø¨Ù‹Ø§ $name âœ¨
-ØªÙ… Ø¥Ù„ØºØ§Ø¡ Ø·Ù„Ø¨Ùƒ Ø±Ù‚Ù… #$orderNo Ù…Ù† LegaCy.
-Ù†ØªÙ…Ù†Ù‰ Ù†Ø´ÙˆÙÙƒ ØªØ§Ù†ÙŠ Ù‚Ø±ÙŠØ¨ ÙˆØªÙƒÙˆÙ† Ø¬Ø²Ø¡ Ù…Ù† Ø¹ÙŠÙ„ØªÙ†Ø§ ðŸ’š
-Ù„Ùˆ Ø­Ø§Ø¨Ø¨ ØªØ³ØªÙØ³Ø± Ø¹Ù† Ø£ÙŠ Ø­Ø§Ø¬Ø©ØŒ Ø¥Ø­Ù†Ø§ Ù…ÙˆØ¬ÙˆØ¯ÙŠÙ† Ø¯Ø§ÙŠÙ…Ø§Ù‹!''';
+      return '''مرحبًا $name ✨
+تم إلغاء طلبك رقم #$orderNo من LegaCy.
+نتمنى نشوفك تاني قريب وتكون جزء من عيلتنا 💚
+لو حابب تستفسر عن أي حاجة، إحنا موجودين دايماً!''';
     } else if (status == 'refunded') {
-      return '''Ù…Ø±Ø­Ø¨Ù‹Ø§ $name âœ¨
-ØªÙ… Ø§Ø³ØªØ±Ø¬Ø§Ø¹ Ø·Ù„Ø¨Ùƒ Ø±Ù‚Ù… #$orderNo Ø¨Ù†Ø¬Ø§Ø­ØŒ ÙˆØªÙ…Øª Ø¹Ù…Ù„ÙŠØ© Ø§Ù„Ù€ Refund Ù„Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù…Ø³ØªØ­Ù‚.
-Ù†ØªÙ…Ù†Ù‰ Ù†Ø´ÙˆÙÙƒ ØªØ§Ù†ÙŠ Ù‚Ø±ÙŠØ¨ ÙˆØªÙƒÙˆÙ† Ø¬Ø²Ø¡ Ù…Ù† Ø¹ÙŠÙ„Ø© LegaCy ðŸ’š
-Ù„Ùˆ Ø­Ø§Ø¨Ø¨ ØªØ³ØªÙØ³Ø± Ø¹Ù† Ø£ÙŠ Ø­Ø§Ø¬Ø©ØŒ Ø¥Ø­Ù†Ø§ Ù…ÙˆØ¬ÙˆØ¯ÙŠÙ† Ø¯Ø§ÙŠÙ…Ø§Ù‹!''';
+      return '''مرحبًا $name ✨
+تم استرجاع طلبك رقم #$orderNo بنجاح، وتمت عملية الـ Refund للرصيد المستحق.
+نتمنى نشوفك تاني قريب وتكون جزء من عيلة LegaCy 💚
+لو حابب تستفسر عن أي حاجة، إحنا موجودين دايماً!''';
     } else {
       // Pending / Confirmed / Processing
       final items = (_order!['items'] as List? ?? []);
@@ -1388,7 +1388,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         String itemName = items[i]['name']?.toString() ?? '';
         itemName = itemName.replaceAll(RegExp(r'\s*\([^)]*\)$'), '').trim();
         if (i == 0) {
-          itemsText += 'âŒš Watch : $itemName';
+          itemsText += '⌚ Watch : $itemName';
         } else {
           itemsText += '\n                     $itemName';
         }
@@ -1425,7 +1425,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       if (gov.toString().isNotEmpty) addressParts.add(gov.toString());
       if (city.toString().isNotEmpty) addressParts.add(city.toString());
       if (address.toString().isNotEmpty) addressParts.add(address.toString());
-      final fullAddress = addressParts.join(' ØŒ ');
+      final fullAddress = addressParts.join(' ، ');
 
       final phone1 =
           _order!['phone'] ??
@@ -1440,17 +1440,17 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           _order!['customer']?['alternativePhone'] ??
           '';
 
-      return '''Thank you for choosing LegaCy ðŸ’š
+      return '''Thank you for choosing LegaCy 💚
 
 Order : #$orderNo
 Name : $name
 $itemsText
-ðŸ’° Total Due : EGP $total + $shippingText
-ðŸ“ Address : $fullAddress
+💰 Total Due : EGP $total + $shippingText
+📍 Address : $fullAddress
 Delivered in (1 : 4) Days
 Phone 1 : $phone1${phone2.toString().trim().isNotEmpty ? '\nPhone 2 : $phone2' : ''}
 
-Thanks for shopping with us! ðŸ’š''';
+Thanks for shopping with us! 💚''';
     }
   }
 
@@ -2272,4 +2272,3 @@ Thanks for shopping with us! ðŸ’š''';
     return '${d.day}/${d.month}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 }
-

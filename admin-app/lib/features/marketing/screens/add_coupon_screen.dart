@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 // Keep for haptic if needed, though removed in other file
 import 'package:google_fonts/google_fonts.dart';
@@ -449,6 +449,5 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
     );
   }
 }
-
 
 

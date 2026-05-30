@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
@@ -328,7 +328,7 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
                   final bool isPending = req['status'] == 'pending';
                   final dateStr = req['createdAt'] != null
                       ? DateFormat(
-                          'MMM d, yyyy â€¢ h:mm a',
+                          'MMM d, yyyy • h:mm a',
                         ).format(DateTime.parse(req['createdAt']))
                       : '';
 
@@ -615,4 +615,3 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
     );
   }
 }
-

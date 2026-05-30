@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -578,7 +578,7 @@ class _MoreScreenState extends State<MoreScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Version 1.0.0 â€¢ Production',
+                        'Version 1.0.0 • Production',
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           color: AppColors.textMuted,
@@ -899,5 +899,4 @@ class _MenuItemWidget extends StatelessWidget {
     );
   }
 }
-
 

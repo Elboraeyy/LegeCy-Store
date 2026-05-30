@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -6,7 +6,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
 
-// â”€â”€ Shimmer Loading Placeholder â”€â”€
+// ── Shimmer Loading Placeholder ──
 class DashboardShimmer extends StatelessWidget {
   const DashboardShimmer({super.key});
 
@@ -15,7 +15,7 @@ class DashboardShimmer extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // â”€â”€ Live Status Badge â”€â”€
+        // ── Live Status Badge ──
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
@@ -35,7 +35,7 @@ class DashboardShimmer extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // â”€â”€ TODO List Section â”€â”€
+        // ── TODO List Section ──
         const AppShimmer(width: 100, height: 14),
         const SizedBox(height: 12),
         Container(
@@ -101,7 +101,7 @@ class DashboardShimmer extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Stats Grid (2Ã—2) â”€â”€
+        // ── Stats Grid (2×2) ──
         Row(
           children: [
             Expanded(child: _statCardSkeleton()),
@@ -119,7 +119,7 @@ class DashboardShimmer extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Order Pipeline â”€â”€
+        // ── Order Pipeline ──
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -152,7 +152,7 @@ class DashboardShimmer extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Quick Actions â”€â”€
+        // ── Quick Actions ──
         const AppShimmer(width: 110, height: 11),
         const SizedBox(height: 12),
         SizedBox(
@@ -184,7 +184,7 @@ class DashboardShimmer extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Revenue Chart â”€â”€
+        // ── Revenue Chart ──
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -224,7 +224,7 @@ class DashboardShimmer extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Monthly Overview â”€â”€
+        // ── Monthly Overview ──
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -258,7 +258,7 @@ class DashboardShimmer extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Top Products â”€â”€
+        // ── Top Products ──
         const AppShimmer(width: 160, height: 11),
         const SizedBox(height: 12),
         Container(
@@ -293,7 +293,7 @@ class DashboardShimmer extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ Recent Orders â”€â”€
+        // ── Recent Orders ──
         const AppShimmer(width: 120, height: 11),
         const SizedBox(height: 12),
         for (int i = 0; i < 3; i++)
@@ -365,7 +365,7 @@ class DashboardShimmer extends StatelessWidget {
   }
 }
 
-// â”€â”€ Enhanced Stat Card with Trend â”€â”€
+// ── Enhanced Stat Card with Trend ──
 class StatCardWithTrend extends StatelessWidget {
   final String label;
   final String value;
@@ -487,7 +487,7 @@ class StatCardWithTrend extends StatelessWidget {
   }
 }
 
-// â”€â”€ Revenue Chart â”€â”€
+// ── Revenue Chart ──
 class RevenueChart extends StatelessWidget {
   final List<Map<String, dynamic>> data;
 
@@ -671,7 +671,7 @@ class RevenueChart extends StatelessWidget {
   }
 }
 
-// â”€â”€ Order Pipeline â”€â”€
+// ── Order Pipeline ──
 class OrderPipeline extends StatelessWidget {
   final int pending;
   final int processing;
@@ -777,7 +777,7 @@ class OrderPipeline extends StatelessWidget {
   }
 }
 
-// â”€â”€ Quick Action Button â”€â”€
+// ── Quick Action Button ──
 class QuickActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -877,7 +877,7 @@ class QuickActionButton extends StatelessWidget {
   }
 }
 
-// â”€â”€ Top Product Item â”€â”€
+// ── Top Product Item ──
 class TopProductItem extends StatelessWidget {
   final int rank;
   final String name;
@@ -962,7 +962,7 @@ class TopProductItem extends StatelessWidget {
   }
 }
 
-// â”€â”€ Section Header â”€â”€
+// ── Section Header ──
 class DashboardSectionHeader extends StatelessWidget {
   final String title;
   final String? trailing;
@@ -1009,7 +1009,7 @@ class DashboardSectionHeader extends StatelessWidget {
   }
 }
 
-// â”€â”€ Monthly Overview Card â”€â”€
+// ── Monthly Overview Card ──
 class MonthlyOverviewCard extends StatelessWidget {
   final double monthlyRevenue;
   final int totalOrders;
@@ -1135,7 +1135,7 @@ class MonthlyOverviewCard extends StatelessWidget {
   }
 }
 
-// â”€â”€ Alert Badge Row â”€â”€
+// ── Alert Badge Row ──
 class AlertBadgesRow extends StatelessWidget {
   final int lowStock;
   final int pendingMessages;
@@ -1271,4 +1271,3 @@ class _AlertItem {
   final Color color;
   _AlertItem(this.label, this.value, this.icon, this.color);
 }
-

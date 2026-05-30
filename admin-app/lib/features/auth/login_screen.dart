@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -352,7 +352,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                       _buildAnimatedTextField(
                                         controller: _passwordController,
                                         focusNode: _passwordFocus,
-                                        hint: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢',
+                                        hint: '••••••••',
                                         obscureText: _obscurePassword,
                                         textInputAction: TextInputAction.done,
                                         autofillHints: const [AutofillHints.password],
@@ -476,7 +476,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                       
                                       // Footer
                                       Text(
-                                        'ðŸ”’ Protected by Legacy Security Systems',
+                                        '🔒 Protected by Legacy Security Systems',
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.inter(
                                           fontSize: 12,
@@ -591,4 +591,3 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     );
   }
 }
-

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -8,7 +8,7 @@ import 'package:admin_app/features/dashboard/models/todo_model.dart';
 import 'package:admin_app/features/dashboard/providers/todo_provider.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 
-/// Widget Ø¹Ø±Ø¶ TODO item ÙˆØ§Ø­Ø¯
+/// Widget عرض TODO item واحد
 class TodoItemWidget extends StatelessWidget {
   final TodoItem todo;
   final VoidCallback onComplete;
@@ -171,7 +171,7 @@ class TodoItemWidget extends StatelessWidget {
   }
 }
 
-/// Widget Ù„Ø¹Ø±Ø¶ TODO List section
+/// Widget لعرض TODO List section
 class TodoListSection extends StatelessWidget {
   final List<TodoItem> todos;
   final VoidCallback onAddTodo;
@@ -368,4 +368,3 @@ class TodoListSection extends StatelessWidget {
     );
   }
 }
-

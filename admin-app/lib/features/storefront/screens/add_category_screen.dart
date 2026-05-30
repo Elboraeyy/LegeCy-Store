@@ -1,4 +1,4 @@
-﻿import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -204,4 +204,3 @@ class _AddCategoryScreenState extends State<AddCategoryScreen> {
     );
   }
 }
-

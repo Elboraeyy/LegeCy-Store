@@ -1,11 +1,11 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 
-// â”€â”€ KPI Card â”€â”€
+// ── KPI Card ──
 class KpiCard extends StatelessWidget {
   final String label, value;
   final IconData icon;
@@ -56,7 +56,7 @@ class KpiCard extends StatelessWidget {
   }
 }
 
-// â”€â”€ Section Header â”€â”€
+// ── Section Header ──
 class SectionHeader extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -77,7 +77,7 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-// â”€â”€ Revenue Line Chart â”€â”€
+// ── Revenue Line Chart ──
 class RevenueChart extends StatelessWidget {
   final List<dynamic> data;
   const RevenueChart({super.key, required this.data});
@@ -143,7 +143,7 @@ class RevenueChart extends StatelessWidget {
   String _formatK(double v) => v >= 1000 ? '${(v / 1000).toStringAsFixed(1)}K' : v.toStringAsFixed(0);
 }
 
-// â”€â”€ Orders Bar Chart â”€â”€
+// ── Orders Bar Chart ──
 class OrdersBarChart extends StatelessWidget {
   final List<dynamic> data;
   const OrdersBarChart({super.key, required this.data});
@@ -194,7 +194,7 @@ class OrdersBarChart extends StatelessWidget {
   }
 }
 
-// â”€â”€ Status Distribution â”€â”€
+// ── Status Distribution ──
 class StatusPieChart extends StatelessWidget {
   final Map<String, dynamic> data;
   const StatusPieChart({super.key, required this.data});
@@ -248,7 +248,7 @@ class StatusPieChart extends StatelessWidget {
   }
 }
 
-// â”€â”€ Ranked List Card â”€â”€
+// ── Ranked List Card ──
 class RankedListCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -294,7 +294,7 @@ class RankedListCard extends StatelessWidget {
   }
 }
 
-// â”€â”€ Breakdown Horizontal Bars â”€â”€
+// ── Breakdown Horizontal Bars ──
 class BreakdownCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -338,4 +338,3 @@ class BreakdownCard extends StatelessWidget {
     );
   }
 }
-

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -478,7 +478,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text('${(pct * 100).toStringAsFixed(1)}% of total â€¢ ${cat['count']} expenses',
+                              Text('${(pct * 100).toStringAsFixed(1)}% of total • ${cat['count']} expenses',
                                 style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
                               ),
                             ],
@@ -532,7 +532,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                 Text(expense['description'] ?? '', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
                 Text(
-                  '${(expense['category'] as Map?)?['name'] ?? ''}${expense['safe'] != null ? ' â€¢ ${(expense['safe'] as Map)['name']}' : ''}',
+                  '${(expense['category'] as Map?)?['name'] ?? ''}${expense['safe'] != null ? ' • ${(expense['safe'] as Map)['name']}' : ''}',
                   style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
                 ),
               ],
@@ -558,7 +558,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
     );
   }
 }
-
 
 
 

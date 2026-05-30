@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -44,7 +44,7 @@ Widget custSection(String title, IconData icon, Color color) {
   ]);
 }
 
-// â”€â”€ Segment Funnel â”€â”€
+// ── Segment Funnel ──
 class SegmentFunnel extends StatelessWidget {
   final Map<String, dynamic> segments;
   const SegmentFunnel({super.key, required this.segments});
@@ -88,7 +88,7 @@ class SegmentFunnel extends StatelessWidget {
 
 class _Seg { final String label; final int count; final Color color; final IconData icon; _Seg(this.label, this.count, this.color, this.icon); }
 
-// â”€â”€ Loyalty Card â”€â”€
+// ── Loyalty Card ──
 class LoyaltyCard extends StatelessWidget {
   final Map<String, dynamic> loyalty;
   const LoyaltyCard({super.key, required this.loyalty});
@@ -140,7 +140,7 @@ class LoyaltyCard extends StatelessWidget {
   ]));
 }
 
-// â”€â”€ Reviews Card â”€â”€
+// ── Reviews Card ──
 class ReviewsCard extends StatelessWidget {
   final Map<String, dynamic> reviews;
   const ReviewsCard({super.key, required this.reviews});
@@ -209,7 +209,7 @@ class ReviewsCard extends StatelessWidget {
   }
 }
 
-// â”€â”€ Geographic Card â”€â”€
+// ── Geographic Card ──
 class GeoCard extends StatelessWidget {
   final List<dynamic> geography;
   const GeoCard({super.key, required this.geography});
@@ -231,7 +231,7 @@ class GeoCard extends StatelessWidget {
           return Padding(padding: const EdgeInsets.only(bottom: 10), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text(g['governorate'] ?? '', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600)),
-              Text('$orders orders Â· ${fmtNum(revenue)} EGP', style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted)),
+              Text('$orders orders · ${fmtNum(revenue)} EGP', style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted)),
             ]),
             const SizedBox(height: 4),
             ClipRRect(borderRadius: BorderRadius.circular(3),
@@ -243,7 +243,7 @@ class GeoCard extends StatelessWidget {
   }
 }
 
-// â”€â”€ Registration Trend â”€â”€
+// ── Registration Trend ──
 class RegTrendChart extends StatelessWidget {
   final List<dynamic> data;
   const RegTrendChart({super.key, required this.data});
@@ -283,4 +283,3 @@ class RegTrendChart extends StatelessWidget {
     );
   }
 }
-
