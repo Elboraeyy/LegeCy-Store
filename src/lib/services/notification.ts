@@ -42,7 +42,7 @@ export async function createAdminNotification({
             const tokens = admins.map(a => a.fcmToken).filter(Boolean) as string[];
 
             if (tokens.length > 0) {
-                const payload: any = {
+                const payload: admin.messaging.MulticastMessage = {
                     notification: { title, body },
                     data: {
                         category,
