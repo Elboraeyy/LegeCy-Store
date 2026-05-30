@@ -1,7 +1,7 @@
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -111,8 +111,8 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   IconData _sourceIcon(String source) {
     switch (source.toLowerCase()) {
       case 'whatsapp': return LucideIcons.messageCircle;
-      case 'facebook': return LucideIcons.facebook;
-      case 'instagram': return LucideIcons.instagram;
+      case 'facebook': return Icons.facebook;
+      case 'instagram': return Icons.camera_alt;
       case 'phone': return LucideIcons.phone;
       case 'website': return LucideIcons.globe;
       case 'in-person': return LucideIcons.user;
@@ -981,3 +981,4 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     return '${d.day}/${d.month}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 }
+

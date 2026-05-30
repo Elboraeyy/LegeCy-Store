@@ -1,7 +1,7 @@
-import 'package:admin_app/core/widgets/app_toast.dart';
+﻿import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/constants/egypt_locations.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -723,3 +723,4 @@ class _CityAddingState {
 
   _CityAddingState({this.governorate, required this.rate});
 }
+

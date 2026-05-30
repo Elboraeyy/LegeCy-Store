@@ -1,10 +1,10 @@
-import 'package:admin_app/core/widgets/app_toast.dart';
+﻿import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -278,8 +278,8 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                         const SizedBox(height: 24),
                         
                         _buildTierCard(
-                          title: '3+ Items → Cheapest FREE',
-                          icon: '🎁',
+                          title: '3+ Items â†’ Cheapest FREE',
+                          icon: 'ðŸŽ',
                           subtitle: 'Customer pays for the 2 most expensive items, cheapest is free',
                           enabled: _tier3Enabled,
                           onToggle: (v) => setState(() => _tier3Enabled = v),
@@ -295,8 +295,8 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                         ),
 
                         _buildTierCard(
-                          title: '2 Items → 2nd at Discount',
-                          icon: '🏷️',
+                          title: '2 Items â†’ 2nd at Discount',
+                          icon: 'ðŸ·ï¸',
                           subtitle: 'Pay full for most expensive, discount on the cheapest',
                           enabled: _tier2Enabled,
                           onToggle: (v) => setState(() => _tier2Enabled = v),
@@ -331,8 +331,8 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                         ),
 
                         _buildTierCard(
-                          title: '1 Item → Discount',
-                          icon: '💰',
+                          title: '1 Item â†’ Discount',
+                          icon: 'ðŸ’°',
                           subtitle: 'Percentage discount on any single item',
                           enabled: _tier1Enabled,
                           onToggle: (v) => setState(() => _tier1Enabled = v),
@@ -390,4 +390,5 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
     );
   }
 }
+
 

@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'coupons_screen.dart';
 import 'general_offers_screen.dart';
@@ -152,3 +152,4 @@ class PromotionsScreen extends StatelessWidget {
     );
   }
 }
+

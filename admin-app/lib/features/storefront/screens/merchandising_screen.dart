@@ -1,4 +1,4 @@
-import 'package:admin_app/core/services/app_image_cache_manager.dart';
+﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
@@ -7,7 +7,7 @@ import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 class MerchandisingScreen extends StatefulWidget {
@@ -1183,3 +1183,4 @@ class _MerchMode {
 
   const _MerchMode(this.id, this.title, this.subtitle);
 }
+

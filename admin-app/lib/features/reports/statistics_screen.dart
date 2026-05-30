@@ -1,8 +1,8 @@
-import 'package:admin_app/core/widgets/app_toast.dart';
+﻿import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
@@ -191,7 +191,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // KPI Grid (3 rows × 2)
+                    // KPI Grid (3 rows Ã— 2)
                     for (int row = 0; row < 5; row++) ...[
                       Row(
                         children: [
@@ -280,11 +280,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final weekly = _data!['weeklyComparison'] as Map<String, dynamic>? ?? {};
 
     return [
-      // ── Hero Summary ──
+      // â”€â”€ Hero Summary â”€â”€
       _buildHeroSummary(o, g),
       const SizedBox(height: 16),
 
-      // ── KPI Grid ──
+      // â”€â”€ KPI Grid â”€â”€
       Row(
         children: [
           Expanded(
@@ -354,7 +354,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       const SizedBox(height: 10),
 
-      // ── NEW KPI Row: Cancellation + Out of Stock ──
+      // â”€â”€ NEW KPI Row: Cancellation + Out of Stock â”€â”€
       Row(
         children: [
           Expanded(
@@ -378,7 +378,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       const SizedBox(height: 10),
 
-      // ── NEW KPI Row: Fulfillment + Discounted Orders ──
+      // â”€â”€ NEW KPI Row: Fulfillment + Discounted Orders â”€â”€
       Row(
         children: [
           Expanded(
@@ -402,42 +402,42 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       const SizedBox(height: 20),
 
-      // ── NEW: Shipping & Discount Impact ──
+      // â”€â”€ NEW: Shipping & Discount Impact â”€â”€
       _buildFinancialInsights(o),
       const SizedBox(height: 16),
 
-      // ── Revenue Chart ──
+      // â”€â”€ Revenue Chart â”€â”€
       RevenueChart(data: trend),
       const SizedBox(height: 16),
 
-      // ── Orders Chart ──
+      // â”€â”€ Orders Chart â”€â”€
       OrdersBarChart(data: trend),
       const SizedBox(height: 16),
 
-      // ── Status Pie ──
+      // â”€â”€ Status Pie â”€â”€
       StatusPieChart(data: status),
       const SizedBox(height: 16),
 
-      // ── Monthly Comparison ──
+      // â”€â”€ Monthly Comparison â”€â”€
       _buildMonthlyComparison(o, g),
       const SizedBox(height: 16),
 
-      // ── NEW: Weekly Comparison ──
+      // â”€â”€ NEW: Weekly Comparison â”€â”€
       _buildWeeklyComparison(weekly, g),
       const SizedBox(height: 16),
 
-      // ── Top Products ──
+      // â”€â”€ Top Products â”€â”€
       RankedListCard(
         title: 'TOP PRODUCTS',
         icon: LucideIcons.package2,
         color: AppColors.accent,
         items: topProducts,
         getName: (i) => i['name'] ?? '',
-        getValue: (i) => '×${i['quantity'] ?? 0}',
+        getValue: (i) => 'Ã—${i['quantity'] ?? 0}',
       ),
       const SizedBox(height: 16),
 
-      // ── Top Customers ──
+      // â”€â”€ Top Customers â”€â”€
       RankedListCard(
         title: 'TOP CUSTOMERS',
         icon: LucideIcons.users,
@@ -448,7 +448,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       const SizedBox(height: 16),
 
-      // ── Top Cities ──
+      // â”€â”€ Top Cities â”€â”€
       BreakdownCard(
         title: 'TOP CITIES',
         icon: LucideIcons.mapPin,
@@ -459,7 +459,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       const SizedBox(height: 16),
 
-      // ── Order Sources ──
+      // â”€â”€ Order Sources â”€â”€
       BreakdownCard(
         title: 'ORDER SOURCES',
         icon: LucideIcons.globe,
@@ -470,7 +470,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       const SizedBox(height: 16),
 
-      // ── Payment Methods ──
+      // â”€â”€ Payment Methods â”€â”€
       BreakdownCard(
         title: 'PAYMENT METHODS',
         icon: LucideIcons.creditCard,
@@ -481,11 +481,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       const SizedBox(height: 16),
 
-      // ── Peak Hours ──
+      // â”€â”€ Peak Hours â”€â”€
       if (hourly.isNotEmpty) _buildPeakHours(hourly),
       const SizedBox(height: 16),
 
-      // ── Repeat Customers ──
+      // â”€â”€ Repeat Customers â”€â”€
       _buildRepeatCustomers(o),
       const SizedBox(height: 40),
     ];
@@ -1344,3 +1344,4 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 }
+

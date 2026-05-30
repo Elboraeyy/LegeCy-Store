@@ -1,9 +1,9 @@
-import 'package:admin_app/core/services/app_image_cache_manager.dart';
+﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
@@ -246,7 +246,7 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
                           Icon(_typeIcon, size: 14, color: _accentColor),
                           const SizedBox(width: 6),
                           Text(
-                            '$_typeLabel • ${_products.length} products',
+                            '$_typeLabel â€¢ ${_products.length} products',
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -696,3 +696,4 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
     );
   }
 }
+

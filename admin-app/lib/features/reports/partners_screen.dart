@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -297,11 +297,11 @@ class _PartnersScreenState extends State<PartnersScreen> {
     final alerts = (_data!['alerts'] as List?) ?? [];
 
     return [
-      // ── Hero ──
+      // â”€â”€ Hero â”€â”€
       _buildHero(o),
       const SizedBox(height: 14),
 
-      // ── KPIs ──
+      // â”€â”€ KPIs â”€â”€
       Row(
         children: [
           Expanded(
@@ -347,7 +347,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
       ),
       const SizedBox(height: 16),
 
-      // ── Alerts ──
+      // â”€â”€ Alerts â”€â”€
       if (alerts.isNotEmpty) ...[
         _section('ALERTS', LucideIcons.bell, AppColors.error),
         const SizedBox(height: 10),
@@ -355,13 +355,13 @@ class _PartnersScreenState extends State<PartnersScreen> {
         const SizedBox(height: 16),
       ],
 
-      // ── Profit Distribution Pie ──
+      // â”€â”€ Profit Distribution Pie â”€â”€
       if (profitShares.isNotEmpty) ...[
         _buildProfitPie(profitShares),
         const SizedBox(height: 16),
       ],
 
-      // ── Investors Section ──
+      // â”€â”€ Investors Section â”€â”€
       if (investors.isNotEmpty) ...[
         _section(
           'INVESTORS (${investors.length})',
@@ -373,7 +373,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
         const SizedBox(height: 16),
       ],
 
-      // ── Partners Section ──
+      // â”€â”€ Partners Section â”€â”€
       if (partners.isNotEmpty) ...[
         _section(
           'COMMISSION PARTNERS (${partners.length})',
@@ -386,7 +386,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
     ];
   }
 
-  // ── Hero Card ──
+  // â”€â”€ Hero Card â”€â”€
   Widget _buildHero(Map<String, dynamic> o) {
     final profit = (o['netProfit'] as num?)?.toDouble() ?? 0;
     return Container(
@@ -488,7 +488,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
     ),
   );
 
-  // ── Profit Distribution Pie ──
+  // â”€â”€ Profit Distribution Pie â”€â”€
   Widget _buildProfitPie(List<dynamic> shares) {
     final colors = [
       const Color(0xFFE63946),
@@ -592,7 +592,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
     );
   }
 
-  // ── Investor Card ──
+  // â”€â”€ Investor Card â”€â”€
   Widget _buildInvestorCard(dynamic inv) {
     final share = (inv['currentShare'] as num?)?.toDouble() ?? 0;
     final deposits = (inv['totalDeposits'] as num?)?.toDouble() ?? 0;
@@ -685,7 +685,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
                       ],
                     ),
                     Text(
-                      '${(inv['type'] ?? 'PARTNER').toString()} · Share: ${(share * 100).toStringAsFixed(1)}%',
+                      '${(inv['type'] ?? 'PARTNER').toString()} Â· Share: ${(share * 100).toStringAsFixed(1)}%',
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         color: AppColors.textMuted,
@@ -739,7 +739,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
     );
   }
 
-  // ── Partner Card ──
+  // â”€â”€ Partner Card â”€â”€
   Widget _buildPartnerCard(dynamic p) {
     final rate = (p['commissionRate'] as num?)?.toDouble() ?? 0;
     final wallet = (p['walletBalance'] as num?)?.toDouble() ?? 0;
@@ -828,7 +828,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
                       ],
                     ),
                     Text(
-                      'Code: ${p['code'] ?? '-'} · ${p['orderCount'] ?? 0} orders',
+                      'Code: ${p['code'] ?? '-'} Â· ${p['orderCount'] ?? 0} orders',
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         color: AppColors.textMuted,
@@ -980,7 +980,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
     );
   }
 
-  // ── Transaction Row ──
+  // â”€â”€ Transaction Row â”€â”€
   Widget _txRow(dynamic tx, {required bool isInvestor}) {
     final type = (tx['type'] ?? '').toString().toUpperCase();
     final amount = (tx['amount'] as num?)?.toDouble() ?? 0;
@@ -1029,7 +1029,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
     );
   }
 
-  // ── Alert Card ──
+  // â”€â”€ Alert Card â”€â”€
   Widget _alertCard(dynamic alert) {
     final severity = (alert['severity'] ?? '').toString();
     final color = severity == 'critical'
@@ -1084,7 +1084,7 @@ class _PartnersScreenState extends State<PartnersScreen> {
     );
   }
 
-  // ── Helpers ──
+  // â”€â”€ Helpers â”€â”€
   Widget _finCol(String l, String v, Color c) => Expanded(
     child: Column(
       children: [
@@ -1206,3 +1206,4 @@ class _PartnersScreenState extends State<PartnersScreen> {
     );
   }
 }
+

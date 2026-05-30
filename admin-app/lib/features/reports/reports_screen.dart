@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -78,7 +78,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 140),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Hero Card — Statistics Dashboard
+                // Hero Card â€” Statistics Dashboard
                 _HeroReportCard(
                   icon: LucideIcons.barChart3,
                   title: 'Statistics Dashboard',
@@ -170,7 +170,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 }
 
-// ── Hero Card ──
+// â”€â”€ Hero Card â”€â”€
 class _HeroReportCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -263,7 +263,7 @@ class _HeroReportCard extends StatelessWidget {
   }
 }
 
-// ── Compact Card ──
+// â”€â”€ Compact Card â”€â”€
 class _CompactReportCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -338,7 +338,7 @@ class _CompactReportCard extends StatelessWidget {
   }
 }
 
-// ── Quick Stats Preview (fetches from dashboard endpoint) ──
+// â”€â”€ Quick Stats Preview (fetches from dashboard endpoint) â”€â”€
 class _QuickStatsPreview extends StatefulWidget {
   const _QuickStatsPreview({super.key});
 
@@ -486,3 +486,4 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
   Widget _divider() =>
       Container(width: 1, height: 40, color: AppColors.cardBorder);
 }
+

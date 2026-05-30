@@ -3,7 +3,7 @@ import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -1022,7 +1022,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       });
     } catch (e) {
       debugPrint('Shipping rate fetch error: $e');
-      // Do NOT use hardcoded fallback — show error instead
+      // Do NOT use hardcoded fallback â€” show error instead
       if (mounted) {
         setState(() {
           _isLoadingShipping = false;
@@ -1173,11 +1173,11 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
           'label': 'WhatsApp',
           'icon': LucideIcons.messageCircle,
         },
-        {'id': 'facebook', 'label': 'Facebook', 'icon': LucideIcons.facebook},
+        {'id': 'facebook', 'label': 'Facebook', 'icon': Icons.facebook},
         {
           'id': 'instagram',
           'label': 'Instagram',
-          'icon': LucideIcons.instagram,
+          'icon': Icons.camera_alt,
         },
         {'id': 'phone', 'label': 'Phone', 'icon': LucideIcons.phone},
         {'id': 'website', 'label': 'Website', 'icon': LucideIcons.globe},
@@ -1526,7 +1526,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                           ),
                         ),
                         subtitle: Text(
-                          '${p['price']} EGP • SKU: ${p['sku'] ?? 'N/A'}',
+                          '${p['price']} EGP â€¢ SKU: ${p['sku'] ?? 'N/A'}',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppColors.textMuted,
@@ -1796,7 +1796,7 @@ class _CustomerSearchSheetState extends State<_CustomerSearchSheet> {
                         ),
                         subtitle: Text(
                           c['phone'] != null && c['phone'].toString().trim().isNotEmpty
-                              ? '${c['phone']} • ${c['email'] ?? ''}'
+                              ? '${c['phone']} â€¢ ${c['email'] ?? ''}'
                               : (c['email'] ?? ''),
                           style: GoogleFonts.inter(
                             fontSize: 12,
@@ -2082,3 +2082,4 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
     );
   }
 }
+

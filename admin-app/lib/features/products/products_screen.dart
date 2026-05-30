@@ -1,9 +1,9 @@
-import 'package:admin_app/core/services/app_image_cache_manager.dart';
+﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
@@ -751,7 +751,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          // ── Search + Filter Bar ──
+          // â”€â”€ Search + Filter Bar â”€â”€
           if (!_selectionMode)
             SliverToBoxAdapter(
               child: Padding(
@@ -844,7 +844,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               ),
             ),
 
-          // ── Status filter chips ──
+          // â”€â”€ Status filter chips â”€â”€
           if (!_selectionMode)
             SliverToBoxAdapter(
               child: Padding(
@@ -881,7 +881,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               ),
             ),
 
-          // ── Content ──
+          // â”€â”€ Content â”€â”€
           _isLoading
               ? SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
@@ -2008,7 +2008,7 @@ class _ProductsScreenState extends State<ProductsScreen>
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Image ──
+                // â”€â”€ Image â”€â”€
                 Expanded(
                   flex: 5,
                   child: ClipRRect(
@@ -2072,7 +2072,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                   ),
                 ),
 
-                // ── Info Section ──
+                // â”€â”€ Info Section â”€â”€
                 Expanded(
                   flex: 3,
                   child: Padding(
@@ -2171,7 +2171,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               ],
             ),
 
-            // ── Status Badge ──
+            // â”€â”€ Status Badge â”€â”€
             Positioned(
               top: 10,
               right: 10,
@@ -2213,7 +2213,7 @@ class _ProductsScreenState extends State<ProductsScreen>
               ),
             ),
 
-            // ── Badges ──
+            // â”€â”€ Badges â”€â”€
             if (badgeWidgets.isNotEmpty && !_selectionMode)
               Positioned(
                 top: 10,
@@ -2224,7 +2224,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                 ),
               ),
 
-            // ── Selection Indicator ──
+            // â”€â”€ Selection Indicator â”€â”€
             if (_selectionMode)
               Positioned(
                 top: 10,
@@ -2397,3 +2397,4 @@ class _ProductsScreenState extends State<ProductsScreen>
     );
   }
 }
+

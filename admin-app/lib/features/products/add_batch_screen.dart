@@ -1,10 +1,10 @@
-import 'package:admin_app/core/services/app_image_cache_manager.dart';
+﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
@@ -992,5 +992,6 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
     );
   }
 }
+
 
 

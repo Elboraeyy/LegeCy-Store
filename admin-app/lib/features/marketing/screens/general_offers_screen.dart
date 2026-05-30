@@ -1,8 +1,8 @@
-import 'package:admin_app/core/widgets/app_toast.dart';
+﻿import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -172,20 +172,20 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                       Wrap(
                         spacing: 8, runSpacing: 8,
                         children: [
-                          _buildChip('🌐 Storewide', 'ALL_PRODUCTS', offerType, (v) {
+                          _buildChip('ðŸŒ Storewide', 'ALL_PRODUCTS', offerType, (v) {
                             setModalState(() { offerType = v; targetId = null; targetName = null; targetOptions = []; });
                           }),
-                          _buildChip('🛍️ Product', 'PRODUCT', offerType, (v) async {
+                          _buildChip('ðŸ›ï¸ Product', 'PRODUCT', offerType, (v) async {
                             setModalState(() { offerType = v; targetId = null; targetName = null; loadingTargets = true; });
                             final items = await _fetchTargets(v);
                             setModalState(() { targetOptions = items; loadingTargets = false; });
                           }),
-                          _buildChip('📂 Category', 'CATEGORY', offerType, (v) async {
+                          _buildChip('ðŸ“‚ Category', 'CATEGORY', offerType, (v) async {
                             setModalState(() { offerType = v; targetId = null; targetName = null; loadingTargets = true; });
                             final items = await _fetchTargets(v);
                             setModalState(() { targetOptions = items; loadingTargets = false; });
                           }),
-                          _buildChip('🏢 Brand', 'BRAND', offerType, (v) async {
+                          _buildChip('ðŸ¢ Brand', 'BRAND', offerType, (v) async {
                             setModalState(() { offerType = v; targetId = null; targetName = null; loadingTargets = true; });
                             final items = await _fetchTargets(v);
                             setModalState(() { targetOptions = items; loadingTargets = false; });
@@ -500,10 +500,10 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
 
     String typeLabel;
     switch (type) {
-      case 'ALL_PRODUCTS': typeLabel = '🌐 Storewide'; break;
-      case 'PRODUCT': typeLabel = '🛍️ Product'; break;
-      case 'CATEGORY': typeLabel = '📂 Category'; break;
-      case 'BRAND': typeLabel = '🏢 Brand'; break;
+      case 'ALL_PRODUCTS': typeLabel = 'ðŸŒ Storewide'; break;
+      case 'PRODUCT': typeLabel = 'ðŸ›ï¸ Product'; break;
+      case 'CATEGORY': typeLabel = 'ðŸ“‚ Category'; break;
+      case 'BRAND': typeLabel = 'ðŸ¢ Brand'; break;
       default: typeLabel = type;
     }
 
@@ -578,7 +578,7 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                     ),
                     if (o['endDate'] != null) ...[
                       const SizedBox(width: 8),
-                      Text('→ ${_formatDate(o['endDate'])}', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
+                      Text('â†’ ${_formatDate(o['endDate'])}', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
                     ],
                   ],
                 ),
@@ -626,4 +626,5 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
     return DateFormat('MMM d, yyyy').format(dt);
   }
 }
+
 

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -267,7 +267,7 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
                           _loadOrders();
                           if (mounted) {
                             ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
-                              content: Text('Order #${order['orderNumber']} audited ✓'),
+                              content: Text('Order #${order['orderNumber']} audited âœ“'),
                               backgroundColor: AppColors.success,
                               behavior: SnackBarBehavior.floating,
                             ));
@@ -539,6 +539,7 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
     return DateFormat('dd MMM yyyy').format(dt.toLocal());
   }
 }
+
 
 
 

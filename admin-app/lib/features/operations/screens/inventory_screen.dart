@@ -1,7 +1,7 @@
-import 'package:admin_app/core/widgets/app_toast.dart';
+﻿import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -193,7 +193,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                   children: [
                                     Text(item['productName'] ?? '', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
                                     const SizedBox(height: 2),
-                                    Text('SKU: ${item['sku']} • ${item['warehouseName']}', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+                                    Text('SKU: ${item['sku']} â€¢ ${item['warehouseName']}', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
                                   ],
                                 ),
                               ),
@@ -241,7 +241,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
               Text('Adjust Stock', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
               const SizedBox(height: 4),
               Text(item['productName'] ?? '', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
-              Text('SKU: ${item['sku']} • ${item['warehouseName']}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+              Text('SKU: ${item['sku']} â€¢ ${item['warehouseName']}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
               const SizedBox(height: 24),
               
               Row(
@@ -353,3 +353,4 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 }
+

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -64,7 +64,7 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
       _loadClosing();
       if (mounted) {
         ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
-          content: Text('Month ${DateFormat('MMMM yyyy').format(DateTime(_year, _month))} closed successfully! ✓'),
+          content: Text('Month ${DateFormat('MMMM yyyy').format(DateTime(_year, _month))} closed successfully! âœ“'),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
         ));
@@ -351,4 +351,5 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
     );
   }
 }
+
 

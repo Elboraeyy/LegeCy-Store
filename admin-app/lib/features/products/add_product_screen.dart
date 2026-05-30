@@ -1,4 +1,4 @@
-import 'package:admin_app/core/services/app_image_cache_manager.dart';
+﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
@@ -420,7 +420,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ),
       );
 
-  // ── UI WIZARD PAGES ──
+  // â”€â”€ UI WIZARD PAGES â”€â”€
 
   Widget _buildStep0() {
     return _pageContainer(
@@ -864,7 +864,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             const SizedBox(height: 4),
             _profitRow(
-              'Total Profit (×$stock)',
+              'Total Profit (Ã—$stock)',
               '${totalProfit.toStringAsFixed(0)} EGP',
               isProfit ? AppColors.success : AppColors.error,
               icon: LucideIcons.piggyBank,
@@ -1158,7 +1158,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
-  // ── UI HELPERS ──
+  // â”€â”€ UI HELPERS â”€â”€
 
   Widget _buildSectionTitle(String title, IconData icon) {
     return Padding(
@@ -1977,5 +1977,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 }
+
 
 

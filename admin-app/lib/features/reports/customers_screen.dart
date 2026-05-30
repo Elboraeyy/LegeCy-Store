@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -302,7 +302,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     ];
   }
 
-  // ── Hero ──
+  // â”€â”€ Hero â”€â”€
   Widget _buildHero(Map<String, dynamic> o) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -422,7 +422,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     ),
   );
 
-  // ── Repeat vs One-time ──
+  // â”€â”€ Repeat vs One-time â”€â”€
   Widget _buildRepeatCard(Map<String, dynamic> o) {
     final repeat = (o['repeatCustomers'] as num?)?.toInt() ?? 0;
     final oneTime = (o['oneTimeCustomers'] as num?)?.toInt() ?? 0;
@@ -524,7 +524,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     ],
   );
 
-  // ── Top Customers ──
+  // â”€â”€ Top Customers â”€â”€
   Widget _buildTopCustomers(List<dynamic> customers) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -601,7 +601,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  // ── Risk Card ──
+  // â”€â”€ Risk Card â”€â”€
   Widget _buildRiskCard(Map<String, dynamic> risk) {
     final dist = (risk['distribution'] as List?) ?? [];
     final highRisk = (risk['highRisk'] as List?) ?? [];
@@ -721,7 +721,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                'Score: ${u['score']} · ${u['returns']} returns · ${u['cancels']} cancels',
+                                'Score: ${u['score']} Â· ${u['returns']} returns Â· ${u['cancels']} cancels',
                                 style: GoogleFonts.inter(
                                   fontSize: 9,
                                   color: AppColors.textMuted,
@@ -740,7 +740,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  // ── Returns Card ──
+  // â”€â”€ Returns Card â”€â”€
   Widget _buildReturnsCard(
     Map<String, dynamic> returns,
     Map<String, dynamic> o,
@@ -848,7 +848,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     ),
   );
 
-  // ── Coupons Card ──
+  // â”€â”€ Coupons Card â”€â”€
   Widget _buildCouponsCard(Map<String, dynamic> coupons) {
     final topCoupons = (coupons['topCoupons'] as List?) ?? [];
     return Container(
@@ -1090,3 +1090,4 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 }
+

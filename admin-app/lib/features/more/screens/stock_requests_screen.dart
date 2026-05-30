@@ -1,11 +1,11 @@
-import 'package:admin_app/core/services/app_image_cache_manager.dart';
+﻿import 'package:admin_app/core/services/app_image_cache_manager.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
@@ -328,7 +328,7 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
                   final bool isPending = req['status'] == 'pending';
                   final dateStr = req['createdAt'] != null
                       ? DateFormat(
-                          'MMM d, yyyy • h:mm a',
+                          'MMM d, yyyy â€¢ h:mm a',
                         ).format(DateTime.parse(req['createdAt']))
                       : '';
 
@@ -615,3 +615,4 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
     );
   }
 }
+
