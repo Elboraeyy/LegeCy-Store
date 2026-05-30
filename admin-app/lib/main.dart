@@ -17,22 +17,23 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   await NotificationService.instance.initialize();
   
-  // Try to parse category from data payload
-  NotifCategory category = NotifCategory.system;
-  if (message.data['category'] != null) {
-    final catStr = message.data['category'] as String;
-    category = NotifCategory.values.firstWhere(
-      (e) => e.name == catStr,
-      orElse: () => NotifCategory.system,
-    );
-  }
+  // Read from data payload (data-only message)
+  final data = message.data;
+  final title = data['title'] ?? 'Notification';
+  final body = data['body'] ?? '';
+  final catStr = data['category'] ?? 'system';
+
+  NotifCategory category = NotifCategory.values.firstWhere(
+    (e) => e.name == catStr,
+    orElse: () => NotifCategory.system,
+  );
 
   await NotificationService.instance.show(
     id: message.hashCode,
-    title: message.notification?.title ?? 'Notification',
-    body: message.notification?.body ?? '',
+    title: title,
+    body: body,
     category: category,
-    payload: message.data.toString(),
+    payload: data.toString(),
   );
 }
 

@@ -172,9 +172,13 @@ class NotificationProvider extends ChangeNotifier {
       FirebaseMessaging.onMessage.listen((message) {
         if (!_globalEnabled) return;
 
-        NotifCategory category = NotifCategory.system;
-        String catStr = message.data['category'] ?? 'system';
-        category = NotifCategory.values.firstWhere(
+        // Read from data payload (data-only message)
+        final data = message.data;
+        final title = data['title'] ?? 'Notification';
+        final body = data['body'] ?? '';
+        String catStr = data['category'] ?? 'system';
+
+        NotifCategory category = NotifCategory.values.firstWhere(
           (e) => e.name == catStr,
           orElse: () => NotifCategory.system,
         );
@@ -182,10 +186,10 @@ class NotificationProvider extends ChangeNotifier {
         if (_pushEnabled[catStr] == true) {
           NotificationService.instance.show(
             id: message.hashCode,
-            title: message.notification?.title ?? 'Notification',
-            body: message.notification?.body ?? '',
+            title: title,
+            body: body,
             category: category,
-            payload: message.data.toString(),
+            payload: data.toString(),
             silent: _soundEnabled[catStr] != true,
           );
         }
@@ -210,22 +214,6 @@ class NotificationProvider extends ChangeNotifier {
       _notifications = list.map((j) => AppNotification.fromJson(j)).toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-      // Check for new notifications and show push
-      if (_globalEnabled && _hasFetchedOnce && _notifications.length > _lastKnownCount) {
-        final newOnes = _notifications.sublist(0, _notifications.length - _lastKnownCount);
-        for (final n in newOnes) {
-          if (_pushEnabled[n.category] == true) {
-            await NotificationService.instance.show(
-              id: n.id.hashCode,
-              title: n.title,
-              body: n.body,
-              category: n.notifCategory,
-              payload: '${n.referenceType ?? n.category}:${n.referenceId ?? ''}',
-              silent: _soundEnabled[n.category] != true,
-            );
-          }
-        }
-      }
       _lastKnownCount = _notifications.length;
       _hasFetchedOnce = true;
     } catch (e) {

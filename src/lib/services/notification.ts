@@ -42,35 +42,21 @@ export async function createAdminNotification({
             const tokens = admins.map(a => a.fcmToken).filter(Boolean) as string[];
 
             if (tokens.length > 0) {
-                const getChannelId = (cat?: string) => {
-                    switch (cat) {
-                        case 'order': return 'legacy_orders';
-                        case 'review': return 'legacy_reviews';
-                        case 'message': return 'legacy_messages';
-                        case 'inventory': return 'legacy_inventory';
-                        case 'restock': return 'legacy_restock';
-                        case 'finance': return 'legacy_finance';
-                        default: return 'legacy_system';
-                    }
-                };
-
                 const payload: admin.messaging.MulticastMessage = {
-                    notification: { title, body },
                     data: {
+                        title,
+                        body,
                         category,
                         ...(referenceId && { referenceId }),
                         ...(referenceType && { referenceType }),
                     },
                     android: {
                         priority: 'high',
-                        notification: {
-                            channelId: getChannelId(category),
-                        }
                     },
                     apns: {
                         payload: {
                             aps: {
-                                sound: 'default',
+                                'content-available': 1,
                             }
                         }
                     },
