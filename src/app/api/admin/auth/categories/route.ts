@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 const prisma = prismaClient!;
 
 /**
@@ -59,6 +60,9 @@ export async function POST(request: NextRequest) {
                 sortOrder: sortOrder ? Number(sortOrder) : 0,
             }
         });
+
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop');
 
         return NextResponse.json({ category, message: 'Category created successfully' });
     } catch (error) {

@@ -20,7 +20,7 @@ export async function fetchAllMaterials(includeEmpty: boolean = false) {
 
     return await prisma.material.findMany({
         where: filter,
-        orderBy: { name: 'asc' },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
         include: {
             _count: { select: { products: true } }
         }
@@ -39,6 +39,7 @@ export async function createMaterialAction(data: MaterialInput) {
 
     await auditService.logAction(admin.id, 'CREATE_MATERIAL', 'MATERIAL', material.id, { name: data.name });
     revalidatePath('/', 'layout');
+    revalidatePath('/shop');
     return material;
 }
 
@@ -55,6 +56,7 @@ export async function updateMaterialAction(id: string, data: MaterialInput) {
 
     await auditService.logAction(admin.id, 'UPDATE_MATERIAL', 'MATERIAL', id, { changes: data });
     revalidatePath('/', 'layout');
+    revalidatePath('/shop');
 }
 
 export async function deleteMaterialAction(id: string) {
@@ -69,5 +71,6 @@ export async function deleteMaterialAction(id: string) {
     await prisma.material.delete({ where: { id } });
     await auditService.logAction(admin.id, 'DELETE_MATERIAL', 'MATERIAL', id);
     revalidatePath('/', 'layout');
+    revalidatePath('/shop');
     return { success: true };
 }

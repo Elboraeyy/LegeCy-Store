@@ -103,6 +103,7 @@ export async function GET(request: NextRequest) {
                     ...v,
                     stockQuantity: v.inventory?.reduce((sum: number, inv: { available: number }) => sum + inv.available, 0) || 0
                 }));
+                const minStock = variantsWithStock[0]?.inventory?.[0]?.minStock ?? 5;
                 return {
                     ...p,
                     variants: variantsWithStock,
@@ -111,6 +112,7 @@ export async function GET(request: NextRequest) {
                     price: variantsWithStock[0]?.price?.toNumber() || 0,
                     variantCount: p._count.variants,
                     totalStock: variantsWithStock.reduce((sum, v) => sum + v.stockQuantity, 0),
+                    minStock,
                 };
             }),
             total,
@@ -189,7 +191,10 @@ export async function POST(request: NextRequest) {
 
             // Handle Smart Inventory if stock is provided
             const initialStock = parseInt(stock) || 0;
-            const parsedMinStock = minStock !== undefined ? parseInt(minStock) : 5;
+            const parsedMinStock =
+                minStock !== undefined && minStock !== null && minStock !== ''
+                    ? parseInt(minStock)
+                    : 5;
             const variantId = created.variants[0].id;
 
             let warehouse = await tx.warehouse.findFirst({ where: { type: 'MAIN' } });
@@ -268,7 +273,7 @@ export async function POST(request: NextRequest) {
                         warehouseId: warehouse.id,
                         variantId: variantId,
                         available: initialStock,
-                        minStock: parsedMinStock,
+                        minStock: Number.isFinite(parsedMinStock) ? parsedMinStock : 5,
                     }
                 });
 
@@ -290,7 +295,7 @@ export async function POST(request: NextRequest) {
                         warehouseId: warehouse.id,
                         variantId: variantId,
                         available: 0,
-                        minStock: parsedMinStock,
+                        minStock: Number.isFinite(parsedMinStock) ? parsedMinStock : 5,
                     }
                 });
             }

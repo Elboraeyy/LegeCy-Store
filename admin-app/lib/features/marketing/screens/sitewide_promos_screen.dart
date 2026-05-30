@@ -1,4 +1,5 @@
 import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -149,154 +150,243 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
         backgroundColor: AppColors.surface, surfaceTintColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: color))
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.cardBorder),
+      body: RefreshIndicator(
+        onRefresh: _loadSettings,
+        color: const Color(0xFF14B8A6),
+        child: _isLoading
+            ? ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        AppShimmer(width: double.infinity, height: 24),
+                        SizedBox(height: 16),
+                        AppShimmer(width: 240, height: 14),
+                        SizedBox(height: 24),
+                        AppShimmer(width: double.infinity, height: 1),
+                        SizedBox(height: 24),
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Enable Site-Wide Offer', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
-                                const SizedBox(height: 4),
-                                Text('Automatic discount applied to all orders at checkout', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted)),
-                              ],
+                  const SizedBox(height: 16),
+                  // Tier card skeleton 1
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        AppShimmer(width: 180, height: 20),
+                        SizedBox(height: 8),
+                        AppShimmer(width: 260, height: 12),
+                        SizedBox(height: 16),
+                        AppShimmer(width: double.infinity, height: 48, borderRadius: 12),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Tier card skeleton 2
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        AppShimmer(width: 200, height: 20),
+                        SizedBox(height: 8),
+                        AppShimmer(width: 240, height: 12),
+                        SizedBox(height: 16),
+                        AppShimmer(width: double.infinity, height: 48, borderRadius: 12),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Tier card skeleton 3
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        AppShimmer(width: 160, height: 20),
+                        SizedBox(height: 8),
+                        AppShimmer(width: 220, height: 12),
+                        SizedBox(height: 16),
+                        AppShimmer(width: double.infinity, height: 48, borderRadius: 12),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const AppShimmer(width: double.infinity, height: 48, borderRadius: 12),
+                ],
+              )
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Enable Site-Wide Offer', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryDark)),
+                                  const SizedBox(height: 4),
+                                  Text('Automatic discount applied to all orders at checkout', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted)),
+                                ],
+                              ),
                             ),
-                          ),
-                          Switch(
-                            value: _enabled,
-                            onChanged: (v) => setState(() => _enabled = v),
-                            activeTrackColor: color,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Divider(color: AppColors.divider, height: 1),
-                      const SizedBox(height: 24),
-                      
-                      _buildTierCard(
-                        title: '3+ Items → Cheapest FREE',
-                        icon: '🎁',
-                        subtitle: 'Customer pays for the 2 most expensive items, cheapest is free',
-                        enabled: _tier3Enabled,
-                        onToggle: (v) => setState(() => _tier3Enabled = v),
-                        children: [
-                          TextField(
-                            controller: _tier3Label,
-                            decoration: InputDecoration(
-                              labelText: 'Offer Label',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            Switch(
+                              value: _enabled,
+                              onChanged: (v) => setState(() => _enabled = v),
+                              activeTrackColor: color,
                             ),
-                          )
-                        ],
-                      ),
-
-                      _buildTierCard(
-                        title: '2 Items → 2nd at Discount',
-                        icon: '🏷️',
-                        subtitle: 'Pay full for most expensive, discount on the cheapest',
-                        enabled: _tier2Enabled,
-                        onToggle: (v) => setState(() => _tier2Enabled = v),
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: TextField(
-                                  controller: _tier2Discount,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: 'Discount %',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                flex: 2,
-                                child: TextField(
-                                  controller: _tier2Label,
-                                  decoration: InputDecoration(
-                                    labelText: 'Offer Label',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-
-                      _buildTierCard(
-                        title: '1 Item → Discount',
-                        icon: '💰',
-                        subtitle: 'Percentage discount on any single item',
-                        enabled: _tier1Enabled,
-                        onToggle: (v) => setState(() => _tier1Enabled = v),
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: TextField(
-                                  controller: _tier1Discount,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: 'Discount %',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                flex: 2,
-                                child: TextField(
-                                  controller: _tier1Label,
-                                  decoration: InputDecoration(
-                                    labelText: 'Offer Label',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _saveSettings,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: color,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 0,
-                          ),
-                          child: Text('Save Settings', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+                        Divider(color: AppColors.divider, height: 1),
+                        const SizedBox(height: 24),
+                        
+                        _buildTierCard(
+                          title: '3+ Items → Cheapest FREE',
+                          icon: '🎁',
+                          subtitle: 'Customer pays for the 2 most expensive items, cheapest is free',
+                          enabled: _tier3Enabled,
+                          onToggle: (v) => setState(() => _tier3Enabled = v),
+                          children: [
+                            TextField(
+                              controller: _tier3Label,
+                              decoration: InputDecoration(
+                                labelText: 'Offer Label',
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            )
+                          ],
+                        ),
+
+                        _buildTierCard(
+                          title: '2 Items → 2nd at Discount',
+                          icon: '🏷️',
+                          subtitle: 'Pay full for most expensive, discount on the cheapest',
+                          enabled: _tier2Enabled,
+                          onToggle: (v) => setState(() => _tier2Enabled = v),
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: TextField(
+                                    controller: _tier2Discount,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: 'Discount %',
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  flex: 2,
+                                  child: TextField(
+                                    controller: _tier2Label,
+                                    decoration: InputDecoration(
+                                      labelText: 'Offer Label',
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+
+                        _buildTierCard(
+                          title: '1 Item → Discount',
+                          icon: '💰',
+                          subtitle: 'Percentage discount on any single item',
+                          enabled: _tier1Enabled,
+                          onToggle: (v) => setState(() => _tier1Enabled = v),
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: TextField(
+                                    controller: _tier1Discount,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: 'Discount %',
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  flex: 2,
+                                  child: TextField(
+                                    controller: _tier1Label,
+                                    decoration: InputDecoration(
+                                      labelText: 'Offer Label',
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _saveSettings,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            child: Text('Save Settings', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+      ),
     );
   }
 }

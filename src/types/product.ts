@@ -45,6 +45,15 @@ export interface Product {
   brandId?: string | null;
   materialId?: string | null;
   categorySlug?: string | null;
+  categorySortOrder?: number;
+  categoryUseCustomOrder?: boolean;
+  sortInCategory?: number;
+  brandSortOrder?: number;
+  brandUseCustomOrder?: boolean;
+  sortInBrand?: number;
+  materialSortOrder?: number;
+  materialUseCustomOrder?: boolean;
+  sortInMaterial?: number;
 
   // Search fields
   sku?: string;

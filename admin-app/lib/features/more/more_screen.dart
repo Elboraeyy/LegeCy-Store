@@ -167,8 +167,12 @@ class _MoreScreenState extends State<MoreScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: _loadBadges,
+        color: AppColors.primaryDark,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
           // Clean Standard Header
           SliverAppBar(
             pinned: true,
@@ -487,13 +491,6 @@ class _MoreScreenState extends State<MoreScreen> {
                         screen: const ExpensesScreen(),
                       ),
                       _MenuItem(
-                        title: 'Approvals',
-                        subtitle: 'Partner withdrawals',
-                        icon: LucideIcons.checkCircle2,
-                        color: const Color(0xFFF59E0B),
-                        screen: const FinanceApprovalsScreen(),
-                      ),
-                      _MenuItem(
                         title: 'Month Closing',
                         subtitle: 'P&L & profit sharing',
                         icon: LucideIcons.calendarCheck,
@@ -516,6 +513,14 @@ class _MoreScreenState extends State<MoreScreen> {
                       color: const Color(0xFF10B981),
                       screen: const PartnerWalletScreen(),
                     ),
+                    if (auth.role == 'SUPER_ADMIN' || auth.role == 'owner' || auth.role == 'super_admin')
+                      _MenuItem(
+                        title: 'Approvals',
+                        subtitle: 'Partner withdrawals',
+                        icon: LucideIcons.checkCircle2,
+                        color: const Color(0xFFF59E0B),
+                        screen: const FinanceApprovalsScreen(),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 32),
@@ -585,7 +590,8 @@ class _MoreScreenState extends State<MoreScreen> {
               ]),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -745,175 +745,180 @@ class _ProductsScreenState extends State<ProductsScreen>
   }
 
   Widget _buildProductsTab() {
-    return CustomScrollView(
-      slivers: [
-        // ── Search + Filter Bar ──
-        if (!_selectionMode)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.cardBorder),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryDark.withValues(
-                              alpha: 0.03,
+    return RefreshIndicator(
+      onRefresh: _loadProducts,
+      color: AppColors.primaryDark,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          // ── Search + Filter Bar ──
+          if (!_selectionMode)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.cardBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryDark.withValues(
+                                alpha: 0.03,
+                              ),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        onSubmitted: (_) => _loadProducts(),
-                        style: GoogleFonts.inter(fontSize: 14),
-                        decoration: InputDecoration(
-                          hintText: 'Search products...',
-                          hintStyle: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: AppColors.textMuted,
-                          ),
-                          prefixIcon: const Icon(
-                            LucideIcons.search,
-                            size: 18,
-                            color: AppColors.textMuted,
-                          ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(LucideIcons.x, size: 16),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    _loadProducts();
-                                  },
-                                )
-                              : null,
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
+                          ],
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onSubmitted: (_) => _loadProducts(),
+                          style: GoogleFonts.inter(fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: 'Search products...',
+                            hintStyle: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: AppColors.textMuted,
+                            ),
+                            prefixIcon: const Icon(
+                              LucideIcons.search,
+                              size: 18,
+                              color: AppColors.textMuted,
+                            ),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(LucideIcons.x, size: 16),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _loadProducts();
+                                    },
+                                  )
+                                : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: _showFilterSortSheet,
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: _showFilterSortSheet,
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _hasActiveFilters
+                                ? AppColors.accent
+                                : AppColors.cardBorder,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryDark.withValues(
+                                alpha: 0.03,
+                              ),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          LucideIcons.slidersHorizontal,
+                          size: 18,
                           color: _hasActiveFilters
                               ? AppColors.accent
-                              : AppColors.cardBorder,
+                              : AppColors.textMuted,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryDark.withValues(
-                              alpha: 0.03,
-                            ),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        LucideIcons.slidersHorizontal,
-                        size: 18,
-                        color: _hasActiveFilters
-                            ? AppColors.accent
-                            : AppColors.textMuted,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-        // ── Status filter chips ──
-        if (!_selectionMode)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _chip('All', 'all'),
-                          const SizedBox(width: 6),
-                          _chip('Active', 'active'),
-                          const SizedBox(width: 6),
-                          _chip('Draft', 'draft'),
-                          const SizedBox(width: 6),
-                          _chip('Archived', 'archived'),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '${_products.length} items',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      color: AppColors.textMuted,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-        // ── Content ──
-        _isLoading
-            ? SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 14,
-                    childAspectRatio: 0.62,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildProductSkeleton(),
-                    childCount: 6,
-                  ),
-                ),
-              )
-            : _error != null
-            ? SliverFillRemaining(child: _buildErrorState())
-            : _products.isEmpty
-            ? SliverFillRemaining(child: _buildEmptyState())
-            : SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 14,
-                    childAspectRatio: 0.62,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildProductCard(_products[index]),
-                    childCount: _products.length,
-                  ),
+                  ],
                 ),
               ),
-      ],
+            ),
+
+          // ── Status filter chips ──
+          if (!_selectionMode)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _chip('All', 'all'),
+                            const SizedBox(width: 6),
+                            _chip('Active', 'active'),
+                            const SizedBox(width: 6),
+                            _chip('Draft', 'draft'),
+                            const SizedBox(width: 6),
+                            _chip('Archived', 'archived'),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '${_products.length} items',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: AppColors.textMuted,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // ── Content ──
+          _isLoading
+              ? SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 14,
+                      crossAxisSpacing: 14,
+                      childAspectRatio: 0.62,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _buildProductSkeleton(),
+                      childCount: 6,
+                    ),
+                  ),
+                )
+              : _error != null
+              ? SliverFillRemaining(child: _buildErrorState())
+              : _products.isEmpty
+              ? SliverFillRemaining(child: _buildEmptyState())
+              : SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 14,
+                      crossAxisSpacing: 14,
+                      childAspectRatio: 0.62,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _buildProductCard(_products[index]),
+                      childCount: _products.length,
+                    ),
+                  ),
+                ),
+        ],
+      ),
     );
   }
 

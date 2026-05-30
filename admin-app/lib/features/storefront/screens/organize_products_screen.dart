@@ -35,6 +35,8 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
   String? _error;
   List<Map<String, dynamic>> _products = [];
   bool _useCustomOrder = false;
+  bool _hasUnsavedChanges = false;
+  bool _isSaving = false;
 
   String get _apiPath {
     switch (widget.type) {
@@ -98,6 +100,8 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
       setState(() {
         _products = List<Map<String, dynamic>>.from(data['products'] ?? []);
         _useCustomOrder = data['entity']?['useCustomOrder'] == true;
+        _hasUnsavedChanges = false;
+        _isSaving = false;
         _isLoading = false;
       });
     } catch (e) {
@@ -110,6 +114,7 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
   }
 
   Future<void> _saveOrder() async {
+    setState(() => _isSaving = true);
     try {
       final client = ApiClient(token: context.read<AuthProvider>().token);
       final items = _products
@@ -122,6 +127,10 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
         body: {'items': items, 'useCustomOrder': _useCustomOrder},
       );
       if (!mounted) return;
+      setState(() {
+        _hasUnsavedChanges = false;
+        _isSaving = false;
+      });
       ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Row(
@@ -148,6 +157,7 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
       );
     } catch (e) {
       if (!mounted) return;
+      setState(() => _isSaving = false);
       ScaffoldMessenger.of(context).showAppToast(
         AppToast.snackBar(
           content: Text('Error: $e'),
@@ -155,38 +165,14 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-    } finally {
-      if (mounted) setState(() {});
     }
   }
 
-  Future<void> _toggleOrderMode(bool value) async {
-    setState(() => _useCustomOrder = value);
-    try {
-      final client = ApiClient(token: context.read<AuthProvider>().token);
-      await client.put(_apiPath, body: {'useCustomOrder': value});
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showAppToast(
-        AppToast.snackBar(
-          content: Text(
-            value
-                ? 'Custom order enabled on website'
-                : 'Switched to random order on website',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w500),
-          ),
-          backgroundColor: AppColors.primaryDark,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.all(16),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _useCustomOrder = !value);
-    }
+  void _toggleOrderMode(bool value) {
+    setState(() {
+      _useCustomOrder = value;
+      _hasUnsavedChanges = true;
+    });
   }
 
   @override
@@ -218,6 +204,26 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
                 color: AppColors.primaryDark,
               ),
             ),
+            actions: [
+              if (_hasUnsavedChanges)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 12),
+                  child: TextButton.icon(
+                    onPressed: _isSaving ? null : _saveOrder,
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(LucideIcons.save, size: 18),
+                    label: const Text('Save'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primaryDark,
+                    ),
+                  ),
+                ),
+            ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(120),
               child: Padding(
@@ -468,8 +474,8 @@ class _OrganizeProductsScreenState extends State<OrganizeProductsScreen> {
                       if (newIndex > oldIndex) newIndex -= 1;
                       final item = _products.removeAt(oldIndex);
                       _products.insert(newIndex, item);
+                      _hasUnsavedChanges = true;
                     });
-                    _saveOrder();
                   },
                   itemBuilder: (context, index) {
                     final product = _products[index];

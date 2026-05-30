@@ -18,12 +18,22 @@ export interface ShopProduct {
   brandId?: string | null;
   material: string | null; // Added material slug
   materialId?: string | null;
+  categorySortOrder?: number;
+  categoryUseCustomOrder?: boolean;
+  sortInCategory?: number;
+  brandSortOrder?: number;
+  brandUseCustomOrder?: boolean;
+  sortInBrand?: number;
+  materialSortOrder?: number;
+  materialUseCustomOrder?: boolean;
+  sortInMaterial?: number;
   strap: string | null;
   status: string;
   variantCount: number;
   inStock: boolean;
   defaultVariantId: string | null; // For cart operations
   isNew?: boolean;
+  createdAt?: string;
   variants?: { id: string; sku: string; price: number; stock: number }[];
   specs?: ProductSpecs;
   detailTags?: string[];
@@ -156,10 +166,19 @@ function mapShopProduct(product: ProductWithRelations): ShopProduct {
     category: product.categoryRel?.name || product.category,
     categoryAr: product.categoryRel?.nameAr || null,
     categorySlug: product.categoryRel?.slug || null,
+    categorySortOrder: product.categoryRel?.sortOrder ?? 0,
+    categoryUseCustomOrder: product.categoryRel?.useCustomOrder ?? false,
+    sortInCategory: product.sortInCategory,
     brand: product.brand?.slug || null,
     brandId: product.brandId,
+    brandSortOrder: product.brand?.sortOrder ?? 0,
+    brandUseCustomOrder: product.brand?.useCustomOrder ?? false,
+    sortInBrand: product.sortInBrand,
     material: product.material?.slug || null,
     materialId: product.materialId,
+    materialSortOrder: product.material?.sortOrder ?? 0,
+    materialUseCustomOrder: product.material?.useCustomOrder ?? false,
+    sortInMaterial: product.sortInMaterial,
     imageUrl: product.imageUrl,
     images: product.images.map((img) => img.url),
     strap: product.material?.name || null,
@@ -168,6 +187,7 @@ function mapShopProduct(product: ProductWithRelations): ShopProduct {
     inStock: totalStock > 0,
     defaultVariantId: mainVariant?.id || null,
     isNew: new Date().getTime() - product.createdAt.getTime() < 5 * 24 * 60 * 60 * 1000,
+    createdAt: product.createdAt.toISOString(),
     specs: (product.specs ?? undefined) as ProductSpecs | undefined,
     detailTags: product.detailTags,
     variants: product.variants.map((v) => ({
@@ -199,10 +219,52 @@ function sortProducts(products: ProductWithRelations[], section: MerchandisingSe
         return Number(b.variants[0]?.price || 0) - Number(a.variants[0]?.price || 0);
       case "nameAsc":
         return a.name.localeCompare(b.name);
+      case "manual":
+        return 0;
       case "newest":
       default:
         return b.createdAt.getTime() - a.createdAt.getTime();
     }
+  });
+}
+
+function applyCatalogOrder(products: ProductWithRelations[]) {
+  return [...products].sort((a, b) => {
+    const categoryOrder =
+      (a.categoryRel?.sortOrder ?? 0) - (b.categoryRel?.sortOrder ?? 0);
+    if (categoryOrder !== 0) return categoryOrder;
+
+    const brandOrder = (a.brand?.sortOrder ?? 0) - (b.brand?.sortOrder ?? 0);
+    if (brandOrder !== 0) return brandOrder;
+
+    const materialOrder =
+      (a.material?.sortOrder ?? 0) - (b.material?.sortOrder ?? 0);
+    if (materialOrder !== 0) return materialOrder;
+
+    if (
+      a.categoryId &&
+      a.categoryId === b.categoryId &&
+      a.categoryRel?.useCustomOrder
+    ) {
+      const productOrder = a.sortInCategory - b.sortInCategory;
+      if (productOrder !== 0) return productOrder;
+    }
+
+    if (a.brandId && a.brandId === b.brandId && a.brand?.useCustomOrder) {
+      const productOrder = a.sortInBrand - b.sortInBrand;
+      if (productOrder !== 0) return productOrder;
+    }
+
+    if (
+      a.materialId &&
+      a.materialId === b.materialId &&
+      a.material?.useCustomOrder
+    ) {
+      const productOrder = a.sortInMaterial - b.sortInMaterial;
+      if (productOrder !== 0) return productOrder;
+    }
+
+    return b.createdAt.getTime() - a.createdAt.getTime();
   });
 }
 
@@ -259,7 +321,7 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
       status: "active",
       ...(settings.categoryIds.length ? { categoryId: { in: settings.categoryIds } } : {}),
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: "desc" }],
     include: productInclude,
   });
 
@@ -274,7 +336,11 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
     ...(settings.showOnlySelectedFirst ? selected : []),
     ...(settings.showOnlySelectedFirst || selected.length === 0 ? products : selected),
   ].forEach((product) => deduped.set(product.id, product));
-  return sortProducts(stockFiltered(Array.from(deduped.values()), settings.includeSoldOut), settings)
+  const sortedProducts = settings.sortMode === "manual" && !settings.selectedProductIds.length
+    ? applyCatalogOrder(stockFiltered(Array.from(deduped.values()), settings.includeSoldOut))
+    : sortProducts(stockFiltered(Array.from(deduped.values()), settings.includeSoldOut), settings);
+
+  return sortedProducts
     .map(mapShopProduct);
 }
 

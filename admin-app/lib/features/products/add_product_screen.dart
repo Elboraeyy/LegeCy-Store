@@ -575,11 +575,27 @@ class _AddProductScreenState extends State<AddProductScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        _field(
-          'Additional Costs',
-          _costCtrl,
-          num: true,
-          icon: LucideIcons.calculator,
+        Row(
+          children: [
+            Expanded(
+              child: _field(
+                'Additional Costs',
+                _costCtrl,
+                num: true,
+                icon: LucideIcons.calculator,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _field(
+                'Low Stock Alert Threshold',
+                _minStockCtrl,
+                num: true,
+                icon: LucideIcons.alertTriangle,
+                req: false,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         Container(
@@ -645,13 +661,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                   ),
                 ],
-              ),
-              _field(
-                'Low Stock Alert Threshold',
-                _minStockCtrl,
-                num: true,
-                req: true,
-                icon: LucideIcons.alertTriangle,
               ),
               if (!_isEdit) ...[
                 const SizedBox(height: 12),

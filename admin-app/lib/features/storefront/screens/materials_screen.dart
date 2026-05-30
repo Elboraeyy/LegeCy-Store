@@ -19,6 +19,8 @@ class MaterialsScreen extends StatefulWidget {
 
 class _MaterialsScreenState extends State<MaterialsScreen> {
   bool _isLoading = true;
+  bool _hasUnsavedOrder = false;
+  bool _isSavingOrder = false;
   String? _error;
   List<dynamic> _materials = [];
   List<dynamic> _filteredMaterials = [];
@@ -61,6 +63,8 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
         setState(() {
           _materials = data['materials'] ?? [];
           _filteredMaterials = List.from(_materials);
+          _hasUnsavedOrder = false;
+          _isSavingOrder = false;
           _isLoading = false;
         });
       }
@@ -75,6 +79,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
   }
 
   Future<void> _saveMaterialOrder() async {
+    setState(() => _isSavingOrder = true);
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
@@ -87,8 +92,31 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
         '/api/admin/auth/materials/reorder',
         body: {'items': items},
       );
+      if (!mounted) return;
+      setState(() {
+        _hasUnsavedOrder = false;
+        _isSavingOrder = false;
+      });
+      ScaffoldMessenger.of(context).showAppToast(
+        AppToast.snackBar(
+          content: Text(
+            'Material order saved & synced to website',
+            style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+          ),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
-      debugPrint('Failed to save material order: $e');
+      if (!mounted) return;
+      setState(() => _isSavingOrder = false);
+      ScaffoldMessenger.of(context).showAppToast(
+        AppToast.snackBar(
+          content: Text('Error: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -351,6 +379,26 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                   color: AppColors.primaryDark,
                 ),
               ),
+              actions: [
+                if (_hasUnsavedOrder)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 12),
+                    child: TextButton.icon(
+                      onPressed: _isSavingOrder ? null : _saveMaterialOrder,
+                      icon: _isSavingOrder
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(LucideIcons.save, size: 18),
+                      label: const Text('Save'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.primaryDark,
+                      ),
+                    ),
+                  ),
+              ],
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(70),
                 child: Padding(
@@ -502,8 +550,8 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                       final item = _filteredMaterials.removeAt(oldIndex);
                       _filteredMaterials.insert(newIndex, item);
                       _materials = List.from(_filteredMaterials);
+                      _hasUnsavedOrder = true;
                     });
-                    _saveMaterialOrder();
                   },
                   itemBuilder: (context, index) {
                     final mat = _filteredMaterials[index];

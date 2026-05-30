@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 const prisma = prismaClient!;
 
 /**
@@ -24,6 +25,9 @@ export async function PUT(request: NextRequest) {
                 })
             )
         );
+
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop');
 
         return NextResponse.json({ message: 'Categories reordered successfully' });
     } catch (error) {

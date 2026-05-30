@@ -12,14 +12,28 @@ import 'package:admin_app/features/reports/partners_screen.dart';
 import 'package:admin_app/features/reports/customers_screen.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
 
-class ReportsScreen extends StatelessWidget {
+class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
+
+  @override
+  State<ReportsScreen> createState() => _ReportsScreenState();
+}
+
+class _ReportsScreenState extends State<ReportsScreen> {
+  int _refreshKey = 0;
+
+  Future<void> _refreshData() async {
+    setState(() => _refreshKey++);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        color: AppColors.accent,
+        child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverAppBar(
@@ -145,11 +159,12 @@ class ReportsScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Quick Stats Preview
-                _QuickStatsPreview(),
+                _QuickStatsPreview(key: ValueKey(_refreshKey)),
               ]),
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -325,6 +340,8 @@ class _CompactReportCard extends StatelessWidget {
 
 // ── Quick Stats Preview (fetches from dashboard endpoint) ──
 class _QuickStatsPreview extends StatefulWidget {
+  const _QuickStatsPreview({super.key});
+
   @override
   State<_QuickStatsPreview> createState() => _QuickStatsPreviewState();
 }

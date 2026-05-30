@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 const prisma = prismaClient!;
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -12,6 +13,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         if (body.slug !== undefined) data.slug = body.slug;
         if (body.imageUrl !== undefined) data.imageUrl = body.imageUrl;
         const brand = await prisma.brand.update({ where: { id }, data });
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop');
         return NextResponse.json({ brand, message: 'Brand updated' });
     } catch (error) {
         console.error('Brand Update Error:', error);
@@ -26,6 +29,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         if (!brand) return NextResponse.json({ error: 'Brand not found' }, { status: 404 });
         if (brand._count.products > 0) return NextResponse.json({ error: `Brand has ${brand._count.products} products. Remove products first.` }, { status: 400 });
         await prisma.brand.delete({ where: { id } });
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop');
         return NextResponse.json({ message: 'Brand deleted' });
     } catch (error) {
         console.error('Brand Delete Error:', error);

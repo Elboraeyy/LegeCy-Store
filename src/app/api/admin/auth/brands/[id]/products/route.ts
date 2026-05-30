@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 const prisma = prismaClient!;
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -65,6 +66,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
                 )
             );
         }
+
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop');
 
         return NextResponse.json({ message: 'Products reordered successfully' });
     } catch (error) {

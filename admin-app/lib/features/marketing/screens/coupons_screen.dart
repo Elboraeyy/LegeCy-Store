@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -175,7 +176,10 @@ class _CouponsScreenState extends State<CouponsScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: AppColors.background,
-        body: CustomScrollView(
+        body: RefreshIndicator(
+          onRefresh: _loadCoupons,
+          color: AppColors.primaryDark,
+          child: CustomScrollView(
           slivers: [
             // AppBar
             SliverAppBar(
@@ -313,10 +317,37 @@ class _CouponsScreenState extends State<CouponsScreen> {
 
             // Content
             if (_isLoading)
-              const SliverFillRemaining(
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primaryDark,
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.cardBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          const AppShimmer(width: 48, height: 48, shape: BoxShape.circle),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                AppShimmer(width: 120, height: 16, borderRadius: 8),
+                                SizedBox(height: 8),
+                                AppShimmer(width: 80, height: 12, borderRadius: 6),
+                              ],
+                            ),
+                          ),
+                          const AppShimmer(width: 24, height: 24, borderRadius: 6),
+                        ],
+                      ),
+                    ),
+                    childCount: 5,
                   ),
                 ),
               )
@@ -364,6 +395,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                 ),
               ),
           ],
+        ),
         ),
       ),
     );

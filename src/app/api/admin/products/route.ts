@@ -27,7 +27,7 @@ export async function GET() {
                 variants: {
                     include: {
                         inventory: {
-                            select: { available: true }
+                            select: { available: true, minStock: true }
                         }
                     }
                 }
@@ -39,7 +39,7 @@ export async function GET() {
             ...p,
             category: p.categoryRel,
             categoryId: p.categoryRel?.id || p.categoryId,
-            threshold: getLowStockThreshold(p.specs)
+            threshold: p.variants?.[0]?.inventory?.[0]?.minStock ?? getLowStockThreshold(p.specs)
         }));
 
         console.log(`[Products API] Fetched ${products.length} products`);

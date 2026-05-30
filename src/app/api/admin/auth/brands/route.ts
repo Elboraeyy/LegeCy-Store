@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 const prisma = prismaClient!;
 
 export async function GET() {
@@ -25,6 +26,8 @@ export async function POST(request: NextRequest) {
         if (existing) return NextResponse.json({ error: 'Brand slug already exists' }, { status: 400 });
 
         const brand = await prisma.brand.create({ data: { name, nameAr, slug, imageUrl } });
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop');
         return NextResponse.json({ brand, message: 'Brand created' });
     } catch (error) {
         console.error('Brand Create Error:', error);

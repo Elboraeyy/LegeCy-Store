@@ -138,6 +138,14 @@ export default function ProductGrid({
             item => item.products.length > 0
         );
 
+        categoriesWithProducts.forEach((item) => {
+            if (item.products.some((product) => product.categoryUseCustomOrder)) {
+                item.products.sort(
+                    (a, b) => (a.sortInCategory ?? 0) - (b.sortInCategory ?? 0)
+                );
+            }
+        });
+
         if (categoriesWithProducts.length === 0) {
             return (
                 <div className="flex flex-col items-center justify-center py-20 px-6 text-center">

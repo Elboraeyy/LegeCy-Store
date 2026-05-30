@@ -63,7 +63,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
                 });
             }
 
-            if (minStock !== undefined) {
+            if (minStock !== undefined && minStock !== null && minStock !== '') {
                 const parsedMinStock = parseInt(minStock);
                 if (!isNaN(parsedMinStock)) {
                     let warehouse = await prisma.warehouse.findFirst({ where: { type: 'MAIN' } });

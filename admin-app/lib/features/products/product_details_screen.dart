@@ -1290,8 +1290,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         backgroundColor: AppColors.background,
         body: Stack(
           children: [
-            CustomScrollView(
-              slivers: [
+            RefreshIndicator(
+              onRefresh: _refreshProduct,
+              color: AppColors.primaryDark,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
                 SliverAppBar(
                   expandedHeight: 320,
                   pinned: true,
@@ -1946,8 +1950,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 ),
               ],
             ),
-            if (_isLoading)
-              Positioned(
+          ),
+          if (_isLoading)
+            Positioned(
                 top: MediaQuery.of(context).padding.top + 56,
                 left: 0,
                 right: 0,

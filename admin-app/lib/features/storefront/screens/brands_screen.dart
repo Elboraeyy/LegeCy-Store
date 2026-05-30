@@ -19,6 +19,8 @@ class BrandsScreen extends StatefulWidget {
 
 class _BrandsScreenState extends State<BrandsScreen> {
   bool _isLoading = true;
+  bool _hasUnsavedOrder = false;
+  bool _isSavingOrder = false;
   String? _error;
   List<dynamic> _brands = [];
   List<dynamic> _filteredBrands = [];
@@ -61,6 +63,8 @@ class _BrandsScreenState extends State<BrandsScreen> {
         setState(() {
           _brands = data['brands'] ?? [];
           _filteredBrands = List.from(_brands);
+          _hasUnsavedOrder = false;
+          _isSavingOrder = false;
           _isLoading = false;
         });
       }
@@ -75,6 +79,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
   }
 
   Future<void> _saveBrandOrder() async {
+    setState(() => _isSavingOrder = true);
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
@@ -87,8 +92,31 @@ class _BrandsScreenState extends State<BrandsScreen> {
         '/api/admin/auth/brands/reorder',
         body: {'items': items},
       );
+      if (!mounted) return;
+      setState(() {
+        _hasUnsavedOrder = false;
+        _isSavingOrder = false;
+      });
+      ScaffoldMessenger.of(context).showAppToast(
+        AppToast.snackBar(
+          content: Text(
+            'Brand order saved & synced to website',
+            style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+          ),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
-      debugPrint('Failed to save brand order: $e');
+      if (!mounted) return;
+      setState(() => _isSavingOrder = false);
+      ScaffoldMessenger.of(context).showAppToast(
+        AppToast.snackBar(
+          content: Text('Error: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -348,6 +376,26 @@ class _BrandsScreenState extends State<BrandsScreen> {
                   color: AppColors.primaryDark,
                 ),
               ),
+              actions: [
+                if (_hasUnsavedOrder)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 12),
+                    child: TextButton.icon(
+                      onPressed: _isSavingOrder ? null : _saveBrandOrder,
+                      icon: _isSavingOrder
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(LucideIcons.save, size: 18),
+                      label: const Text('Save'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.primaryDark,
+                      ),
+                    ),
+                  ),
+              ],
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(70),
                 child: Padding(
@@ -499,8 +547,8 @@ class _BrandsScreenState extends State<BrandsScreen> {
                       final item = _filteredBrands.removeAt(oldIndex);
                       _filteredBrands.insert(newIndex, item);
                       _brands = List.from(_filteredBrands);
+                      _hasUnsavedOrder = true;
                     });
-                    _saveBrandOrder();
                   },
                   itemBuilder: (context, index) {
                     final brand = _filteredBrands[index];

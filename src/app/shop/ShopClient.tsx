@@ -19,6 +19,57 @@ interface ShopClientProps {
     materials?: { id: string; name: string }[];
 }
 
+function sortByCatalogCustomOrder(
+    products: Product[],
+    scope: "category" | "brand" | "material",
+) {
+    return [...products].sort((a, b) => {
+        if (scope === "category") {
+            const categoryOrder = (a.categorySortOrder ?? 0) - (b.categorySortOrder ?? 0);
+            if (categoryOrder !== 0) return categoryOrder;
+
+            if (
+                a.categorySlug &&
+                a.categorySlug === b.categorySlug &&
+                (a.categoryUseCustomOrder || b.categoryUseCustomOrder)
+            ) {
+                const productOrder = (a.sortInCategory ?? 0) - (b.sortInCategory ?? 0);
+                if (productOrder !== 0) return productOrder;
+            }
+        }
+
+        if (scope === "brand") {
+            const brandOrder = (a.brandSortOrder ?? 0) - (b.brandSortOrder ?? 0);
+            if (brandOrder !== 0) return brandOrder;
+
+            if (
+                a.brandId &&
+                a.brandId === b.brandId &&
+                (a.brandUseCustomOrder || b.brandUseCustomOrder)
+            ) {
+                const productOrder = (a.sortInBrand ?? 0) - (b.sortInBrand ?? 0);
+                if (productOrder !== 0) return productOrder;
+            }
+        }
+
+        if (scope === "material") {
+            const materialOrder = (a.materialSortOrder ?? 0) - (b.materialSortOrder ?? 0);
+            if (materialOrder !== 0) return materialOrder;
+
+            if (
+                a.materialId &&
+                a.materialId === b.materialId &&
+                (a.materialUseCustomOrder || b.materialUseCustomOrder)
+            ) {
+                const productOrder = (a.sortInMaterial ?? 0) - (b.sortInMaterial ?? 0);
+                if (productOrder !== 0) return productOrder;
+            }
+        }
+
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
+}
+
 export default function ShopClient({
     initialProducts = [],
     categories = [],
@@ -256,12 +307,27 @@ export default function ShopClient({
                 result.sort((a, b) => b.name.localeCompare(a.name));
                 break;
             default:
-                // Featured layout logic - keep original order
+                if (filters.selectedCategories.length > 0 || viewMode === "categories") {
+                    return sortByCatalogCustomOrder(result, "category");
+                }
+                if (filters.selectedBrands.length > 0) {
+                    return sortByCatalogCustomOrder(result, "brand");
+                }
+                if (filters.selectedMaterials.length > 0) {
+                    return sortByCatalogCustomOrder(result, "material");
+                }
                 break;
         }
 
         return result;
-    }, [filteredProducts, filters.sortBy]);
+    }, [
+        filteredProducts,
+        filters.sortBy,
+        filters.selectedCategories.length,
+        filters.selectedBrands.length,
+        filters.selectedMaterials.length,
+        viewMode,
+    ]);
 
     // Pagination - Memoized for performance
     const totalPages = useMemo(() => Math.ceil(filteredAndSortedProducts.length / itemsPerPage), [filteredAndSortedProducts.length, itemsPerPage]);

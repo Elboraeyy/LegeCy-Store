@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -63,7 +64,10 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       backgroundColor: AppColors.background,
       body: Consumer<NotificationProvider>(
         builder: (context, provider, _) {
-          return CustomScrollView(
+          return RefreshIndicator(
+            onRefresh: () => context.read<NotificationProvider>().fetchNotifications(),
+            color: AppColors.primaryDark,
+            child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               // ── Premium App Bar ──
@@ -212,10 +216,45 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
               // ── Loading State ──
               if (provider.isLoading)
-                const SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primaryDark,
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.cardBorder),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppShimmer(width: 44, height: 44, borderRadius: 12),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AppShimmer(width: 150, height: 14, borderRadius: 4),
+                                  const SizedBox(height: 6),
+                                  AppShimmer(width: 200, height: 12, borderRadius: 4),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      AppShimmer(width: 50, height: 10, borderRadius: 4),
+                                      const Spacer(),
+                                      AppShimmer(width: 60, height: 10, borderRadius: 4),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      childCount: 6,
                     ),
                   ),
                 )
@@ -228,6 +267,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
               const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
+          ),
           );
         },
       ),

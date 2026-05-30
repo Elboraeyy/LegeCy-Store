@@ -22,6 +22,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
   late TabController _tabController;
   bool _loading = true;
   bool _saving = false;
+  bool _hasUnsavedChanges = false;
   String _search = '';
   List<Map<String, dynamic>> _products = [];
   List<Map<String, dynamic>> _categories = [];
@@ -80,12 +81,33 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
         _featured = _mergeSection(_featured, settings['featured']);
         _newArrivals = _mergeSection(_newArrivals, settings['newArrivals']);
         _shop = _mergeSection(_shop, settings['shop']);
+        
+        _normalizeSortMode(_featured, false);
+        _normalizeSortMode(_newArrivals, false);
+        _normalizeSortMode(_shop, true);
+
+        _hasUnsavedChanges = false;
         _loading = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
       _toast('Could not load merchandising settings', AppColors.error);
+    }
+  }
+
+  void _markChanged(VoidCallback change) {
+    setState(() {
+      change();
+      _hasUnsavedChanges = true;
+    });
+  }
+
+  void _normalizeSortMode(Map<String, dynamic> section, bool isShop) {
+    final mode = _sectionMode(section, isShop);
+    final showSort = mode == 'rules' || mode == 'all' || mode == 'pinned';
+    if (showSort && section['sortMode'] == 'manual') {
+      section['sortMode'] = 'newest';
     }
   }
 
@@ -119,7 +141,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
 
   void _applyMode(Map<String, dynamic> section, bool isShop, String mode) {
     HapticFeedback.selectionClick();
-    setState(() {
+    _markChanged(() {
       if (mode == 'random') {
         section['randomize'] = true;
         section['selectedOnly'] = false;
@@ -174,6 +196,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
         },
       );
       if (!mounted) return;
+      setState(() => _hasUnsavedChanges = false);
       _toast('Saved and synced to website', AppColors.success);
     } catch (e) {
       if (!mounted) return;
@@ -217,30 +240,26 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
               ),
             ),
             actions: [
-              IconButton(
-                onPressed: _loading ? null : _load,
-                icon: const Icon(LucideIcons.refreshCw, size: 20),
-                color: AppColors.primaryDark,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: FilledButton.icon(
-                  onPressed: _saving || _loading ? null : _save,
-                  icon: _saving
-                      ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(LucideIcons.save, size: 16),
-                  label: Text(_saving ? 'Saving' : 'Save'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primaryDark,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+              if (_hasUnsavedChanges)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 12),
+                  child: FilledButton.icon(
+                    onPressed: _saving || _loading ? null : _save,
+                    icon: _saving
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(LucideIcons.save, size: 16),
+                    label: Text(_saving ? 'Saving' : 'Save'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primaryDark,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
                   ),
                 ),
-              ),
             ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(58),
@@ -277,38 +296,42 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
             ),
           ),
         ],
-        body: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : TabBarView(
-                controller: _tabController,
-                children: [
-                  _sectionView(
-                    section: _featured,
-                    title: 'Featured Collection',
-                    subtitle: 'Homepage hero carousel product curation.',
-                    icon: LucideIcons.star,
-                    accent: AppColors.accent,
-                  ),
-                  _sectionView(
-                    section: _newArrivals,
-                    title: 'New Arrivals',
-                    subtitle:
-                        'Control products shown in homepage new arrivals.',
-                    icon: LucideIcons.clock,
-                    accent: const Color(0xFF0EA5E9),
-                    showNewArrivalFlag: true,
-                  ),
-                  _sectionView(
-                    section: _shop,
-                    title: 'Shop Listing',
-                    subtitle:
-                        'Default order and visibility for all-products shop.',
-                    icon: LucideIcons.shoppingBag,
-                    accent: const Color(0xFF8B5CF6),
-                    isShop: true,
-                  ),
-                ],
-              ),
+        body: RefreshIndicator(
+          onRefresh: _load,
+          color: AppColors.primaryDark,
+          child: _loading
+              ? _loadingSkeleton()
+              : TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _sectionView(
+                      section: _featured,
+                      title: 'Featured Collection',
+                      subtitle: 'Homepage hero carousel product curation.',
+                      icon: LucideIcons.star,
+                      accent: AppColors.accent,
+                    ),
+                    _sectionView(
+                      section: _newArrivals,
+                      title: 'New Arrivals',
+                      subtitle:
+                          'Control products shown in homepage new arrivals.',
+                      icon: LucideIcons.clock,
+                      accent: const Color(0xFF0EA5E9),
+                      showNewArrivalFlag: true,
+                    ),
+                    _sectionView(
+                      section: _shop,
+                      title: 'Shop Listing',
+                      subtitle:
+                          'Default order and visibility for all-products shop.',
+                      icon: LucideIcons.shoppingBag,
+                      accent: const Color(0xFF8B5CF6),
+                      isShop: true,
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
@@ -336,11 +359,21 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
         mode == 'all' ||
         mode == 'pinned';
     final showPinned = mode == 'manual' || mode == 'pinned';
+    final warning = _sectionWarning(
+      section: section,
+      selectedCount: selectedIds.length,
+      mode: mode,
+      isShop: isShop,
+    );
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       children: [
         _heroCard(title, subtitle, icon, accent, selectedProducts.length),
+        if (warning != null) ...[
+          const SizedBox(height: 12),
+          _warningTile(warning),
+        ],
         const SizedBox(height: 14),
         _modePicker(section, isShop, mode, accent),
         const SizedBox(height: 14),
@@ -349,7 +382,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
           subtitle: 'Allow products with zero available stock to appear.',
           value: section['includeSoldOut'] == true,
           onChanged: (value) =>
-              setState(() => section['includeSoldOut'] = value),
+              _markChanged(() => section['includeSoldOut'] = value),
         ),
         if (showNewArrivalFlag)
           _switchTile(
@@ -357,7 +390,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
             subtitle: 'Only include products marked as New Arrivals.',
             value: section['requireNewArrivalFlag'] == true,
             onChanged: (value) =>
-                setState(() => section['requireNewArrivalFlag'] = value),
+                _markChanged(() => section['requireNewArrivalFlag'] = value),
           ),
         if (showSort || showLimit) ...[
           const SizedBox(height: 12),
@@ -413,6 +446,119 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
             onTap: () => _applyMode(section, isShop, option.id),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  String? _sectionWarning({
+    required Map<String, dynamic> section,
+    required int selectedCount,
+    required String mode,
+    required bool isShop,
+  }) {
+    final limit = section['limit'] as int? ?? 0;
+    if (mode == 'manual' && selectedCount == 0) {
+      return isShop
+          ? 'Manual only with no pinned products will make the shop empty.'
+          : 'Manual list with no products will hide this section on the website.';
+    }
+    if (!isShop && limit <= 0) {
+      return 'Limit is zero, so this section will not show products.';
+    }
+    return null;
+  }
+
+  Widget _warningTile(String message) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            LucideIcons.alertTriangle,
+            size: 18,
+            color: AppColors.warning,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+                height: 1.3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _loadingSkeleton() {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+      children: [
+        _skeletonBlock(height: 92),
+        const SizedBox(height: 14),
+        _skeletonBlock(height: 210),
+        const SizedBox(height: 14),
+        _skeletonBlock(height: 86), // Fixed overflow (was 72)
+        const SizedBox(height: 14),
+        _skeletonBlock(height: 120),
+        const SizedBox(height: 14),
+        _skeletonBlock(height: 180),
+      ],
+    );
+  }
+
+  Widget _skeletonBlock({required double height}) {
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 140,
+            height: 14,
+            decoration: BoxDecoration(
+              color: AppColors.cardBorder.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.cardBorder.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: 92,
+            height: 10,
+            decoration: BoxDecoration(
+              color: AppColors.cardBorder.withValues(alpha: 0.45),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -633,7 +779,8 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
                 'priceDesc': 'Price high',
                 'nameAsc': 'Name A-Z',
               },
-              onChanged: (value) => setState(() => section['sortMode'] = value),
+              onChanged: (value) =>
+                  _markChanged(() => section['sortMode'] = value),
             ),
           ),
         if (showSort && showLimit) const SizedBox(width: 12),
@@ -643,7 +790,8 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
             child: _numberBox(
               label: 'Limit',
               value: section['limit'] as int? ?? 10,
-              onChanged: (value) => setState(() => section['limit'] = value),
+              onChanged: (value) =>
+                  _markChanged(() => section['limit'] = value),
             ),
           ),
       ],
@@ -656,6 +804,9 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
     required Map<String, String> items,
     required ValueChanged<String> onChanged,
   }) {
+    final selectedValue = items.containsKey(value)
+        ? value
+        : (items.keys.contains('newest') ? 'newest' : items.keys.first);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -669,7 +820,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: value,
+              value: selectedValue,
               isExpanded: true,
               items: items.entries
                   .map(
@@ -765,7 +916,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
             selectedColor: AppColors.primaryDark.withValues(alpha: 0.12),
             checkmarkColor: AppColors.primaryDark,
             onSelected: (value) {
-              setState(() {
+              _markChanged(() {
                 if (value) {
                   selected.add(id);
                 } else {
@@ -800,7 +951,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
               physics: const NeverScrollableScrollPhysics(),
               itemCount: products.length,
               onReorder: (oldIndex, newIndex) {
-                setState(() {
+                _markChanged(() {
                   if (newIndex > oldIndex) newIndex--;
                   final id = ids.removeAt(oldIndex);
                   ids.insert(newIndex, id);
@@ -815,7 +966,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
                   accent: accent,
                   trailing: IconButton(
                     icon: const Icon(LucideIcons.x, size: 18),
-                    onPressed: () => setState(() {
+                    onPressed: () => _markChanged(() {
                       ids.remove(product['id']);
                       section['selectedProductIds'] = ids;
                     }),
@@ -869,7 +1020,7 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
                 ),
                 onPressed: selected
                     ? null
-                    : () => setState(() {
+                    : () => _markChanged(() {
                         selectedIds.add(id);
                         section['selectedProductIds'] = selectedIds;
                       }),

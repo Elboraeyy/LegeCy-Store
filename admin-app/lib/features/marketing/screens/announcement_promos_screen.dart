@@ -1,4 +1,5 @@
 import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -100,136 +101,176 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
         backgroundColor: AppColors.surface, surfaceTintColor: Colors.transparent, elevation: 0,
         leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: color))
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.cardBorder),
+      body: RefreshIndicator(
+        onRefresh: _loadSettings,
+        color: const Color(0xFFEC4899),
+        child: _isLoading
+            ? ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        AppShimmer(width: double.infinity, height: 24),
+                        SizedBox(height: 16),
+                        AppShimmer(width: 200, height: 14),
+                        SizedBox(height: 24),
+                        AppShimmer(width: double.infinity, height: 1),
+                        SizedBox(height: 24),
+                        AppShimmer(width: 140, height: 14),
+                        SizedBox(height: 8),
+                        AppShimmer(width: double.infinity, height: 48, borderRadius: 12),
+                        SizedBox(height: 16),
+                        AppShimmer(width: 120, height: 14),
+                        SizedBox(height: 8),
+                        AppShimmer(width: double.infinity, height: 48, borderRadius: 12),
+                        SizedBox(height: 16),
+                        AppShimmer(width: 120, height: 14),
+                        SizedBox(height: 8),
+                        AppShimmer(width: double.infinity, height: 48, borderRadius: 12),
+                        SizedBox(height: 24),
+                        AppShimmer(width: double.infinity, height: 48, borderRadius: 12),
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Enable Announcement', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                                const SizedBox(height: 4),
-                                Text('Show a banner at the top of your website', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted)),
-                              ],
+                ],
+              )
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Enable Announcement', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                                  const SizedBox(height: 4),
+                                  Text('Show a banner at the top of your website', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted)),
+                                ],
+                              ),
                             ),
-                          ),
-                          Switch(
-                            value: _enabled,
-                            onChanged: (v) => setState(() => _enabled = v),
-                            activeTrackColor: color,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Divider(color: AppColors.divider, height: 1),
-                      const SizedBox(height: 24),
-                      Text('Announcement Text', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _textController,
-                        onChanged: (_) => setState(() {}),
-                        decoration: InputDecoration(
-                          hintText: 'e.g. Free shipping on orders over 2000 EGP!',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: color, width: 2)),
+                            Switch(
+                              value: _enabled,
+                              onChanged: (v) => setState(() => _enabled = v),
+                              activeTrackColor: color,
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Background Color', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  controller: _bgColorController,
-                                  onChanged: (_) => setState(() {}),
-                                  decoration: InputDecoration(
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
-                                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: color, width: 2)),
+                        const SizedBox(height: 24),
+                        Divider(color: AppColors.divider, height: 1),
+                        const SizedBox(height: 24),
+                        Text('Announcement Text', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _textController,
+                          onChanged: (_) => setState(() {}),
+                          decoration: InputDecoration(
+                            hintText: 'e.g. Free shipping on orders over 2000 EGP!',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: color, width: 2)),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Background Color', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                                  const SizedBox(height: 8),
+                                  TextField(
+                                    controller: _bgColorController,
+                                    onChanged: (_) => setState(() {}),
+                                    decoration: InputDecoration(
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
+                                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: color, width: 2)),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Text Color', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  controller: _textColorController,
-                                  onChanged: (_) => setState(() {}),
-                                  decoration: InputDecoration(
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
-                                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: color, width: 2)),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Text Color', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                                  const SizedBox(height: 8),
+                                  TextField(
+                                    controller: _textColorController,
+                                    onChanged: (_) => setState(() {}),
+                                    decoration: InputDecoration(
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
+                                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: color, width: 2)),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Text('Live Preview', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: _parseColor(_bgColorController.text),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _textController.text.isEmpty ? 'Your announcement text here...' : _textController.text,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(
+                              color: _parseColor(_textColorController.text),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                              letterSpacing: 1,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Text('Live Preview', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: _parseColor(_bgColorController.text),
-                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(
-                          _textController.text.isEmpty ? 'Your announcement text here...' : _textController.text,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(
-                            color: _parseColor(_textColorController.text),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                            letterSpacing: 1,
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _saveSettings,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            child: Text('Save Settings', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _saveSettings,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: color,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 0,
-                          ),
-                          child: Text('Save Settings', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+      ),
     );
   }
 }

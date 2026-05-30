@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 const prisma = prismaClient!;
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -37,6 +38,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             data: dataToUpdate,
         });
 
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop');
+
         return NextResponse.json({ category, message: 'Category updated successfully' });
     } catch (error) {
         console.error('Category Update Error:', error);
@@ -68,6 +72,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         }
 
         await prisma.category.delete({ where: { id } });
+
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop');
 
         return NextResponse.json({ message: 'Category deleted successfully' });
     } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 const prisma = prismaClient!;
 
 export async function GET() {
@@ -21,6 +22,8 @@ export async function POST(request: NextRequest) {
         const { name, nameAr, slug } = body;
         if (!name || !slug) return NextResponse.json({ error: 'Name and slug required' }, { status: 400 });
         const material = await prisma.material.create({ data: { name, nameAr, slug } });
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop');
         return NextResponse.json({ material, message: 'Material created' });
     } catch (error: unknown) {
         const err = error as { code?: string };

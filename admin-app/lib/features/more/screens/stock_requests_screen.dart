@@ -1,4 +1,5 @@
 import 'package:admin_app/core/services/app_image_cache_manager.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
@@ -182,7 +183,10 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: CustomScrollView(
+      body: RefreshIndicator(
+        onRefresh: _loadRequests,
+        color: AppColors.primaryDark,
+        child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
@@ -200,9 +204,55 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
           ),
 
           if (_isLoading)
-            const SliverFillRemaining(
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.primaryDark),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const AppShimmer(width: 50, height: 50, borderRadius: 10),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  AppShimmer(width: 140, height: 16, borderRadius: 8),
+                                  SizedBox(height: 6),
+                                  AppShimmer(width: 100, height: 12, borderRadius: 6),
+                                  SizedBox(height: 6),
+                                  AppShimmer(width: 80, height: 10, borderRadius: 4),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Divider(height: 1),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: const [
+                            AppShimmer(width: 120, height: 12, borderRadius: 6),
+                            AppShimmer(width: 80, height: 12, borderRadius: 6),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  childCount: 5,
+                ),
               ),
             )
           else if (_error != null)
@@ -532,6 +582,7 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
               ),
             ),
         ],
+      ),
       ),
     );
   }

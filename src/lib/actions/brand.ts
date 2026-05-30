@@ -21,7 +21,7 @@ export async function fetchAllBrands(includeEmpty: boolean = false) {
 
     return await prisma.brand.findMany({
         where: filter,
-        orderBy: { name: 'asc' },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
         include: {
             _count: { select: { products: true } }
         }
@@ -41,6 +41,7 @@ export async function createBrandAction(data: BrandInput) {
 
     await auditService.logAction(admin.id, 'CREATE_BRAND', 'BRAND', brand.id, { name: data.name });
     revalidatePath('/', 'layout');
+    revalidatePath('/shop');
     return brand;
 }
 
@@ -58,6 +59,7 @@ export async function updateBrandAction(id: string, data: BrandInput) {
 
     await auditService.logAction(admin.id, 'UPDATE_BRAND', 'BRAND', id, { changes: data });
     revalidatePath('/', 'layout');
+    revalidatePath('/shop');
 }
 
 export async function deleteBrandAction(id: string) {
@@ -72,5 +74,6 @@ export async function deleteBrandAction(id: string) {
     await prisma.brand.delete({ where: { id } });
     await auditService.logAction(admin.id, 'DELETE_BRAND', 'BRAND', id);
     revalidatePath('/', 'layout');
+    revalidatePath('/shop');
     return { success: true };
 }

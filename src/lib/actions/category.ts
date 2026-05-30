@@ -65,6 +65,7 @@ export async function createCategoryAction(data: CategoryInput) {
     await auditService.logAction(admin.id, 'CREATE_CATEGORY', 'CATEGORY', category.id, { name: data.name });
 
     revalidatePath('/', 'layout');
+    revalidatePath('/shop');
     return category;
 }
 
@@ -87,6 +88,7 @@ export async function updateCategoryAction(id: string, data: CategoryInput) {
     await auditService.logAction(admin.id, 'UPDATE_CATEGORY', 'CATEGORY', id, { changes: data });
 
     revalidatePath('/', 'layout');
+    revalidatePath('/shop');
 }
 
 export async function deleteCategoryAction(id: string): Promise<{ success: boolean; error?: string }> {
@@ -110,6 +112,7 @@ export async function deleteCategoryAction(id: string): Promise<{ success: boole
     await auditService.logAction(admin.id, 'DELETE_CATEGORY', 'CATEGORY', id);
 
         revalidatePath('/', 'layout'); // Update storefront immediately
+        revalidatePath('/shop');
         return { success: true };
     } catch (error) {
         console.error("Delete Category Error:", error);
@@ -133,6 +136,7 @@ export async function reorderCategoriesAction(items: { id: string; sortOrder: nu
         await auditService.logAction(admin.id, 'UPDATE_CATEGORY', 'CATEGORY', 'BATCH', { action: 'reorder', count: items.length });
         
         revalidatePath('/', 'layout'); // Update storefront immediately
+        revalidatePath('/shop');
         return { success: true };
     } catch (error) {
         console.error("Reorder Error:", error);

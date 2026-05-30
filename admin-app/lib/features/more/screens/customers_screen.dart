@@ -1,3 +1,4 @@
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -70,7 +71,10 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: AppColors.background,
-        body: CustomScrollView(
+        body: RefreshIndicator(
+          onRefresh: _loadCustomers,
+          color: AppColors.primaryDark,
+          child: CustomScrollView(
           slivers: [
             // AppBar
             SliverAppBar(
@@ -161,10 +165,54 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
 
             // Content
             if (_isLoading)
-              const SliverFillRemaining(
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primaryDark,
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.cardBorder),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const AppShimmer(width: 48, height: 48, shape: BoxShape.circle),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    AppShimmer(width: 130, height: 16, borderRadius: 8),
+                                    SizedBox(height: 8),
+                                    AppShimmer(width: 180, height: 12, borderRadius: 6),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Divider(height: 1, color: AppColors.divider),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: List.generate(3, (_) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                AppShimmer(width: 50, height: 12, borderRadius: 6),
+                                SizedBox(height: 6),
+                                AppShimmer(width: 60, height: 14, borderRadius: 6),
+                              ],
+                            )),
+                          ),
+                        ],
+                      ),
+                    ),
+                    childCount: 6,
                   ),
                 ),
               )
@@ -212,6 +260,7 @@ class _CustomersListScreenState extends State<CustomersListScreen> {
                 ),
               ),
           ],
+        ),
         ),
       ),
     );
