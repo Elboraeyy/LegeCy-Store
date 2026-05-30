@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import {
+  getPrimaryVariant,
+  getPrimaryVariantId,
+  getPrimaryVariantStock,
+} from "@/lib/products/primary-variant";
 
 export async function GET(request: NextRequest) {
   try {
@@ -133,11 +138,9 @@ export async function GET(request: NextRequest) {
 
     // Transform and apply client-side filters
     let transformedProducts = products.map((p) => {
-      const firstVariant = p.variants[0];
+      const firstVariant = getPrimaryVariant(p.variants);
       const price = firstVariant ? Number(firstVariant.price) : 0;
-      const totalStock =
-        firstVariant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ??
-        0;
+      const totalStock = getPrimaryVariantStock(p.variants);
       const inStockStatus = totalStock > 0;
 
       return {
@@ -154,6 +157,8 @@ export async function GET(request: NextRequest) {
         categoryAr: p.categoryRel?.nameAr || null,
         categorySlug: p.categoryRel?.slug,
         brand: p.brand?.name,
+        defaultVariantId: getPrimaryVariantId(p.variants),
+        sku: firstVariant?.sku || null,
         totalStock,
         createdAt: p.createdAt.toISOString(),
         detailTags: p.detailTags,

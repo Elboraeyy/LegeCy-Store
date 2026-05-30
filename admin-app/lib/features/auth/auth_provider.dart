@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/core/config/api_config.dart';
@@ -9,6 +10,9 @@ import 'package:admin_app/core/config/api_config.dart';
 class AuthProvider extends ChangeNotifier {
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
+  static const _savedEmailKey = 'saved_admin_email';
+  static const _savedPasswordKey = 'saved_admin_password';
+  static const _secureStorage = FlutterSecureStorage();
 
   String? _token;
   Map<String, dynamic>? _user;
@@ -26,6 +30,13 @@ class AuthProvider extends ChangeNotifier {
   String? get adminName => displayName;
   String get role => _user?['role'] ?? 'admin';
   String get initials => displayName.isNotEmpty ? displayName[0].toUpperCase() : 'A';
+
+  Future<({String? email, String? password})> getSavedCredentials() async {
+    final email = await _secureStorage.read(key: _savedEmailKey);
+    final password = await _secureStorage.read(key: _savedPasswordKey);
+
+    return (email: email, password: password);
+  }
 
   /// Try to restore a saved session on app launch.
   Future<void> tryAutoLogin() async {
@@ -64,6 +75,8 @@ class AuthProvider extends ChangeNotifier {
       if (_user != null) {
         await prefs.setString(_userKey, jsonEncode(_user));
       }
+      await _secureStorage.write(key: _savedEmailKey, value: email);
+      await _secureStorage.write(key: _savedPasswordKey, value: password);
 
       _isLoading = false;
       notifyListeners();

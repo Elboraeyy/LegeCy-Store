@@ -5,6 +5,10 @@ const prisma = prismaClient!;
 import { validateCustomerSession } from '@/lib/auth/session';
 import { revalidatePath } from 'next/cache';
 import { getDefaultWarehouseId } from '../services/orderService';
+import {
+    resolveDefaultVariantsMap,
+    resolveVariantForProduct,
+} from '@/lib/products/resolve-default-variant';
 
 
 // --- Types ---
@@ -35,15 +39,17 @@ export async function validateStockAction(items: { id: string, variantId?: strin
     // This action is public/guest accessible as it just checks stock
     const warehouseId = await getDefaultWarehouseId(prisma);
     const results: { id: string, variantId?: string, available: number, valid: boolean, reason?: string }[] = [];
+    const defaultVariants = await resolveDefaultVariantsMap(prisma, items.map((item) => item.id));
 
     for (const item of items) {
-        if (!item.variantId) {
-            results.push({ ...item, available: 0, valid: false, reason: "No variant selected" });
+        const resolvedVariantId = item.variantId || defaultVariants.get(item.id)?.id;
+        if (!resolvedVariantId) {
+            results.push({ ...item, available: 0, valid: false, reason: "No stock record found for this product" });
             continue;
         }
 
         const variant = await prisma.variant.findUnique({
-            where: { id: item.variantId },
+            where: { id: resolvedVariantId },
             include: { inventory: { where: { warehouseId } } }
         });
 
@@ -58,7 +64,7 @@ export async function validateStockAction(items: { id: string, variantId?: strin
         if (totalStock < item.qty) {
             results.push({
                 id: item.id,
-                variantId: item.variantId,
+                variantId: resolvedVariantId,
                 available: totalStock,
                 valid: false,
                 reason: totalStock === 0 ? "Out of stock" : `Only ${totalStock} available`
@@ -140,16 +146,18 @@ export async function mergeGuestCartAction(guestItems: { id: string, variantId?:
         if (!cart) {
             cart = await tx.cart.create({ data: { userId: user.id } });
         }
+        const defaultVariants = await resolveDefaultVariantsMap(tx, guestItems.map((item) => item.id));
         
         for (const item of guestItems) {
-            if (!item.variantId) continue; // Skip invalid items without variant
+            const resolvedVariantId = item.variantId || defaultVariants.get(item.id)?.id;
+            if (!resolvedVariantId) continue;
 
             // 2. Check Exists
             const existing = await tx.cartItem.findFirst({
                 where: { 
                     cartId: cart.id, 
                     productId: item.id, 
-                    variantId: item.variantId 
+                    variantId: resolvedVariantId 
                 }
             });
 
@@ -166,7 +174,7 @@ export async function mergeGuestCartAction(guestItems: { id: string, variantId?:
                     data: {
                         cartId: cart.id,
                         productId: item.id,
-                        variantId: item.variantId,
+                        variantId: resolvedVariantId,
                         quantity: Math.min(item.qty, 99)
                     }
                 });
@@ -184,7 +192,7 @@ export async function mergeGuestCartAction(guestItems: { id: string, variantId?:
  */
 export async function addToCartAction(
     productId: string, 
-    variantId: string, 
+    variantId?: string | null, 
     qty: number = 1,
     context?: {
         type: 'FLASH_SALE' | 'BUNDLE' | 'BOGO' | 'STANDARD',
@@ -199,13 +207,14 @@ export async function addToCartAction(
 
     await prisma.$transaction(async (tx) => {
         // 1. Validate Variant & Stock
-        const variant = await tx.variant.findUnique({
-             where: { id: variantId },
+        const variant = await resolveVariantForProduct(tx, productId, variantId);
+        if (!variant) throw new Error("Product stock record not found");
+        const variantWithInventory = await tx.variant.findUnique({
+             where: { id: variant.id },
              include: { inventory: { where: { warehouseId } } }
         });
 
-        if (!variant) throw new Error("Variant not found");
-        if (variant.productId !== productId) throw new Error("Product mismatch");
+        if (!variantWithInventory) throw new Error("Product stock record not found");
 
         // 2. Ensure Cart
         let cart = await tx.cart.findUnique({ where: { userId: user.id } });
@@ -228,7 +237,7 @@ export async function addToCartAction(
             where: { 
                 cartId: cart.id, 
                 productId: productId, // Using passed ID to be safe
-                variantId: variantId 
+                variantId: variant.id 
             }
         });
 
@@ -253,12 +262,12 @@ export async function addToCartAction(
                 data: {
                     cartId: cart.id,
                     productId: productId,
-                    variantId: variantId,
                     quantity: Math.min(qty, 99),
                     pricingContext: context?.type || 'STANDARD',
                     contextId: context?.id,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    bundleConfig: context?.bundleConfig as any
+                    bundleConfig: context?.bundleConfig as any,
+                    variantId: variant.id,
                 }
             });
         }
@@ -273,18 +282,20 @@ export async function addToCartAction(
 /**
  * Remove Item
  */
-export async function removeFromCartAction(productId: string, variantId: string) {
+export async function removeFromCartAction(productId: string, variantId?: string | null) {
     const { user } = await validateCustomerSession();
     if (!user) return;
 
     const cart = await prisma.cart.findUnique({ where: { userId: user.id } });
     if (!cart) return;
+    const resolvedVariant = await resolveVariantForProduct(prisma, productId, variantId);
+    if (!resolvedVariant) return;
 
     await prisma.cartItem.deleteMany({
         where: {
             cartId: cart.id,
             productId: productId,
-            variantId: variantId
+            variantId: resolvedVariant.id
         }
     });
 
@@ -294,7 +305,7 @@ export async function removeFromCartAction(productId: string, variantId: string)
 /**
  * Update Quantity (Set Exact)
  */
-export async function updateQtyAction(productId: string, variantId: string, qty: number) {
+export async function updateQtyAction(productId: string, variantId: string | null | undefined, qty: number) {
     const { user } = await validateCustomerSession();
     if (!user) return;
 
@@ -305,12 +316,14 @@ export async function updateQtyAction(productId: string, variantId: string, qty:
 
     const cart = await prisma.cart.findUnique({ where: { userId: user.id } });
     if (!cart) return;
+    const resolvedVariant = await resolveVariantForProduct(prisma, productId, variantId);
+    if (!resolvedVariant) return;
 
     await prisma.cartItem.updateMany({
         where: { 
             cartId: cart.id,
             productId: productId,
-            variantId: variantId
+            variantId: resolvedVariant.id
         },
         data: { quantity: Math.min(qty, 99) }
     });

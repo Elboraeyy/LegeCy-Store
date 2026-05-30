@@ -107,6 +107,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
         _selectedItems.clear(); // Clear initial if any
         for (var item in order['items']) {
           _selectedItems.add({
+            'productId': item['productId'],
             'variantId': item['variantId'],
             'quantity': item['quantity'],
             'imageUrl': item['imageUrl'] ?? item['product']?['imageUrl'],
@@ -1358,6 +1359,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
         'items': _selectedItems
             .map(
               (i) => {
+                'productId': i['productId'],
                 'variantId': i['variantId'],
                 'quantity': i['quantity'],
                 'imageUrl': i['imageUrl'],
@@ -1524,7 +1526,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                           ),
                         ),
                         subtitle: Text(
-                          '${p['price']} EGP • ${p['variantCount']} variants',
+                          '${p['price']} EGP • SKU: ${p['sku'] ?? 'N/A'}',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppColors.textMuted,
@@ -1915,7 +1917,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
           const SizedBox(height: 24),
           if (variants.length > 1) ...[
             Text(
-              'Select Variant',
+              'Product SKU',
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -2025,7 +2027,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                         if (_selectedVariant == null) {
                           ScaffoldMessenger.of(context).showAppToast(
                             AppToast.snackBar(
-                              content: Text('Please select a variant'),
+                              content: Text('This product has no stock record yet'),
                             ),
                           );
                           return;

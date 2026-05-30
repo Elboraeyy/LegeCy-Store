@@ -11,6 +11,7 @@ import { analyzeOrderRisk } from '@/lib/services/fraudService';
 import { orderStateService } from '@/lib/services/orders/orderStateService';
 import { validateCoupon } from '@/lib/actions/coupons';
 import { sendOrderConfirmationEmail } from '@/lib/services/emailService';
+import { resolveDefaultVariantsMap } from '@/lib/products/resolve-default-variant';
 
 interface StatusUpdateResult {
     success: boolean;
@@ -140,7 +141,7 @@ interface ManualOrderInput {
         city: string;
         governorate?: string;
     };
-    items?: { variantId: string | null; quantity: number }[];
+    items?: { productId?: string; variantId: string | null; quantity: number }[];
     notes?: string;
     source?: string;
     couponCode?: string;
@@ -229,18 +230,31 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
         }
 
         // 2. Map items for createOrder service
+        const defaultVariants = await resolveDefaultVariantsMap(
+            prisma,
+            items.map((item) => item.productId ?? '').filter(Boolean),
+        );
         const variantIds = items
             .map(i => i.variantId)
             .filter((id): id is string => !!id);
 
         const variants = await prisma.variant.findMany({
-            where: { id: { in: variantIds } },
+            where: {
+                OR: [
+                    ...(variantIds.length > 0 ? [{ id: { in: variantIds } }] : []),
+                    { productId: { in: Array.from(defaultVariants.keys()) } },
+                ],
+            },
             include: { product: { select: { name: true } } }
         });
 
         const serviceItems = items.map(item => {
-            const variant = variants.find(v => v.id === item.variantId);
-            if (!variant) throw new Error(`Variant ${item.variantId} not found`);
+            const explicitProductId = item.productId;
+            const fallbackVariantId = explicitProductId
+                ? defaultVariants.get(explicitProductId)?.id
+                : undefined;
+            const variant = variants.find(v => v.id === (item.variantId || fallbackVariantId));
+            if (!variant) throw new Error(`No stock record found for product`);
             return {
                 productId: variant.productId,
                 variantId: variant.id,
@@ -401,9 +415,18 @@ export async function adminUpdateOrder(orderId: string, input: ManualOrderInput)
             const nonNullVariantIds = input.items
                 .map(i => i.variantId)
                 .filter((id): id is string => !!id);
+            const explicitProductIds = input.items
+                .map((i) => (i as unknown as { productId?: string }).productId)
+                .filter((id): id is string => !!id);
+            const defaultVariants = await resolveDefaultVariantsMap(prisma, explicitProductIds);
 
             const variants = await prisma.variant.findMany({
-                where: { id: { in: nonNullVariantIds } },
+                where: {
+                    OR: [
+                        ...(nonNullVariantIds.length > 0 ? [{ id: { in: nonNullVariantIds } }] : []),
+                        ...(explicitProductIds.length > 0 ? [{ productId: { in: explicitProductIds } }] : []),
+                    ],
+                },
                 include: { product: { select: { name: true } } }
             });
 
@@ -422,6 +445,21 @@ export async function adminUpdateOrder(orderId: string, input: ManualOrderInput)
                         quantity: item.quantity
                     };
                 } else {
+                    const explicitProductId = (item as unknown as { productId?: string }).productId;
+                    if (explicitProductId) {
+                        const variant = variants.find(
+                            (v) => v.id === defaultVariants.get(explicitProductId)?.id,
+                        );
+                        if (variant) {
+                            return {
+                                productId: variant.productId,
+                                variantId: variant.id,
+                                name: `${variant.product.name} (${variant.sku})`,
+                                price: variant.price.toNumber(),
+                                quantity: item.quantity
+                            };
+                        }
+                    }
                     const existingItem = existingNullItems[nullItemIndex++];
                     if (!existingItem) {
                         throw new Error('New items added to the order must have a valid variantId');

@@ -4,6 +4,11 @@ import CreateOrderClient from '../../create/CreateOrderClient';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { OrderStatus } from '@/types/order';
+import {
+    getPrimaryVariantId,
+    getPrimaryVariantNumber,
+    getPrimaryVariantStock,
+} from '@/lib/products/primary-variant';
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -104,6 +109,11 @@ export default async function EditOrderPage({ params }: PageProps) {
     const transformedProducts = products.map(p => ({
         id: p.id,
         name: p.name,
+        imageUrl: p.imageUrl,
+        defaultVariantId: getPrimaryVariantId(p.variants),
+        sku: p.variants[0]?.sku || null,
+        price: getPrimaryVariantNumber(p.variants, 'price'),
+        stock: getPrimaryVariantStock(p.variants),
         category: p.categoryRel ? { name: p.categoryRel.name } : null,
         variants: p.variants.map(v => ({
             id: v.id,

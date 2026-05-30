@@ -29,6 +29,10 @@ interface Product {
     id: string;
     name: string;
     imageUrl?: string | null;
+    defaultVariantId?: string | null;
+    sku?: string | null;
+    price?: number;
+    stock?: number;
     variants: Variant[];
 }
 
@@ -278,16 +282,30 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
         }
     };
 
-    const handleAddToCart = (product: Product, variant: Variant) => {
-        const stock = variant.warehouseStock.reduce((sum, i) => sum + i.available, 0);
-        const quantityToAdd = quantities[variant.id] || 1;
+    const handleAddToCart = (product: Product) => {
+        const fallbackVariant = product.variants[0];
+        const variantId = product.defaultVariantId || fallbackVariant?.id;
+        const sku = product.sku || fallbackVariant?.sku || 'N/A';
+        const price = Number(product.price ?? fallbackVariant?.price ?? 0);
+        const stock = Number(
+            product.stock ??
+            fallbackVariant?.warehouseStock.reduce((sum, i) => sum + i.available, 0) ??
+            0,
+        );
+        const quantityKey = variantId || product.id;
+        const quantityToAdd = quantities[quantityKey] || 1;
+
+        if (!variantId) {
+            toast.error("This product has no stock record yet");
+            return;
+        }
 
         if (quantityToAdd <= 0) {
             toast.error("Quantity must be at least 1");
             return;
         }
 
-        const existing = cart.find(i => i.variantId === variant.id);
+        const existing = cart.find(i => i.variantId === variantId);
         const currentQtyInCart = existing ? existing.quantity : 0;
         const totalQty = currentQtyInCart + quantityToAdd;
 
@@ -304,21 +322,21 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
         }
 
         if (existing) {
-            setCart(cart.map(i => i.variantId === variant.id ? { ...i, quantity: totalQty } : i));
+            setCart(cart.map(i => i.variantId === variantId ? { ...i, quantity: totalQty } : i));
         } else {
             setCart([...cart, {
-                variantId: variant.id,
+                variantId,
                 productId: product.id,
                 productName: product.name,
-                sku: variant.sku,
+                sku,
                 quantity: quantityToAdd,
-                price: Number(variant.price),
+                price,
                 imageUrl: product.imageUrl
             }]);
         }
 
         // Reset quantity input
-        setQuantities(prev => ({ ...prev, [variant.id]: 1 }));
+        setQuantities(prev => ({ ...prev, [quantityKey]: 1 }));
         toast.success(t.orders.create.added_to_cart);
     };
 
@@ -385,7 +403,11 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
                         ? { existingId: selectedCustomer.id }
                         : { name: customerName, email: customerEmail, phone: customerPhone, alternativePhone },
                     shippingAddress: { street, city, governorate },
-                    items: cart.map(item => ({ variantId: item.variantId, quantity: item.quantity })),
+                    items: cart.map(item => ({
+                        productId: item.productId,
+                        variantId: item.variantId,
+                        quantity: item.quantity,
+                    })),
                     notes: orderNotes,
                     source: orderSource,
                     discountAmount: Number(totalDiscount),
@@ -595,83 +617,89 @@ export default function CreateOrderClient({ initialProducts, initialCustomers, i
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: 600, marginBottom: '12px', fontSize: '15px' }}>{p.name}</div>
 
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            {p.variants.map(v => {
-                                                const stock = v.warehouseStock.reduce((sum, i) => sum + i.available, 0);
-                                                const currentQty = quantities[v.id] || 1;
-                                                const isOutOfStock = stock <= 0;
+                                        {(() => {
+                                            const fallbackVariant = p.variants[0];
+                                            const variantId = p.defaultVariantId || fallbackVariant?.id || p.id;
+                                            const stock = Number(
+                                                p.stock ??
+                                                fallbackVariant?.warehouseStock.reduce((sum, i) => sum + i.available, 0) ??
+                                                0,
+                                            );
+                                            const currentQty = quantities[variantId] || 1;
+                                            const isOutOfStock = stock <= 0;
+                                            const sku = p.sku || fallbackVariant?.sku || 'N/A';
+                                            const price = Number(p.price ?? fallbackVariant?.price ?? 0);
 
-                                                return (
-                                                    <div key={v.id} style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'space-between',
-                                                        padding: '8px',
-                                                        backgroundColor: 'var(--admin-bg-secondary)',
-                                                        borderRadius: '6px',
-                                                        opacity: isOutOfStock ? 0.6 : 1
-                                                    }}>
-                                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                            <span style={{ fontSize: '13px', fontWeight: 500 }}>{v.sku}</span>
-                                                            <span style={{ fontSize: '11px', color: isOutOfStock ? '#ef4444' : '#166534' }}>
-                                                                {isOutOfStock ? 'Out of Stock' : `${stock} in stock`}
-                                                            </span>
-                                                        </div>
+                                            return (
+                                                <div style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    padding: '8px',
+                                                    backgroundColor: 'var(--admin-bg-secondary)',
+                                                    borderRadius: '6px',
+                                                    opacity: isOutOfStock ? 0.6 : 1
+                                                }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <span style={{ fontSize: '13px', fontWeight: 500 }}>{sku}</span>
+                                                        <span style={{ fontSize: '11px', color: isOutOfStock ? '#ef4444' : '#166534' }}>
+                                                            {isOutOfStock ? 'Out of Stock' : `${stock} in stock`}
+                                                        </span>
+                                                    </div>
 
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                            <span style={{ fontWeight: 600, fontSize: '13px' }}>{formatCurrency(Number(v.price))}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <span style={{ fontWeight: 600, fontSize: '13px' }}>{formatCurrency(price)}</span>
 
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
-                                                                <button 
-                                                                    disabled={isOutOfStock || currentQty <= 1}
-                                                                    onClick={() => setQuantities({ ...quantities, [v.id]: Math.max(1, currentQty - 1) })}
-                                                                    className="admin-btn-outline"
-                                                                    style={{ padding: '4px 8px', borderRadius: '4px 0 0 4px', borderRight: 'none', height: '32px' }}
-                                                                >
-                                                                    -
-                                                                </button>
-                                                                <input
-                                                                    type="number"
-                                                                    min="1"
-                                                                    max={stock}
-                                                                    value={currentQty}
-                                                                    onChange={(e) => {
-                                                                        const val = parseInt(e.target.value) || 0;
-                                                                        if (val >= 0 && val <= stock) {
-                                                                            setQuantities({ ...quantities, [v.id]: val });
-                                                                        }
-                                                                    }}
-                                                                    style={{ 
-                                                                        width: '40px',
-                                                                        textAlign: 'center',
-                                                                        border: '1px solid var(--admin-border)',
-                                                                        height: '32px',
-                                                                        fontSize: '13px'
-                                                                    }}
-                                                                />
-                                                                <button
-                                                                    disabled={isOutOfStock || currentQty >= stock}
-                                                                    onClick={() => setQuantities({ ...quantities, [v.id]: Math.min(stock, currentQty + 1) })}
-                                                                    className="admin-btn-outline"
-                                                                    style={{ padding: '4px 8px', borderRadius: '0 4px 4px 0', borderLeft: 'none', height: '32px' }}
-                                                                >
-                                                                    +
-                                                                </button>
-                                                            </div>
-
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
                                                             <button
-                                                                onClick={() => handleAddToCart(p, v)}
-                                                                disabled={isOutOfStock}
-                                                                className="admin-btn admin-btn-primary"
-                                                                style={{ padding: '6px 12px', fontSize: '12px', height: '32px' }}
+                                                                disabled={isOutOfStock || currentQty <= 1}
+                                                                onClick={() => setQuantities({ ...quantities, [variantId]: Math.max(1, currentQty - 1) })}
+                                                                className="admin-btn-outline"
+                                                                style={{ padding: '4px 8px', borderRadius: '4px 0 0 4px', borderRight: 'none', height: '32px' }}
                                                             >
-                                                                {t.orders.create.add}
+                                                                -
+                                                            </button>
+                                                            <input
+                                                                type="number"
+                                                                min="1"
+                                                                max={stock}
+                                                                value={currentQty}
+                                                                onChange={(e) => {
+                                                                    const val = parseInt(e.target.value) || 0;
+                                                                    if (val >= 0 && val <= stock) {
+                                                                        setQuantities({ ...quantities, [variantId]: val });
+                                                                    }
+                                                                }}
+                                                                style={{
+                                                                    width: '40px',
+                                                                    textAlign: 'center',
+                                                                    border: '1px solid var(--admin-border)',
+                                                                    height: '32px',
+                                                                    fontSize: '13px'
+                                                                }}
+                                                            />
+                                                            <button
+                                                                disabled={isOutOfStock || currentQty >= stock}
+                                                                onClick={() => setQuantities({ ...quantities, [variantId]: Math.min(stock, currentQty + 1) })}
+                                                                className="admin-btn-outline"
+                                                                style={{ padding: '4px 8px', borderRadius: '0 4px 4px 0', borderLeft: 'none', height: '32px' }}
+                                                            >
+                                                                +
                                                             </button>
                                                         </div>
+
+                                                        <button
+                                                            onClick={() => handleAddToCart(p)}
+                                                            disabled={isOutOfStock}
+                                                            className="admin-btn admin-btn-primary"
+                                                            style={{ padding: '6px 12px', fontSize: '12px', height: '32px' }}
+                                                        >
+                                                            {t.orders.create.add}
+                                                        </button>
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             ))}

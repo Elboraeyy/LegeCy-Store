@@ -1915,6 +1915,11 @@ class _ProductsScreenState extends State<ProductsScreen>
     final stockRaw = product['totalStock'];
     final stock =
         (stockRaw is String ? int.tryParse(stockRaw) : stockRaw as int?) ?? 0;
+    final List<dynamic> variants = product['variants'] ?? [];
+    final skuRaw = variants.isNotEmpty ? variants[0]['sku'] : product['sku'];
+    final sku = (skuRaw?.toString().trim().isNotEmpty ?? false)
+        ? skuRaw.toString().trim()
+        : 'N/A';
 
     final List<dynamic> detailTagsRaw = product['detailTags'] ?? [];
     List<Widget> badgeWidgets = [];
@@ -2071,17 +2076,33 @@ class _ProductsScreenState extends State<ProductsScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Name
-                        Text(
-                          product['name'] ?? '',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                            height: 1.3,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product['name'] ?? '',
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                                height: 1.25,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              'SKU: $sku',
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textMuted,
+                                height: 1.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                         // Price Row
                         Row(

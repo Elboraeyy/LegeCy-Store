@@ -2,6 +2,11 @@ import { requireAdminPermission } from '@/lib/auth/guards';
 import { AdminPermissions } from '@/lib/auth/permissions';
 import CreateOrderClient from './CreateOrderClient';
 import prisma from '@/lib/prisma';
+import {
+    getPrimaryVariantId,
+    getPrimaryVariantNumber,
+    getPrimaryVariantStock,
+} from '@/lib/products/primary-variant';
 
 // Fetch data needed for creating orders
 async function getOrderCreationData() {
@@ -53,6 +58,11 @@ function transformProducts(products: ProductsResult) {
     return products.map(p => ({
         id: p.id,
         name: p.name,
+        imageUrl: p.imageUrl,
+        defaultVariantId: getPrimaryVariantId(p.variants),
+        sku: p.variants[0]?.sku || null,
+        price: getPrimaryVariantNumber(p.variants, 'price'),
+        stock: getPrimaryVariantStock(p.variants),
         category: p.categoryRel ? { name: p.categoryRel.name } : null,
         variants: p.variants.map(v => ({
             id: v.id,

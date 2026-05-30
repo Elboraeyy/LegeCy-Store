@@ -1,12 +1,25 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
-import { validateAdminSession } from '@/lib/auth/session';
+import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
 
-export async function POST(req: Request) {
+function toNumber(value: unknown): number {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+    if (value && typeof value === 'object' && 'toNumber' in value && typeof value.toNumber === 'function') {
+        return value.toNumber();
+    }
+    return 0;
+}
+
+export async function POST(req: NextRequest) {
     try {
-        const session = await validateAdminSession();
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const admin = await validateMobileToken(req);
+        if (!admin?.id) {
+            return unauthorizedResponse();
         }
         
         const body = await req.json();
@@ -15,8 +28,9 @@ export async function POST(req: Request) {
             keepOldCost, newCost, keepOldSellPrice, newSellPrice, 
             keepOldExpenses, newExpenses 
         } = body;
+        const parsedQuantity = Math.trunc(toNumber(quantity));
         
-        if (!productId || !variantId || !quantity) {
+        if (!productId || parsedQuantity <= 0) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
@@ -31,20 +45,33 @@ export async function POST(req: Request) {
         const date = new Date(purchaseDate || Date.now());
 
         // Get old variant to fetch old prices
-        const variant = await prisma.variant.findUnique({
-            where: { id: variantId },
-            include: { product: true }
-        });
+        const variant = variantId
+            ? await prisma.variant.findFirst({
+                where: { id: variantId, productId },
+                include: { product: true }
+            })
+            : await prisma.variant.findFirst({
+                where: { productId },
+                include: { product: true },
+                orderBy: { createdAt: 'asc' }
+            });
 
         if (!variant) return NextResponse.json({ error: 'Variant not found' }, { status: 404 });
 
-        const unitCost = keepOldCost ? (variant.costPrice || 0) : newCost;
-        const sellPrice = keepOldSellPrice ? variant.price : newSellPrice;
-        
         const specs = (variant.product.specs as Record<string, unknown> & { additionalCosts?: number }) || {};
+        const oldExpenses = toNumber(specs.additionalCosts);
+        const oldStoredCost = toNumber(variant.costPrice);
+        const oldBaseCost = specs.supplierPrice != null
+            ? toNumber(specs.supplierPrice)
+            : Math.max(oldStoredCost - oldExpenses, 0);
+
+        const unitCost = keepOldCost ? oldBaseCost : toNumber(newCost);
+        const sellPrice = keepOldSellPrice ? variant.price : newSellPrice;
         const expenses = keepOldExpenses ? (specs.additionalCosts || 0) : newExpenses;
 
         // Execute Transaction
+        let updatedAvailable = 0;
+
         await prisma.$transaction(async (tx) => {
             let actualSupplierId = supplierId;
             if (!actualSupplierId) {
@@ -63,11 +90,11 @@ export async function POST(req: Request) {
                     invoiceNumber: `INV-MANUAL-${Date.now()}`,
                     supplierId: actualSupplierId,
                     issueDate: date,
-                    subtotal: Number(unitCost) * quantity,
+                    subtotal: Number(unitCost) * parsedQuantity,
                     taxTotal: 0,
                     shippingTotal: 0,
                     discountTotal: 0,
-                    grandTotal: Number(unitCost) * quantity,
+                    grandTotal: Number(unitCost) * parsedQuantity,
                     status: 'POSTED',
                 }
             });
@@ -77,12 +104,12 @@ export async function POST(req: Request) {
                 data: {
                     invoiceId: invoice.id,
                     productId,
-                    variantId,
+                    variantId: variant.id,
                     description: `Manual batch addition for ${variant.product.name}`,
-                    quantity,
+                    quantity: parsedQuantity,
                     unitCost: Number(unitCost),
                     finalUnitCost: Number(unitCost),
-                    totalCost: Number(unitCost) * quantity,
+                    totalCost: Number(unitCost) * parsedQuantity,
                 }
             });
 
@@ -91,7 +118,7 @@ export async function POST(req: Request) {
                 data: {
                     invoiceId: invoice.id,
                     warehouseId: warehouse!.id,
-                    postedBy: session.user!.id,
+                    postedBy: admin.id,
                     postedAt: date,
                 }
             });
@@ -100,10 +127,10 @@ export async function POST(req: Request) {
             const batch = await tx.inventoryBatch.create({
                 data: {
                     stockInId: stockIn.id,
-                    variantId,
+                    variantId: variant.id,
                     purchaseItemId: invoiceItem.id,
-                    initialQuantity: quantity,
-                    remainingQuantity: quantity,
+                    initialQuantity: parsedQuantity,
+                    remainingQuantity: parsedQuantity,
                     unitCost: Number(unitCost),
                     sellPrice: keepOldSellPrice ? null : Number(sellPrice),
                     compareAtPrice: null,
@@ -118,16 +145,16 @@ export async function POST(req: Request) {
                 where: {
                     warehouseId_variantId: {
                         warehouseId: warehouse!.id,
-                        variantId
+                        variantId: variant.id
                     }
                 },
                 update: {
-                    available: { increment: quantity }
+                    available: { increment: parsedQuantity }
                 },
                 create: {
                     warehouseId: warehouse!.id,
-                    variantId,
-                    available: quantity,
+                    variantId: variant.id,
+                    available: parsedQuantity,
                     minStock: 5,
                 }
             });
@@ -136,25 +163,28 @@ export async function POST(req: Request) {
             await tx.inventoryLog.create({
                 data: {
                     warehouseId: warehouse!.id,
-                    variantId,
+                    variantId: variant.id,
                     action: 'STOCK_IN_MANUAL',
-                    quantity,
+                    quantity: parsedQuantity,
                     reason: 'Added new batch manually via smart wizard',
-                    adminId: session.user!.id,
+                    adminId: admin.id,
                 }
             });
+
+            const updatedInventory = await tx.inventory.findUnique({
+                where: { warehouseId_variantId: { warehouseId: warehouse!.id, variantId: variant.id } }
+            });
+            updatedAvailable = updatedInventory?.available ?? parsedQuantity;
             
             // FIFO Logic: If the old quantity was 0, apply the new prices instantly!
-            const inventory = await tx.inventory.findUnique({
-                where: { warehouseId_variantId: { warehouseId: warehouse!.id, variantId } }
-            });
+            const inventory = updatedInventory;
             
             // Available BEFORE this batch was added is (inventory.available - quantity)
-            if (inventory && (inventory.available - quantity) <= 0) {
+            if (inventory && (inventory.available - parsedQuantity) <= 0) {
                 // Instantly apply the prices if old stock was 0
                 if (!keepOldSellPrice) {
                     await tx.variant.update({
-                        where: { id: variantId },
+                        where: { id: variant.id },
                         data: { price: Number(sellPrice) }
                     });
                     
@@ -165,26 +195,34 @@ export async function POST(req: Request) {
                     });
                 }
                 
-                if (!keepOldCost) {
+                if (!keepOldCost || !keepOldExpenses) {
+                    const updatedTotalCost = Number(unitCost) + Number(expenses || 0);
                     await tx.variant.update({
-                        where: { id: variantId },
-                        data: { costPrice: Number(unitCost) }
+                        where: { id: variant.id },
+                        data: { costPrice: updatedTotalCost }
                     });
                     await tx.product.update({
                         where: { id: productId },
-                        data: { costPrice: Number(unitCost) }
+                        data: { costPrice: updatedTotalCost }
                     });
                 }
 
-                if (!keepOldExpenses) {
+                if (!keepOldExpenses || !keepOldCost) {
                     const rawSpecs = (await tx.product.findUnique({ where: { id: productId } }))?.specs;
-                    const updatedSpecs = typeof rawSpecs === 'object' && rawSpecs !== null 
-                        ? { ...rawSpecs, additionalCosts: Number(expenses) }
-                        : { additionalCosts: Number(expenses) };
+                    const updatedSpecs: Record<string, unknown> = typeof rawSpecs === 'object' && rawSpecs !== null && !Array.isArray(rawSpecs)
+                        ? { ...rawSpecs }
+                        : {};
+
+                    if (!keepOldCost) {
+                        updatedSpecs.supplierPrice = Number(unitCost);
+                    }
+                    if (!keepOldExpenses) {
+                        updatedSpecs.additionalCosts = Number(expenses);
+                    }
                         
                     await tx.product.update({
                         where: { id: productId },
-                        data: { specs: updatedSpecs }
+                        data: { specs: updatedSpecs as Prisma.InputJsonObject }
                     });
                 }
                 
@@ -196,7 +234,13 @@ export async function POST(req: Request) {
             }
         });
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({
+            success: true,
+            productId,
+            variantId: variant.id,
+            quantityAdded: parsedQuantity,
+            availableAfter: updatedAvailable,
+        });
     } catch (error) {
         console.error('[InventoryBatch POST] Error:', error);
         return NextResponse.json({ error: 'Failed to create batch' }, { status: 500 });

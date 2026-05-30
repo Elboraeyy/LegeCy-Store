@@ -8,6 +8,7 @@ import { FraudCheckResult } from "@/lib/services/fraudService";
 import { logger } from "@/lib/logger";
 import { sendOrderConfirmationEmail } from "@/lib/services/emailService";
 import { createAdminNotification } from "@/lib/services/notification";
+import { resolveDefaultVariantsMap } from "@/lib/products/resolve-default-variant";
 interface CartItemInput {
   id: string;
   name: string;
@@ -147,7 +148,7 @@ export async function placeOrderWithShipping(
       .filter((i) => i.variantId)
       .map((i) => i.variantId) as string[];
 
-    const [productsForPriceCheck, variantsForPriceCheck, allProductVariants] =
+    const [productsForPriceCheck, variantsForPriceCheck, defaultVariants] =
       await Promise.all([
         prisma.product.findMany({
           where: { id: { in: productIds } },
@@ -159,30 +160,11 @@ export async function placeOrderWithShipping(
               select: { id: true, productId: true, price: true },
             })
           : Promise.resolve([]),
-        // Fetch all variants for products (we'll pick first one per product in JS)
-        prisma.variant.findMany({
-          where: { productId: { in: productIds } },
-          select: { id: true, productId: true, price: true },
-          orderBy: { createdAt: "asc" },
-        }),
+        resolveDefaultVariantsMap(prisma, productIds),
       ]);
 
     const productMap = new Map(productsForPriceCheck.map((p) => [p.id, p]));
     const variantMap = new Map(variantsForPriceCheck.map((v) => [v.id, v]));
-    // Map productId -> first variant price (for items without variantId)
-    // Group by productId and take first variant for each
-    const productFirstVariantMap = new Map<
-      string,
-      { id: string; price: number }
-    >();
-    for (const variant of allProductVariants) {
-      if (!productFirstVariantMap.has(variant.productId)) {
-        productFirstVariantMap.set(variant.productId, {
-          id: variant.id,
-          price: Number(variant.price),
-        });
-      }
-    }
 
     // Verify prices and product status
     for (const item of input.cartItems) {
@@ -211,16 +193,16 @@ export async function placeOrderWithShipping(
         }
         dbPrice = Number(variant.price);
       } else {
-        const firstVariant = productFirstVariantMap.get(item.id);
-        if (firstVariant === undefined) {
+        const defaultVariant = defaultVariants.get(item.id);
+        if (!defaultVariant) {
           return {
             success: false,
-            error: `Product "${item.name}" has no variant configured`,
+            error: `Product "${item.name}" has no stock record yet`,
           };
         }
-        dbPrice = firstVariant.price;
-        // Assign the correct variant ID so stock deduction passes:
-        item.variantId = firstVariant.id;
+        dbPrice = Number(defaultVariant.price);
+        // Assign the resolved internal variant so downstream inventory logic stays consistent.
+        item.variantId = defaultVariant.id;
       }
 
       // Verify client price matches DB price (within 1 cent tolerance for rounding)
@@ -396,7 +378,7 @@ export async function placeOrderWithShipping(
           .filter((i) => i.variantId)
           .map((i) => i.variantId) as string[];
 
-        const [products, variants] = await Promise.all([
+        const [products, variants, defaultVariants] = await Promise.all([
           tx.product.findMany({
             where: { id: { in: productIds } },
             select: { id: true, status: true, name: true },
@@ -407,10 +389,20 @@ export async function placeOrderWithShipping(
                 select: { id: true, sku: true, costPrice: true },
               })
             : Promise.resolve([]),
+          resolveDefaultVariantsMap(tx, productIds),
         ]);
 
         const productMap = new Map(products.map((p) => [p.id, p]));
-        const variantMap = new Map(variants.map((v) => [v.id, v]));
+        const variantMap = new Map(
+          [
+            ...variants,
+            ...Array.from(defaultVariants.values()).map((variant) => ({
+              id: variant.id,
+              sku: variant.sku,
+              costPrice: variant.costPrice,
+            })),
+          ].map((v) => [v.id, v]),
+        );
 
         // const insufficientStockItems: string[] = [];
         const unavailableProducts: string[] = [];
@@ -423,6 +415,10 @@ export async function placeOrderWithShipping(
           if (!product || product.status !== "active") {
             unavailableProducts.push(item.name);
             continue;
+          }
+
+          if (!item.variantId) {
+            item.variantId = defaultVariants.get(item.id)?.id ?? null;
           }
 
           if (item.variantId) {

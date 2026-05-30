@@ -145,9 +145,10 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
     try {
       final client = ApiClient(token: context.read<AuthProvider>().token);
 
-      final oldVariant = _selectedProduct!['variants']?[0];
       final productId = _selectedProduct!['id'];
-      final variantId = oldVariant?['id'];
+      final variantId =
+          _selectedProduct!['defaultVariantId'] ??
+          _selectedProduct!['variants']?[0]?['id'];
 
       final body = {
         'productId': productId,
@@ -167,10 +168,13 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             : double.tryParse(_newExpensesCtrl.text),
       };
 
-      await client.post('/api/admin/inventory/batches', body: body);
+      final response = await client.post('/api/admin/inventory/batches', body: body);
 
       if (!mounted) return;
-      _showSnack('New batch added successfully', isSuccess: true);
+      _showSnack(
+        'Added ${response['quantityAdded'] ?? _quantityCtrl.text} units successfully',
+        isSuccess: true,
+      );
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
@@ -191,6 +195,31 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
+  }
+
+  num _readNum(dynamic value) {
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  num _readAdditionalCosts(Map<String, dynamic>? product) {
+    return _readNum(product?['specs']?['additionalCosts']);
+  }
+
+  num _readBasePurchasePrice(Map<String, dynamic>? product) {
+    final supplierPrice = product?['specs']?['supplierPrice'];
+    if (supplierPrice != null && supplierPrice.toString().trim().isNotEmpty) {
+      return _readNum(supplierPrice);
+    }
+
+    final variants = product?['variants'] as List<dynamic>? ?? [];
+    final storedCost = variants.isNotEmpty
+        ? _readNum(variants[0]['costPrice'])
+        : _readNum(product?['costPrice']);
+    final baseCost = storedCost - _readAdditionalCosts(product);
+
+    return baseCost > 0 ? baseCost : storedCost;
   }
 
   @override
@@ -674,9 +703,9 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
   }
 
   Widget _buildStep3() {
-    final oldCost = _selectedProduct?['costPrice'] ?? 0;
+    final oldCost = _readBasePurchasePrice(_selectedProduct);
     final oldPrice = _selectedProduct?['price'] ?? 0;
-    final oldExpenses = _selectedProduct?['specs']?['additionalCosts'] ?? 0;
+    final oldExpenses = _readAdditionalCosts(_selectedProduct);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -948,7 +977,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
                       )
                     : Text(
                         _currentStep == _totalSteps - 1
-                            ? 'Save Smart Batch'
+                            ? 'Add New Batch'
                             : 'Continue',
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w600,

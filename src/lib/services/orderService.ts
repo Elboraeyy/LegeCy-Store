@@ -8,6 +8,7 @@ import { logger } from '@/lib/logger';
 import { ActorRole } from '@/lib/policies/orderPolicy';
 import { createOrderSchema } from '@/lib/validators/order';
 import { z } from 'zod';
+import { resolveDefaultVariantsMap } from '@/lib/products/resolve-default-variant';
 
 export type CreateOrderServiceParams = z.infer<typeof createOrderSchema>;
 
@@ -34,10 +35,22 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
 
     return await prisma.$transaction(async (tx) => {
         const warehouseId = await getDefaultWarehouseId(tx);
+        const defaultVariants = await resolveDefaultVariantsMap(
+          tx,
+          data.items.map((item) => item.productId),
+        );
+        const resolvedItems = data.items.map((item) => {
+          const resolvedVariantId =
+            item.variantId || defaultVariants.get(item.productId)?.id || null;
+          return {
+            ...item,
+            variantId: resolvedVariantId ?? undefined,
+          };
+        });
 
         // 2. Reserve Stock (Fail fast)
         if (!data.options?.skipReservation) {
-            for (const item of data.items) {
+            for (const item of resolvedItems) {
                  if (item.variantId) {
                      await inventoryService.reserveStock(tx, warehouseId, item.variantId, item.quantity);
                  } else {
@@ -69,7 +82,7 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
             shippingCost: data.shippingCost ? new Prisma.Decimal(data.shippingCost) : undefined,
             orderSource: data.orderSource || 'online',
                 items: {
-                    create: data.items.map(item => ({
+                    create: resolvedItems.map(item => ({
                         productId: item.productId,
                         variantId: item.variantId,
                         name: item.name,
@@ -82,7 +95,7 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
             include: { items: true }
         });
 
-        logger.info(`Order created: ${order.id}`, { totalPrice: data.totalPrice, itemsCount: data.items.length, orderId: order.id });
+        logger.info(`Order created: ${order.id}`, { totalPrice: data.totalPrice, itemsCount: resolvedItems.length, orderId: order.id });
 
         // 4. Return mapped order (Ensure types match)
         return mapToOrderType(order);

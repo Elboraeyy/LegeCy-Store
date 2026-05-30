@@ -32,6 +32,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
 
   // Button press animation
   bool _isButtonPressed = false;
+  bool _didLoadSavedCredentials = false;
 
   @override
   void initState() {
@@ -63,10 +64,48 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     );
 
     _animController.forward();
+    _loadSavedCredentials();
 
     // Add listeners to trigger rebuilds on focus change
-    _emailFocus.addListener(() => setState(() {}));
-    _passwordFocus.addListener(() => setState(() {}));
+    _emailFocus.addListener(() {
+      _fillSavedCredentialsIfEmpty();
+      setState(() {});
+    });
+    _passwordFocus.addListener(() {
+      _fillSavedCredentialsIfEmpty();
+      setState(() {});
+    });
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final auth = context.read<AuthProvider>();
+    final credentials = await auth.getSavedCredentials();
+
+    if (!mounted) return;
+
+    setState(() {
+      _emailController.text = credentials.email ?? '';
+      _passwordController.text = credentials.password ?? '';
+      _didLoadSavedCredentials = true;
+    });
+  }
+
+  Future<void> _fillSavedCredentialsIfEmpty() async {
+    if (!_didLoadSavedCredentials) return;
+    if (_emailController.text.isNotEmpty && _passwordController.text.isNotEmpty) {
+      return;
+    }
+
+    final auth = context.read<AuthProvider>();
+    final credentials = await auth.getSavedCredentials();
+    if (!mounted) return;
+
+    if (_emailController.text.isEmpty && credentials.email != null) {
+      _emailController.text = credentials.email!;
+    }
+    if (_passwordController.text.isEmpty && credentials.password != null) {
+      _passwordController.text = credentials.password!;
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -88,6 +127,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
 
     if (success && mounted) {
       HapticFeedback.heavyImpact();
+      TextInput.finishAutofillContext(shouldSave: true);
     } else {
       HapticFeedback.vibrate();
     }
@@ -246,9 +286,10 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                             ),
                             child: Consumer<AuthProvider>(
                               builder: (context, auth, _) {
-                                return Form(
-                                  key: _formKey,
-                                  child: Column(
+                                return AutofillGroup(
+                                  child: Form(
+                                    key: _formKey,
+                                    child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
                                       // Top Pill Indicator
@@ -292,6 +333,10 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                         hint: 'admin@legecystore.com',
                                         keyboardType: TextInputType.emailAddress,
                                         textInputAction: TextInputAction.next,
+                                        autofillHints: const [
+                                          AutofillHints.email,
+                                          AutofillHints.username,
+                                        ],
                                         prefixIcon: Icon(
                                           LucideIcons.mail,
                                           size: 18,
@@ -310,6 +355,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                         hint: '••••••••',
                                         obscureText: _obscurePassword,
                                         textInputAction: TextInputAction.done,
+                                        autofillHints: const [AutofillHints.password],
                                         prefixIcon: Icon(
                                           LucideIcons.lock,
                                           size: 18,
@@ -330,6 +376,30 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                         validator: (value) => (value == null || value.isEmpty) ? 'Password is required' : null,
                                       ),
                                       
+                                      if (_emailController.text.isNotEmpty || _passwordController.text.isNotEmpty) ...[
+                                        const SizedBox(height: 12),
+                                        TextButton.icon(
+                                          onPressed: auth.isLoading
+                                              ? null
+                                              : () {
+                                                  HapticFeedback.selectionClick();
+                                                  setState(() {
+                                                    _emailController.clear();
+                                                    _passwordController.clear();
+                                                  });
+                                                },
+                                          icon: const Icon(LucideIcons.rotateCcw, size: 16),
+                                          label: const Text('Use another account'),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: textMutedForm,
+                                            textStyle: GoogleFonts.inter(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+
                                       const SizedBox(height: 32),
                                       
                                       // Submit Button with Pressed Animation
@@ -414,6 +484,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                         ),
                                       ),
                                     ],
+                                    ),
                                   ),
                                 );
                               },
@@ -456,6 +527,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     TextInputAction? textInputAction,
     Widget? prefixIcon,
     Widget? suffixIcon,
+    Iterable<String>? autofillHints,
     void Function(String)? onFieldSubmitted,
     String? Function(String?)? validator,
   }) {
@@ -476,6 +548,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
         obscureText: obscureText,
         keyboardType: keyboardType,
         textInputAction: textInputAction,
+        autofillHints: autofillHints,
         onFieldSubmitted: onFieldSubmitted,
         validator: validator,
         cursorColor: primaryDark,
