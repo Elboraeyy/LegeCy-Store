@@ -42,12 +42,25 @@ export async function createAdminNotification({
             const tokens = admins.map(a => a.fcmToken).filter(Boolean) as string[];
 
             if (tokens.length > 0) {
-                const payload = {
+                const payload: any = {
                     notification: { title, body },
                     data: {
                         category,
                         ...(referenceId && { referenceId }),
                         ...(referenceType && { referenceType }),
+                    },
+                    android: {
+                        priority: 'high',
+                        notification: {
+                            channelId: category ? `legacy_${category}` : 'legacy_system',
+                        }
+                    },
+                    apns: {
+                        payload: {
+                            aps: {
+                                sound: 'default',
+                            }
+                        }
                     },
                     tokens,
                 };
