@@ -1,17 +1,21 @@
 import * as admin from 'firebase-admin';
-import path from 'path';
-
-import fs from 'fs';
 
 if (!admin.apps.length) {
   try {
-    const serviceAccountPath = path.resolve('./legacy-firebase-adminsdk.json');
-    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
+    // Read credentials from environment variable (set on Vercel)
+    const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+
+    if (serviceAccountJson) {
+      const serviceAccount = JSON.parse(serviceAccountJson);
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+      console.log('Firebase Admin initialized successfully.');
+    } else {
+      console.warn('FIREBASE_SERVICE_ACCOUNT_KEY env variable is not set. FCM push notifications will not work.');
+    }
   } catch (error) {
-    console.error('Firebase Admin initialization error', error);
+    console.error('Firebase Admin initialization error:', error);
   }
 }
 
