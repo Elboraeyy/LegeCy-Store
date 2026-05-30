@@ -172,11 +172,10 @@ class NotificationProvider extends ChangeNotifier {
       FirebaseMessaging.onMessage.listen((message) {
         if (!_globalEnabled) return;
 
-        // Read from data payload (data-only message)
-        final data = message.data;
-        final title = data['title'] ?? 'Notification';
-        final body = data['body'] ?? '';
-        String catStr = data['category'] ?? 'system';
+        // This only fires when app is in FOREGROUND.
+        // Android does NOT auto-show notifications in foreground,
+        // so WE must show it via local notifications.
+        String catStr = message.data['category'] ?? 'system';
 
         NotifCategory category = NotifCategory.values.firstWhere(
           (e) => e.name == catStr,
@@ -186,15 +185,15 @@ class NotificationProvider extends ChangeNotifier {
         if (_pushEnabled[catStr] == true) {
           NotificationService.instance.show(
             id: message.hashCode,
-            title: title,
-            body: body,
+            title: message.notification?.title ?? message.data['title'] ?? 'Notification',
+            body: message.notification?.body ?? message.data['body'] ?? '',
             category: category,
-            payload: data.toString(),
+            payload: message.data.toString(),
             silent: _soundEnabled[catStr] != true,
           );
         }
         
-        // Refresh notifications list
+        // Refresh notifications list in UI
         fetchNotifications();
       });
     }

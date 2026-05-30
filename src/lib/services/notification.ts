@@ -43,9 +43,8 @@ export async function createAdminNotification({
 
             if (tokens.length > 0) {
                 const payload: admin.messaging.MulticastMessage = {
+                    notification: { title, body },
                     data: {
-                        title,
-                        body,
                         category,
                         ...(referenceId && { referenceId }),
                         ...(referenceType && { referenceType }),
@@ -53,18 +52,22 @@ export async function createAdminNotification({
                     android: {
                         priority: 'high',
                     },
-                    apns: {
-                        payload: {
-                            aps: {
-                                'content-available': 1,
-                            }
-                        }
-                    },
                     tokens,
                 };
                 
                 const response = await admin.messaging().sendEachForMulticast(payload);
                 console.log(`FCM Notifications sent: ${response.successCount} successful, ${response.failureCount} failed.`);
+                
+                // Log individual failures for debugging
+                if (response.failureCount > 0) {
+                    response.responses.forEach((resp, idx) => {
+                        if (!resp.success) {
+                            console.error(`FCM token[${idx}] failed:`, resp.error?.message);
+                        }
+                    });
+                }
+            } else {
+                console.log('No admin users with FCM tokens found.');
             }
         } catch (fcmError) {
             console.error('Failed to send FCM notifications:', fcmError);

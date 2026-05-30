@@ -14,27 +14,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  await NotificationService.instance.initialize();
-  
-  // Read from data payload (data-only message)
-  final data = message.data;
-  final title = data['title'] ?? 'Notification';
-  final body = data['body'] ?? '';
-  final catStr = data['category'] ?? 'system';
-
-  NotifCategory category = NotifCategory.values.firstWhere(
-    (e) => e.name == catStr,
-    orElse: () => NotifCategory.system,
-  );
-
-  await NotificationService.instance.show(
-    id: message.hashCode,
-    title: title,
-    body: body,
-    category: category,
-    payload: data.toString(),
-  );
+  // Android system tray automatically displays the notification
+  // from the 'notification' field when app is in background/terminated.
+  // We do NOT show a local notification here to avoid duplicates.
+  // This handler exists only because Firebase requires it to be registered.
 }
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
