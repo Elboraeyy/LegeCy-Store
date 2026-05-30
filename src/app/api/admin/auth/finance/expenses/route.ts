@@ -185,6 +185,7 @@ export async function POST(request: NextRequest) {
                     amortStartDate: isAmortized ? (date ? new Date(date) : new Date()) : undefined,
                     status: 'PAID',
                     paidBy: admin.id,
+                    receiptUrl,
                 },
             });
 

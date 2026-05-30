@@ -152,7 +152,6 @@ export async function PUT(request: NextRequest) {
 
         // Calculate net profit
         const totalRevenue = order.totalPrice.toNumber();
-        const discount = order.discountAmount?.toNumber() || 0;
         const totalCosts = wholesaleCost + packagingCost + actualShippingCost + extraExpenses;
         const netProfit = totalRevenue - totalCosts;
 

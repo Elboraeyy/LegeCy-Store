@@ -1,10 +1,12 @@
 import * as admin from 'firebase-admin';
 import path from 'path';
 
+import fs from 'fs';
+
 if (!admin.apps.length) {
   try {
     const serviceAccountPath = path.resolve('./legacy-firebase-adminsdk.json');
-    const serviceAccount = require(serviceAccountPath);
+    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
