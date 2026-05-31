@@ -39,6 +39,14 @@ export async function GET(request: NextRequest) {
                         quantity: true,
                         costAtPurchase: true,
                         sku: true,
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                specs: true,
+                                costPrice: true,
+                            },
+                        },
                     },
                 },
                 auditedBy: { select: { id: true, name: true } },
@@ -76,6 +84,9 @@ export async function GET(request: NextRequest) {
                 id: o.id,
                 orderNumber: o.orderNumber,
                 customerName: o.customerName || o.firstName || 'Guest',
+                customerPhone: o.customerPhone || o.alternativePhone || '',
+                shippingGovernorate: o.shippingGovernorate || '',
+                shippingCity: o.shippingCity || '',
                 totalPrice: o.totalPrice.toNumber(),
                 subtotal: o.subtotal?.toNumber() || 0,
                 shippingCost: o.shippingCost?.toNumber() || 0,
@@ -102,6 +113,12 @@ export async function GET(request: NextRequest) {
                     quantity: i.quantity,
                     costAtPurchase: i.costAtPurchase?.toNumber() || 0,
                     sku: i.sku,
+                    product: i.product ? {
+                        id: i.product.id,
+                        name: i.product.name,
+                        specs: i.product.specs,
+                        costPrice: i.product.costPrice ? i.product.costPrice.toNumber() : null,
+                    } : null,
                 })),
             })),
             summary: { pendingCount, auditedCount },
@@ -134,6 +151,7 @@ export async function PUT(request: NextRequest) {
             extraExpenses = 0,
             auditSafeId,
             auditNotes,
+            itemCosts,
         } = body;
 
         if (!orderId) {
@@ -157,6 +175,16 @@ export async function PUT(request: NextRequest) {
 
         // Use transaction to ensure atomicity
         const result = await prisma.$transaction(async (tx) => {
+            // Update individual order item costs if provided
+            if (itemCosts && Array.isArray(itemCosts)) {
+                for (const itemCost of itemCosts) {
+                    await tx.orderItem.update({
+                        where: { id: itemCost.itemId },
+                        data: { costAtPurchase: itemCost.cost },
+                    });
+                }
+            }
+
             // Update order with audit data
             const updatedOrder = await tx.order.update({
                 where: { id: orderId },

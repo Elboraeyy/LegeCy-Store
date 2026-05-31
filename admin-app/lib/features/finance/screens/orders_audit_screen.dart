@@ -63,14 +63,61 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
   }
 
   void _showAuditSheet(Map<String, dynamic> order) {
-    // Pre-fill from items' costAtPurchase
+    final bool isAudited = order['isFinanciallyAudited'] == true;
     final items = List<Map<String, dynamic>>.from(order['items'] ?? []);
-    double autoCOGS = items.fold(0.0, (s, i) => s + ((i['costAtPurchase'] ?? 0).toDouble() * (i['quantity'] ?? 1)));
 
-    final wholesaleCtrl = TextEditingController(text: (order['wholesaleCost'] ?? autoCOGS).toString());
-    final packagingCtrl = TextEditingController(text: (order['packagingCost'] ?? 0).toString());
-    final shippingCtrl = TextEditingController(text: (order['actualShippingCost'] ?? 0).toString());
-    final extraCtrl = TextEditingController(text: (order['extraExpenses'] ?? 0).toString());
+    // 1. Packaging Cost: product's specs.additionalCosts (sum for all products, multiplied by their quantities)
+    double autoPackaging = 0.0;
+    for (final item in items) {
+      final prod = item['product'];
+      if (prod != null && prod['specs'] != null) {
+        final addCosts = double.tryParse(prod['specs']['additionalCosts']?.toString() ?? '') ?? 0.0;
+        autoPackaging += addCosts * (item['quantity'] ?? 1);
+      }
+    }
+    double initialPackaging = isAudited ? (order['packagingCost'] ?? 0.0).toDouble() : autoPackaging;
+
+    // 2. Shipping Cost: from order's shipping cost
+    double initialShipping = isAudited ? (order['actualShippingCost'] ?? 0.0).toDouble() : (order['shippingCost'] ?? 0.0).toDouble();
+
+    // 3. Wholesale Price list & Total Wholesale Price
+    final itemWholesaleControllers = items.map((item) {
+      double initialVal = 0.0;
+      if (isAudited) {
+        initialVal = (item['costAtPurchase'] ?? 0.0).toDouble();
+      } else {
+        final prod = item['product'];
+        if (prod != null && prod['specs'] != null) {
+          initialVal = double.tryParse(prod['specs']['supplierPrice']?.toString() ?? '') ?? 0.0;
+        } else if (prod != null && prod['costPrice'] != null) {
+          initialVal = (prod['costPrice'] as num).toDouble();
+        } else {
+          initialVal = (item['costAtPurchase'] ?? 0.0).toDouble();
+        }
+      }
+      return TextEditingController(text: initialVal.toString());
+    }).toList();
+
+    double calculateTotalCOGS() {
+      double sum = 0.0;
+      for (int i = 0; i < items.length; i++) {
+        final val = double.tryParse(itemWholesaleControllers[i].text) ?? 0.0;
+        sum += val * (items[i]['quantity'] ?? 1);
+      }
+      return sum;
+    }
+
+    final wholesaleCtrl = TextEditingController(
+      text: (isAudited ? (order['wholesaleCost'] ?? calculateTotalCOGS()) : calculateTotalCOGS()).toString()
+    );
+
+    // 4. Extra Expenses: default of 25 EGP per product in the order (e.g. 4 products = 100)
+    int totalQty = items.fold(0, (s, i) => s + ((i['quantity'] ?? 1) as int));
+    double initialExtra = isAudited ? (order['extraExpenses'] ?? 0.0).toDouble() : (totalQty * 25.0);
+
+    final packagingCtrl = TextEditingController(text: initialPackaging.toString());
+    final shippingCtrl = TextEditingController(text: initialShipping.toString());
+    final extraCtrl = TextEditingController(text: initialExtra.toString());
     final notesCtrl = TextEditingController(text: order['auditNotes'] ?? '');
     String? selectedSafeId = order['auditSafeId'];
 
@@ -180,7 +227,55 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
                   child: ListView(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     children: [
-                      _auditField('Wholesale Cost (COGS)', wholesaleCtrl, LucideIcons.package, () => setSheetState(() {})),
+                      const SizedBox(height: 8),
+                      _buildOrderQuickDetailsCard(order),
+                      const SizedBox(height: 8),
+
+                      // Wholesale Cost Per Item (if multiple items)
+                      if (items.length > 1) ...[
+                        Text('WHOLESALE COST PER ITEM', style: GoogleFonts.inter(
+                          fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 1,
+                        )),
+                        const SizedBox(height: 8),
+                        ...List.generate(items.length, (index) {
+                          final item = items[index];
+                          final ctrl = itemWholesaleControllers[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: TextField(
+                              controller: ctrl,
+                              keyboardType: TextInputType.number,
+                              onChanged: (val) {
+                                setSheetState(() {
+                                  double sum = 0.0;
+                                  for (int j = 0; j < items.length; j++) {
+                                    final itemVal = double.tryParse(itemWholesaleControllers[j].text) ?? 0.0;
+                                    sum += itemVal * (items[j]['quantity'] ?? 1);
+                                  }
+                                  wholesaleCtrl.text = sum.toString();
+                                });
+                              },
+                              decoration: InputDecoration(
+                                labelText: '${item['name']} (x${item['quantity']})',
+                                prefixIcon: const Icon(LucideIcons.package, size: 18),
+                                prefixText: 'EGP ',
+                                filled: true,
+                                fillColor: AppColors.background,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.cardBorder)),
+                              ),
+                            ),
+                          );
+                        }),
+                        const SizedBox(height: 12),
+                      ],
+
+                      _auditField(
+                        'Total Wholesale Cost (COGS)',
+                        wholesaleCtrl,
+                        LucideIcons.package,
+                        () => setSheetState(() {}),
+                        readOnly: items.length > 1,
+                      ),
                       _auditField('Packaging Cost', packagingCtrl, LucideIcons.box, () => setSheetState(() {})),
                       _auditField('Actual Shipping Cost', shippingCtrl, LucideIcons.truck, () => setSheetState(() {})),
                       _auditField('Extra Expenses', extraCtrl, LucideIcons.circleDollarSign, () => setSheetState(() {})),
@@ -255,7 +350,7 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
                         try {
                           final token = context.read<AuthProvider>().token;
                           final client = ApiClient(token: token);
-                          await client.put('/api/admin/auth/finance/orders-audit', body: {
+                          final body = {
                             'orderId': order['id'],
                             'wholesaleCost': double.tryParse(wholesaleCtrl.text) ?? 0,
                             'packagingCost': double.tryParse(packagingCtrl.text) ?? 0,
@@ -263,7 +358,12 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
                             'extraExpenses': double.tryParse(extraCtrl.text) ?? 0,
                             'auditSafeId': selectedSafeId,
                             'auditNotes': notesCtrl.text.isNotEmpty ? notesCtrl.text : null,
-                          });
+                            'itemCosts': List.generate(items.length, (idx) => {
+                              'itemId': items[idx]['id'],
+                              'cost': double.tryParse(itemWholesaleControllers[idx].text) ?? 0.0,
+                            }),
+                          };
+                          await client.put('/api/admin/auth/finance/orders-audit', body: body);
                           _loadOrders();
                           if (mounted) {
                             ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
@@ -303,21 +403,124 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
     );
   }
 
-  Widget _auditField(String label, TextEditingController ctrl, IconData icon, VoidCallback onChanged) {
+  Widget _auditField(String label, TextEditingController ctrl, IconData icon, VoidCallback onChanged, {bool readOnly = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: TextField(
         controller: ctrl,
         keyboardType: TextInputType.number,
         onChanged: (_) => onChanged(),
+        readOnly: readOnly,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon, size: 18),
           prefixText: 'EGP ',
           filled: true,
-          fillColor: AppColors.background,
+          fillColor: readOnly ? AppColors.background.withValues(alpha: 0.5) : AppColors.background,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.cardBorder)),
         ),
+      ),
+    );
+  }
+
+  Widget _buildOrderQuickDetailsCard(Map<String, dynamic> order) {
+    final customerName = order['customerName'] ?? 'Guest';
+    final customerPhone = order['customerPhone'] ?? '';
+    final gov = order['shippingGovernorate'] ?? '';
+    final city = order['shippingCity'] ?? '';
+    final payment = order['paymentMethod'] ?? '';
+    final totalPrice = order['totalPrice'] ?? 0.0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(LucideIcons.user, size: 18, color: AppColors.accent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  customerName,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryDark,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (customerPhone.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                const Icon(LucideIcons.phone, size: 14, color: AppColors.textMuted),
+                const SizedBox(width: 4),
+                Text(
+                  customerPhone,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(LucideIcons.mapPin, size: 16, color: AppColors.textMuted),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '$gov${gov.isNotEmpty && city.isNotEmpty ? ' - ' : ''}$city',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(LucideIcons.creditCard, size: 16, color: AppColors.textMuted),
+                  const SizedBox(width: 6),
+                  Text(
+                    payment.toString().toUpperCase(),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                'Total: EGP ${_currencyFormat.format(totalPrice)}',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
