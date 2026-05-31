@@ -8,7 +8,7 @@ import { useLanguage } from '@/context/LanguageContext';
 interface OrderPageProps {
     order: {
         id: string;
-        orderNumber: number | null;
+        orderNumber: string | null;
         status: string;
         createdAt: string;
         totalPrice: number;

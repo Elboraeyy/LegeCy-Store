@@ -190,7 +190,7 @@ model Order {
   reviewedAt          DateTime?
   reviewedBy          String?
   riskFactors         String[]
-  orderNumber         Int                  @unique @default(autoincrement())
+  orderNumber         String               @unique
   alternativePhone    String?
   firstName           String?
   lastName            String?

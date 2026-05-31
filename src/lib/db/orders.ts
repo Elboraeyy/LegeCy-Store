@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { Order, OrderStatus } from '@/types/order';
+import { generateNextOrderNumber } from '@/lib/utils/orderNumberGenerator';
 
 // We reuse the types from our contract, but we need to ensure the DB shape matches or we map it.
 // Our schema matches nicely, but let's be explicit.
@@ -20,8 +21,15 @@ export interface CreateOrderParams {
  * This bypasses critical checks (inventory reservation, payment flow, etc).
  */
 export async function createOrderInDb(data: CreateOrderParams): Promise<Order> {
+  const lastOrder = await prisma.order.findFirst({
+    orderBy: { createdAt: 'desc' },
+    select: { orderNumber: true }
+  });
+  const orderNumber = generateNextOrderNumber(lastOrder?.orderNumber || null);
+
   const order = await prisma.order.create({
     data: {
+      orderNumber,
       totalPrice: data.totalPrice,
       status: data.status,
       items: {

@@ -4,8 +4,10 @@ import prisma from '../lib/prisma';
 async function main() {
   try {
     const order = await prisma.order.findFirst({
-      where: { orderNumber: 20 },
-      include: { items: true }
+      where: { orderNumber: 'A020' },
+      include: {
+        items: true
+      }
     });
 
     console.log('Order found:', order ? order.id : 'NOT FOUND');

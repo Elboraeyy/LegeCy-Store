@@ -9,6 +9,7 @@ import { ActorRole } from '@/lib/policies/orderPolicy';
 import { createOrderSchema } from '@/lib/validators/order';
 import { z } from 'zod';
 import { resolveDefaultVariantsMap } from '@/lib/products/resolve-default-variant';
+import { generateNextOrderNumber } from '@/lib/utils/orderNumberGenerator';
 
 export type CreateOrderServiceParams = z.infer<typeof createOrderSchema>;
 
@@ -59,9 +60,17 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
             }
         }
 
-        // 3. Create Order
+        // 3. Generate sequential order number
+        const lastOrder = await tx.order.findFirst({
+            orderBy: { createdAt: 'desc' },
+            select: { orderNumber: true }
+        });
+        const nextOrderNumber = generateNextOrderNumber(lastOrder?.orderNumber || null);
+
+        // 4. Create Order
         const order = await tx.order.create({
             data: {
+                orderNumber: nextOrderNumber,
                 totalPrice: new Prisma.Decimal(data.totalPrice),
                 subtotal: data.subtotal ? new Prisma.Decimal(data.subtotal) : undefined,
             status: data.options?.status || (data.paymentMethod === 'cod' ? OrderStatus.Pending : OrderStatus.PaymentPending),
@@ -404,7 +413,7 @@ export async function getOrders({
 
 // Strict Type Mapping
 type PrismaOrderWithRelations = PrismaOrder & {
-  orderNumber: number;
+  orderNumber: string;
   firstName?: string | null;
   lastName?: string | null;
   alternativePhone?: string | null;

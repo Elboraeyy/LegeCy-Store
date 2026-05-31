@@ -313,7 +313,7 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
                 try {
                     await sendOrderConfirmationEmail({
                         orderId: order.id,
-                        orderNumber: order.orderNumber || 0,
+                        orderNumber: order.orderNumber || '',
                         customerName: [firstName, lastName].filter(Boolean).join(' ') || 'Customer',
                         customerEmail: customerEmail!,
                         items: serviceItems.map(i => ({

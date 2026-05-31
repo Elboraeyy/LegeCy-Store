@@ -119,7 +119,7 @@ export async function confirmPaymentIntent(intentId: string) {
         // Non-blocking email send
         sendPaymentConfirmationEmail({
             orderId: order.id,
-            orderNumber: order.orderNumber,
+            orderNumber: order.orderNumber || '',
             customerName: order.customerName || 'Customer',
             customerEmail: order.customerEmail || '',
             amount: Number(order.totalPrice),

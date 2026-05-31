@@ -70,6 +70,7 @@ async function main() {
 
         return await tx.order.create({
             data: {
+                orderNumber: 'TEST-ZOMBIE-' + Math.random().toString(36).slice(2),
                 totalPrice: 100,
                 status: OrderStatus.Pending,
                 paymentMethod: 'paymob',
@@ -117,6 +118,7 @@ async function main() {
     // Use prisma directly to bypass logic that might enforce other things
     const codOrder = await prisma.order.create({
         data: {
+            orderNumber: 'TEST-COD-' + Math.random().toString(36).slice(2),
             totalPrice: 100,
             status: OrderStatus.Pending,
             customerName: 'COD Survivor',

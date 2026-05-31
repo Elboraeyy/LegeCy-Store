@@ -87,7 +87,7 @@ interface OrderItem {
 
 interface OrderConfirmationData {
   orderId: string;
-  orderNumber: number;
+  orderNumber: string;
   customerName: string;
   customerEmail: string;
   items: OrderItem[];
@@ -263,7 +263,7 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationData): P
 
 interface OrderShippedData {
   orderId: string;
-  orderNumber: number;
+  orderNumber: string;
   customerName: string;
   customerEmail: string;
   trackingNumber?: string;
@@ -508,7 +508,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<{ succes
 
 interface OrderDeliveredData {
   orderId: string;
-  orderNumber: number;
+  orderNumber: string;
   customerName: string;
   customerEmail: string;
 }
@@ -691,7 +691,7 @@ export async function sendAbandonedCartEmail(data: AbandonedCartData): Promise<{
 
 interface PaymentConfirmationData {
   orderId: string;
-  orderNumber: number;
+  orderNumber: string;
   customerName: string;
   customerEmail: string;
   amount: number;

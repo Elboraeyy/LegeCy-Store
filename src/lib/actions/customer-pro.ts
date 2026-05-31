@@ -191,7 +191,7 @@ export interface CustomerDetailsPro extends CustomerProData {
     points: number;
     ordersList: {
         id: string;
-        orderNumber: number;
+        orderNumber: string;
         createdAt: Date;
         status: string;
         totalPrice: number;

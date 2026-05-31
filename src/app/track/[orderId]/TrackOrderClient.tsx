@@ -26,7 +26,7 @@ interface OrderHistory {
 
 interface Order {
   id: string;
-  orderNumber: number;
+  orderNumber: string;
   status: string;
   createdAt: string;
   deliveredAt: string | null;

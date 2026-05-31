@@ -19,7 +19,7 @@ interface OrderLineItem {
 
 interface OrderDetails {
     id: string;
-    orderNumber: number;
+    orderNumber: string;
     createdAt: string;
     status: OrderStatus;
     totalPrice: number;

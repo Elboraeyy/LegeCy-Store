@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         }
         if (search) {
             where.OR = [
-                { orderNumber: { equals: parseInt(search) || -1 } },
+                { orderNumber: { contains: search, mode: 'insensitive' } },
                 { customerName: { contains: search, mode: 'insensitive' } },
                 { customerEmail: { contains: search, mode: 'insensitive' } },
                 { customerPhone: { contains: search } },

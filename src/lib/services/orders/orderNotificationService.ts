@@ -9,7 +9,7 @@ export const orderNotificationService = {
 
     await sendOrderShippedEmail({
       orderId,
-      orderNumber: order.orderNumber,
+      orderNumber: order.orderNumber || '',
       customerName: order.customerName || 'Customer',
       customerEmail: order.customerEmail,
       trackingNumber: (metadata?.trackingNumber as string) || undefined,
@@ -26,7 +26,7 @@ export const orderNotificationService = {
 
     await sendOrderDeliveredEmail({
       orderId,
-      orderNumber: order.orderNumber,
+      orderNumber: order.orderNumber || '',
       customerName: order.customerName || 'Customer',
       customerEmail: order.customerEmail
     });
