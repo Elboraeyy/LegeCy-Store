@@ -32,6 +32,32 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
 
+  // Original state tracking
+  String _origCode = '';
+  String _origValue = '';
+  String _origMinOrder = '';
+  String _origMaxDiscount = '';
+  String _origUsageLimit = '';
+  String _origDiscountType = 'percentage';
+  bool _origIsActive = true;
+  DateTime? _origStartDate;
+  DateTime? _origEndDate;
+
+  bool get _hasChanges {
+    if (widget.coupon == null) {
+      return _codeCtrl.text.isNotEmpty; // For creation, any code implies a change
+    }
+    return _codeCtrl.text != _origCode ||
+           _valueCtrl.text != _origValue ||
+           _minOrderCtrl.text != _origMinOrder ||
+           _maxDiscountCtrl.text != _origMaxDiscount ||
+           _usageLimitCtrl.text != _origUsageLimit ||
+           _discountType != _origDiscountType ||
+           _isActive != _origIsActive ||
+           _startDate != _origStartDate ||
+           _endDate != _origEndDate;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +72,16 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
     _isActive = c?['isActive'] ?? true;
     _startDate = c?['startDate'] != null ? DateTime.tryParse(c!['startDate'])?.toLocal() : DateTime.now();
     _endDate = c?['endDate'] != null ? DateTime.tryParse(c!['endDate'])?.toLocal() : null;
+
+    _origCode = _codeCtrl.text;
+    _origValue = _valueCtrl.text;
+    _origMinOrder = _minOrderCtrl.text;
+    _origMaxDiscount = _maxDiscountCtrl.text;
+    _origUsageLimit = _usageLimitCtrl.text;
+    _origDiscountType = _discountType;
+    _origIsActive = _isActive;
+    _origStartDate = _startDate;
+    _origEndDate = _endDate;
   }
 
   @override
@@ -332,12 +368,15 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
             SizedBox(
               height: 54,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _save,
+                onPressed: _hasChanges ? _save : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryDark,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   elevation: 0,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  disabledForegroundColor: Colors.grey.shade500,
                 ),
                 child: _isLoading
                     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
@@ -387,6 +426,7 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
+          onChanged: (_) => setState(() {}),
           keyboardType: keyboardType,
           textCapitalization: textCapitalization,
           validator: validator,

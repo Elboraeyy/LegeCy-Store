@@ -29,6 +29,23 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
   final _minOrderCtrl = TextEditingController(text: '0');
   final _couponValidityCtrl = TextEditingController(text: '30');
 
+  // Original states
+  bool _originalEnabled = false;
+  String _originalPointsPerEgp = '1';
+  String _originalPointValue = '0.1';
+  String _originalMinRedeem = '100';
+  String _originalMinOrder = '0';
+  String _originalCouponValidity = '30';
+
+  bool get _hasChanges {
+    return _enabled != _originalEnabled ||
+           _pointsPerEgpCtrl.text != _originalPointsPerEgp ||
+           _pointValueCtrl.text != _originalPointValue ||
+           _minRedeemCtrl.text != _originalMinRedeem ||
+           _minOrderCtrl.text != _originalMinOrder ||
+           _couponValidityCtrl.text != _originalCouponValidity;
+  }
+
   // Stats
   int _totalPoints = 0;
   int _redeemedMonth = 0;
@@ -80,6 +97,13 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
           _minRedeemCtrl.text = (data['minRedeemPoints'] ?? 100).toString();
           _minOrderCtrl.text = (data['minOrderTotal'] ?? 0).toString();
           _couponValidityCtrl.text = (data['couponValidity'] ?? 30).toString();
+
+          _originalEnabled = _enabled;
+          _originalPointsPerEgp = _pointsPerEgpCtrl.text;
+          _originalPointValue = _pointValueCtrl.text;
+          _originalMinRedeem = _minRedeemCtrl.text;
+          _originalMinOrder = _minOrderCtrl.text;
+          _originalCouponValidity = _couponValidityCtrl.text;
         });
       }
     } catch (_) {
@@ -95,6 +119,13 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
             _minRedeemCtrl.text = (config['minRedeemPoints'] ?? 100).toString();
             _minOrderCtrl.text = (config['minOrderTotal'] ?? 0).toString();
             _couponValidityCtrl.text = (config['couponValidity'] ?? 30).toString();
+
+            _originalEnabled = _enabled;
+            _originalPointsPerEgp = _pointsPerEgpCtrl.text;
+            _originalPointValue = _pointValueCtrl.text;
+            _originalMinRedeem = _minRedeemCtrl.text;
+            _originalMinOrder = _minOrderCtrl.text;
+            _originalCouponValidity = _couponValidityCtrl.text;
           });
         }
       } catch (_) {}
@@ -140,6 +171,14 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
       }
 
       if (mounted) {
+        setState(() {
+          _originalEnabled = _enabled;
+          _originalPointsPerEgp = _pointsPerEgpCtrl.text;
+          _originalPointValue = _pointValueCtrl.text;
+          _originalMinRedeem = _minRedeemCtrl.text;
+          _originalMinOrder = _minOrderCtrl.text;
+          _originalCouponValidity = _couponValidityCtrl.text;
+        });
         ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Loyalty settings saved'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       }
     } catch (e) {
@@ -248,7 +287,7 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
                 if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: _accent, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+            style: ElevatedButton.styleFrom(backgroundColor: _accent, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), elevation: 0),
             child: const Text('Confirm'),
           ),
         ],
@@ -478,14 +517,15 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _saving ? null : _saveSettings,
+            onPressed: (_hasChanges && !_saving) ? _saveSettings : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: _accent,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               elevation: 0,
-              disabledBackgroundColor: _accent.withValues(alpha: 0.5),
+              disabledBackgroundColor: Colors.grey.shade300,
+              disabledForegroundColor: Colors.grey.shade500,
             ),
             child: _saving
                 ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -520,6 +560,7 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
         const SizedBox(height: 8),
         TextField(
           controller: ctrl,
+          onChanged: (_) => setState(() {}),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           style: GoogleFonts.inter(fontSize: 14),
           decoration: InputDecoration(

@@ -22,6 +22,9 @@ export async function GET(req: NextRequest) {
     const configs = await prisma.storeConfig.findMany({
       where: whereClause,
     });
+    const settings = await prisma.storeSetting.findMany({
+      where: whereClause,
+    });
 
     // The flutter app expects: { "header_settings": "{\"announcementEnabled\":true,...}" }
     // Note: Prisma stores Json. We need to convert it to a JSON string because the flutter app uses jsonDecode(data['header_settings']).
@@ -29,6 +32,9 @@ export async function GET(req: NextRequest) {
     configs.forEach((c) => {
       // Prisma Json is returned as an object. We must stringify it.
       result[c.key] = typeof c.value === 'string' ? c.value : JSON.stringify(c.value);
+    });
+    settings.forEach((s) => {
+      result[s.key] = s.value;
     });
 
     return NextResponse.json(result);
@@ -50,26 +56,36 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Settings array is required" }, { status: 400 });
     }
 
+    const STORE_SETTING_KEYS = ['FREE_SHIPPING_ENABLED', 'FREE_SHIPPING_THRESHOLD'];
+
     for (const item of settings) {
       const { key, value } = item;
       if (!key || value === undefined) continue;
 
-      // The flutter app sends value as a JSON string (e.g. jsonEncode(config))
-      // Prisma expects a JSON object for Json fields, so we need to parse it if it's a string
-      let parsedValue = value;
-      if (typeof value === "string") {
-        try {
-          parsedValue = JSON.parse(value);
-        } catch (_) {
-          // If it fails to parse, just save as string (though it should be valid JSON)
+      if (STORE_SETTING_KEYS.includes(key)) {
+        await prisma.storeSetting.upsert({
+          where: { key },
+          update: { value: String(value) },
+          create: { key, value: String(value) },
+        });
+      } else {
+        // The flutter app sends value as a JSON string (e.g. jsonEncode(config))
+        // Prisma expects a JSON object for Json fields, so we need to parse it if it's a string
+        let parsedValue = value;
+        if (typeof value === "string") {
+          try {
+            parsedValue = JSON.parse(value);
+          } catch (_) {
+            // If it fails to parse, just save as string (though it should be valid JSON)
+          }
         }
-      }
 
-      await prisma.storeConfig.upsert({
-        where: { key },
-        update: { value: parsedValue },
-        create: { key, value: parsedValue },
-      });
+        await prisma.storeConfig.upsert({
+          where: { key },
+          update: { value: parsedValue },
+          create: { key, value: parsedValue },
+        });
+      }
     }
 
     // Invalidate the cache for the entire site so the layout picks up new settings immediately

@@ -118,6 +118,18 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
     bool loadingTargets = false;
     bool _isInit = false;
 
+    bool _hasChanges() {
+      if (!isEdit) return nameCtrl.text.isNotEmpty && valueCtrl.text.isNotEmpty;
+      return nameCtrl.text != (existing?['name'] ?? '') ||
+             descCtrl.text != (existing?['description'] ?? '') ||
+             valueCtrl.text != (existing?['discountValue']?.toString() ?? '') ||
+             priorityCtrl.text != (existing?['priority'] ?? 0).toString() ||
+             offerType != (existing?['offerType'] ?? 'ALL_PRODUCTS') ||
+             discountType != (existing?['discountType'] ?? 'PERCENTAGE') ||
+             isActive != (existing?['isActive'] ?? true) ||
+             targetId != existing?['targetId'];
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -380,7 +392,7 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () async {
+                          onPressed: _hasChanges() ? () async {
                             if (nameCtrl.text.isEmpty || valueCtrl.text.isEmpty) {
                               ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Name and value are required'), behavior: SnackBarBehavior.floating));
                               return;
@@ -412,8 +424,16 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                               if (mounted) setState(() => _isLoading = false);
                               if (mounted) ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
                             }
-                          },
-                          style: ElevatedButton.styleFrom(backgroundColor: _accent, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
+                          } : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _accent, 
+                            foregroundColor: Colors.white, 
+                            padding: const EdgeInsets.symmetric(vertical: 16), 
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), 
+                            elevation: 0,
+                            disabledBackgroundColor: Colors.grey.shade300,
+                            disabledForegroundColor: Colors.grey.shade500,
+                          ),
                           child: Text(isEdit ? 'Save Changes' : 'Create Offer', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
                         ),
                       ),
@@ -437,6 +457,15 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
         const SizedBox(height: 8),
         TextField(
           controller: ctrl,
+          onChanged: (_) {
+            if (context.mounted) {
+              final state = context.findAncestorStateOfType<State<StatefulBuilder>>();
+              if (state != null) {
+                // ignore: invalid_use_of_protected_member
+                state.setState(() {});
+              }
+            }
+          },
           keyboardType: isNumber ? TextInputType.number : TextInputType.text,
           style: GoogleFonts.inter(fontSize: 14),
           decoration: InputDecoration(

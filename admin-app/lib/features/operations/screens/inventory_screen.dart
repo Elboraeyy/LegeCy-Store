@@ -63,10 +63,23 @@ class _InventoryScreenState extends State<InventoryScreen> {
         final name = item['productName']?.toString().toLowerCase() ?? '';
         final sku = item['sku']?.toString().toLowerCase() ?? '';
         final matchSearch = name.contains(query) || sku.contains(query);
-        if (_filter == 'low') return matchSearch && item['isLowStock'] == true;
-        if (_filter == 'out') return matchSearch && item['isOutOfStock'] == true;
+        final isLow = item['isLowStock'] == true;
+        final isOut = item['isOutOfStock'] == true;
+        final isInStock = !isLow && !isOut;
+        
+        if (_filter == 'low') return matchSearch && isLow;
+        if (_filter == 'out') return matchSearch && isOut;
+        if (_filter == 'instock') return matchSearch && isInStock;
         return matchSearch;
       }).toList();
+
+      if (_filter == 'all') {
+        _filteredInventory.sort((a, b) {
+          int scoreA = (a['isOutOfStock'] == true) ? 2 : (a['isLowStock'] == true ? 1 : 0);
+          int scoreB = (b['isOutOfStock'] == true) ? 2 : (b['isLowStock'] == true ? 1 : 0);
+          return scoreA.compareTo(scoreB);
+        });
+      }
     });
   }
 
@@ -137,12 +150,23 @@ class _InventoryScreenState extends State<InventoryScreen> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Row(
                 children: [
-                  _buildChip('All', 'all'),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildChip('All', 'all'),
+                          const SizedBox(width: 8),
+                          _buildChip('In Stock', 'instock'),
+                          const SizedBox(width: 8),
+                          _buildChip('Low Stock', 'low'),
+                          const SizedBox(width: 8),
+                          _buildChip('Out of Stock', 'out'),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  _buildChip('Low Stock', 'low'),
-                  const SizedBox(width: 8),
-                  _buildChip('Out of Stock', 'out'),
-                  const Spacer(),
                   Text('${_filteredInventory.length} items', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
                 ],
               ),

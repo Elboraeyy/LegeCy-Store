@@ -23,6 +23,18 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
   final TextEditingController _bgColorController = TextEditingController(text: '#12403C');
   final TextEditingController _textColorController = TextEditingController(text: '#f6e5c6');
 
+  bool _originalEnabled = false;
+  String _originalText = '';
+  String _originalBgColor = '#12403C';
+  String _originalTextColor = '#f6e5c6';
+
+  bool get _hasChanges {
+    return _enabled != _originalEnabled ||
+           _textController.text != _originalText ||
+           _bgColorController.text != _originalBgColor ||
+           _textColorController.text != _originalTextColor;
+  }
+
   @override
   void initState() { super.initState(); _loadSettings(); }
 
@@ -40,6 +52,11 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
             _textController.text = config['announcementText'] ?? '';
             _bgColorController.text = config['announcementBgColor'] ?? '#12403C';
             _textColorController.text = config['announcementTextColor'] ?? '#f6e5c6';
+            
+            _originalEnabled = _enabled;
+            _originalText = _textController.text;
+            _originalBgColor = _bgColorController.text;
+            _originalTextColor = _textColorController.text;
           });
         }
         setState(() => _isLoading = false);
@@ -69,6 +86,12 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
         ]
       });
       if (mounted) {
+        setState(() {
+          _originalEnabled = _enabled;
+          _originalText = _textController.text;
+          _originalBgColor = _bgColorController.text;
+          _originalTextColor = _textColorController.text;
+        });
         ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Announcement settings saved'), backgroundColor: AppColors.success));
       }
     } catch (e) {
@@ -254,13 +277,15 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _saveSettings,
+                            onPressed: _hasChanges ? _saveSettings : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: color,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                               elevation: 0,
+                              disabledBackgroundColor: Colors.grey.shade300,
+                              disabledForegroundColor: Colors.grey.shade500,
                             ),
                             child: Text('Save Settings', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
                           ),

@@ -21,6 +21,14 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
   final TextEditingController _thresholdController = TextEditingController();
   bool _savingSettings = false;
 
+  bool _originalFreeShippingEnabled = false;
+  String _originalThreshold = '2000';
+
+  bool get _hasChanges {
+    return _isFreeShippingEnabled != _originalFreeShippingEnabled ||
+           _thresholdController.text != _originalThreshold;
+  }
+
   // Shipping coupons
   List<dynamic> _shippingCoupons = [];
   bool _couponsLoading = false;
@@ -52,6 +60,9 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
         setState(() {
           _isFreeShippingEnabled = data['FREE_SHIPPING_ENABLED'] == 'true';
           _thresholdController.text = data['FREE_SHIPPING_THRESHOLD'] ?? '2000';
+          
+          _originalFreeShippingEnabled = _isFreeShippingEnabled;
+          _originalThreshold = _thresholdController.text;
         });
       }
     } catch (_) {}
@@ -87,6 +98,10 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
         ]
       });
       if (mounted) {
+        setState(() {
+          _originalFreeShippingEnabled = _isFreeShippingEnabled;
+          _originalThreshold = _thresholdController.text;
+        });
         ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Settings saved successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       }
     } catch (e) {
@@ -212,6 +227,8 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
                         const SizedBox(height: 8),
                         TextField(
                           controller: _thresholdController,
+                          enabled: _isFreeShippingEnabled,
+                          onChanged: (_) => setState(() {}),
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             prefixIcon: const Icon(LucideIcons.banknote, color: AppColors.textMuted, size: 20),
@@ -223,14 +240,15 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _savingSettings ? null : _saveSettings,
+                            onPressed: (_hasChanges && !_savingSettings) ? _saveSettings : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: color,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                               elevation: 0,
-                              disabledBackgroundColor: color.withValues(alpha: 0.5),
+                              disabledBackgroundColor: Colors.grey.shade300,
+                              disabledForegroundColor: Colors.grey.shade500,
                             ),
                             child: _savingSettings
                                 ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -262,7 +280,7 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: color,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         ),

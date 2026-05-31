@@ -204,7 +204,7 @@ class _AddAffiliateScreenState extends State<AddAffiliateScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF14B8A6),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   elevation: 0,
                 ),
                 child: _isLoading

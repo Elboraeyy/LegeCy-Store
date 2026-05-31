@@ -31,6 +31,29 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
   final TextEditingController _tier1Discount = TextEditingController(text: '20');
   final TextEditingController _tier1Label = TextEditingController(text: '20% OFF any item');
 
+  // Original state tracking
+  bool _originalEnabled = false;
+  bool _originalTier3Enabled = true;
+  String _originalTier3Label = 'Buy 2 Get 1 Free';
+  bool _originalTier2Enabled = true;
+  String _originalTier2Discount = '50';
+  String _originalTier2Label = 'Buy 1 Get 2nd at 50% OFF';
+  bool _originalTier1Enabled = true;
+  String _originalTier1Discount = '20';
+  String _originalTier1Label = '20% OFF any item';
+
+  bool get _hasChanges {
+    return _enabled != _originalEnabled ||
+           _tier3Enabled != _originalTier3Enabled ||
+           _tier3Label.text != _originalTier3Label ||
+           _tier2Enabled != _originalTier2Enabled ||
+           _tier2Discount.text != _originalTier2Discount ||
+           _tier2Label.text != _originalTier2Label ||
+           _tier1Enabled != _originalTier1Enabled ||
+           _tier1Discount.text != _originalTier1Discount ||
+           _tier1Label.text != _originalTier1Label;
+  }
+
   @override
   void initState() { super.initState(); _loadSettings(); }
 
@@ -55,6 +78,16 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
             _tier1Enabled = config['tier1Enabled'] ?? true;
             _tier1Discount.text = (config['tier1DiscountPercent'] ?? 20).toString();
             _tier1Label.text = config['tier1Label'] ?? '20% OFF any item';
+            
+            _originalEnabled = _enabled;
+            _originalTier3Enabled = _tier3Enabled;
+            _originalTier3Label = _tier3Label.text;
+            _originalTier2Enabled = _tier2Enabled;
+            _originalTier2Discount = _tier2Discount.text;
+            _originalTier2Label = _tier2Label.text;
+            _originalTier1Enabled = _tier1Enabled;
+            _originalTier1Discount = _tier1Discount.text;
+            _originalTier1Label = _tier1Label.text;
           });
         }
         setState(() => _isLoading = false);
@@ -89,6 +122,17 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
         ]
       });
       if (mounted) {
+        setState(() {
+          _originalEnabled = _enabled;
+          _originalTier3Enabled = _tier3Enabled;
+          _originalTier3Label = _tier3Label.text;
+          _originalTier2Enabled = _tier2Enabled;
+          _originalTier2Discount = _tier2Discount.text;
+          _originalTier2Label = _tier2Label.text;
+          _originalTier1Enabled = _tier1Enabled;
+          _originalTier1Discount = _tier1Discount.text;
+          _originalTier1Label = _tier1Label.text;
+        });
         ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Offer settings saved'), backgroundColor: AppColors.success));
       }
     } catch (e) {
@@ -286,6 +330,7 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                           children: [
                             TextField(
                               controller: _tier3Label,
+                              onChanged: (_) => setState(() {}),
                               decoration: InputDecoration(
                                 labelText: 'Offer Label',
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -307,6 +352,7 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                                   flex: 1,
                                   child: TextField(
                                     controller: _tier2Discount,
+                                    onChanged: (_) => setState(() {}),
                                     keyboardType: TextInputType.number,
                                     decoration: InputDecoration(
                                       labelText: 'Discount %',
@@ -319,6 +365,7 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                                   flex: 2,
                                   child: TextField(
                                     controller: _tier2Label,
+                                    onChanged: (_) => setState(() {}),
                                     decoration: InputDecoration(
                                       labelText: 'Offer Label',
                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -343,6 +390,7 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                                   flex: 1,
                                   child: TextField(
                                     controller: _tier1Discount,
+                                    onChanged: (_) => setState(() {}),
                                     keyboardType: TextInputType.number,
                                     decoration: InputDecoration(
                                       labelText: 'Discount %',
@@ -355,6 +403,7 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                                   flex: 2,
                                   child: TextField(
                                     controller: _tier1Label,
+                                    onChanged: (_) => setState(() {}),
                                     decoration: InputDecoration(
                                       labelText: 'Offer Label',
                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -370,13 +419,15 @@ class _SitewidePromosScreenState extends State<SitewidePromosScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _saveSettings,
+                            onPressed: (_hasChanges && !_isLoading) ? _saveSettings : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: color,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                               elevation: 0,
+                              disabledBackgroundColor: Colors.grey.shade300,
+                              disabledForegroundColor: Colors.grey.shade500,
                             ),
                             child: Text('Save Settings', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
                           ),
