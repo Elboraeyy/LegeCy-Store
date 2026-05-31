@@ -157,14 +157,16 @@ export default function CheckoutClient() {
   // Free shipping progress state
   const [shippingEnabled, setShippingEnabled] = React.useState(false);
   const [shippingThreshold, setShippingThreshold] = React.useState(0);
+  const [showShippingBar, setShowShippingBar] = React.useState(true);
 
   useEffect(() => {
     async function loadShippingSettings() {
       try {
-        const settings = await getStoreSettings(["FREE_SHIPPING_ENABLED", "FREE_SHIPPING_THRESHOLD"]);
+        const settings = await getStoreSettings(["FREE_SHIPPING_ENABLED", "FREE_SHIPPING_THRESHOLD", "FREE_SHIPPING_SHOW_BAR"]);
         if (settings["FREE_SHIPPING_ENABLED"] === 'true') {
           setShippingEnabled(true);
           setShippingThreshold(Number(settings["FREE_SHIPPING_THRESHOLD"]) || 0);
+          setShowShippingBar(settings["FREE_SHIPPING_SHOW_BAR"] !== 'false');
         }
       } catch (e) {
         console.error("Failed to load shipping settings", e);
@@ -1096,7 +1098,7 @@ export default function CheckoutClient() {
               <span className={styles.summaryItemCount}>{t.cart.items_count.replace('{count}', checkoutItems.reduce((sum, i) => sum + i.qty, 0).toString())}</span>
             </div>
 
-            {shippingEnabled && shippingThreshold > 0 && (
+            {shippingEnabled && shippingThreshold > 0 && showShippingBar && (
               <div style={{ marginBottom: "16px", padding: "16px", backgroundColor: "#f9fafb", borderRadius: "12px", border: "1px solid #f3f4f6" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1117,6 +1119,9 @@ export default function CheckoutClient() {
                     style={{ backgroundColor: "#d4af37", height: "100%", borderRadius: "9999px", transition: "all 500ms ease-out", width: `${Math.min(100, (subtotal / shippingThreshold) * 100)}%` }}
                   />
                 </div>
+                <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px', textAlign: 'center' }}>
+                  {t.common.free_shipping_orders_over || 'Free shipping on orders over'} {formatPrice(shippingThreshold)}
+                </p>
               </div>
             )}
 

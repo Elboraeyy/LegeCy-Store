@@ -56,7 +56,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Settings array is required" }, { status: 400 });
     }
 
-    const STORE_SETTING_KEYS = ['FREE_SHIPPING_ENABLED', 'FREE_SHIPPING_THRESHOLD'];
+    const STORE_SETTING_KEYS = ['FREE_SHIPPING_ENABLED', 'FREE_SHIPPING_THRESHOLD', 'FREE_SHIPPING_SHOW_BAR'];
 
     for (const item of settings) {
       const { key, value } = item;

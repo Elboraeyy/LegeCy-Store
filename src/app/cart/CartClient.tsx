@@ -55,14 +55,16 @@ export default function CartClient() {
   // Free shipping progress state
   const [shippingEnabled, setShippingEnabled] = React.useState(false);
   const [shippingThreshold, setShippingThreshold] = React.useState(0);
+  const [showShippingBar, setShowShippingBar] = React.useState(true);
 
   useEffect(() => {
     async function loadShippingSettings() {
       try {
-        const settings = await getStoreSettings(["FREE_SHIPPING_ENABLED", "FREE_SHIPPING_THRESHOLD"]);
+        const settings = await getStoreSettings(["FREE_SHIPPING_ENABLED", "FREE_SHIPPING_THRESHOLD", "FREE_SHIPPING_SHOW_BAR"]);
         if (settings["FREE_SHIPPING_ENABLED"] === 'true') {
           setShippingEnabled(true);
           setShippingThreshold(Number(settings["FREE_SHIPPING_THRESHOLD"]) || 0);
+          setShowShippingBar(settings["FREE_SHIPPING_SHOW_BAR"] !== 'false');
         }
       } catch (e) {
         console.error("Failed to load shipping settings", e);
@@ -290,7 +292,7 @@ export default function CartClient() {
                   </div>
 
                   <div className="p-6 space-y-4">
-                    {shippingEnabled && shippingThreshold > 0 && (
+                    {shippingEnabled && shippingThreshold > 0 && showShippingBar && (
                       <div className="mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <div className="flex items-center gap-2 mb-2">
                           <Truck className="w-5 h-5 text-[#d4af37]" />
@@ -307,6 +309,9 @@ export default function CartClient() {
                             style={{ width: `${Math.min(100, (subtotal / shippingThreshold) * 100)}%` }}
                           />
                         </div>
+                        <p className="text-xs text-gray-400 mt-1 text-center">
+                          {(t.common.free_shipping_orders_over || 'Free shipping on orders over')} {formatPrice(shippingThreshold)}
+                        </p>
                       </div>
                     )}
 
@@ -328,7 +333,11 @@ export default function CartClient() {
 
                     <div className="flex justify-between text-sm">
                     <span className="text-gray-600">{t.product.shipping_returns.split('&')[0].trim()}</span>
-                    <span className="text-gray-400 text-xs">{t.cart.shipping_calculated_checkout}</span>
+                    {shippingEnabled && shippingThreshold > 0 && subtotal >= shippingThreshold ? (
+                      <span className="font-semibold text-green-600 text-sm">{t.checkout.free || 'Free'} ✓</span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">{t.cart.shipping_calculated_checkout}</span>
+                    )}
                     </div>
 
                     <div className="my-4 pt-4 border-t border-dashed border-gray-200 flex justify-between items-baseline">

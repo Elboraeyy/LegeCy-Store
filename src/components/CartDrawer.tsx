@@ -9,6 +9,7 @@ import { useIsClient } from "@/hooks/useIsClient";
 import { trackGAEvent } from "./GoogleAnalytics";
 import { previewSitewideDiscount } from "@/lib/services/discountService";
 import styles from "./CartDrawer.module.css";
+import { getStoreSettings } from "@/lib/actions/settings";
 
 export default function CartDrawer() {
   const { cart, isCartOpen, closeCart, removeFromCart, addToCart, decFromCart, setBuyNowItem } = useStore();
@@ -18,6 +19,9 @@ export default function CartDrawer() {
 
   // Site-wide offer state
   const [sitewideDiscount, setSitewideDiscount] = React.useState<{ amount: number; label: string } | null>(null);
+  const [freeShippingEnabled, setFreeShippingEnabled] = React.useState(false);
+  const [freeShippingThreshold, setFreeShippingThreshold] = React.useState(0);
+  const [showShippingBar, setShowShippingBar] = React.useState(true);
 
   useEffect(() => {
     async function loadSitewideDiscount() {
@@ -36,6 +40,22 @@ export default function CartDrawer() {
     }
     loadSitewideDiscount();
   }, [cart]);
+
+  useEffect(() => {
+    async function loadFreeShipping() {
+      try {
+        const settings = await getStoreSettings(["FREE_SHIPPING_ENABLED", "FREE_SHIPPING_THRESHOLD", "FREE_SHIPPING_SHOW_BAR"]);
+        if (settings["FREE_SHIPPING_ENABLED"] === 'true') {
+          setFreeShippingEnabled(true);
+          setFreeShippingThreshold(Number(settings["FREE_SHIPPING_THRESHOLD"]) || 0);
+          setShowShippingBar(settings["FREE_SHIPPING_SHOW_BAR"] !== 'false');
+        }
+      } catch (e) {
+        console.error("Failed to load free shipping settings", e);
+      }
+    }
+    loadFreeShipping();
+  }, []);
 
   // Close on ESC key
   useEffect(() => {
@@ -82,6 +102,8 @@ export default function CartDrawer() {
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
 
   const total = Math.max(0, subtotal - (sitewideDiscount?.amount || 0));
+
+  const freeShippingUnlocked = freeShippingEnabled && freeShippingThreshold > 0 && subtotal >= freeShippingThreshold;
 
   const formatPrice = (p: number) => {
     return language === 'ar'
@@ -247,8 +269,24 @@ export default function CartDrawer() {
                 <span className={styles.totalAmount} style={{ fontSize: '20px', fontWeight: 'bold' }}>{formatPrice(total)}</span>
               </div>
 
+              {freeShippingEnabled && freeShippingThreshold > 0 && showShippingBar && (
+                <div style={{ marginTop: '12px', marginBottom: '8px', padding: '10px 12px', backgroundColor: 'rgba(212,175,55,0.06)', borderRadius: '10px', border: '1px solid rgba(212,175,55,0.15)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                    <span style={{ fontSize: '12px', fontWeight: '600', color: '#12403C' }}>
+                      {freeShippingUnlocked
+                        ? (t.cart.free_shipping_unlocked || "You've unlocked Free Shipping!")
+                        : (t.cart.amount_away_from_free_shipping || 'Add {amount} for Free Shipping').replace('{amount}', formatPrice(freeShippingThreshold - subtotal))
+                      }
+                    </span>
+                  </div>
+                  <div style={{ width: '100%', backgroundColor: '#e5e7eb', height: '6px', borderRadius: '9999px', overflow: 'hidden' }}>
+                    <div style={{ backgroundColor: '#d4af37', height: '100%', borderRadius: '9999px', transition: 'all 500ms ease-out', width: `${Math.min(100, (subtotal / freeShippingThreshold) * 100)}%` }} />
+                  </div>
+                </div>
+              )}
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'center' }}>
-                {t.cart.shipping_calculated_checkout}
+                {freeShippingUnlocked ? (t.checkout?.free || 'Free ✓') : t.cart.shipping_calculated_checkout}
               </p>
             </div>
 

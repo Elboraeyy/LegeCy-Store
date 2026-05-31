@@ -129,13 +129,23 @@ export async function getShippingRateForCity(city: string) {
  */
 export async function calculateShipping(
   governorate: string,
-  _subtotal: number,
+  subtotal: number,
   city?: string
 ): Promise<{
   shippingCost: number;
   zoneName: string;
   isFreeShipping: boolean;
 }> {
+  // Check if subtotal qualifies for free shipping
+  const settings = await getShippingSettings();
+  if (subtotal >= settings.freeShippingThreshold) {
+    return {
+      shippingCost: 0,
+      zoneName: 'Free Shipping',
+      isFreeShipping: true,
+    };
+  }
+
   // Get rate for location
   const { rate, zoneName } = await getShippingRateForGovernorate(governorate, city);
   

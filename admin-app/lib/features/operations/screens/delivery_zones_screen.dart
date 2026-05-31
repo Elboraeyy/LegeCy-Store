@@ -58,19 +58,13 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
       final value = shippingConfig?['value'];
       _applySettings(value is Map ? Map<String, dynamic>.from(value) : _defaultSettings());
 
-      final freeEnabledConfig = configs?.cast<dynamic>().firstWhere(
-            (c) => c['key'] == 'FREE_SHIPPING_ENABLED',
-            orElse: () => null,
-          );
-      final freeThresholdConfig = configs?.cast<dynamic>().firstWhere(
-            (c) => c['key'] == 'FREE_SHIPPING_THRESHOLD',
-            orElse: () => null,
-          );
+      // Fetch free shipping settings from the correct endpoint (StoreSetting table)
+      final freeShippingData = await client.get('/api/admin/config/settings?keys=FREE_SHIPPING_ENABLED,FREE_SHIPPING_THRESHOLD');
 
       if (mounted) {
         setState(() {
-          _freeShippingEnabled = freeEnabledConfig?['value']?.toString() == 'true';
-          _freeThreshold = double.tryParse(freeThresholdConfig?['value']?.toString() ?? '0') ?? 0;
+          _freeShippingEnabled = freeShippingData['FREE_SHIPPING_ENABLED']?.toString() == 'true';
+          _freeThreshold = double.tryParse(freeShippingData['FREE_SHIPPING_THRESHOLD']?.toString() ?? '0') ?? 0;
         });
       }
 

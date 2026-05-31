@@ -19,14 +19,17 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
   bool _isLoading = true;
   bool _isFreeShippingEnabled = false;
   final TextEditingController _thresholdController = TextEditingController();
+  bool _showProgressBar = true;
   bool _savingSettings = false;
 
   bool _originalFreeShippingEnabled = false;
   String _originalThreshold = '2000';
+  bool _originalShowProgressBar = true;
 
   bool get _hasChanges {
     return _isFreeShippingEnabled != _originalFreeShippingEnabled ||
-           _thresholdController.text != _originalThreshold;
+           _thresholdController.text != _originalThreshold ||
+           _showProgressBar != _originalShowProgressBar;
   }
 
   // Shipping coupons
@@ -55,14 +58,16 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      final data = await client.get('/api/admin/config/settings?keys=FREE_SHIPPING_ENABLED,FREE_SHIPPING_THRESHOLD');
+      final data = await client.get('/api/admin/config/settings?keys=FREE_SHIPPING_ENABLED,FREE_SHIPPING_THRESHOLD,FREE_SHIPPING_SHOW_BAR');
       if (mounted) {
         setState(() {
           _isFreeShippingEnabled = data['FREE_SHIPPING_ENABLED'] == 'true';
           _thresholdController.text = data['FREE_SHIPPING_THRESHOLD'] ?? '2000';
+          _showProgressBar = data['FREE_SHIPPING_SHOW_BAR'] != 'false';
           
           _originalFreeShippingEnabled = _isFreeShippingEnabled;
           _originalThreshold = _thresholdController.text;
+          _originalShowProgressBar = _showProgressBar;
         });
       }
     } catch (_) {}
@@ -95,12 +100,14 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
         'settings': [
           {'key': 'FREE_SHIPPING_ENABLED', 'value': _isFreeShippingEnabled.toString()},
           {'key': 'FREE_SHIPPING_THRESHOLD', 'value': _thresholdController.text},
+          {'key': 'FREE_SHIPPING_SHOW_BAR', 'value': _showProgressBar.toString()},
         ]
       });
       if (mounted) {
         setState(() {
           _originalFreeShippingEnabled = _isFreeShippingEnabled;
           _originalThreshold = _thresholdController.text;
+          _originalShowProgressBar = _showProgressBar;
         });
         ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Settings saved successfully'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating));
       }
@@ -235,6 +242,27 @@ class _ShippingPromosScreenState extends State<ShippingPromosScreen> {
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.cardBorder)),
                             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: color, width: 2)),
                           ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Show Progress Bar', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                                  const SizedBox(height: 2),
+                                  Text('Display shipping progress bar in cart & checkout', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _showProgressBar,
+                              onChanged: _isFreeShippingEnabled ? (v) => setState(() => _showProgressBar = v) : null,
+                              activeTrackColor: color,
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 20),
                         SizedBox(
