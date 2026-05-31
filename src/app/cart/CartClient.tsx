@@ -22,6 +22,7 @@ import {
   BadgeCheck,
   ArrowRight
 } from "lucide-react";
+import { getStoreSettings } from "@/lib/actions/settings";
 
 export default function CartClient() {
   const { cart, addToCart, decFromCart, removeFromCart, isLoading: storeLoading, setBuyNowItem } = useStore();
@@ -50,6 +51,25 @@ export default function CartClient() {
 
   // Site-wide offer state
   const [sitewideDiscount, setSitewideDiscount] = React.useState<{ amount: number; label: string } | null>(null);
+
+  // Free shipping progress state
+  const [shippingEnabled, setShippingEnabled] = React.useState(false);
+  const [shippingThreshold, setShippingThreshold] = React.useState(0);
+
+  useEffect(() => {
+    async function loadShippingSettings() {
+      try {
+        const settings = await getStoreSettings(["FREE_SHIPPING_ENABLED", "FREE_SHIPPING_THRESHOLD"]);
+        if (settings["FREE_SHIPPING_ENABLED"] === 'true') {
+          setShippingEnabled(true);
+          setShippingThreshold(Number(settings["FREE_SHIPPING_THRESHOLD"]) || 0);
+        }
+      } catch (e) {
+        console.error("Failed to load shipping settings", e);
+      }
+    }
+    loadShippingSettings();
+  }, []);
 
   useEffect(() => {
     async function loadSitewideDiscount() {
@@ -270,6 +290,26 @@ export default function CartClient() {
                   </div>
 
                   <div className="p-6 space-y-4">
+                    {shippingEnabled && shippingThreshold > 0 && (
+                      <div className="mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Truck className="w-5 h-5 text-[#d4af37]" />
+                          <span className="text-sm font-semibold text-[#12403C]">
+                            {subtotal >= shippingThreshold 
+                              ? t.cart.free_shipping_unlocked || "You've unlocked Free Shipping!" 
+                              : (t.cart.amount_away_from_free_shipping || "Away from Free Shipping").replace('{amount}', formatPrice(shippingThreshold - subtotal))
+                            }
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-[#d4af37] h-full transition-all duration-500 ease-out rounded-full" 
+                            style={{ width: `${Math.min(100, (subtotal / shippingThreshold) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">{t.cart.subtotal}</span>
                       <span className="font-medium text-[#12403C]">{formatPrice(subtotal)}</span>

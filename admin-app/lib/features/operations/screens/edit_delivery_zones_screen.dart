@@ -21,7 +21,6 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
   String? _error;
 
   bool _enableShipping = true;
-  double _freeThreshold = 0;
   double _defaultRate = 50;
   List<Map<String, dynamic>> _zones = [];
   final Map<int, _CityAddingState> _cityAddingState = {};
@@ -66,7 +65,6 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
   Map<String, dynamic> _defaultSettings() {
     return {
       'enableShipping': true,
-      'freeShippingThreshold': 0,
       'defaultShippingRate': 50,
       'shippingZones': [
         {
@@ -93,7 +91,6 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
 
   void _applySettings(Map<String, dynamic> value) {
     _enableShipping = value['enableShipping'] ?? true;
-    _freeThreshold = _number(value['freeShippingThreshold'], fallback: 0);
     _defaultRate = _number(value['defaultShippingRate'], fallback: 50);
     _zones = _normalizeZones(value['shippingZones']);
     _cityAddingState.clear();
@@ -180,7 +177,6 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
   Map<String, dynamic> _settingsPayload() {
     return {
       'enableShipping': _enableShipping,
-      'freeShippingThreshold': _freeThreshold,
       'defaultShippingRate': _defaultRate,
       'shippingZones': _zones.map((zone) {
         return {
@@ -352,8 +348,6 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
               Expanded(child: _numberField('Default Rate', _defaultRate, (value) => _defaultRate = value)),
             ],
           ),
-          const SizedBox(height: 12),
-          _numberField('Free Shipping Above (0 = disabled)', _freeThreshold, (value) => _freeThreshold = value),
         ],
       ),
     );

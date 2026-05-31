@@ -20,6 +20,7 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
   String? _error;
 
   bool _enableShipping = true;
+  bool _freeShippingEnabled = false;
   double _freeThreshold = 0;
   double _defaultRate = 50;
   List<Map<String, dynamic>> _zones = [];
@@ -56,6 +57,23 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
 
       final value = shippingConfig?['value'];
       _applySettings(value is Map ? Map<String, dynamic>.from(value) : _defaultSettings());
+
+      final freeEnabledConfig = configs?.cast<dynamic>().firstWhere(
+            (c) => c['key'] == 'FREE_SHIPPING_ENABLED',
+            orElse: () => null,
+          );
+      final freeThresholdConfig = configs?.cast<dynamic>().firstWhere(
+            (c) => c['key'] == 'FREE_SHIPPING_THRESHOLD',
+            orElse: () => null,
+          );
+
+      if (mounted) {
+        setState(() {
+          _freeShippingEnabled = freeEnabledConfig?['value']?.toString() == 'true';
+          _freeThreshold = double.tryParse(freeThresholdConfig?['value']?.toString() ?? '0') ?? 0;
+        });
+      }
+
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {
@@ -71,7 +89,6 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
   Map<String, dynamic> _defaultSettings() {
     return {
       'enableShipping': true,
-      'freeShippingThreshold': 0,
       'defaultShippingRate': 50,
       'shippingZones': [],
     };
@@ -79,7 +96,6 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
 
   void _applySettings(Map<String, dynamic> value) {
     _enableShipping = value['enableShipping'] ?? true;
-    _freeThreshold = _number(value['freeShippingThreshold'], fallback: 0);
     _defaultRate = _number(value['defaultShippingRate'], fallback: 50);
     _zones = _normalizeZones(value['shippingZones']);
   }
@@ -282,17 +298,19 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
               Expanded(
                 child: _infoTile('Default Rate', _formatMoney(_defaultRate)),
               ),
-              Container(
-                width: 1,
-                height: 28,
-                color: AppColors.cardBorder,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 24),
-                  child: _infoTile('Free Shipping', _freeThreshold > 0 ? '> ${_formatMoney(_freeThreshold)}' : 'Off'),
+              if (_freeShippingEnabled && _freeThreshold > 0) ...[
+                Container(
+                  width: 1,
+                  height: 28,
+                  color: AppColors.cardBorder,
                 ),
-              ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 24),
+                    child: _infoTile('Free Shipping', '> ${_formatMoney(_freeThreshold)}'),
+                  ),
+                ),
+              ],
             ],
           ),
         ],

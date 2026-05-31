@@ -8,11 +8,12 @@ import { useStore } from "@/context/StoreContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { toast } from "sonner";
 import { placeOrderWithShipping } from "@/lib/actions/checkout";
-import { getCheckoutProfile, saveCheckoutProfile } from "@/lib/actions/user"; // Import new actions
+import { getCheckoutProfile, saveCheckoutProfile } from "@/lib/actions/user";
 import { validateCoupon } from "@/lib/actions/coupons";
 import { getPaymentMethodsStatus } from "@/lib/actions/killswitches";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
 import { calculateShipping } from "@/lib/actions/shipping";
+import { getStoreSettings } from "@/lib/actions/settings";
 import { previewSitewideDiscount } from "@/lib/services/discountService";
 import { EGYPT_LOCATIONS } from "@/data/egypt-locations";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -153,6 +154,24 @@ export default function CheckoutClient() {
   const [loadingShipping, setLoadingShipping] = useState(false);
 
   // Load payment methods
+  // Free shipping progress state
+  const [shippingEnabled, setShippingEnabled] = React.useState(false);
+  const [shippingThreshold, setShippingThreshold] = React.useState(0);
+
+  useEffect(() => {
+    async function loadShippingSettings() {
+      try {
+        const settings = await getStoreSettings(["FREE_SHIPPING_ENABLED", "FREE_SHIPPING_THRESHOLD"]);
+        if (settings["FREE_SHIPPING_ENABLED"] === 'true') {
+          setShippingEnabled(true);
+          setShippingThreshold(Number(settings["FREE_SHIPPING_THRESHOLD"]) || 0);
+        }
+      } catch (e) {
+        console.error("Failed to load shipping settings", e);
+      }
+    }
+    loadShippingSettings();
+  }, []);
   useEffect(() => {
     async function load() {
       try {
@@ -1076,6 +1095,30 @@ export default function CheckoutClient() {
               <h3 className={styles.summaryTitle}>{t.checkout.order_summary}</h3>
               <span className={styles.summaryItemCount}>{t.cart.items_count.replace('{count}', checkoutItems.reduce((sum, i) => sum + i.qty, 0).toString())}</span>
             </div>
+
+            {shippingEnabled && shippingThreshold > 0 && (
+              <div style={{ marginBottom: "16px", padding: "16px", backgroundColor: "#f9fafb", borderRadius: "12px", border: "1px solid #f3f4f6" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="1" y="3" width="15" height="13"></rect>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                    <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                    <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                  </svg>
+                  <span style={{ fontSize: "14px", fontWeight: "600", color: "#12403C" }}>
+                    {subtotal >= shippingThreshold 
+                      ? t.cart.free_shipping_unlocked || "You've unlocked Free Shipping!" 
+                      : (t.cart.amount_away_from_free_shipping || "Away from Free Shipping").replace('{amount}', formatPrice(shippingThreshold - subtotal))
+                    }
+                  </span>
+                </div>
+                <div style={{ width: "100%", backgroundColor: "#e5e7eb", height: "8px", borderRadius: "9999px", overflow: "hidden" }}>
+                  <div 
+                    style={{ backgroundColor: "#d4af37", height: "100%", borderRadius: "9999px", transition: "all 500ms ease-out", width: `${Math.min(100, (subtotal / shippingThreshold) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Cart Items */}
             <div className={styles.summaryItems}>
