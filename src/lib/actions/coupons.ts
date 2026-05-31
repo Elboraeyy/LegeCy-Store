@@ -86,7 +86,14 @@ function getCouponStatus(coupon: { isActive: boolean; startDate: Date; endDate: 
     const now = new Date();
     if (!coupon.isActive) return 'inactive';
     if (coupon.endDate && coupon.endDate < now) return 'expired';
-    if (coupon.startDate > now) return 'scheduled';
+    
+    // Ignore time for start date check to prevent timezone mismatch issues
+    const start = new Date(coupon.startDate);
+    start.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (start > today) return 'scheduled';
+    
     return 'active';
 }
 
@@ -115,8 +122,9 @@ export async function validateCoupon(
             return { isValid: false, error: 'Coupon code is required' };
         }
 
+        const cleanCode = code.trim().toUpperCase();
         const coupon = await prisma.coupon.findUnique({
-            where: { code: code.toUpperCase() }
+            where: { code: cleanCode }
         });
 
         if (!coupon) {
@@ -127,12 +135,16 @@ export async function validateCoupon(
             return { isValid: false, error: 'Coupon is inactive' };
         }
 
-        // Check dates
-        const now = new Date();
-        if (coupon.startDate > now) {
+        // Check dates (ignore time to prevent timezone mismatch on creation day)
+        const start = new Date(coupon.startDate);
+        start.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (start > today) {
             return { isValid: false, error: 'Coupon is not yet active' };
         }
-        if (coupon.endDate && coupon.endDate < now) {
+        if (coupon.endDate && coupon.endDate < new Date()) {
             return { isValid: false, error: 'Coupon has expired' };
         }
 
@@ -203,8 +215,9 @@ export async function validateCoupon(
         let discountAmount = 0;
         const discountValue = Number(coupon.discountValue);
         let isFreeShipping = false;
+        const dType = coupon.discountType.toUpperCase();
 
-        if (coupon.discountType === 'PERCENTAGE') {
+        if (dType === 'PERCENTAGE') {
             discountAmount = (eligibleTotal * discountValue) / 100;
             
             // Cap at max discount if set
@@ -212,13 +225,13 @@ export async function validateCoupon(
                 const maxDiscount = Number(coupon.maxDiscount);
                 discountAmount = Math.min(discountAmount, maxDiscount);
             }
-        } else if (coupon.discountType === 'FIXED_AMOUNT') {
+        } else if (dType === 'FIXED_AMOUNT' || dType === 'FIXED') {
             // Fixed amount is applied once. Warning: if eligibleTotal < fixed, we cap it.
             discountAmount = Math.min(discountValue, eligibleTotal);
-        } else if (coupon.discountType === 'FREE_SHIPPING') {
+        } else if (dType === 'FREE_SHIPPING') {
             isFreeShipping = true;
             discountAmount = 0; // Discount is applied on Shipping Line, not Subtotal
-        } else if (coupon.discountType === 'SHIPPING_PERCENTAGE' || coupon.discountType === 'SHIPPING_FIXED') {
+        } else if (dType === 'SHIPPING_PERCENTAGE' || dType === 'SHIPPING_FIXED') {
             // These don't affect subtotal directly, passed as metadata
             discountAmount = 0;
             // NOTE: Actual calculation happens in Checkout based on shipping rate
@@ -340,7 +353,7 @@ export async function getCoupons(filters: CouponFilters = {}): Promise<{
 
         const couponsWithStats: CouponWithStats[] = coupons.map(coupon => {
             // Use currentUsage as proxy for orders count and estimate discount
-            const estimatedDiscount = coupon.discountType === 'PERCENTAGE' 
+            const estimatedDiscount = coupon.discountType.toUpperCase() === 'PERCENTAGE' 
                 ? coupon.currentUsage * Number(coupon.discountValue) * 10 // Rough estimate
                 : coupon.currentUsage * Number(coupon.discountValue);
 
@@ -399,7 +412,7 @@ export async function getCouponById(id: string): Promise<CouponWithStats | null>
         if (!coupon) return null;
 
         // Estimate discount based on usage and discount value
-        const estimatedDiscount = coupon.discountType === 'PERCENTAGE'
+        const estimatedDiscount = coupon.discountType.toUpperCase() === 'PERCENTAGE'
             ? coupon.currentUsage * Number(coupon.discountValue) * 10
             : coupon.currentUsage * Number(coupon.discountValue);
 
@@ -708,14 +721,14 @@ export async function getCouponAnalytics(): Promise<CouponAnalytics> {
         const totalUsage = allCoupons.reduce((sum, c) => sum + c.currentUsage, 0);
         // Estimate based on discount values and usage
         const totalDiscountGiven = allCoupons.reduce((sum, c) => {
-            const estimated = c.discountType === 'PERCENTAGE'
+            const estimated = c.discountType.toUpperCase() === 'PERCENTAGE'
                 ? c.currentUsage * Number(c.discountValue) * 10
                 : c.currentUsage * Number(c.discountValue);
             return sum + estimated;
         }, 0);
 
         const topCoupons = allCoupons.slice(0, 5).map(c => {
-            const estimated = c.discountType === 'PERCENTAGE'
+            const estimated = c.discountType.toUpperCase() === 'PERCENTAGE'
                 ? c.currentUsage * Number(c.discountValue) * 10
                 : c.currentUsage * Number(c.discountValue);
             return {

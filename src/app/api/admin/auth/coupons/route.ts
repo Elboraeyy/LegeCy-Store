@@ -57,9 +57,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const cleanCode = code.trim().toUpperCase();
+    
     // Check if code exists
     const existing = await prisma.coupon.findUnique({
-      where: { code: code.toUpperCase() }
+      where: { code: cleanCode }
     });
 
     if (existing) {
@@ -68,7 +70,7 @@ export async function POST(req: NextRequest) {
 
     const coupon = await prisma.coupon.create({
       data: {
-        code: code.toUpperCase(),
+        code: cleanCode,
         discountType, // 'percentage' or 'fixed'
         discountValue: Number(discountValue),
         minOrderValue: minOrderValue ? Number(minOrderValue) : null,

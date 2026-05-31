@@ -17,17 +17,21 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     // Check if new code conflicts
-    if (body.code && body.code.toUpperCase() !== existing.code) {
-      const conflict = await prisma.coupon.findUnique({
-        where: { code: body.code.toUpperCase() }
-      });
-      if (conflict) {
-        return NextResponse.json({ error: "Coupon code already exists" }, { status: 400 });
+    let cleanCode: string | undefined;
+    if (body.code) {
+      cleanCode = body.code.trim().toUpperCase();
+      if (cleanCode !== existing.code) {
+        const conflict = await prisma.coupon.findUnique({
+          where: { code: cleanCode }
+        });
+        if (conflict) {
+          return NextResponse.json({ error: "Coupon code already exists" }, { status: 400 });
+        }
       }
     }
 
     const dataToUpdate: Record<string, unknown> = {};
-    if (body.code !== undefined) dataToUpdate.code = body.code.toUpperCase();
+    if (cleanCode !== undefined) dataToUpdate.code = cleanCode;
     if (body.discountType !== undefined) dataToUpdate.discountType = body.discountType;
     if (body.discountValue !== undefined) dataToUpdate.discountValue = Number(body.discountValue);
     if (body.minOrderValue !== undefined) dataToUpdate.minOrderValue = body.minOrderValue === null ? null : Number(body.minOrderValue);
