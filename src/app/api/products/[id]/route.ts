@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { applyActiveOffersToProducts } from "@/lib/services/discountService";
 
 type Params = {
   params: Promise<{ id: string }>;
@@ -109,7 +110,14 @@ export async function GET(_: NextRequest, { params }: Params) {
           })),
     };
 
-    return NextResponse.json(transformedProduct);
+    const productsWithOffers = await applyActiveOffersToProducts([transformedProduct]);
+    const finalProduct = productsWithOffers[0];
+
+    if (finalProduct.similarProducts && finalProduct.similarProducts.length > 0) {
+      finalProduct.similarProducts = await applyActiveOffersToProducts(finalProduct.similarProducts);
+    }
+
+    return NextResponse.json(finalProduct);
   } catch (error) {
     console.error("Product API Error:", error);
     return NextResponse.json(

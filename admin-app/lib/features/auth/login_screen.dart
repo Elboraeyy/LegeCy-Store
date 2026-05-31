@@ -352,7 +352,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                       _buildAnimatedTextField(
                                         controller: _passwordController,
                                         focusNode: _passwordFocus,
-                                        hint: '••••••••',
+                                        hint: 'Enter your password',
                                         obscureText: _obscurePassword,
                                         textInputAction: TextInputAction.done,
                                         autofillHints: const [AutofillHints.password],
@@ -475,13 +475,20 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                       SizedBox(height: keyboardHeight > 0 ? 16 : 32),
                                       
                                       // Footer
-                                      Text(
-                                        '🔒 Protected by Legacy Security Systems',
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 12,
-                                          color: textMutedBrand,
-                                        ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(LucideIcons.shieldCheck, size: 14, color: textMutedBrand),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            'Protected by Legacy Security Systems',
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 12,
+                                              color: textMutedBrand,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                     ),

@@ -33,11 +33,25 @@ export async function PUT(
     try {
         const { id } = await params;
         const body = await request.json();
-        const { isActive } = body;
+        const { name, description, offerType, targetId, discountType, discountValue, minQuantity, maxDiscount, startDate, endDate, priority, isActive } = body;
+
+        const updateData: any = {};
+        if (name !== undefined) updateData.name = name;
+        if (description !== undefined) updateData.description = description;
+        if (offerType !== undefined) updateData.offerType = offerType;
+        if (targetId !== undefined) updateData.targetId = targetId;
+        if (discountType !== undefined) updateData.discountType = discountType;
+        if (discountValue !== undefined) updateData.discountValue = parseFloat(discountValue);
+        if (minQuantity !== undefined) updateData.minQuantity = parseInt(minQuantity);
+        if (maxDiscount !== undefined) updateData.maxDiscount = parseFloat(maxDiscount);
+        if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : new Date();
+        if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
+        if (priority !== undefined) updateData.priority = parseInt(priority);
+        if (isActive !== undefined) updateData.isActive = isActive;
 
         const updated = await prisma.productOffer.update({
             where: { id },
-            data: { isActive },
+            data: updateData,
         });
 
         return NextResponse.json({ message: 'Offer updated successfully', offer: updated });

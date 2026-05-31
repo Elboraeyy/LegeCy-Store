@@ -44,8 +44,8 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
 
     _discountType = c?['discountType'] ?? widget.defaultType ?? 'percentage';
     _isActive = c?['isActive'] ?? true;
-    _startDate = c?['startDate'] != null ? DateTime.parse(c!['startDate']) : DateTime.now();
-    _endDate = c?['endDate'] != null ? DateTime.parse(c!['endDate']) : null;
+    _startDate = c?['startDate'] != null ? DateTime.tryParse(c!['startDate'])?.toLocal() : DateTime.now();
+    _endDate = c?['endDate'] != null ? DateTime.tryParse(c!['endDate'])?.toLocal() : null;
   }
 
   @override
@@ -103,8 +103,8 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
         'discountType': _discountType,
         'discountValue': _discountType == 'FREE_SHIPPING' ? 0.0 : double.parse(_valueCtrl.text),
         'isActive': _isActive,
-        'startDate': _startDate?.toIso8601String(),
-        'endDate': _endDate?.toIso8601String(),
+        'startDate': _startDate?.toUtc().toIso8601String(),
+        'endDate': _endDate?.toUtc().toIso8601String(),
       };
 
       if (_minOrderCtrl.text.isNotEmpty) {
@@ -197,18 +197,6 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
                         const SizedBox(width: 10),
                         Text('Free Shipping', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
                       ])),
-                      if (_discountType == 'SHIPPING_PERCENTAGE')
-                        DropdownMenuItem(value: 'SHIPPING_PERCENTAGE', child: Row(children: [
-                          Icon(LucideIcons.packageCheck, size: 16, color: AppColors.primaryDark),
-                          const SizedBox(width: 10),
-                          Text('Shipping % Off (Legacy)', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
-                        ])),
-                      if (_discountType == 'SHIPPING_FIXED')
-                        DropdownMenuItem(value: 'SHIPPING_FIXED', child: Row(children: [
-                          Icon(LucideIcons.packageMinus, size: 16, color: AppColors.primaryDark),
-                          const SizedBox(width: 10),
-                          Text('Shipping Fixed (Legacy)', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
-                        ])),
                     ],
                     onChanged: (v) => setState(() => _discountType = v.toString()),
                   ),

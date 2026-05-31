@@ -109,13 +109,14 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
     final priorityCtrl = TextEditingController(text: (existing?['priority'] ?? 0).toString());
     String offerType = existing?['offerType'] ?? 'ALL_PRODUCTS';
     String discountType = existing?['discountType'] ?? 'PERCENTAGE';
-    DateTime? startDate = existing?['startDate'] != null ? DateTime.tryParse(existing!['startDate']) : DateTime.now();
-    DateTime? endDate = existing?['endDate'] != null ? DateTime.tryParse(existing!['endDate']) : null;
+    DateTime? startDate = existing?['startDate'] != null ? DateTime.tryParse(existing!['startDate'])?.toLocal() : DateTime.now();
+    DateTime? endDate = existing?['endDate'] != null ? DateTime.tryParse(existing!['endDate'])?.toLocal() : null;
     bool isActive = existing?['isActive'] ?? true;
     String? targetId = existing?['targetId'];
     String? targetName = existing?['targetName'];
     List<Map<String, String>> targetOptions = [];
     bool loadingTargets = false;
+    bool _isInit = false;
 
     showModalBottomSheet(
       context: context,
@@ -133,6 +134,26 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
               builder: (context, child) => Theme(data: Theme.of(context).copyWith(colorScheme: const ColorScheme.light(primary: _GeneralOffersScreenState._accent)), child: child!),
             );
             if (date != null) setModalState(() { if (isStart) startDate = date; else endDate = date; });
+          }
+
+          if (!_isInit) {
+            _isInit = true;
+            if (offerType != 'ALL_PRODUCTS') {
+              loadingTargets = true;
+              _fetchTargets(offerType).then((items) {
+                setModalState(() {
+                  targetOptions = items;
+                  loadingTargets = false;
+                  if (targetId != null && !items.any((e) => e['id'] == targetId)) {
+                    if (targetName != null) {
+                       targetOptions.add({'id': targetId!, 'name': targetName!});
+                    } else {
+                       targetId = null;
+                    }
+                  }
+                });
+              });
+            }
           }
 
           return Container(
@@ -375,8 +396,8 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                                 'discountValue': valueCtrl.text,
                                 'priority': int.tryParse(priorityCtrl.text) ?? 0,
                                 'isActive': isActive,
-                                'startDate': startDate?.toIso8601String(),
-                                'endDate': endDate?.toIso8601String(),
+                                'startDate': startDate?.toUtc().toIso8601String(),
+                                'endDate': endDate?.toUtc().toIso8601String(),
                                 if (targetId != null) 'targetId': targetId,
                                 if (targetName != null) 'targetName': targetName,
                               };
