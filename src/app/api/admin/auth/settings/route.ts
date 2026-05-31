@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import prismaClient from "@/lib/prisma";
 const prisma = prismaClient!;
 
@@ -33,6 +34,8 @@ export async function PUT(req: NextRequest) {
         description,
       }
     });
+
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({ config, message: "Configuration saved successfully" });
   } catch (error) {
