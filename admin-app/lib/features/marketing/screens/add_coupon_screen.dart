@@ -197,6 +197,18 @@ class _AddCouponScreenState extends State<AddCouponScreen> {
                         const SizedBox(width: 10),
                         Text('Free Shipping', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
                       ])),
+                      if (_discountType == 'SHIPPING_PERCENTAGE')
+                        DropdownMenuItem(value: 'SHIPPING_PERCENTAGE', child: Row(children: [
+                          Icon(LucideIcons.packageCheck, size: 16, color: AppColors.primaryDark),
+                          const SizedBox(width: 10),
+                          Text('Shipping % Off (Legacy)', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
+                        ])),
+                      if (_discountType == 'SHIPPING_FIXED')
+                        DropdownMenuItem(value: 'SHIPPING_FIXED', child: Row(children: [
+                          Icon(LucideIcons.packageMinus, size: 16, color: AppColors.primaryDark),
+                          const SizedBox(width: 10),
+                          Text('Shipping Fixed (Legacy)', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500)),
+                        ])),
                     ],
                     onChanged: (v) => setState(() => _discountType = v.toString()),
                   ),
