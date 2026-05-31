@@ -12,6 +12,8 @@ export interface CartItemForDiscount {
     price: number; // Current price per unit
     quantity: number;
     categoryId?: string;
+    brandId?: string;
+    materialId?: string;
     pricingContext?: string | null;
     contextId?: string | null;
     bundleConfig?: Record<string, unknown>;
@@ -208,11 +210,14 @@ async function calculateProductOfferDiscounts(
                     applies = offer.targetId === item.productId;
                     break;
                 case 'CATEGORY':
-                    if (item.categoryId && offer.targetId === item.categoryId) {
-                        applies = true;
-                    }
+                    if (item.categoryId && offer.targetId === item.categoryId) applies = true;
                     break;
-                // BRAND would require brand info on item
+                case 'BRAND':
+                    if (item.brandId && offer.targetId === item.brandId) applies = true;
+                    break;
+                case 'MATERIAL':
+                    if (item.materialId && offer.targetId === item.materialId) applies = true;
+                    break;
             }
 
             if (applies && item.quantity >= offer.minQuantity) {
@@ -412,22 +417,27 @@ async function calculateSitewideOfferDiscount(
 // Utility: Get Product Category IDs
 // ==========================================
 
-export async function enrichCartItemsWithCategories(
+export async function enrichCartItemsWithContext(
     items: { productId: string; variantId?: string; price: number; quantity: number }[]
 ): Promise<CartItemForDiscount[]> {
     const productIds = items.map(i => i.productId);
     
     const products = await prisma.product.findMany({
         where: { id: { in: productIds } },
-        select: { id: true, categoryId: true }
+        select: { id: true, categoryId: true, brandId: true, materialId: true }
     });
     
-    const categoryMap = new Map(products.map(p => [p.id, p.categoryId]));
+    const contextMap = new Map(products.map(p => [p.id, p]));
     
-    return items.map(item => ({
-        ...item,
-        categoryId: categoryMap.get(item.productId) || undefined
-    }));
+    return items.map(item => {
+        const p = contextMap.get(item.productId);
+        return {
+            ...item,
+            categoryId: p?.categoryId || undefined,
+            brandId: p?.brandId || undefined,
+            materialId: p?.materialId || undefined
+        };
+    });
 }
 
 export async function getSitewideOfferConfig() {
@@ -441,4 +451,100 @@ export async function getSitewideOfferConfig() {
         console.error("Error fetching sitewide config:", error);
         return null;
     }
+}
+
+// ==========================================
+// Utility: Apply Active Offers to Storefront Products
+// ==========================================
+export async function applyActiveOffersToProducts<T extends { 
+    id: string; 
+    price: number; 
+    compareAtPrice: number | null; 
+    categorySlug?: string | null; 
+    brandId?: string | null; 
+    materialId?: string | null; 
+}>(products: T[]): Promise<T[]> {
+    if (products.length === 0) return products;
+
+    const now = new Date();
+    // Only apply if no sitewide offer is currently active (to prevent double dipping)
+    // Based on calculateCartDiscounts logic
+    const sitewideConfig = await getSitewideOfferConfig();
+    if (sitewideConfig?.enabled) {
+        return products;
+    }
+
+    const offers = await prisma.productOffer.findMany({
+        where: {
+            isActive: true,
+            startDate: { lte: now },
+            OR: [{ endDate: null }, { endDate: { gt: now } }]
+        },
+        orderBy: { priority: 'desc' }
+    });
+
+    if (offers.length === 0) return products;
+
+    // Fetch product context (categories, brands, materials)
+    const productIds = products.map(p => p.id);
+    const dbProducts = await prisma.product.findMany({
+        where: { id: { in: productIds } },
+        select: { id: true, categoryId: true, brandId: true, materialId: true }
+    });
+    const contextMap = new Map(dbProducts.map(p => [p.id, p]));
+
+    return products.map(product => {
+        // DO NOT apply if product already has a manual discount
+        if (product.compareAtPrice !== null && product.compareAtPrice > product.price) {
+            return product;
+        }
+
+        const ctx = contextMap.get(product.id);
+        
+        for (const offer of offers) {
+            let applies = false;
+            switch (offer.offerType) {
+                case 'ALL_PRODUCTS':
+                    applies = true;
+                    break;
+                case 'PRODUCT':
+                    applies = offer.targetId === product.id;
+                    break;
+                case 'CATEGORY':
+                    if (ctx?.categoryId && offer.targetId === ctx.categoryId) applies = true;
+                    break;
+                case 'BRAND':
+                    if (ctx?.brandId && offer.targetId === ctx.brandId) applies = true;
+                    break;
+                case 'MATERIAL':
+                    if (ctx?.materialId && offer.targetId === ctx.materialId) applies = true;
+                    break;
+            }
+
+            // Only consider offers with minQuantity = 1 for storefront preview
+            if (applies && offer.minQuantity <= 1) {
+                let discountAmount = 0;
+                if (offer.discountType === 'PERCENTAGE') {
+                    discountAmount = (product.price * Number(offer.discountValue)) / 100;
+                } else {
+                    discountAmount = Number(offer.discountValue);
+                }
+
+                if (offer.maxDiscount && discountAmount > Number(offer.maxDiscount)) {
+                    discountAmount = Number(offer.maxDiscount);
+                }
+
+                if (discountAmount > 0) {
+                    const newPrice = Math.max(0, product.price - discountAmount);
+                    return {
+                        ...product,
+                        compareAtPrice: product.price, // Original price becomes compareAtPrice
+                        price: newPrice
+                    };
+                }
+                break; // Only apply the highest priority offer
+            }
+        }
+        return product;
+    });
 }

@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { ProductSpecs } from "@/types/product";
+import { applyActiveOffersToProducts } from "@/lib/services/discountService";
 
 export interface ShopProduct {
   id: string;
@@ -310,7 +311,7 @@ async function fetchMerchandisedProducts(section: MerchandisingSection): Promise
   );
   const filtered = stockFiltered(Array.from(deduped.values()), section.includeSoldOut);
   const sorted = sortProducts(filtered, section);
-  return sorted.slice(0, section.limit || sorted.length).map(mapShopProduct);
+  return await applyActiveOffersToProducts(sorted.slice(0, section.limit || sorted.length).map(mapShopProduct));
 }
 
 export async function fetchShopProducts(): Promise<ShopProduct[]> {
@@ -340,8 +341,7 @@ export async function fetchShopProducts(): Promise<ShopProduct[]> {
     ? applyCatalogOrder(stockFiltered(Array.from(deduped.values()), settings.includeSoldOut))
     : sortProducts(stockFiltered(Array.from(deduped.values()), settings.includeSoldOut), settings);
 
-  return sortedProducts
-    .map(mapShopProduct);
+  return await applyActiveOffersToProducts(sortedProducts.map(mapShopProduct));
 }
 
 export async function fetchProductById(id: string) {
@@ -462,7 +462,7 @@ export async function fetchRelatedProducts(
     products.push(...additionalProducts);
   }
 
-  return products.map((product) => {
+  return await applyActiveOffersToProducts(products.map((product) => {
     const mainVariant = product.variants[0];
     const totalStock = product.variants.reduce(
       (acc, v) => acc + v.inventory.reduce((sum, i) => sum + i.available, 0),
@@ -500,7 +500,7 @@ export async function fetchRelatedProducts(
         stock: v.inventory.reduce((sum, i) => sum + i.available, 0),
       })),
     };
-  });
+  }));
 }
 
 // Fetch featured products (for homepage carousel)
@@ -523,7 +523,7 @@ export async function fetchFeaturedProducts(
     },
   });
 
-  return products
+  const shopProducts = products
     .map((product) => {
       const mainVariant = product.variants[0];
       const totalStock = product.variants.reduce(
@@ -567,6 +567,8 @@ export async function fetchFeaturedProducts(
     })
     .sort(() => Math.random() - 0.5)
     .slice(0, limit);
+    
+  return await applyActiveOffersToProducts(shopProducts);
 }
 
 // Fetch new arrivals (products created in last 30 days)
@@ -603,7 +605,7 @@ export async function fetchLegacyNewArrivals(
       material: true,
     },
   });
-  return products.map((product) => {
+  return await applyActiveOffersToProducts(products.map((product) => {
     const mainVariant = product.variants[0];
     const totalStock = product.variants.reduce(
       (acc, v) => acc + v.inventory.reduce((sum, i) => sum + i.available, 0),
@@ -641,7 +643,7 @@ export async function fetchLegacyNewArrivals(
         stock: v.inventory.reduce((sum, i) => sum + i.available, 0),
       })),
     };
-  });
+  }));
 }
 
 // Fetch "For You" products (Curated list)
@@ -660,10 +662,11 @@ export async function fetchForYouProducts(
       orderBy: { updatedAt: "desc" },
       include: productInclude,
     });
-    return stockFiltered(legacyProducts, settings.includeSoldOut)
+    const products = stockFiltered(legacyProducts, settings.includeSoldOut)
       .map(mapShopProduct)
       .sort(() => Math.random() - 0.5)
       .slice(0, limit);
+    return await applyActiveOffersToProducts(products);
   }
 
   const products = await fetchMerchandisedProducts({ ...settings, limit });

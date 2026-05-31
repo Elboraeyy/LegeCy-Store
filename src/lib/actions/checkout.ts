@@ -225,7 +225,7 @@ export async function placeOrderWithShipping(
     // ========================================
     // OPTIMIZATION: Run ALL independent operations in parallel
     const { getCurrentUser } = await import("@/lib/actions/auth");
-    const { calculateCartDiscounts, enrichCartItemsWithCategories } =
+    const { calculateCartDiscounts, enrichCartItemsWithContext } =
       await import("@/lib/services/discountService");
     const { getLoyaltySettings } =
       await import("@/lib/services/loyaltyService");
@@ -242,7 +242,7 @@ export async function placeOrderWithShipping(
     const [user, loyaltySettings, itemsForDiscount] = await Promise.all([
       getCurrentUser(),
       getLoyaltySettings(),
-      enrichCartItemsWithCategories(cartItemsForDiscount),
+      enrichCartItemsWithContext(cartItemsForDiscount),
     ]);
 
     // Calculate discounts (after categories are enriched)

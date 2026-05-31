@@ -92,6 +92,10 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
         final data = await _client.get('/api/admin/auth/brands');
         final list = data['brands'] ?? data;
         return (list as List).map<Map<String, String>>((b) => {'id': b['id'].toString(), 'name': b['name']?.toString() ?? ''}).toList();
+      } else if (type == 'MATERIAL') {
+        final data = await _client.get('/api/admin/auth/materials');
+        final list = data['materials'] ?? data;
+        return (list as List).map<Map<String, String>>((m) => {'id': m['id'].toString(), 'name': m['name']?.toString() ?? ''}).toList();
       }
     } catch (_) {}
     return [];
@@ -190,13 +194,18 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                             final items = await _fetchTargets(v);
                             setModalState(() { targetOptions = items; loadingTargets = false; });
                           }),
+                          _buildChip('💎 Material', 'MATERIAL', offerType, (v) async {
+                            setModalState(() { offerType = v; targetId = null; targetName = null; loadingTargets = true; });
+                            final items = await _fetchTargets(v);
+                            setModalState(() { targetOptions = items; loadingTargets = false; });
+                          }),
                         ],
                       ),
                       // Target Selector
                       if (offerType != 'ALL_PRODUCTS') ...[
                         const SizedBox(height: 12),
                         Text(
-                          offerType == 'PRODUCT' ? 'Select Product' : offerType == 'CATEGORY' ? 'Select Category' : 'Select Brand',
+                          offerType == 'PRODUCT' ? 'Select Product' : offerType == 'CATEGORY' ? 'Select Category' : offerType == 'BRAND' ? 'Select Brand' : 'Select Material',
                           style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 8),
@@ -226,7 +235,7 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
                                     elevation: 8,
                                     hint: Row(
                                       children: [
-                                        Icon(offerType == 'PRODUCT' ? LucideIcons.package : offerType == 'CATEGORY' ? LucideIcons.layoutGrid : LucideIcons.building2, size: 16, color: AppColors.textMuted),
+                                        Icon(offerType == 'PRODUCT' ? LucideIcons.package : offerType == 'CATEGORY' ? LucideIcons.layoutGrid : offerType == 'BRAND' ? LucideIcons.building2 : LucideIcons.gem, size: 16, color: AppColors.textMuted),
                                         const SizedBox(width: 10),
                                         Text('Choose...', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted)),
                                       ],
@@ -504,6 +513,7 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
       case 'PRODUCT': typeLabel = '🛍️ Product'; break;
       case 'CATEGORY': typeLabel = '📂 Category'; break;
       case 'BRAND': typeLabel = '🏢 Brand'; break;
+      case 'MATERIAL': typeLabel = '💎 Material'; break;
       default: typeLabel = type;
     }
 
