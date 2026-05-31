@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
@@ -35,7 +36,7 @@ export async function PUT(
         const body = await request.json();
         const { name, description, offerType, targetId, discountType, discountValue, minQuantity, maxDiscount, startDate, endDate, priority, isActive } = body;
 
-        const updateData: any = {};
+        const updateData: Prisma.ProductOfferUpdateInput = {};
         if (name !== undefined) updateData.name = name;
         if (description !== undefined) updateData.description = description;
         if (offerType !== undefined) updateData.offerType = offerType;
