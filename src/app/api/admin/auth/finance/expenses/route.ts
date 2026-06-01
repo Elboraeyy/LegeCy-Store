@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
             where: {
                 isAmortized: true,
                 amortStartDate: { lte: endOfMonth },
+                ...(categoryId ? { categoryId } : {}),
             },
             include: {
                 category: { select: { id: true, name: true } },
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
 
         // Calculate totals
         const totalDirectExpenses = directExpenses
-            .filter(e => !e.isAmortized)
+            .filter(e => !e.isAmortized && e.expenseType === 'OPERATING')
             .reduce((sum, e) => sum + e.amount.toNumber(), 0);
         
         const totalAmortizedThisMonth = activeAmortized
@@ -76,6 +77,7 @@ export async function GET(request: NextRequest) {
             where: {
                 ...where,
                 isAmortized: false,
+                expenseType: 'OPERATING',
             },
             _sum: { amount: true },
             _count: true,
@@ -106,6 +108,7 @@ export async function GET(request: NextRequest) {
                 status: e.status,
                 safe: e.safe,
                 isAmortized: e.isAmortized,
+                expenseType: e.expenseType,
                 spreadMonths: e.spreadMonths,
                 monthlyAmount: e.monthlyAmount?.toNumber() || null,
                 amortStartDate: e.amortStartDate?.toISOString(),
@@ -119,6 +122,7 @@ export async function GET(request: NextRequest) {
                 spreadMonths: e.spreadMonths,
                 amortStartDate: e.amortStartDate?.toISOString(),
                 category: e.category,
+                expenseType: e.expenseType,
             })),
             stats: {
                 totalDirectExpenses,
@@ -158,7 +162,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const {
             description, amount, date, categoryId, subcategoryId,
-            safeId, isAmortized, spreadMonths, receiptUrl,
+            safeId, isAmortized, spreadMonths, receiptUrl, expenseType,
         } = body;
 
         if (!description || !amount || !categoryId) {
@@ -180,6 +184,7 @@ export async function POST(request: NextRequest) {
                     subcategoryId: subcategoryId || undefined,
                     safeId: safeId || undefined,
                     isAmortized: isAmortized || false,
+                    expenseType: expenseType || (isAmortized ? 'AMORTIZED' : 'OPERATING'),
                     spreadMonths: isAmortized ? (spreadMonths || 1) : 1,
                     monthlyAmount: isAmortized ? monthlyAmount : amount,
                     amortStartDate: isAmortized ? (date ? new Date(date) : new Date()) : undefined,

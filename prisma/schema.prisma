@@ -1054,6 +1054,7 @@ model Expense {
   safeId           String?          // الخزنة اللي اتدفع منها
   // === نظام التقسيط (Amortization) ===
   isAmortized      Boolean          @default(false)  // هل يتقسم على شهور؟
+  expenseType      ExpenseType      @default(OPERATING)
   spreadMonths     Int              @default(1)      // يتقسم على كام شهر
   monthlyAmount    Decimal?         // المبلغ الشهري بعد التقسيم
   amortStartDate   DateTime?        // بداية التقسيط
@@ -1961,6 +1962,12 @@ enum ExpenseStatus {
   APPROVED
   REJECTED
   PAID
+}
+
+enum ExpenseType {
+  OPERATING
+  AMORTIZED
+  CAPITAL
 }
 
 // ====================================================================

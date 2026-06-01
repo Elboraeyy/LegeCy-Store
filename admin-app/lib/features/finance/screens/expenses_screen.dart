@@ -7,6 +7,7 @@ import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:intl/intl.dart';
+import 'package:admin_app/features/finance/screens/category_details_screen.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -30,7 +31,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {});
+      }
+    });
     _loadExpenses();
   }
 
@@ -68,6 +74,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
     String? subcategoryId;
     String? safeId;
     bool isAmortized = false;
+    String selectedType = 'OPERATING';
     final spreadCtrl = TextEditingController(text: '1');
 
     showModalBottomSheet(
@@ -82,8 +89,40 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
           );
           final subcats = List<Map<String, dynamic>>.from(selectedCat['children'] ?? []);
 
+          Widget buildTypeOption(String type, String label, bool isSelected, Color activeColor) {
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => ss(() {
+                  selectedType = type;
+                  isAmortized = type == 'AMORTIZED';
+                }),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? activeColor.withValues(alpha: 0.1) : AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? activeColor : AppColors.cardBorder,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      label,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? activeColor : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
           return Container(
-            height: MediaQuery.of(ctx).size.height * 0.8,
+            height: MediaQuery.of(ctx).size.height * 0.85,
             decoration: const BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -133,8 +172,58 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                         controller: amountCtrl,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(labelText: 'Amount', prefixText: 'EGP '),
+                        onChanged: (_) => ss(() {}),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
+
+                      // Expense Type Selector
+                      Text('EXPENSE TYPE', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 1)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          buildTypeOption('OPERATING', 'Regular', selectedType == 'OPERATING', AppColors.error),
+                          const SizedBox(width: 8),
+                          buildTypeOption('AMORTIZED', 'Amortized', selectedType == 'AMORTIZED', AppColors.info),
+                          const SizedBox(width: 8),
+                          buildTypeOption('CAPITAL', 'Capital/Cost', selectedType == 'CAPITAL', const Color(0xFFD4AF37)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      if (selectedType == 'AMORTIZED') ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextField(
+                                controller: spreadCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Number of months',
+                                  hintText: 'e.g. 6',
+                                  isDense: true,
+                                ),
+                                onChanged: (_) => ss(() {}),
+                              ),
+                              if (amountCtrl.text.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Monthly: EGP ${_currencyFormat.format(((double.tryParse(amountCtrl.text) ?? 0) / (int.tryParse(spreadCtrl.text) ?? 1)))}',
+                                  style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.info),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
                       DropdownButtonFormField<String>(
                         value: categoryId,
                         decoration: const InputDecoration(labelText: 'Category'),
@@ -172,63 +261,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                         ],
                         onChanged: (v) => ss(() => safeId = v),
                       ),
-                      const SizedBox(height: 16),
-                      // Amortization toggle
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: isAmortized ? AppColors.info.withValues(alpha: 0.3) : AppColors.cardBorder),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Icon(LucideIcons.calendarRange, size: 18, color: isAmortized ? AppColors.info : AppColors.textMuted),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Spread across months', style: GoogleFonts.inter(
-                                        fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary,
-                                      )),
-                                      Text('Divide this expense over multiple months', style: GoogleFonts.inter(
-                                        fontSize: 11, color: AppColors.textMuted,
-                                      )),
-                                    ],
-                                  ),
-                                ),
-                                Switch.adaptive(
-                                  value: isAmortized,
-                                  activeTrackColor: AppColors.info,
-                                  onChanged: (v) => ss(() => isAmortized = v),
-                                ),
-                              ],
-                            ),
-                            if (isAmortized) ...[
-                              const SizedBox(height: 12),
-                              TextField(
-                                controller: spreadCtrl,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: 'Number of months',
-                                  hintText: 'e.g. 6',
-                                  isDense: true,
-                                ),
-                              ),
-                              if (amountCtrl.text.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Monthly: EGP ${_currencyFormat.format(((double.tryParse(amountCtrl.text) ?? 0) / (int.tryParse(spreadCtrl.text) ?? 1)))}',
-                                  style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.info),
-                                ),
-                              ],
-                            ],
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -242,7 +274,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                       icon: const Icon(LucideIcons.plus, size: 20),
                       label: Text('Add Expense', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error,
+                        backgroundColor: selectedType == 'CAPITAL'
+                            ? const Color(0xFFD4AF37)
+                            : (selectedType == 'AMORTIZED' ? AppColors.info : AppColors.error),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       onPressed: () async {
@@ -258,6 +292,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                             'subcategoryId': subcategoryId,
                             'safeId': safeId,
                             'isAmortized': isAmortized,
+                            'expenseType': selectedType,
                             'spreadMonths': isAmortized ? (int.tryParse(spreadCtrl.text) ?? 1) : 1,
                           });
                           _loadExpenses();
@@ -286,6 +321,73 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
           );
         },
       ),
+    );
+  }
+
+  void _showMonthPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        int tmpMonth = _month;
+        int tmpYear = _year;
+        return StatefulBuilder(
+          builder: (ctx, ss) => Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Select Month', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(icon: const Icon(LucideIcons.chevronLeft), onPressed: () => ss(() => tmpYear--)),
+                    Text('$tmpYear', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700)),
+                    IconButton(icon: const Icon(LucideIcons.chevronRight), onPressed: () => ss(() => tmpYear++)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: List.generate(12, (i) {
+                    final m = i + 1;
+                    final selected = m == tmpMonth;
+                    return GestureDetector(
+                      onTap: () => ss(() => tmpMonth = m),
+                      child: Container(
+                        width: 70, padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: selected ? AppColors.primaryDark : AppColors.background,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: selected ? AppColors.primaryDark : AppColors.cardBorder),
+                        ),
+                        child: Center(child: Text(
+                          DateFormat('MMM').format(DateTime(2026, m)),
+                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: selected ? Colors.white : AppColors.textPrimary),
+                        )),
+                      ),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    child: const Text('Apply'),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      setState(() { _month = tmpMonth; _year = tmpYear; });
+                      _loadExpenses();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -342,6 +444,315 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
     );
   }
 
+  void _showEditCategoryDialog(Map<String, dynamic> category) {
+    final nameCtrl = TextEditingController(text: category['name']);
+    final budgetLimitCtrl = TextEditingController(text: category['budgetLimit']?.toString() ?? '');
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Edit Category', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w600)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Category Name')),
+            const SizedBox(height: 12),
+            TextField(
+              controller: budgetLimitCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Monthly Budget Limit (optional)', prefixText: 'EGP '),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameCtrl.text.isEmpty) return;
+              Navigator.pop(ctx);
+              try {
+                final token = context.read<AuthProvider>().token;
+                final client = ApiClient(token: token);
+                await client.put('/api/admin/auth/finance/expense-categories', body: {
+                  'id': category['id'],
+                  'name': nameCtrl.text,
+                  'budgetLimit': budgetLimitCtrl.text.isNotEmpty ? (double.tryParse(budgetLimitCtrl.text) ?? 0) : null,
+                });
+                _loadExpenses();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
+                    content: const Text('Category updated'),
+                    backgroundColor: AppColors.success,
+                  ));
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
+                    content: Text('Error: $e'),
+                    backgroundColor: AppColors.error,
+                  ));
+                }
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddSubcategoryDialog(String parentId, String parentName) {
+    final nameCtrl = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Add Subcategory to $parentName', style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w600)),
+        content: TextField(
+          controller: nameCtrl,
+          decoration: const InputDecoration(labelText: 'Subcategory Name'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameCtrl.text.isEmpty) return;
+              Navigator.pop(ctx);
+              try {
+                final token = context.read<AuthProvider>().token;
+                final client = ApiClient(token: token);
+                await client.post('/api/admin/auth/finance/expense-categories', body: {
+                  'name': nameCtrl.text,
+                  'parentId': parentId,
+                });
+                _loadExpenses();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
+                    content: const Text('Subcategory added'),
+                    backgroundColor: AppColors.success,
+                  ));
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
+                    content: Text('Error: $e'),
+                    backgroundColor: AppColors.error,
+                  ));
+                }
+              }
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteCategory(Map<String, dynamic> category) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Delete Category?', style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w600, color: AppColors.error)),
+        content: Text('Are you sure you want to delete "${category['name']}"? This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                final token = context.read<AuthProvider>().token;
+                final client = ApiClient(token: token);
+                await client.delete('/api/admin/auth/finance/expense-categories?id=${category['id']}');
+                _loadExpenses();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
+                    content: const Text('Category deleted'),
+                    backgroundColor: AppColors.success,
+                  ));
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
+                    content: Text('Failed: $e'),
+                    backgroundColor: AppColors.error,
+                  ));
+                }
+              }
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(Map<String, dynamic> cat) {
+    final subcats = List<Map<String, dynamic>>.from(cat['children'] ?? []);
+    final budgetLimit = cat['budgetLimit'] != null ? (cat['budgetLimit'] as num).toDouble() : null;
+    final count = cat['expenseCount'] ?? 0;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryDetailsScreen(
+              category: cat,
+              initialMonth: _month,
+              initialYear: _year,
+            ),
+          ),
+        ).then((_) => _loadExpenses());
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.cardBorder),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Parent Category Header
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryDark.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(LucideIcons.folder, size: 18, color: AppColors.primaryDark),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          cat['name'] ?? '',
+                          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$count expenses${budgetLimit != null ? ' • Budget: EGP ${_currencyFormat.format(budgetLimit)}' : ''}',
+                          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Actions
+                  IconButton(
+                    icon: const Icon(LucideIcons.plus, size: 16, color: AppColors.primaryDark),
+                    onPressed: () => _showAddSubcategoryDialog(cat['id'], cat['name']),
+                    tooltip: 'Add Subcategory',
+                  ),
+                  IconButton(
+                    icon: const Icon(LucideIcons.edit2, size: 16, color: AppColors.textMuted),
+                    onPressed: () => _showEditCategoryDialog(cat),
+                    tooltip: 'Edit Category',
+                  ),
+                  IconButton(
+                    icon: const Icon(LucideIcons.trash2, size: 16, color: AppColors.error),
+                    onPressed: () => _confirmDeleteCategory(cat),
+                    tooltip: 'Delete Category',
+                  ),
+                ],
+              ),
+            ),
+            if (subcats.isNotEmpty) ...[
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              Padding(
+                padding: const EdgeInsets.only(left: 32, right: 16, top: 8, bottom: 8),
+                child: Column(
+                  children: subcats.map((sub) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 6, height: 6,
+                          decoration: const BoxDecoration(
+                            color: AppColors.textMuted,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            sub['name'] ?? '',
+                            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(LucideIcons.edit2, size: 14, color: AppColors.textMuted),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => _showEditCategoryDialog(sub),
+                          tooltip: 'Edit Subcategory',
+                        ),
+                        const SizedBox(width: 12),
+                        IconButton(
+                          icon: const Icon(LucideIcons.trash2, size: 14, color: AppColors.error),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => _confirmDeleteCategory(sub),
+                          tooltip: 'Delete Subcategory',
+                        ),
+                      ],
+                    ),
+                  )).toList(),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget? _buildFAB() {
+    if (_tabController.index == 0) {
+      // Expenses tab
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 90),
+        child: FloatingActionButton.extended(
+          onPressed: _showAddExpenseSheet,
+          backgroundColor: AppColors.primaryDark,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          icon: const Icon(LucideIcons.plus, size: 20),
+          label: Text('New Expense', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      );
+    } else if (_tabController.index == 2) {
+      // Categories tab
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 90),
+        child: FloatingActionButton.extended(
+          onPressed: _showAddCategoryDialog,
+          backgroundColor: AppColors.primaryDark,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          icon: const Icon(LucideIcons.plus, size: 20),
+          label: Text('New Category', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      );
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final totalDirect = (_stats['totalDirectExpenses'] ?? 0).toDouble();
@@ -351,6 +762,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: _buildFAB(),
       appBar: AppBar(
         backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
@@ -358,19 +770,45 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
           fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark,
         )),
         actions: [
-          IconButton(icon: const Icon(LucideIcons.folderPlus, size: 20), onPressed: _showAddCategoryDialog, tooltip: 'Add Category'),
-          IconButton(icon: const Icon(LucideIcons.plus, size: 20), onPressed: _showAddExpenseSheet, tooltip: 'Add Expense'),
+          TextButton.icon(
+            icon: const Icon(LucideIcons.calendar, size: 16),
+            label: Text(
+              DateFormat('MMM yyyy').format(DateTime(_year, _month)),
+              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            onPressed: _showMonthPicker,
+          ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppColors.primaryDark,
-          labelColor: AppColors.primaryDark,
-          unselectedLabelColor: AppColors.textMuted,
-          labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
-          tabs: const [
-            Tab(text: 'Expenses'),
-            Tab(text: 'Analytics'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(62),
+          child: Container(
+            height: 50,
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
+              indicator: BoxDecoration(
+                color: AppColors.primaryDark,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              labelColor: Colors.white,
+              unselectedLabelColor: AppColors.textMuted,
+              labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+              unselectedLabelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+              tabs: const [
+                Tab(text: 'Expenses'),
+                Tab(text: 'Analytics'),
+                Tab(text: 'Categories'),
+              ],
+            ),
+          ),
         ),
       ),
       body: _loading
@@ -396,7 +834,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('${DateFormat('MMMM yyyy').format(DateTime(_year, _month))}',
+                            Text(
+                              DateFormat('MMMM yyyy').format(DateTime(_year, _month)),
                               style: GoogleFonts.inter(fontSize: 13, color: Colors.white70),
                             ),
                             const SizedBox(height: 8),
@@ -487,6 +926,24 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                       }),
                   ],
                 ),
+                // Tab 3: Categories List
+                RefreshIndicator(
+                  onRefresh: _loadExpenses,
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                    children: [
+                      Text('EXPENSE CATEGORIES', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 1)),
+                      const SizedBox(height: 8),
+                      if (_categories.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Center(child: Text('No categories created yet', style: GoogleFonts.inter(color: AppColors.textMuted))),
+                        )
+                      else
+                        ..._categories.map((cat) => _buildCategoryCard(cat)),
+                    ],
+                  ),
+                ),
               ],
             ),
     );
@@ -503,25 +960,51 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
   }
 
   Widget _buildExpenseItem(Map<String, dynamic> expense, {bool isAmortized = false}) {
+    final typeStr = expense['expenseType'] ?? (isAmortized ? 'AMORTIZED' : 'OPERATING');
+    final isItemAmortized = typeStr == 'AMORTIZED' || isAmortized;
+    final isItemCapital = typeStr == 'CAPITAL';
+
+    final Color itemColor;
+    final IconData itemIcon;
+    final String typeLabel;
+
+    if (isItemAmortized) {
+      itemColor = AppColors.info;
+      itemIcon = LucideIcons.calendarRange;
+      typeLabel = 'Amortized';
+    } else if (isItemCapital) {
+      itemColor = const Color(0xFFD4AF37); // Gold/Amber
+      itemIcon = LucideIcons.package;
+      typeLabel = 'Capital';
+    } else {
+      itemColor = AppColors.error;
+      itemIcon = LucideIcons.minus;
+      typeLabel = 'Operating';
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isAmortized ? AppColors.info.withValues(alpha: 0.2) : AppColors.cardBorder),
+        border: Border.all(
+          color: isItemAmortized 
+              ? AppColors.info.withValues(alpha: 0.2) 
+              : (isItemCapital ? const Color(0xFFD4AF37).withValues(alpha: 0.2) : AppColors.cardBorder),
+        ),
       ),
       child: Row(
         children: [
           Container(
             width: 38, height: 38,
             decoration: BoxDecoration(
-              color: (isAmortized ? AppColors.info : AppColors.error).withValues(alpha: 0.1),
+              color: itemColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              isAmortized ? LucideIcons.calendarRange : LucideIcons.minus,
-              size: 16, color: isAmortized ? AppColors.info : AppColors.error,
+              itemIcon,
+              size: 16, color: itemColor,
             ),
           ),
           const SizedBox(width: 12),
@@ -532,7 +1015,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                 Text(expense['description'] ?? '', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
                 Text(
-                  '${(expense['category'] as Map?)?['name'] ?? ''}${expense['safe'] != null ? ' • ${(expense['safe'] as Map)['name']}' : ''}',
+                  '${(expense['category'] as Map?)?['name'] ?? ''}${expense['safe'] != null ? ' • ${(expense['safe'] as Map)['name']}' : ''} • $typeLabel',
                   style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
                 ),
               ],
@@ -542,12 +1025,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                isAmortized
+                isItemAmortized
                     ? 'EGP ${_currencyFormat.format((expense['monthlyAmount'] ?? 0).toDouble())}/mo'
                     : 'EGP ${_currencyFormat.format((expense['amount'] ?? 0).toDouble())}',
-                style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.error),
+                style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: itemColor),
               ),
-              if (isAmortized)
+              if (isItemAmortized)
                 Text('Total: ${_currencyFormat.format((expense['totalAmount'] ?? expense['amount'] ?? 0).toDouble())}',
                   style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted),
                 ),

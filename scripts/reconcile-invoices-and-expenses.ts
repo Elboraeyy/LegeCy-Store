@@ -369,7 +369,8 @@ async function main() {
           paidBy: 'Cash (Office)',
           safeId: safeId,
           approvedBy: adminId,
-          createdAt: invoiceDate
+          createdAt: invoiceDate,
+          expenseType: 'CAPITAL'
         }
       });
 

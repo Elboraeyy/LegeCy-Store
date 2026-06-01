@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
             where: {
                 date: { gte: startOfMonth, lte: endOfMonth },
                 isAmortized: false,
+                expenseType: 'OPERATING',
                 status: 'PAID',
             },
             _sum: { amount: true },
