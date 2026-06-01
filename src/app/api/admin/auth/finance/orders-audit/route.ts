@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { orderFinancialService } from '@/lib/services/orders/orderFinancialService';
 
 /**
  * GET /api/admin/finance/orders-audit
@@ -221,6 +222,11 @@ export async function PUT(request: NextRequest) {
                         createdBy: admin.id,
                     },
                 });
+            }
+
+            // Call recognizeRevenue during audit instead of delivery to keep GL and Safe balanced
+            if (!order.isFinanciallyAudited) {
+                await orderFinancialService.recognizeRevenue(orderId, admin.id, tx);
             }
 
             return updatedOrder;

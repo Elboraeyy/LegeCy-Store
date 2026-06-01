@@ -173,14 +173,6 @@ export const orderStateService = {
                 }
                 break;
             case 'DELIVERED':
-                // For COD orders, record payment source entry (xazna) upon delivery
-                const order = await db.order.findUnique({ where: { id: orderId } });
-                if (order && order.paymentMethod === 'cod') {
-                    await orderFinancialService.recordPaymentReceipt(orderId, db);
-                }
-
-                await orderFinancialService.recognizeRevenue(orderId, triggeredBy, db);
-
                 // Move notification outside or trigger if NOT in transaction
                 if (!txClient) {
                     await orderNotificationService.notifyDelivered(orderId);

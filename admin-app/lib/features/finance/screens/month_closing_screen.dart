@@ -24,6 +24,8 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
   int _year = DateTime.now().year;
   bool _closing_in_progress = false;
   final _currencyFormat = NumberFormat('#,##0.00', 'en');
+  List<dynamic> _safes = [];
+  String? _selectedBrandSafeId;
 
   @override
   void initState() {
@@ -42,6 +44,17 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
           _closing = Map<String, dynamic>.from(res['closing'] ?? {});
           _isPreview = res['isPreview'] ?? true;
           _pendingAuditCount = res['pendingAuditCount'] ?? 0;
+          _safes = List<dynamic>.from(res['safes'] ?? []);
+          
+          if (_safes.isNotEmpty) {
+            final officeSafe = _safes.firstWhere(
+              (s) => s['name'] == 'Cash (Office)',
+              orElse: () => _safes.first,
+            );
+            _selectedBrandSafeId = officeSafe['id']?.toString();
+          } else {
+            _selectedBrandSafeId = null;
+          }
           _loading = false;
         });
       }
@@ -59,6 +72,7 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
       await client.post('/api/admin/auth/finance/month-closing', body: {
         'month': _month,
         'year': _year,
+        'brandSafeId': _selectedBrandSafeId,
         ..._closing,
       });
       _loadClosing();
@@ -292,6 +306,41 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
                       ),
                     );
                   }),
+                  const SizedBox(height: 24),
+
+                  if (_isPreview && !isClosed && _safes.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _sectionTitle('BRAND REINVESTMENT SAFE', LucideIcons.wallet, AppColors.info),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.cardBorder),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedBrandSafeId,
+                          decoration: const InputDecoration(border: InputBorder.none),
+                          dropdownColor: AppColors.surface,
+                          items: _safes.map((s) {
+                            return DropdownMenuItem<String>(
+                              value: s['id']?.toString(),
+                              child: Text(
+                                s['name'] ?? '',
+                                style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: _closing_in_progress
+                              ? null
+                              : (val) {
+                                  setState(() => _selectedBrandSafeId = val);
+                                },
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
 
                   // Close month button

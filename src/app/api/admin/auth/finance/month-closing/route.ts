@@ -191,6 +191,7 @@ export async function POST(request: NextRequest) {
             totalOperatingExpenses, totalAmortizedExpenses,
             netProfit: rawNetProfit,
             totalOrders, auditedOrders, cancelledOrders,
+            brandSafeId,
         } = body;
 
         // Apply manual adjustment
@@ -279,8 +280,41 @@ export async function POST(request: NextRequest) {
                 });
             }
 
-            // Add reinvestment to capital
-            // (This increases the total capital pool)
+            // Reverse old safe transaction if re-closing
+            const oldTx = await tx.safeTransaction.findFirst({
+                where: {
+                    referenceType: 'MONTH_CLOSING',
+                    referenceId: closing.id,
+                }
+            });
+            if (oldTx) {
+                await tx.safe.update({
+                    where: { id: oldTx.safeId },
+                    data: { balance: { decrement: oldTx.amount } }
+                });
+                await tx.safeTransaction.delete({ where: { id: oldTx.id } });
+            }
+
+            // Deposit reinvestment amount (brand money) to selected safe
+            if (brandSafeId && reinvestmentAmount > 0) {
+                const safe = await tx.safe.update({
+                    where: { id: brandSafeId },
+                    data: { balance: { increment: reinvestmentAmount } }
+                });
+
+                await tx.safeTransaction.create({
+                    data: {
+                        safeId: brandSafeId,
+                        type: 'CREDIT',
+                        amount: reinvestmentAmount,
+                        balanceAfter: safe.balance.toNumber(),
+                        description: `إعادة استثمار (أرباح البراند) لشهر ${month}/${year}`,
+                        referenceType: 'MONTH_CLOSING',
+                        referenceId: closing.id,
+                        createdBy: admin.id
+                    }
+                });
+            }
 
             return closing;
         });
