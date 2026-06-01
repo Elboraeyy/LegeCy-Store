@@ -89,7 +89,8 @@ export async function GET(request: NextRequest) {
                         const cumulativeSalaryShare = partnerPast.reduce((sum, p) => sum + p.salaryShare.toNumber(), 0);
                         const cumulativeTotalShare = partnerPast.reduce((sum, p) => sum + p.totalShare.toNumber(), 0);
 
-                        const netContributed = (pd.investor as any)?.netContributed ? Number((pd.investor as any).netContributed) : 0;
+                        const investor = pd.investor as { netContributed: { toNumber(): number } } | null;
+                        const netContributed = investor?.netContributed ? Number(investor.netContributed.toNumber()) : 0;
                         const currentCapitalWorth = netContributed + (cumulativeReinvestment * pd.sharePercentage.toNumber());
 
                         return {
