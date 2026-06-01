@@ -75,7 +75,7 @@ export async function PUT(req: NextRequest) {
         if (typeof value === "string") {
           try {
             parsedValue = JSON.parse(value);
-          } catch (_) {
+          } catch {
             // If it fails to parse, just save as string (though it should be valid JSON)
           }
         }

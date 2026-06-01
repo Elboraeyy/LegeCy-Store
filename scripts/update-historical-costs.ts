@@ -121,9 +121,9 @@ async function main() {
 
     // A. Specs supplierPrice
     if (item.product?.specs && typeof item.product.specs === 'object') {
-      const specs = item.product.specs as any;
-      if (specs.supplierPrice !== undefined) {
-        defaultWholesale = Number(specs.supplierPrice);
+      const specs = item.product.specs as Record<string, unknown>;
+      if (specs['supplierPrice'] !== undefined) {
+        defaultWholesale = Number(specs['supplierPrice']);
       }
     }
 

@@ -45,12 +45,12 @@ async function main() {
     let additionalCosts: number | null = null;
 
     if (v.product.specs && typeof v.product.specs === 'object') {
-      const specs = v.product.specs as any;
-      if (specs.supplierPrice !== undefined) {
-        supplierPrice = Number(specs.supplierPrice);
+      const specs = v.product.specs as Record<string, unknown>;
+      if (specs['supplierPrice'] !== undefined) {
+        supplierPrice = Number(specs['supplierPrice']);
       }
-      if (specs.additionalCosts !== undefined) {
-        additionalCosts = Number(specs.additionalCosts);
+      if (specs['additionalCosts'] !== undefined) {
+        additionalCosts = Number(specs['additionalCosts']);
       }
     }
 

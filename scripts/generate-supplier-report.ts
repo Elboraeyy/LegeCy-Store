@@ -56,9 +56,9 @@ async function main() {
     // Get default supplier price from specs
     let defaultSupplierPrice = 0;
     if (p.specs && typeof p.specs === 'object') {
-      const specs = p.specs as any;
-      if (specs.supplierPrice !== undefined) {
-        defaultSupplierPrice = Number(specs.supplierPrice);
+      const specs = p.specs as Record<string, unknown>;
+      if (specs['supplierPrice'] !== undefined) {
+        defaultSupplierPrice = Number(specs['supplierPrice']);
       }
     }
 

@@ -184,9 +184,9 @@ async function main() {
       // Determine default supplier price from specs
       let defaultSupplierPrice = 0;
       if (v.product.specs && typeof v.product.specs === 'object') {
-        const specs = v.product.specs as any;
-        if (specs.supplierPrice !== undefined) {
-          defaultSupplierPrice = Number(specs.supplierPrice);
+        const specs = v.product.specs as Record<string, unknown>;
+        if (specs['supplierPrice'] !== undefined) {
+          defaultSupplierPrice = Number(specs['supplierPrice']);
         }
       }
       if (defaultSupplierPrice === 0) {

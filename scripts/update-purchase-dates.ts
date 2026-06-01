@@ -11,10 +11,12 @@ async function main() {
   let updatedCount = 0;
 
   for (const product of products) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let currentSpecs: any = {};
     
     if (product.specs && typeof product.specs === 'object') {
-      currentSpecs = { ...(product.specs as object) };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      currentSpecs = { ...(product.specs as any) };
     }
 
     // Update or set purchaseDate

@@ -83,12 +83,12 @@ async function main() {
     let additionalCosts: number | null = null;
 
     if (v.product.specs && typeof v.product.specs === 'object') {
-      const specs = v.product.specs as any;
-      if (specs.supplierPrice !== undefined) {
-        supplierPrice = Number(specs.supplierPrice);
+      const specs = v.product.specs as Record<string, unknown>;
+      if (specs['supplierPrice'] !== undefined) {
+        supplierPrice = Number(specs['supplierPrice']);
       }
-      if (specs.additionalCosts !== undefined) {
-        additionalCosts = Number(specs.additionalCosts);
+      if (specs['additionalCosts'] !== undefined) {
+        additionalCosts = Number(specs['additionalCosts']);
       }
     }
 
@@ -139,9 +139,9 @@ async function main() {
       // 2. Fallback to product specs supplierPrice
       let supplierPrice = 0;
       if (item.product?.specs && typeof item.product.specs === 'object') {
-        const specs = item.product.specs as any;
-        if (specs.supplierPrice !== undefined) {
-          supplierPrice = Number(specs.supplierPrice);
+        const specs = item.product.specs as Record<string, unknown>;
+        if (specs['supplierPrice'] !== undefined) {
+          supplierPrice = Number(specs['supplierPrice']);
         }
       }
 
