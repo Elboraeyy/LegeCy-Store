@@ -126,6 +126,9 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
       _orderNotesController.text = _displayOrderNotes(
         order['shippingNotes'] ?? order['customerNotes'] ?? order['orderNotes'],
       );
+      if (order['createdAt'] != null) {
+        _selectedOrderDate = DateTime.tryParse(order['createdAt']) ?? DateTime.now();
+      }
     }
   }
 
@@ -158,6 +161,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
   final _discountController = TextEditingController();
   String _paymentMethod = 'cod';
   String _orderSource = 'whatsapp';
+  DateTime _selectedOrderDate = DateTime.now();
 
   bool _isSubmitting = false;
 
@@ -279,6 +283,110 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
         curve: Curves.easeInOut,
       );
     }
+  }
+
+  Future<void> _selectOrderDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedOrderDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primaryDark,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      if (context.mounted) {
+        final TimeOfDay? pickedTime = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(_selectedOrderDate),
+          builder: (context, child) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: const ColorScheme.light(
+                  primary: AppColors.primaryDark,
+                  onPrimary: Colors.white,
+                  onSurface: AppColors.textPrimary,
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+        if (mounted) {
+          setState(() {
+            _selectedOrderDate = pickedTime != null
+                ? DateTime(
+                    picked.year,
+                    picked.month,
+                    picked.day,
+                    pickedTime.hour,
+                    pickedTime.minute,
+                  )
+                : picked;
+          });
+        }
+      }
+    }
+  }
+
+  Widget _orderDateSelector() {
+    final dateStr = "${_selectedOrderDate.year}-${_selectedOrderDate.month.toString().padLeft(2, '0')}-${_selectedOrderDate.day.toString().padLeft(2, '0')} ${_selectedOrderDate.hour.toString().padLeft(2, '0')}:${_selectedOrderDate.minute.toString().padLeft(2, '0')}";
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Order Date',
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textMuted,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _selectOrderDate(context),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(LucideIcons.calendar, size: 20, color: AppColors.primaryDark),
+                    const SizedBox(width: 12),
+                    Text(
+                      dateStr,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -677,6 +785,8 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
           _sourceDropdown(),
           const SizedBox(height: 16),
           _paymentDropdown(),
+          const SizedBox(height: 16),
+          _orderDateSelector(),
           const SizedBox(height: 16),
           _textField(
             _orderNotesController,
@@ -1373,6 +1483,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
         'notes': _orderNotesController.text.trim().isEmpty
             ? null
             : _orderNotesController.text.trim(),
+        'createdAt': _selectedOrderDate.toIso8601String(),
       };
 
       if (widget.existingOrder != null) {

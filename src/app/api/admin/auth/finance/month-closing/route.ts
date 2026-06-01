@@ -17,17 +17,53 @@ export async function GET(request: NextRequest) {
         const month = parseInt(searchParams.get('month') || String(new Date().getMonth() + 1));
         const year = parseInt(searchParams.get('year') || String(new Date().getFullYear()));
 
+        // Fetch active safes
+        const safesRaw = await prisma.safe.findMany({
+            where: { isActive: true },
+            orderBy: { name: 'asc' },
+        });
+        const safes = safesRaw.map(s => ({
+            id: s.id,
+            name: s.name,
+            balance: s.balance.toNumber(),
+        }));
+
         // Check if already closed
         const existing = await prisma.monthClosing.findUnique({
             where: { month_year: { month, year } },
             include: {
                 partnerDistributions: {
-                    include: { investor: { select: { name: true } } },
+                    include: { investor: { select: { name: true, netContributed: true } } },
                 },
             },
         });
 
         if (existing) {
+            // Calculate cumulative brand reinvestment up to this closed month
+            const pastClosings = await prisma.monthClosing.findMany({
+                where: {
+                    status: 'CLOSED',
+                    OR: [
+                        { year: { lt: year } },
+                        { year: year, month: { lte: month } }
+                    ]
+                }
+            });
+            const cumulativeReinvestment = pastClosings.reduce((sum, mc) => sum + mc.reinvestmentAmount.toNumber(), 0);
+
+            // Calculate partner cumulative shares up to this closed month
+            const partnerCumulativeShares = await prisma.monthClosingPartner.findMany({
+                where: {
+                    monthClosing: {
+                        status: 'CLOSED',
+                        OR: [
+                            { year: { lt: year } },
+                            { year: year, month: { lte: month } }
+                        ]
+                    }
+                }
+            });
+
             return NextResponse.json({
                 closing: {
                     ...existing,
@@ -46,14 +82,30 @@ export async function GET(request: NextRequest) {
                     profitShareAmount: existing.profitShareAmount.toNumber(),
                     salaryShareAmount: existing.salaryShareAmount.toNumber(),
                     manualAdjustment: existing.manualAdjustment.toNumber(),
-                    partnerDistributions: existing.partnerDistributions.map(pd => ({
-                        ...pd,
-                        sharePercentage: pd.sharePercentage.toNumber(),
-                        profitShare: pd.profitShare.toNumber(),
-                        salaryShare: pd.salaryShare.toNumber(),
-                        totalShare: pd.totalShare.toNumber(),
-                    })),
+                    cumulativeReinvestment,
+                    partnerDistributions: existing.partnerDistributions.map(pd => {
+                        const partnerPast = partnerCumulativeShares.filter(pcs => pcs.investorId === pd.investorId);
+                        const cumulativeProfitShare = partnerPast.reduce((sum, p) => sum + p.profitShare.toNumber(), 0);
+                        const cumulativeSalaryShare = partnerPast.reduce((sum, p) => sum + p.salaryShare.toNumber(), 0);
+                        const cumulativeTotalShare = partnerPast.reduce((sum, p) => sum + p.totalShare.toNumber(), 0);
+
+                        const netContributed = (pd.investor as any)?.netContributed ? Number((pd.investor as any).netContributed) : 0;
+                        const currentCapitalWorth = netContributed + (cumulativeReinvestment * pd.sharePercentage.toNumber());
+
+                        return {
+                            ...pd,
+                            sharePercentage: pd.sharePercentage.toNumber(),
+                            profitShare: pd.profitShare.toNumber(),
+                            salaryShare: pd.salaryShare.toNumber(),
+                            totalShare: pd.totalShare.toNumber(),
+                            cumulativeProfitShare,
+                            cumulativeSalaryShare,
+                            cumulativeTotalShare,
+                            currentCapitalWorth,
+                        };
+                    }),
                 },
+                safes,
                 isPreview: false,
             });
         }
@@ -136,16 +188,56 @@ export async function GET(request: NextRequest) {
             orderBy: { name: 'asc' },
         });
 
+        // Calculate cumulative brand reinvestment up to this month (prior closed months + current draft reinvestmentAmount)
+        const pastClosings = await prisma.monthClosing.findMany({
+            where: {
+                status: 'CLOSED',
+                OR: [
+                    { year: { lt: year } },
+                    { year: year, month: { lt: month } }
+                ]
+            }
+        });
+        const pastReinvestment = pastClosings.reduce((sum, mc) => sum + mc.reinvestmentAmount.toNumber(), 0);
+        const cumulativeReinvestment = pastReinvestment + reinvestmentAmount;
+
+        // Calculate partner cumulative shares up to this month (prior closed months + current draft shares)
+        const partnerCumulativeShares = await prisma.monthClosingPartner.findMany({
+            where: {
+                monthClosing: {
+                    status: 'CLOSED',
+                    OR: [
+                        { year: { lt: year } },
+                        { year: year, month: { lt: month } }
+                    ]
+                }
+            }
+        });
+
         const partnerDistributions = partners.map(p => {
             const pSalaryShare = Math.round(salaryShareAmount * p.salaryShare.toNumber() * 100) / 100;
             const pProfitShare = Math.round(profitShareAmount * p.currentShare.toNumber() * 100) / 100;
+            const currentTotal = Math.round((pProfitShare + pSalaryShare) * 100) / 100;
+
+            const partnerPast = partnerCumulativeShares.filter(pcs => pcs.investorId === p.id);
+            const pastProfitShare = partnerPast.reduce((sum, pcs) => sum + pcs.profitShare.toNumber(), 0);
+            const pastSalaryShare = partnerPast.reduce((sum, pcs) => sum + pcs.salaryShare.toNumber(), 0);
+            const pastTotalShare = partnerPast.reduce((sum, pcs) => sum + pcs.totalShare.toNumber(), 0);
+
+            const netContributed = p.netContributed.toNumber();
+            const currentCapitalWorth = netContributed + (cumulativeReinvestment * p.currentShare.toNumber());
+
             return {
                 investorId: p.id,
                 partnerName: p.name,
                 sharePercentage: p.currentShare.toNumber(),
                 profitShare: pProfitShare,
                 salaryShare: pSalaryShare,
-                totalShare: Math.round((pProfitShare + pSalaryShare) * 100) / 100,
+                totalShare: currentTotal,
+                cumulativeProfitShare: pastProfitShare + pProfitShare,
+                cumulativeSalaryShare: pastSalaryShare + pSalaryShare,
+                cumulativeTotalShare: pastTotalShare + currentTotal,
+                currentCapitalWorth,
             };
         });
 
@@ -160,11 +252,13 @@ export async function GET(request: NextRequest) {
                 reinvestmentAmount, distributionAmount,
                 profitShareAmount, salaryShareAmount,
                 manualAdjustment: 0,
+                cumulativeReinvestment,
                 totalOrders: auditedOrders.length + pendingAuditCount,
                 auditedOrders: auditedOrders.length,
                 cancelledOrders: cancelledCount,
                 partnerDistributions,
             },
+            safes,
             pendingAuditCount,
             isPreview: true,
         });

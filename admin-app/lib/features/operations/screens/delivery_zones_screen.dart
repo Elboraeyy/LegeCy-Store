@@ -7,6 +7,7 @@ import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'edit_delivery_zones_screen.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class DeliveryZonesScreen extends StatefulWidget {
   const DeliveryZonesScreen({super.key});
@@ -195,7 +196,38 @@ class _DeliveryZonesScreenState extends State<DeliveryZonesScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+              itemCount: 4,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      const AppShimmer(width: 40, height: 40, borderRadius: 10),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            AppShimmer(width: 120, height: 14),
+                            SizedBox(height: 6),
+                            AppShimmer(width: 160, height: 12),
+                          ],
+                        ),
+                      ),
+                      const AppShimmer(width: 60, height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            )
           : _error != null
               ? _buildErrorState()
               : RefreshIndicator(

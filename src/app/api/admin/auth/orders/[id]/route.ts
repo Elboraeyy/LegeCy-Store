@@ -104,6 +104,7 @@ export async function PATCH(
           ? body.notes
           : note,
         status: status,
+        createdAt: body.createdAt,
         adminId: admin.id,
         skipAuthCheck: true,
       });

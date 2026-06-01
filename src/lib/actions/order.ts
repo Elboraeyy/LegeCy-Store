@@ -152,6 +152,7 @@ interface ManualOrderInput {
     shippingCost?: number;
     adminId?: string; // For tracking updates
     skipAuthCheck?: boolean; // Used by mobile API
+    createdAt?: string; // Manual order date
 }
 
 interface ManualOrderResult {
@@ -293,6 +294,7 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Manual
             discountAmount: discount,
             shippingCost: shipping,
             orderSource: input.source || 'manual',
+            createdAt: input.createdAt,
             options: {
                 skipReservation: false,
                 status: input.status
@@ -493,6 +495,7 @@ export async function adminUpdateOrder(orderId: string, input: ManualOrderInput)
             discountAmount: input.discountAmount,
             shippingNotes: input.notes,
             orderSource: input.source,
+            createdAt: input.createdAt,
         });
 
         console.log('[AdminUpdateOrder] Service call successful', {

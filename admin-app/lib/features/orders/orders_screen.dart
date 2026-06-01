@@ -8,6 +8,7 @@ import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/orders/create_manual_order_screen.dart';
 import 'package:admin_app/features/orders/order_details_screen.dart';
+import 'order_actions_helper.dart';
 import 'package:admin_app/core/constants/order_constants.dart';
 import 'package:flutter/services.dart';
 import '../../core/widgets/app_shimmer.dart';
@@ -305,10 +306,133 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         final order = _orders[index];
         final status = (order['status'] ?? '').toString();
         final color = _statusColor(status);
+        final isLtr = Directionality.of(context) == TextDirection.ltr;
 
-        return GestureDetector(
-          onTap: () {
-            if (_isSelectionMode) {
+        Widget cardContent = Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _selectedOrderIds.contains(order['id']) ? AppColors.primaryDark : AppColors.cardBorder, width: _selectedOrderIds.contains(order['id']) ? 2 : 1),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_isSelectionMode) ...[
+                Padding(
+                  padding: const EdgeInsets.only(top: 2, right: 12),
+                  child: Icon(
+                    _selectedOrderIds.contains(order['id']) ? LucideIcons.checkSquare : LucideIcons.square,
+                    color: _selectedOrderIds.contains(order['id']) ? AppColors.primaryDark : AppColors.textMuted,
+                    size: 20,
+                  ),
+                ),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '#${order['orderNumber']}',
+                          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            if (!OrderConstants.terminalStates.contains(status.toLowerCase())) {
+                              _showStatusPicker(order);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _statusLabel(status),
+                                  style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: color, letterSpacing: 0.5),
+                                ),
+                                if (!OrderConstants.terminalStates.contains(status.toLowerCase())) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(LucideIcons.chevronDown, size: 12, color: color),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Icon(LucideIcons.user, size: 14, color: AppColors.textMuted),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            order['displayName'] ?? 'Guest',
+                            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(LucideIcons.mapPin, size: 14, color: AppColors.textMuted),
+                            const SizedBox(width: 6),
+                            Text(
+                              order['shippingGovernorate'] ?? order['shippingCity'] ?? '-',
+                              style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '${(order['totalPrice'] as num?)?.toStringAsFixed(0) ?? '0'} EGP',
+                          style: GoogleFonts.playfairDisplay(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryDark),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatDate(order['createdAt']),
+                          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
+                        ),
+                        Row(
+                          children: [
+                            Icon(_sourceIcon((order['source'] ?? 'website').toString()), size: 12, color: AppColors.textMuted),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${order['itemCount'] ?? 0} items',
+                              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+
+        if (_isSelectionMode) {
+          return GestureDetector(
+            onTap: () {
               setState(() {
                 if (_selectedOrderIds.contains(order['id'])) {
                   _selectedOrderIds.remove(order['id']);
@@ -316,130 +440,60 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                   _selectedOrderIds.add(order['id']);
                 }
               });
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: cardContent,
+            ),
+          );
+        }
+
+        return Dismissible(
+          key: Key(order['id'].toString()),
+          background: isLtr
+              ? _dismissibleBackground(
+                  color: const Color(0xFF128C7E),
+                  icon: LucideIcons.messageCircle,
+                  label: 'WhatsApp',
+                  alignment: Alignment.centerLeft,
+                )
+              : _dismissibleBackground(
+                  color: const Color(0xFF475569),
+                  icon: LucideIcons.printer,
+                  label: 'Print Options',
+                  alignment: Alignment.centerRight,
+                ),
+          secondaryBackground: isLtr
+              ? _dismissibleBackground(
+                  color: const Color(0xFF475569),
+                  icon: LucideIcons.printer,
+                  label: 'Print Options',
+                  alignment: Alignment.centerRight,
+                )
+              : _dismissibleBackground(
+                  color: const Color(0xFF128C7E),
+                  icon: LucideIcons.messageCircle,
+                  label: 'WhatsApp',
+                  alignment: Alignment.centerLeft,
+                ),
+          confirmDismiss: (direction) async {
+            HapticFeedback.mediumImpact();
+            final isWhatsApp = isLtr
+                ? direction == DismissDirection.startToEnd
+                : direction == DismissDirection.endToStart;
+
+            if (isWhatsApp) {
+              _performSwipeAction(order, 'whatsapp');
             } else {
-              _openOrderDetail(order['id']);
+              _performSwipeAction(order, 'print');
             }
+            return false;
           },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _selectedOrderIds.contains(order['id']) ? AppColors.primaryDark : AppColors.cardBorder, width: _selectedOrderIds.contains(order['id']) ? 2 : 1),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (_isSelectionMode) ...[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2, right: 12),
-                    child: Icon(
-                      _selectedOrderIds.contains(order['id']) ? LucideIcons.checkSquare : LucideIcons.square,
-                      color: _selectedOrderIds.contains(order['id']) ? AppColors.primaryDark : AppColors.textMuted,
-                      size: 20,
-                    ),
-                  ),
-                ],
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '#${order['orderNumber']}',
-                      style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        if (!OrderConstants.terminalStates.contains(status.toLowerCase())) {
-                          _showStatusPicker(order);
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _statusLabel(status),
-                              style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: color, letterSpacing: 0.5),
-                            ),
-                            if (!OrderConstants.terminalStates.contains(status.toLowerCase())) ...[
-                              const SizedBox(width: 4),
-                              Icon(LucideIcons.chevronDown, size: 12, color: color),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Icon(LucideIcons.user, size: 14, color: AppColors.textMuted),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        order['displayName'] ?? 'Guest',
-                        style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(LucideIcons.mapPin, size: 14, color: AppColors.textMuted),
-                        const SizedBox(width: 6),
-                        Text(
-                          order['shippingGovernorate'] ?? order['shippingCity'] ?? '-',
-                          style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      '${(order['totalPrice'] as num?)?.toStringAsFixed(0) ?? '0'} EGP',
-                      style: GoogleFonts.playfairDisplay(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryDark),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _formatDate(order['createdAt']),
-                      style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
-                    ),
-                    Row(
-                      children: [
-                        Icon(_sourceIcon((order['source'] ?? 'website').toString()), size: 12, color: AppColors.textMuted),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${order['itemCount'] ?? 0} items',
-                          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            ),
-            ],
+          child: GestureDetector(
+            onTap: () => _openOrderDetail(order['id']),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: cardContent,
             ),
           ),
         );
@@ -971,6 +1025,138 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
       }
+    }
+  }
+
+  Widget _dismissibleBackground({
+    required Color color,
+    required IconData icon,
+    required String label,
+    required Alignment alignment,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      alignment: alignment,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: alignment == Alignment.centerLeft
+            ? [
+                Icon(icon, color: Colors.white, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ]
+            : [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(icon, color: Colors.white, size: 24),
+              ],
+      ),
+    );
+  }
+
+  Future<void> _performSwipeAction(Map<String, dynamic> order, String action) async {
+    final orderId = order['id'].toString();
+    final status = (order['status'] ?? '').toString().toLowerCase();
+
+    if (action == 'whatsapp') {
+      // Check if status is one of the non-pending ones that do NOT require full details
+      if (status != 'pending' && status != 'confirmed' && status != 'processing') {
+        // Launch WhatsApp instantly!
+        await OrderActionsHelper.shareViaWhatsApp(context, order);
+        return;
+      }
+
+      // If it is pending, confirmed, or processing, we need full order details
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 15,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(color: AppColors.primaryDark, strokeWidth: 3),
+                const SizedBox(width: 16),
+                Text(
+                  'Opening WhatsApp...',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      try {
+        final token = context.read<AuthProvider>().token;
+        final client = ApiClient(token: token);
+        final fullOrder = await client.get('/api/admin/auth/orders/$orderId');
+        
+        if (mounted) {
+          Navigator.pop(context);
+        }
+
+        if (mounted) {
+          await OrderActionsHelper.shareViaWhatsApp(context, Map<String, dynamic>.from(fullOrder as Map));
+        }
+      } catch (e) {
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showAppToast(
+            AppToast.snackBar(
+              content: Text('Failed to load order: $e'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    } else if (action == 'print') {
+      // Start background fetch of full details
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      
+      final Future<Map<String, dynamic>> fullOrderFuture = client.get('/api/admin/auth/orders/$orderId').then((data) {
+        return Map<String, dynamic>.from(data as Map);
+      });
+
+      // Instantly open the Print Options bottom sheet and pass the future
+      OrderActionsHelper.showPrintOptions(context, order, fullOrderFuture: fullOrderFuture);
     }
   }
 

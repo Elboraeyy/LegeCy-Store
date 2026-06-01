@@ -7,6 +7,7 @@ import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:intl/intl.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class PartnerWalletScreen extends StatefulWidget {
   const PartnerWalletScreen({super.key});
@@ -157,7 +158,45 @@ class _PartnerWalletScreenState extends State<PartnerWalletScreen> {
         )),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+              children: [
+                const AppShimmer(width: double.infinity, height: 160, borderRadius: 24),
+                const SizedBox(height: 16),
+                const AppShimmer(width: double.infinity, height: 48, borderRadius: 14),
+                const SizedBox(height: 24),
+                const AppShimmer(width: 150, height: 14),
+                const SizedBox(height: 12),
+                ...List.generate(4, (i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const AppShimmer(width: 36, height: 36, borderRadius: 10),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              AppShimmer(width: 120, height: 14),
+                              SizedBox(height: 6),
+                              AppShimmer(width: 80, height: 10),
+                            ],
+                          ),
+                        ),
+                        const AppShimmer(width: 70, height: 16),
+                      ],
+                    ),
+                  ),
+                )),
+              ],
+            )
           : _isPartner ? _buildWalletView() : _buildPartnersList(),
     );
   }

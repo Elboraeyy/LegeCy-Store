@@ -27,6 +27,7 @@ export const createOrderSchema = z.object({
   paymentMethod: z.enum(['cod', 'wallet', 'instapay', 'card']).optional(),
   couponCode: z.string().optional(), // New
   pointsRedeemed: z.number().int().nonnegative().optional(), // New
+  createdAt: z.string().optional(),
   options: z.object({
     skipReservation: z.boolean().optional(),
     status: z.nativeEnum(OrderStatus).optional(), // Allow forcing status (e.g. for Drafts)
@@ -57,4 +58,5 @@ export const updateOrderDetailsSchema = z.object({
   shippingCost: z.number().nonnegative().optional(),
   discountAmount: z.number().nonnegative().optional(),
   orderSource: z.string().optional(),
+  createdAt: z.string().optional(),
 });

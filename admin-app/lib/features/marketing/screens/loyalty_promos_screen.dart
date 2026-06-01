@@ -1,4 +1,5 @@
 import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -348,7 +349,28 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: _accent))
+          ? ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const AppShimmer(width: double.infinity, height: 56, borderRadius: 16),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(child: const AppShimmer(width: double.infinity, height: 80, borderRadius: 16)),
+                    const SizedBox(width: 12),
+                    Expanded(child: const AppShimmer(width: double.infinity, height: 80, borderRadius: 16)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: const AppShimmer(width: double.infinity, height: 80, borderRadius: 16)),
+                    const SizedBox(width: 12),
+                    Expanded(child: const AppShimmer(width: double.infinity, height: 80, borderRadius: 16)),
+                  ],
+                ),
+              ],
+            )
           : TabBarView(
               controller: _tabController,
               children: [
@@ -604,7 +626,38 @@ class _LoyaltyPromosScreenState extends State<LoyaltyPromosScreen> with SingleTi
         // Results
         Expanded(
           child: _searchingMembers
-              ? const Center(child: CircularProgressIndicator(color: _accent))
+              ? ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: 4,
+                  itemBuilder: (_, i) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.cardBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          const AppShimmer(width: 44, height: 44, shape: BoxShape.circle),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                AppShimmer(width: 100, height: 14),
+                                SizedBox(height: 6),
+                                AppShimmer(width: 120, height: 12),
+                              ],
+                            ),
+                          ),
+                          const AppShimmer(width: 60, height: 24, borderRadius: 12),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
               : _members.isEmpty
                   ? Center(
                       child: Column(

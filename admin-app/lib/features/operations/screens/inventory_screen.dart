@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -95,7 +96,78 @@ class _InventoryScreenState extends State<InventoryScreen> {
         leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Row(
+                  children: List.generate(3, (i) => Expanded(
+                    child: Container(
+                      margin: EdgeInsets.only(right: i < 2 ? 10 : 0),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.cardBorder),
+                      ),
+                      child: Column(
+                        children: const [
+                          AppShimmer(width: 20, height: 20),
+                          SizedBox(height: 8),
+                          AppShimmer(width: 30, height: 20),
+                          SizedBox(height: 4),
+                          AppShimmer(width: 60, height: 10),
+                        ],
+                      ),
+                    ),
+                  )),
+                ),
+                const SizedBox(height: 16),
+                const AppShimmer(width: double.infinity, height: 48, borderRadius: 16),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: List.generate(3, (i) => Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          width: 70, height: 32,
+                          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
+                        )),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ...List.generate(4, (i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const AppShimmer(width: 44, height: 44, borderRadius: 12),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              AppShimmer(width: 150, height: 14),
+                              SizedBox(height: 6),
+                              AppShimmer(width: 180, height: 10),
+                            ],
+                          ),
+                        ),
+                        const AppShimmer(width: 30, height: 20),
+                      ],
+                    ),
+                  ),
+                )),
+              ],
+            )
           : _error != null
               ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error), const SizedBox(height: 16), Text(_error!, style: GoogleFonts.inter(color: AppColors.error)), const SizedBox(height: 16), ElevatedButton(onPressed: _loadInventory, child: const Text('Retry'))]))
               : _buildStockTab(),

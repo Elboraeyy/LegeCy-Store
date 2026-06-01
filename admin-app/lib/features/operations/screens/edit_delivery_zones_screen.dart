@@ -7,6 +7,7 @@ import 'package:admin_app/core/constants/egypt_locations.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class EditDeliveryZonesScreen extends StatefulWidget {
   const EditDeliveryZonesScreen({super.key});
@@ -256,7 +257,139 @@ class _EditDeliveryZonesScreenState extends State<EditDeliveryZonesScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+              children: [
+                // Shipping Status Card Shimmer
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      const AppShimmer(width: 40, height: 40, borderRadius: 12),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            AppShimmer(width: 120, height: 16),
+                            SizedBox(height: 6),
+                            AppShimmer(width: 200, height: 12),
+                          ],
+                        ),
+                      ),
+                      const AppShimmer(width: 40, height: 24, borderRadius: 12),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Rates Card Shimmer
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          AppShimmer(width: 40, height: 40, borderRadius: 12),
+                          SizedBox(width: 12),
+                          AppShimmer(width: 100, height: 16),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      const AppShimmer(width: double.infinity, height: 48, borderRadius: 10),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Zones Header Shimmer
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppShimmer(width: 160, height: 20),
+                        SizedBox(height: 6),
+                        AppShimmer(width: 120, height: 12),
+                      ],
+                    ),
+                    AppShimmer(width: 90, height: 32, borderRadius: 8),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Zone Card Shimmer
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          AppShimmer(width: 40, height: 40, borderRadius: 12),
+                          SizedBox(width: 12),
+                          AppShimmer(width: 80, height: 16),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: const [
+                          Expanded(flex: 3, child: AppShimmer(width: double.infinity, height: 48, borderRadius: 10)),
+                          SizedBox(width: 12),
+                          Expanded(flex: 2, child: AppShimmer(width: double.infinity, height: 48, borderRadius: 10)),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      const AppShimmer(width: 100, height: 14),
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.cardBorder),
+                        ),
+                        padding: const EdgeInsets.all(10),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: List.generate(6, (i) => AppShimmer(width: 60.0 + (i % 3) * 15.0, height: 24, borderRadius: 12)),
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      const AppShimmer(width: 150, height: 14),
+                      const SizedBox(height: 8),
+                      // City Exception dropdown placeholders
+                      const AppShimmer(width: double.infinity, height: 48, borderRadius: 12),
+                      const SizedBox(height: 10),
+                      const AppShimmer(width: double.infinity, height: 48, borderRadius: 12),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: const [
+                          Expanded(child: AppShimmer(width: double.infinity, height: 48, borderRadius: 12)),
+                          SizedBox(width: 10),
+                          AppShimmer(width: 80, height: 48, borderRadius: 12),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
           : _error != null
               ? _buildErrorState()
               : RefreshIndicator(

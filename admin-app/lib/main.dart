@@ -86,6 +86,12 @@ class _LegacyAdminAppState extends State<LegacyAdminApp> {
       title: 'Legacy Admin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      builder: (context, child) {
+        return GestureDetector(
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: child,
+        );
+      },
       home: _initialized
           ? Consumer<AuthProvider>(
               builder: (context, auth, _) {

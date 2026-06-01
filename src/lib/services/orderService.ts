@@ -75,6 +75,7 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
                 subtotal: data.subtotal ? new Prisma.Decimal(data.subtotal) : undefined,
             status: data.options?.status || (data.paymentMethod === 'cod' ? OrderStatus.Pending : OrderStatus.PaymentPending),
                 userId: data.userId, // Link order to user
+                createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
                 paymentMethod: data.paymentMethod || 'cod',
             couponId: (data as unknown as { couponId?: string }).couponId || undefined,
             pointsRedeemed: data.pointsRedeemed || 0,
@@ -287,6 +288,7 @@ export async function updateOrder(orderId: string, updates: UpdateOrderServicePa
         subtotal: subtotalValue !== undefined ? new Prisma.Decimal(subtotalValue) : undefined,
         totalPrice: newTotalPrice,
         orderSource: details.orderSource,
+        createdAt: details.createdAt ? new Date(details.createdAt) : undefined,
       },
       include: { items: true }
     });

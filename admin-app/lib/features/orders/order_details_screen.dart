@@ -21,6 +21,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:arabic_reshaper/arabic_reshaper.dart';
 import 'package:gal/gal.dart';
+import 'dart:ui' as ui;
 import '../../core/widgets/app_shimmer.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
@@ -392,6 +393,103 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
+  Future<void> _editOrderDate() async {
+    final currentStr = _order!['createdAt'];
+    final current = currentStr != null ? DateTime.tryParse(currentStr) : null;
+    final initialDate = current ?? DateTime.now();
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primaryDark,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primaryDark,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked == null) return;
+    if (!mounted) return;
+
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initialDate),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primaryDark,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primaryDark,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (!mounted) return;
+
+    final selectedDateTime = pickedTime != null
+        ? DateTime(
+            picked.year,
+            picked.month,
+            picked.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          )
+        : picked;
+
+    setState(() => _isUpdating = true);
+    try {
+      final token = context.read<AuthProvider>().token;
+      final client = ApiClient(token: token);
+      await client.patch(
+        '/api/admin/auth/orders/${widget.orderId}',
+        body: {'createdAt': selectedDateTime.toIso8601String()},
+      );
+      await _loadOrder();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showAppToast(
+          AppToast.snackBar(
+            content: const Text('Order date updated successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showAppToast(
+          AppToast.snackBar(
+            content: Text('Failed to update date: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+
   String _customerNotesText() {
     final candidates = [
       _order!['shippingNotes'],
@@ -580,6 +678,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           const SizedBox(height: 20),
           _infoRow(LucideIcons.globe, 'Order Source', source),
           _infoRow(LucideIcons.creditCard, 'Payment Method', payment),
+          _infoRow(
+            LucideIcons.calendar,
+            'Order Date',
+            _formatDate(_order!['createdAt']),
+            onTap: () => _editOrderDate(),
+          ),
         ],
       ),
     );
@@ -965,40 +1069,55 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  Widget _infoRow(IconData icon, String label, String value) {
+  Widget _infoRow(IconData icon, String label, String value, {VoidCallback? onTap}) {
+    Widget content = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 14, color: AppColors.textMuted),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  color: AppColors.textMuted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (onTap != null) ...[
+          const SizedBox(width: 8),
+          const Icon(LucideIcons.calendar, size: 16, color: AppColors.primaryDark),
+        ],
+      ],
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 14, color: AppColors.textMuted),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: AppColors.textMuted,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      child: onTap != null
+          ? InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: content,
+              ),
+            )
+          : content,
     );
   }
 
@@ -1651,7 +1770,8 @@ Thanks for shopping with us! 💚''';
 
       if (action == 'share_image' || action == 'save_image') {
         final raster = await Printing.raster(bytes, pages: [0], dpi: 300).first;
-        final pngBytes = await raster.toPng();
+        final rawPngBytes = await raster.toPng();
+        final pngBytes = await _fillImageBackgroundWithWhite(rawPngBytes);
         final dir = await getTemporaryDirectory();
         final file = File('${dir.path}/Invoice_$orderNo.png');
         await file.writeAsBytes(pngBytes);
@@ -2270,5 +2390,27 @@ Thanks for shopping with us! 💚''';
     final d = DateTime.tryParse(dateStr);
     if (d == null) return dateStr;
     return '${d.day}/${d.month}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<Uint8List> _fillImageBackgroundWithWhite(Uint8List pngBytes) async {
+    final ui.Codec codec = await ui.instantiateImageCodec(pngBytes);
+    final ui.FrameInfo frameInfo = await codec.getNextFrame();
+    final ui.Image image = frameInfo.image;
+
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final ui.Canvas canvas = ui.Canvas(recorder);
+    final ui.Paint paint = ui.Paint()..color = const ui.Color(0xFFFFFFFF);
+
+    canvas.drawRect(
+      ui.Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      paint,
+    );
+
+    canvas.drawImage(image, ui.Offset.zero, ui.Paint());
+
+    final ui.Picture picture = recorder.endRecording();
+    final ui.Image whiteBgImage = await picture.toImage(image.width, image.height);
+    final ByteData? byteData = await whiteBgImage.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
   }
 }

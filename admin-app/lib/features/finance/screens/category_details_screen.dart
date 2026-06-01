@@ -6,6 +6,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class CategoryDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> category;
@@ -131,8 +132,21 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
   Widget build(BuildContext context) {
     final totalDirect = (_stats['totalDirectExpenses'] ?? 0).toDouble();
     final totalAmort = (_stats['totalAmortizedThisMonth'] ?? 0).toDouble();
+    final totalCapital = (_stats['totalCapitalExpenses'] ?? 0).toDouble();
     final totalAll = (_stats['totalExpensesThisMonth'] ?? 0).toDouble();
     final subcats = List<Map<String, dynamic>>.from(widget.category['children'] ?? []);
+
+    // Group direct expenses by date
+    final Map<String, List<Map<String, dynamic>>> groupedExpenses = {};
+    for (final exp in _expenses) {
+      if (exp['date'] == null) continue;
+      final date = DateTime.parse(exp['date']).toLocal();
+      final key = DateFormat('MMMM dd, yyyy').format(date);
+      if (!groupedExpenses.containsKey(key)) {
+        groupedExpenses[key] = [];
+      }
+      groupedExpenses[key]!.add(exp);
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -154,7 +168,50 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+              children: [
+                const AppShimmer(width: double.infinity, height: 130, borderRadius: 20),
+                const SizedBox(height: 24),
+                const AppShimmer(width: 120, height: 14),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: List.generate(3, (i) => const AppShimmer(width: 100, height: 40, borderRadius: 10)),
+                ),
+                const SizedBox(height: 24),
+                const AppShimmer(width: 150, height: 14),
+                const SizedBox(height: 10),
+                ...List.generate(4, (i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const AppShimmer(width: 38, height: 38, borderRadius: 10),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              AppShimmer(width: 120, height: 14),
+                              SizedBox(height: 6),
+                              AppShimmer(width: 180, height: 10),
+                            ],
+                          ),
+                        ),
+                        const AppShimmer(width: 80, height: 16),
+                      ],
+                    ),
+                  ),
+                )),
+              ],
+            )
           : RefreshIndicator(
               onRefresh: _loadCategoryExpenses,
               child: ListView(
@@ -191,9 +248,11 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            _miniStat('Direct', totalDirect, Colors.white),
-                            const SizedBox(width: 24),
+                            _miniStat('Operating', totalDirect, Colors.white),
+                            const SizedBox(width: 16),
                             _miniStat('Amortized', totalAmort, Colors.white),
+                            const SizedBox(width: 16),
+                            _miniStat('Capital', totalCapital, Colors.white),
                           ],
                         ),
                       ],
@@ -262,7 +321,22 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                       ),
                     )
                   else
-                    ..._expenses.map((e) => _buildExpenseItem(e)),
+                    ...groupedExpenses.entries.expand((entry) => [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8, bottom: 8, left: 4),
+                        child: Text(
+                          entry.key,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textMuted,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      ...entry.value.map((e) => _buildExpenseItem(e)),
+                      const SizedBox(height: 8),
+                    ]),
                 ],
               ),
             ),

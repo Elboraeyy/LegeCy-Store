@@ -7,6 +7,7 @@ import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:intl/intl.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class FinanceApprovalsScreen extends StatefulWidget {
   const FinanceApprovalsScreen({super.key});
@@ -116,10 +117,15 @@ class _FinanceApprovalsScreenState extends State<FinanceApprovalsScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: selectedSafeId,
+                  isExpanded: true,
+                  icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                  dropdownColor: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                   decoration: const InputDecoration(labelText: 'Pay from Safe *'),
                   items: _safes.map((s) => DropdownMenuItem(
                     value: s['id'] as String,
-                    child: Text('${s['name']} (${_currencyFormat.format((s['balance'] ?? 0).toDouble())} EGP)'),
+                    child: Text('${s['name']} (${_currencyFormat.format((s['balance'] ?? 0).toDouble())} EGP)', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
                   )).toList(),
                   onChanged: (v) => ss(() => selectedSafeId = v),
                 ),
@@ -232,7 +238,38 @@ class _FinanceApprovalsScreenState extends State<FinanceApprovalsScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+              itemCount: 5,
+              itemBuilder: (ctx, i) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      const AppShimmer(width: 44, height: 44, shape: BoxShape.circle),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            AppShimmer(width: 120, height: 14),
+                            SizedBox(height: 6),
+                            AppShimmer(width: 180, height: 10),
+                          ],
+                        ),
+                      ),
+                      const AppShimmer(width: 85, height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            )
           : RefreshIndicator(
               onRefresh: _loadWithdrawals,
               child: _withdrawals.isEmpty

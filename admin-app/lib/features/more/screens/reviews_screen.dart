@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class ReviewsListScreen extends StatefulWidget {
   const ReviewsListScreen({super.key});
@@ -91,7 +92,37 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
         surfaceTintColor: Colors.transparent,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 4,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          AppShimmer(width: 100, height: 16),
+                          AppShimmer(width: 80, height: 12),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      AppShimmer(width: 120, height: 14),
+                      SizedBox(height: 12),
+                      AppShimmer(width: double.infinity, height: 40, borderRadius: 8),
+                    ],
+                  ),
+                ),
+              ),
+            )
           : _reviews.isEmpty
               ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(LucideIcons.starOff, size: 64, color: AppColors.textMuted.withValues(alpha: 0.2)),

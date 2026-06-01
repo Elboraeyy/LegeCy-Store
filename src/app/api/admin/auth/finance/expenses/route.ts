@@ -67,6 +67,10 @@ export async function GET(request: NextRequest) {
         const totalDirectExpenses = directExpenses
             .filter(e => !e.isAmortized && e.expenseType === 'OPERATING')
             .reduce((sum, e) => sum + e.amount.toNumber(), 0);
+
+        const totalCapitalExpenses = directExpenses
+            .filter(e => !e.isAmortized && e.expenseType === 'CAPITAL')
+            .reduce((sum, e) => sum + e.amount.toNumber(), 0);
         
         const totalAmortizedThisMonth = activeAmortized
             .reduce((sum, e) => sum + (e.monthlyAmount?.toNumber() || 0), 0);
@@ -77,7 +81,6 @@ export async function GET(request: NextRequest) {
             where: {
                 ...where,
                 isAmortized: false,
-                expenseType: 'OPERATING',
             },
             _sum: { amount: true },
             _count: true,
@@ -127,7 +130,8 @@ export async function GET(request: NextRequest) {
             stats: {
                 totalDirectExpenses,
                 totalAmortizedThisMonth,
-                totalExpensesThisMonth: totalDirectExpenses + totalAmortizedThisMonth,
+                totalCapitalExpenses,
+                totalExpensesThisMonth: totalDirectExpenses + totalAmortizedThisMonth + totalCapitalExpenses,
                 categoryBreakdown: categoryBreakdown.map(c => ({
                     categoryId: c.categoryId,
                     categoryName: categoryMap.get(c.categoryId) || 'Unknown',

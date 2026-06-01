@@ -1,4 +1,5 @@
 import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -188,7 +189,43 @@ class _BogoDealsScreenState extends State<BogoDealsScreen> {
         leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B82F6)))
+          ? ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 4,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          AppShimmer(width: 150, height: 18),
+                          AppShimmer(width: 44, height: 24, borderRadius: 12),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      AppShimmer(width: 200, height: 14),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          AppShimmer(width: 16, height: 16, borderRadius: 4),
+                          SizedBox(width: 8),
+                          AppShimmer(width: 120, height: 14),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
           : _deals.isEmpty
               ? Center(
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

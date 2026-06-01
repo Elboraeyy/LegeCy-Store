@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class MerchandisingScreen extends StatefulWidget {
   const MerchandisingScreen({super.key});
@@ -531,33 +532,17 @@ class _MerchandisingScreenState extends State<MerchandisingScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 140,
-            height: 14,
-            decoration: BoxDecoration(
-              color: AppColors.cardBorder.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
+          const AppShimmer(width: 140, height: 14, borderRadius: 8),
           const SizedBox(height: 10),
-          Expanded(
-            child: Container(
+          const Expanded(
+            child: AppShimmer(
               width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColors.cardBorder.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(8),
-              ),
+              height: double.infinity,
+              borderRadius: 8,
             ),
           ),
           const SizedBox(height: 10),
-          Container(
-            width: 92,
-            height: 10,
-            decoration: BoxDecoration(
-              color: AppColors.cardBorder.withValues(alpha: 0.45),
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
+          const AppShimmer(width: 92, height: 10, borderRadius: 8),
         ],
       ),
     );

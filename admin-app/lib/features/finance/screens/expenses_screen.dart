@@ -8,6 +8,7 @@ import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:intl/intl.dart';
 import 'package:admin_app/features/finance/screens/category_details_screen.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -52,22 +53,27 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
       final res = await client.get('/api/admin/auth/finance/expenses?month=$_month&year=$_year');
+      debugPrint('Expenses GET Response: $res');
       if (mounted) {
         setState(() {
-          _expenses = List<Map<String, dynamic>>.from(res['expenses'] ?? []);
-          _amortized = List<Map<String, dynamic>>.from(res['amortizedExpenses'] ?? []);
-          _stats = Map<String, dynamic>.from(res['stats'] ?? {});
-          _categories = List<Map<String, dynamic>>.from(res['categories'] ?? []);
-          _safes = List<Map<String, dynamic>>.from(res['safes'] ?? []);
+          _expenses = (res['expenses'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+          _amortized = (res['amortizedExpenses'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+          _stats = Map<String, dynamic>.from(res['stats'] as Map? ?? {});
+          _categories = (res['categories'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+          _safes = (res['safes'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
           _loading = false;
         });
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('Error loading expenses: $e');
+      debugPrint(stack.toString());
       if (mounted) setState(() => _loading = false);
     }
   }
 
   void _showAddExpenseSheet() {
+    debugPrint('Show Add Expense Sheet. Categories count: ${_categories.length}');
+    debugPrint('Categories content: $_categories');
     final descCtrl = TextEditingController();
     final amountCtrl = TextEditingController();
     String? categoryId = _categories.isNotEmpty ? _categories.first['id'] : null;
@@ -76,6 +82,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
     bool isAmortized = false;
     String selectedType = 'OPERATING';
     final spreadCtrl = TextEditingController(text: '1');
+    DateTime selectedDate = DateTime.now();
 
     showModalBottomSheet(
       context: context,
@@ -83,11 +90,14 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, ss) {
+          if (categoryId == null && _categories.isNotEmpty) {
+            categoryId = _categories.first['id'];
+          }
           final selectedCat = _categories.firstWhere(
             (c) => c['id'] == categoryId,
             orElse: () => {'children': []},
           );
-          final subcats = List<Map<String, dynamic>>.from(selectedCat['children'] ?? []);
+          final subcats = (selectedCat['children'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
 
           Widget buildTypeOption(String type, String label, bool isSelected, Color activeColor) {
             return Expanded(
@@ -174,6 +184,44 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                         decoration: const InputDecoration(labelText: 'Amount', prefixText: 'EGP '),
                         onChanged: (_) => ss(() {}),
                       ),
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime(2025),
+                            lastDate: DateTime.now().add(const Duration(days: 365)),
+                            builder: (context, child) {
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: const ColorScheme.light(
+                                    primary: AppColors.primaryDark,
+                                    onPrimary: Colors.white,
+                                    onSurface: AppColors.textPrimary,
+                                  ),
+                                ),
+                                child: child!,
+                              );
+                            },
+                          );
+                          if (picked != null) {
+                            ss(() {
+                              selectedDate = picked;
+                            });
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Expense Date',
+                            prefixIcon: Icon(LucideIcons.calendar, size: 20),
+                          ),
+                          child: Text(
+                            DateFormat('dd MMM yyyy').format(selectedDate),
+                            style: GoogleFonts.inter(fontSize: 14),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 16),
 
                       // Expense Type Selector
@@ -224,25 +272,58 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                         const SizedBox(height: 16),
                       ],
 
-                      DropdownButtonFormField<String>(
-                        value: categoryId,
-                        decoration: const InputDecoration(labelText: 'Category'),
-                        items: _categories.map((c) => DropdownMenuItem(
-                          value: c['id'] as String,
-                          child: Text(c['name']),
-                        )).toList(),
-                        onChanged: (v) => ss(() { categoryId = v; subcategoryId = null; }),
-                      ),
+                      if (_categories.isEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(LucideIcons.alertTriangle, color: AppColors.error, size: 20),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'No categories found. Please create a category first in the Categories tab.',
+                                  style: GoogleFonts.inter(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ] else ...[
+                        DropdownButtonFormField<String>(
+                          value: categoryId,
+                          isExpanded: true,
+                          icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                          dropdownColor: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                          decoration: const InputDecoration(labelText: 'Category'),
+                          items: _categories.map((c) => DropdownMenuItem(
+                            value: c['id'] as String,
+                            child: Text(c['name'], style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
+                          )).toList(),
+                          onChanged: (v) => ss(() { categoryId = v; subcategoryId = null; }),
+                        ),
+                      ],
                       if (subcats.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
                           value: subcategoryId,
+                          isExpanded: true,
+                          icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                          dropdownColor: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                           decoration: const InputDecoration(labelText: 'Subcategory (optional)'),
                           items: [
-                            const DropdownMenuItem(value: null, child: Text('None')),
+                            DropdownMenuItem(value: null, child: Text('None', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted))),
                             ...subcats.map((c) => DropdownMenuItem(
                               value: c['id'] as String,
-                              child: Text(c['name']),
+                              child: Text(c['name'], style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
                             )),
                           ],
                           onChanged: (v) => ss(() => subcategoryId = v),
@@ -251,12 +332,17 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         value: safeId,
+                        isExpanded: true,
+                        icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                        dropdownColor: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                         decoration: const InputDecoration(labelText: 'Paid from (Safe)'),
                         items: [
-                          const DropdownMenuItem(value: null, child: Text('Not specified')),
+                          DropdownMenuItem(value: null, child: Text('Not specified', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted))),
                           ..._safes.map((s) => DropdownMenuItem(
                             value: s['id'] as String,
-                            child: Text(s['name']),
+                            child: Text(s['name'], style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
                           )),
                         ],
                         onChanged: (v) => ss(() => safeId = v),
@@ -294,6 +380,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                             'isAmortized': isAmortized,
                             'expenseType': selectedType,
                             'spreadMonths': isAmortized ? (int.tryParse(spreadCtrl.text) ?? 1) : 1,
+                            'date': selectedDate.toIso8601String(),
                           });
                           _loadExpenses();
                           if (mounted) {
@@ -409,10 +496,15 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: parentId,
+                isExpanded: true,
+                icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                dropdownColor: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                 decoration: const InputDecoration(labelText: 'Parent (for subcategory)'),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('None (Top-level)')),
-                  ..._categories.map((c) => DropdownMenuItem(value: c['id'] as String, child: Text(c['name']))),
+                  DropdownMenuItem(value: null, child: Text('None (Top-level)', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted))),
+                  ..._categories.map((c) => DropdownMenuItem(value: c['id'] as String, child: Text(c['name'], style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)))),
                 ],
                 onChanged: (v) => ss(() => parentId = v),
               ),
@@ -757,8 +849,21 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     final totalDirect = (_stats['totalDirectExpenses'] ?? 0).toDouble();
     final totalAmort = (_stats['totalAmortizedThisMonth'] ?? 0).toDouble();
+    final totalCapital = (_stats['totalCapitalExpenses'] ?? 0).toDouble();
     final totalAll = (_stats['totalExpensesThisMonth'] ?? 0).toDouble();
     final breakdown = List<Map<String, dynamic>>.from(_stats['categoryBreakdown'] ?? []);
+
+    // Group direct expenses by date
+    final Map<String, List<Map<String, dynamic>>> groupedExpenses = {};
+    for (final exp in _expenses) {
+      if (exp['date'] == null) continue;
+      final date = DateTime.parse(exp['date']).toLocal();
+      final key = DateFormat('MMMM dd, yyyy').format(date);
+      if (!groupedExpenses.containsKey(key)) {
+        groupedExpenses[key] = [];
+      }
+      groupedExpenses[key]!.add(exp);
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -812,7 +917,51 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+              children: [
+                const AppShimmer(width: double.infinity, height: 180, borderRadius: 20),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(child: const AppShimmer(width: double.infinity, height: 48, borderRadius: 14)),
+                    const SizedBox(width: 12),
+                    Expanded(child: const AppShimmer(width: double.infinity, height: 48, borderRadius: 14)),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const AppShimmer(width: 150, height: 14),
+                const SizedBox(height: 12),
+                ...List.generate(3, (i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const AppShimmer(width: 44, height: 44, borderRadius: 12),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              AppShimmer(width: 140, height: 14),
+                              SizedBox(height: 6),
+                              AppShimmer(width: 80, height: 12),
+                            ],
+                          ),
+                        ),
+                        const AppShimmer(width: 90, height: 16),
+                      ],
+                    ),
+                  ),
+                )),
+              ],
+            )
           : TabBarView(
               controller: _tabController,
               children: [
@@ -845,9 +994,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                             const SizedBox(height: 8),
                             Row(
                               children: [
-                                _miniStat('Direct', totalDirect, Colors.white),
+                                _miniStat('Operating', totalDirect, Colors.white),
                                 const SizedBox(width: 16),
                                 _miniStat('Amortized', totalAmort, Colors.white),
+                                const SizedBox(width: 16),
+                                _miniStat('Capital', totalCapital, Colors.white),
                               ],
                             ),
                           ],
@@ -861,14 +1012,29 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                         const SizedBox(height: 16),
                       ],
                       Text('DIRECT EXPENSES', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 1)),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       if (_expenses.isEmpty)
                         Padding(
                           padding: const EdgeInsets.all(32),
                           child: Center(child: Text('No expenses this month', style: GoogleFonts.inter(color: AppColors.textMuted))),
                         )
                       else
-                        ..._expenses.map((e) => _buildExpenseItem(e)),
+                        ...groupedExpenses.entries.expand((entry) => [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 8, left: 4),
+                            child: Text(
+                              entry.key,
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textMuted,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          ...entry.value.map((e) => _buildExpenseItem(e)),
+                          const SizedBox(height: 8),
+                        ]),
                     ],
                   ),
                 ),

@@ -7,6 +7,7 @@ import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:intl/intl.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class OrdersAuditScreen extends StatefulWidget {
   const OrdersAuditScreen({super.key});
@@ -283,16 +284,21 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
                       // Safe selection
                       DropdownButtonFormField<String>(
                         value: selectedSafeId,
+                        isExpanded: true,
+                        icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                        dropdownColor: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                         decoration: InputDecoration(
                           labelText: 'Money received in',
-                          prefixIcon: const Icon(LucideIcons.landmark, size: 18),
+                          prefixIcon: const Icon(LucideIcons.landmark, size: 18, color: AppColors.textMuted),
                           filled: true,
                           fillColor: AppColors.background,
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.cardBorder)),
                         ),
                         items: _safes.map((s) => DropdownMenuItem(
                           value: s['id'] as String,
-                          child: Text(s['name']),
+                          child: Text(s['name'], style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
                         )).toList(),
                         onChanged: (v) => setSheetState(() => selectedSafeId = v),
                       ),
@@ -614,20 +620,72 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
             onPressed: _showMonthPicker,
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppColors.primaryDark,
-          labelColor: AppColors.primaryDark,
-          unselectedLabelColor: AppColors.textMuted,
-          labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
-          tabs: [
-            Tab(text: 'Pending ($pending)'),
-            Tab(text: 'Audited ($audited)'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(62),
+          child: Container(
+            height: 50,
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              dividerColor: Colors.transparent,
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicator: BoxDecoration(
+                color: AppColors.primaryDark,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              labelColor: Colors.white,
+              unselectedLabelColor: AppColors.textMuted,
+              labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+              unselectedLabelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+              tabs: [
+                Tab(text: 'Pending ($pending)'),
+                Tab(text: 'Audited ($audited)'),
+              ],
+            ),
+          ),
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+              itemCount: 5,
+              itemBuilder: (ctx, i) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      const AppShimmer(width: 44, height: 44, borderRadius: 12),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            AppShimmer(width: 100, height: 14),
+                            SizedBox(height: 6),
+                            AppShimmer(width: 80, height: 10),
+                          ],
+                        ),
+                      ),
+                      const AppShimmer(width: 80, height: 16),
+                      const SizedBox(width: 4),
+                      const Icon(LucideIcons.chevronRight, size: 16, color: Colors.transparent),
+                    ],
+                  ),
+                ),
+              ),
+            )
           : RefreshIndicator(
               onRefresh: _loadOrders,
               color: AppColors.primaryDark,

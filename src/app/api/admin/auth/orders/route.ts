@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
             source: body.source,
             notes: body.notes,
             status: body.status,
+            createdAt: body.createdAt,
             skipAuthCheck: true,
         });
 

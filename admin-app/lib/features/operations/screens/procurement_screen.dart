@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class ProcurementScreen extends StatefulWidget {
   const ProcurementScreen({super.key});
@@ -117,10 +118,14 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
                     Text('Payment Terms', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      initialValue: paymentTerms,
-                      items: ['COD', 'NET15', 'NET30', 'NET60'].map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
+                      value: paymentTerms,
+                      isExpanded: true,
+                      icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                      dropdownColor: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                      items: ['COD', 'NET15', 'NET30', 'NET60'].map((r) => DropdownMenuItem(value: r, child: Text(r, style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)))).toList(),
                       onChanged: (v) => setModalState(() => paymentTerms = v!),
-                      style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
                       decoration: InputDecoration(filled: true, fillColor: AppColors.background, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none), contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
                     ),
                   ],
@@ -225,11 +230,16 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
                 Text('Supplier', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  initialValue: selectedSupplierId,
-                  items: _suppliers.map((s) => DropdownMenuItem<String>(value: s['id'], child: Text(s['name'] ?? ''))).toList(),
+                  value: selectedSupplierId,
+                  isExpanded: true,
+                  icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                  dropdownColor: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                  items: _suppliers.map((s) => DropdownMenuItem<String>(value: s['id'], child: Text(s['name'] ?? '', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)))).toList(),
                   onChanged: (v) => setModalState(() => selectedSupplierId = v),
                   decoration: InputDecoration(filled: true, fillColor: AppColors.background, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
-                  hint: const Text('Select Supplier'),
+                  hint: Text('Select Supplier', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted)),
                 ),
                 
                 const SizedBox(height: 16),
@@ -245,8 +255,13 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
                         Text('Status', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
-                          initialValue: status,
-                          items: ['DRAFT', 'POSTED'].map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
+                          value: status,
+                          isExpanded: true,
+                          icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                          dropdownColor: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                          items: ['DRAFT', 'POSTED'].map((r) => DropdownMenuItem(value: r, child: Text(r, style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)))).toList(),
                           onChanged: (v) => setModalState(() => status = v!),
                           decoration: InputDecoration(filled: true, fillColor: AppColors.background, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
                         ),
@@ -359,7 +374,43 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
           ),
         ),
         body: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+            ? ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                itemCount: 4,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            AppShimmer(width: 120, height: 16),
+                            AppShimmer(width: 60, height: 20, borderRadius: 6),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        AppShimmer(width: 180, height: 12),
+                        SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            AppShimmer(width: 100, height: 12),
+                            AppShimmer(width: 80, height: 16),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
             : _error != null
                 ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error), const SizedBox(height: 16), ElevatedButton(onPressed: _loadAllData, child: const Text('Retry'))]))
                 : TabBarView(

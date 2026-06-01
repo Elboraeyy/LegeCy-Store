@@ -1,4 +1,5 @@
 import 'package:admin_app/core/widgets/app_toast.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -513,7 +514,83 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
         leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark), onPressed: () => Navigator.pop(context)),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: _accent))
+          ? ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 4,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    AppShimmer(width: 150, height: 16),
+                                    SizedBox(height: 6),
+                                    AppShimmer(width: 220, height: 12),
+                                  ],
+                                ),
+                                AppShimmer(width: 44, height: 24, borderRadius: 12),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: const [
+                                AppShimmer(width: 90, height: 24, borderRadius: 8),
+                                SizedBox(width: 8),
+                                AppShimmer(width: 70, height: 24, borderRadius: 8),
+                                SizedBox(width: 8),
+                                AppShimmer(width: 80, height: 24, borderRadius: 8),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.background.withValues(alpha: 0.5),
+                          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                          border: Border(top: BorderSide(color: AppColors.cardBorder.withValues(alpha: 0.5))),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: const [
+                            Row(
+                              children: [
+                                AppShimmer(width: 12, height: 12, borderRadius: 2),
+                                SizedBox(width: 8),
+                                AppShimmer(width: 140, height: 12),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                AppShimmer(width: 28, height: 28, borderRadius: 8),
+                                SizedBox(width: 8),
+                                AppShimmer(width: 28, height: 28, borderRadius: 8),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
           : _offers.isEmpty
               ? _buildEmptyState()
               : RefreshIndicator(

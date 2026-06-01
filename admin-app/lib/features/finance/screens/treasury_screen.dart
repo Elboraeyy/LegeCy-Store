@@ -7,6 +7,7 @@ import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:intl/intl.dart';
+import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class TreasuryScreen extends StatefulWidget {
   const TreasuryScreen({super.key});
@@ -130,9 +131,14 @@ class _TreasuryScreenState extends State<TreasuryScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: selectedType,
+                  isExpanded: true,
+                  icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                  dropdownColor: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                   decoration: const InputDecoration(labelText: 'Type'),
                   items: ['CASH', 'BANK', 'WALLET', 'OTHER'].map((t) =>
-                    DropdownMenuItem(value: t, child: Text(_safeLabel(t))),
+                    DropdownMenuItem(value: t, child: Text(_safeLabel(t), style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary))),
                   ).toList(),
                   onChanged: (v) => setSheetState(() => selectedType = v!),
                 ),
@@ -242,20 +248,30 @@ class _TreasuryScreenState extends State<TreasuryScreen> {
                 const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
                   value: fromId,
+                  isExpanded: true,
+                  icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                  dropdownColor: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                   decoration: const InputDecoration(labelText: 'From Safe'),
                   items: _safes.map((s) => DropdownMenuItem(
                     value: s['id'] as String,
-                    child: Text('${s['name']} (${_currencyFormat.format(s['balance'])} EGP)'),
+                    child: Text('${s['name']} (${_currencyFormat.format(s['balance'])} EGP)', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
                   )).toList(),
                   onChanged: (v) => setSheetState(() => fromId = v),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: toId,
+                  isExpanded: true,
+                  icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                  dropdownColor: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                   decoration: const InputDecoration(labelText: 'To Safe'),
                   items: _safes.map((s) => DropdownMenuItem(
                     value: s['id'] as String,
-                    child: Text('${s['name']}'),
+                    child: Text('${s['name']}', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
                   )).toList(),
                   onChanged: (v) => setSheetState(() => toId = v),
                 ),
@@ -342,7 +358,41 @@ class _TreasuryScreenState extends State<TreasuryScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+          ? ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+              children: [
+                const AppShimmer(width: double.infinity, height: 140, borderRadius: 24),
+                const SizedBox(height: 24),
+                ...List.generate(3, (i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const AppShimmer(width: 44, height: 44, borderRadius: 12),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              AppShimmer(width: 120, height: 14),
+                              SizedBox(height: 6),
+                              AppShimmer(width: 80, height: 10),
+                            ],
+                          ),
+                        ),
+                        const AppShimmer(width: 90, height: 16),
+                      ],
+                    ),
+                  ),
+                )),
+              ],
+            )
           : RefreshIndicator(
               onRefresh: _loadSafes,
               color: AppColors.primaryDark,
