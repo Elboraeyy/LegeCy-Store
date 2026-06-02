@@ -29,6 +29,36 @@ export async function GET() {
     }
 }
 
+interface DraftProductInput {
+    name: string;
+    nameAr?: string | null;
+    description?: string | null;
+    descriptionAr?: string | null;
+    detailedDescription?: string | null;
+    detailedDescriptionAr?: string | null;
+    categoryId?: string | null;
+    brandId?: string | null;
+    materialId?: string | null;
+    supplierId?: string | null;
+    status?: string | null;
+    compareAtPrice?: string | number | null;
+    costPrice?: string | number | null;
+    imageUrl?: string | null;
+    showInNewArrivals?: boolean | null;
+    showInForYou?: boolean | null;
+    detailTags?: string[] | null;
+    metaTitle?: string | null;
+    metaTitleAr?: string | null;
+    metaDescription?: string | null;
+    metaDescriptionAr?: string | null;
+    slug?: string | null;
+    specs?: Prisma.InputJsonValue;
+    sku: string;
+    price: string | number;
+    gallery?: string[];
+    minStock?: string | number;
+}
+
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
@@ -64,7 +94,7 @@ export async function POST(request: NextRequest) {
         const invoice = await prisma.$transaction(async (tx) => {
             const createdProductsCache: Record<string, { productId: string; variantId: string }> = {};
 
-            const createDraftProduct = async (tx: any, pd: any) => {
+            const createDraftProduct = async (tx: Prisma.TransactionClient, pd: DraftProductInput) => {
                 const baseSlug = pd.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
                 const uniqueSlug = `${baseSlug}-${Math.random().toString(36).substring(2, 6)}`;
 
@@ -92,7 +122,7 @@ export async function POST(request: NextRequest) {
                         metaDescription: pd.metaDescription || null,
                         metaDescriptionAr: pd.metaDescriptionAr || null,
                         slug: pd.slug || uniqueSlug,
-                        specs: pd.specs || {},
+                        specs: (pd.specs as Prisma.InputJsonObject) || {},
                         variants: {
                             create: {
                                 sku: pd.sku,
@@ -114,7 +144,7 @@ export async function POST(request: NextRequest) {
                     });
                 }
 
-                const parsedMinStock = pd.minStock ? parseInt(pd.minStock) : 5;
+                const parsedMinStock = pd.minStock ? parseInt(String(pd.minStock)) : 5;
                 await tx.inventory.create({
                     data: {
                         warehouseId: warehouse.id,

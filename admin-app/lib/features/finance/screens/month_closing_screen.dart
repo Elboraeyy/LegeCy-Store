@@ -67,7 +67,7 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
           
           if (_safes.isNotEmpty) {
             final officeSafe = _safes.firstWhere(
-              (s) => s['name'] == 'Cash (Office)',
+              (s) => s['name'] == 'Cash',
               orElse: () => _safes.first,
             );
             _selectedBrandSafeId = officeSafe['id']?.toString();

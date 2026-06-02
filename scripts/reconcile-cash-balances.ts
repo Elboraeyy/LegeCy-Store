@@ -6,10 +6,10 @@ async function main() {
   console.log('=== RECONCILING GL CASH ACCOUNT WITH SAFE CASH BALANCE ===');
 
   const safe = await prisma.safe.findUnique({
-    where: { name: 'Cash (Office)' }
+    where: { name: 'Cash' }
   });
   if (!safe) {
-    throw new Error('Cash (Office) safe not found.');
+    throw new Error('Cash safe not found.');
   }
   const targetBalance = safe.balance.toNumber(); // 40475
 

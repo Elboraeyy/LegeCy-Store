@@ -35,17 +35,17 @@ async function main() {
     });
     console.log(`- Deleted ${deletedJournals.count} order Journal Entries`);
 
-    // 3. Reset Safe balance for 'Cash (Office)'
+    // 3. Reset Safe balance for 'Cash'
     const targetSafeBalance = 41000 - 22265; // 18,735
-    const officeSafe = await tx.safe.findUnique({ where: { name: 'Cash (Office)' } });
+    const officeSafe = await tx.safe.findUnique({ where: { name: 'Cash' } });
     if (officeSafe) {
       await tx.safe.update({
         where: { id: officeSafe.id },
         data: { balance: targetSafeBalance }
       });
-      console.log(`- Reset Cash (Office) Safe balance to EGP ${targetSafeBalance}`);
+      console.log(`- Reset Cash Safe balance to EGP ${targetSafeBalance}`);
     } else {
-      console.log('- Warning: Cash (Office) Safe not found');
+      console.log('- Warning: Cash Safe not found');
     }
 
     // 4. Reset GL Accounts balances

@@ -17,10 +17,10 @@ async function main() {
   const warehouseId = warehouse.id;
 
   const safe = await prisma.safe.findUnique({
-    where: { name: 'Cash (Office)' }
+    where: { name: 'Cash' }
   });
   if (!safe) {
-    throw new Error('Cash (Office) safe not found in database.');
+    throw new Error('Cash safe not found in database.');
   }
   const safeId = safe.id;
 
@@ -103,7 +103,7 @@ async function main() {
   // Since we deleted all expenses, let's restore the safe balance first to what it was
   // (We'll subtract the total of the invoices dynamically during the script).
   let currentSafeBalance = safe.balance.toNumber();
-  console.log(`\nInitial Safe Balance of "Cash (Office)": EGP ${currentSafeBalance}`);
+  console.log(`\nInitial Safe Balance of "Cash": EGP ${currentSafeBalance}`);
 
   let currentCashAccountBalance = cashAccount.balance.toNumber();
   console.log(`Initial GL Cash Account Balance: EGP ${currentCashAccountBalance}`);
@@ -366,7 +366,7 @@ async function main() {
           date: invoiceDate,
           categoryId: expenseCategory!.id,
           status: 'PAID',
-          paidBy: 'Cash (Office)',
+          paidBy: 'Cash',
           safeId: safeId,
           approvedBy: adminId,
           createdAt: invoiceDate,
@@ -455,7 +455,7 @@ async function main() {
   const finalInvoicesCount = await prisma.purchaseInvoice.count();
   const finalExpensesCount = await prisma.expense.count();
 
-  console.log(`Final Safe Balance of "Cash (Office)": EGP ${finalSafe?.balance.toNumber()}`);
+  console.log(`Final Safe Balance of "Cash": EGP ${finalSafe?.balance.toNumber()}`);
   console.log(`Final GL Cash Account Balance: EGP ${finalCashAccount?.balance.toNumber()}`);
   console.log(`Total Invoices Created: ${finalInvoicesCount}`);
   console.log(`Total Expenses Created: ${finalExpensesCount}`);

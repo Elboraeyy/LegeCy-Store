@@ -11,9 +11,11 @@ async function main() {
   // 1. Create Default Safes if they don't exist
   console.log('\n📦 Setting up Safes (Treasuries)...');
   const defaultSafes = [
-    { name: 'Bank Account (CIB)', type: SafeType.BANK, balance: 0 },
-    { name: 'Cash (Office)', type: SafeType.CASH, balance: INITIAL_CAPITAL }, // رأس المال هنا
-    { name: 'InstaPay / E-Wallets', type: SafeType.WALLET, balance: 0 },
+    { name: 'Cash', type: SafeType.CASH, balance: INITIAL_CAPITAL },
+    { name: 'Bank Account (NBE)', type: SafeType.BANK, balance: 0 },
+    { name: 'Meeza Card', type: SafeType.WALLET, balance: 0 },
+    { name: 'E-Wallet', type: SafeType.WALLET, balance: 0 },
+    { name: 'EasyPay Card (Egyptian Post)', type: SafeType.WALLET, balance: 0 },
   ];
 
   for (const safeData of defaultSafes) {
@@ -25,7 +27,7 @@ async function main() {
       await prisma.safe.create({ data: safeData });
       console.log(`✅ Created Safe: ${safeData.name} with balance ${safeData.balance}`);
     } else {
-      if (safeData.name === 'Cash (Office)') {
+      if (safeData.name === 'Cash') {
         await prisma.safe.update({
           where: { id: existing.id },
           data: { balance: INITIAL_CAPITAL }

@@ -815,31 +815,25 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
   Widget? _buildFAB() {
     if (_tabController.index == 0) {
       // Expenses tab
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 90),
-        child: FloatingActionButton.extended(
-          onPressed: _showAddExpenseSheet,
-          backgroundColor: AppColors.primaryDark,
-          foregroundColor: Colors.white,
-          elevation: 4,
-          icon: const Icon(LucideIcons.plus, size: 20),
-          label: Text('New Expense', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
+      return FloatingActionButton.extended(
+        onPressed: _showAddExpenseSheet,
+        backgroundColor: AppColors.primaryDark,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(LucideIcons.plus, size: 20),
+        label: Text('New Expense', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       );
-    } else if (_tabController.index == 2) {
+    } else if (_tabController.index == 1) {
       // Categories tab
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 90),
-        child: FloatingActionButton.extended(
-          onPressed: _showAddCategoryDialog,
-          backgroundColor: AppColors.primaryDark,
-          foregroundColor: Colors.white,
-          elevation: 4,
-          icon: const Icon(LucideIcons.plus, size: 20),
-          label: Text('New Category', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
+      return FloatingActionButton.extended(
+        onPressed: _showAddCategoryDialog,
+        backgroundColor: AppColors.primaryDark,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(LucideIcons.plus, size: 20),
+        label: Text('New Category', style: GoogleFonts.inter(fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       );
     }
     return null;
@@ -909,8 +903,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
               unselectedLabelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
               tabs: const [
                 Tab(text: 'Expenses'),
-                Tab(text: 'Analytics'),
                 Tab(text: 'Categories'),
+                Tab(text: 'Analytics'),
               ],
             ),
           ),
@@ -1038,7 +1032,25 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                     ],
                   ),
                 ),
-                // Tab 2: Analytics
+                // Tab 2: Categories List
+                RefreshIndicator(
+                  onRefresh: _loadExpenses,
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                    children: [
+                      Text('EXPENSE CATEGORIES', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 1)),
+                      const SizedBox(height: 8),
+                      if (_categories.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Center(child: Text('No categories created yet', style: GoogleFonts.inter(color: AppColors.textMuted))),
+                        )
+                      else
+                        ..._categories.map((cat) => _buildCategoryCard(cat)),
+                    ],
+                  ),
+                ),
+                // Tab 3: Analytics
                 ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                   children: [
@@ -1091,24 +1103,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
                         );
                       }),
                   ],
-                ),
-                // Tab 3: Categories List
-                RefreshIndicator(
-                  onRefresh: _loadExpenses,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                    children: [
-                      Text('EXPENSE CATEGORIES', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 1)),
-                      const SizedBox(height: 8),
-                      if (_categories.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Center(child: Text('No categories created yet', style: GoogleFonts.inter(color: AppColors.textMuted))),
-                        )
-                      else
-                        ..._categories.map((cat) => _buildCategoryCard(cat)),
-                    ],
-                  ),
                 ),
               ],
             ),
