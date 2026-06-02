@@ -393,102 +393,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  Future<void> _editOrderDate() async {
-    final currentStr = _order!['createdAt'];
-    final current = currentStr != null ? DateTime.tryParse(currentStr) : null;
-    final initialDate = current ?? DateTime.now();
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primaryDark,
-              onPrimary: Colors.white,
-              onSurface: AppColors.textPrimary,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primaryDark,
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked == null) return;
-    if (!mounted) return;
-
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(initialDate),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primaryDark,
-              onPrimary: Colors.white,
-              onSurface: AppColors.textPrimary,
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primaryDark,
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (!mounted) return;
-
-    final selectedDateTime = pickedTime != null
-        ? DateTime(
-            picked.year,
-            picked.month,
-            picked.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          )
-        : picked;
-
-    setState(() => _isUpdating = true);
-    try {
-      final token = context.read<AuthProvider>().token;
-      final client = ApiClient(token: token);
-      await client.patch(
-        '/api/admin/auth/orders/${widget.orderId}',
-        body: {'createdAt': selectedDateTime.toIso8601String()},
-      );
-      await _loadOrder();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showAppToast(
-          AppToast.snackBar(
-            content: const Text('Order date updated successfully'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showAppToast(
-          AppToast.snackBar(
-            content: Text('Failed to update date: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isUpdating = false);
-    }
-  }
 
   String _customerNotesText() {
     final candidates = [
@@ -682,7 +586,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             LucideIcons.calendar,
             'Order Date',
             _formatDate(_order!['createdAt']),
-            onTap: () => _editOrderDate(),
           ),
         ],
       ),

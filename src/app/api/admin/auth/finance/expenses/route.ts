@@ -228,3 +228,99 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to create expense' }, { status: 500 });
     }
 }
+
+/**
+ * PUT /api/admin/finance/expenses
+ * Update an existing expense
+ * Body: { id, description, amount, date, categoryId, subcategoryId, safeId, expenseType, spreadMonths }
+ */
+export async function PUT(request: NextRequest) {
+    const admin = await validateMobileToken(request);
+    if (!admin) return unauthorizedResponse();
+
+    try {
+        const body = await request.json();
+        const {
+            id, description, amount, date, categoryId, subcategoryId,
+            safeId, expenseType, spreadMonths,
+        } = body;
+
+        if (!id || !description || !amount || !categoryId) {
+            return NextResponse.json({ error: 'id, description, amount, and category are required' }, { status: 400 });
+        }
+
+        // Fetch existing expense to know old safeId and amount
+        const existing = await prisma.expense.findUnique({
+            where: { id },
+            select: { safeId: true, amount: true, isAmortized: true },
+        });
+
+        if (!existing) {
+            return NextResponse.json({ error: 'Expense not found' }, { status: 404 });
+        }
+
+        const isAmortized = expenseType === 'AMORTIZED';
+        const monthlyAmount = isAmortized && spreadMonths > 1
+            ? Math.round((amount / spreadMonths) * 100) / 100
+            : amount;
+
+        await prisma.$transaction(async (tx) => {
+            // --- Reverse old SafeTransaction if had a safe ---
+            if (existing.safeId) {
+                const oldTx = await tx.safeTransaction.findFirst({
+                    where: { referenceType: 'EXPENSE', referenceId: id },
+                });
+                if (oldTx) {
+                    await tx.safe.update({
+                        where: { id: existing.safeId },
+                        data: { balance: { increment: existing.amount } },
+                    });
+                    await tx.safeTransaction.delete({ where: { id: oldTx.id } });
+                }
+            }
+
+            // --- Update the expense ---
+            await tx.expense.update({
+                where: { id },
+                data: {
+                    description,
+                    amount,
+                    date: date ? new Date(date) : undefined,
+                    categoryId,
+                    subcategoryId: subcategoryId || null,
+                    safeId: safeId || null,
+                    expenseType: expenseType || 'OPERATING',
+                    isAmortized,
+                    spreadMonths: isAmortized ? (spreadMonths || 1) : 1,
+                    monthlyAmount: isAmortized ? monthlyAmount : amount,
+                    amortStartDate: isAmortized ? (date ? new Date(date) : undefined) : null,
+                },
+            });
+
+            // --- Create new SafeTransaction if safe provided ---
+            if (safeId) {
+                const safe = await tx.safe.update({
+                    where: { id: safeId },
+                    data: { balance: { decrement: amount } },
+                });
+                await tx.safeTransaction.create({
+                    data: {
+                        safeId,
+                        type: 'DEBIT',
+                        amount,
+                        balanceAfter: safe.balance.toNumber(),
+                        description: `Expense: ${description}`,
+                        referenceType: 'EXPENSE',
+                        referenceId: id,
+                        createdBy: admin.id,
+                    },
+                });
+            }
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error('Expenses PUT Error:', error);
+        return NextResponse.json({ error: 'Failed to update expense' }, { status: 500 });
+    }
+}

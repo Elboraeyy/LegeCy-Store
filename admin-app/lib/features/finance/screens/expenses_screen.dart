@@ -411,6 +411,311 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
     );
   }
 
+  void _showEditExpenseSheet(Map<String, dynamic> expense) {
+    final descCtrl   = TextEditingController(text: expense['description'] ?? '');
+    final amountCtrl = TextEditingController(text: (expense['amount'] ?? '').toString());
+    final spreadCtrl = TextEditingController(text: (expense['spreadMonths'] ?? 1).toString());
+
+    String? categoryId   = (expense['category'] as Map?)?['id'];
+    String? subcategoryId = (expense['subcategory'] as Map?)?['id'];
+    String? safeId       = (expense['safe'] as Map?)?['id'];
+    String  selectedType = expense['expenseType'] ?? 'OPERATING';
+    bool    isAmortized  = selectedType == 'AMORTIZED';
+    DateTime selectedDate = expense['date'] != null
+        ? DateTime.tryParse(expense['date'])?.toLocal() ?? DateTime.now()
+        : DateTime.now();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, ss) {
+          final selectedCat = _categories.firstWhere(
+            (c) => c['id'] == categoryId,
+            orElse: () => {'children': []},
+          );
+          final subcats = (selectedCat['children'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+
+          Widget buildTypeOption(String type, String label, bool isSelected, Color activeColor) {
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => ss(() {
+                  selectedType = type;
+                  isAmortized  = type == 'AMORTIZED';
+                }),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? activeColor.withValues(alpha: 0.1) : AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? activeColor : AppColors.cardBorder,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      label,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? activeColor : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: MediaQuery.of(ctx).size.height * 0.85,
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 12, bottom: 8),
+                  child: Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.textMuted.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryDark.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(LucideIcons.edit2, size: 20, color: AppColors.primaryDark),
+                      ),
+                      const SizedBox(width: 12),
+                      Text('Edit Expense', style: GoogleFonts.playfairDisplay(
+                        fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark,
+                      )),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    children: [
+                      TextField(
+                        controller: descCtrl,
+                        decoration: const InputDecoration(labelText: 'Description'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: amountCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Amount', prefixText: 'EGP '),
+                        onChanged: (_) => ss(() {}),
+                      ),
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime(2025),
+                            lastDate: DateTime.now().add(const Duration(days: 365)),
+                            builder: (context, child) => Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: AppColors.primaryDark,
+                                  onPrimary: Colors.white,
+                                  onSurface: AppColors.textPrimary,
+                                ),
+                              ),
+                              child: child!,
+                            ),
+                          );
+                          if (picked != null) ss(() => selectedDate = picked);
+                        },
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Expense Date',
+                            prefixIcon: Icon(LucideIcons.calendar, size: 20),
+                          ),
+                          child: Text(
+                            DateFormat('dd MMM yyyy').format(selectedDate),
+                            style: GoogleFonts.inter(fontSize: 14),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text('EXPENSE TYPE', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 1)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          buildTypeOption('OPERATING', 'Regular',     selectedType == 'OPERATING', AppColors.error),
+                          const SizedBox(width: 8),
+                          buildTypeOption('AMORTIZED', 'Amortized',   selectedType == 'AMORTIZED', AppColors.info),
+                          const SizedBox(width: 8),
+                          buildTypeOption('CAPITAL',   'Capital/Cost', selectedType == 'CAPITAL',   const Color(0xFFD4AF37)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (isAmortized) ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextField(
+                                controller: spreadCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Number of months',
+                                  isDense: true,
+                                ),
+                                onChanged: (_) => ss(() {}),
+                              ),
+                              if (amountCtrl.text.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Monthly: EGP ${_currencyFormat.format(((double.tryParse(amountCtrl.text) ?? 0) / (int.tryParse(spreadCtrl.text) ?? 1)))}',
+                                  style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.info),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      DropdownButtonFormField<String>(
+                        value: _categories.any((c) => c['id'] == categoryId) ? categoryId : null,
+                        isExpanded: true,
+                        icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                        dropdownColor: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                        decoration: const InputDecoration(labelText: 'Category'),
+                        items: _categories.map((c) => DropdownMenuItem(
+                          value: c['id'] as String,
+                          child: Text(c['name'], style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
+                        )).toList(),
+                        onChanged: (v) => ss(() { categoryId = v; subcategoryId = null; }),
+                      ),
+                      if (subcats.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<String>(
+                          value: subcats.any((s) => s['id'] == subcategoryId) ? subcategoryId : null,
+                          isExpanded: true,
+                          icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                          dropdownColor: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                          decoration: const InputDecoration(labelText: 'Subcategory (optional)'),
+                          items: [
+                            DropdownMenuItem(value: null, child: Text('None', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted))),
+                            ...subcats.map((c) => DropdownMenuItem(
+                              value: c['id'] as String,
+                              child: Text(c['name'], style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
+                            )),
+                          ],
+                          onChanged: (v) => ss(() => subcategoryId = v),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: _safes.any((s) => s['id'] == safeId) ? safeId : null,
+                        isExpanded: true,
+                        icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
+                        dropdownColor: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                        decoration: const InputDecoration(labelText: 'Paid from (Safe)'),
+                        items: [
+                          DropdownMenuItem(value: null, child: Text('Not specified', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted))),
+                          ..._safes.map((s) => DropdownMenuItem(
+                            value: s['id'] as String,
+                            child: Text(s['name'], style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)),
+                          )),
+                        ],
+                        onChanged: (v) => ss(() => safeId = v),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(LucideIcons.save, size: 20),
+                      label: Text('Save Changes', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: selectedType == 'CAPITAL'
+                            ? const Color(0xFFD4AF37)
+                            : (selectedType == 'AMORTIZED' ? AppColors.info : AppColors.primaryDark),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: () async {
+                        if (descCtrl.text.isEmpty || amountCtrl.text.isEmpty) return;
+                        Navigator.pop(ctx);
+                        try {
+                          final token = context.read<AuthProvider>().token;
+                          final client = ApiClient(token: token);
+                          await client.put('/api/admin/auth/finance/expenses', body: {
+                            'id': expense['id'],
+                            'description': descCtrl.text,
+                            'amount': double.tryParse(amountCtrl.text) ?? 0,
+                            'date': selectedDate.toIso8601String(),
+                            'categoryId': categoryId,
+                            'subcategoryId': subcategoryId,
+                            'safeId': safeId,
+                            'expenseType': selectedType,
+                            'spreadMonths': isAmortized ? (int.tryParse(spreadCtrl.text) ?? 1) : 1,
+                          });
+                          _loadExpenses();
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
+                              content: const Text('Expense updated'),
+                              backgroundColor: AppColors.success,
+                              behavior: SnackBarBehavior.floating,
+                            ));
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showAppToast(AppToast.snackBar(
+                              content: Text('Error: $e'),
+                              backgroundColor: AppColors.error,
+                              behavior: SnackBarBehavior.floating,
+                            ));
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _showMonthPicker() {
     showModalBottomSheet(
       context: context,
@@ -1142,7 +1447,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
       typeLabel = 'Operating';
     }
 
-    return Container(
+    return GestureDetector(
+      onTap: isAmortized ? null : () => _showEditExpenseSheet(expense),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1198,6 +1505,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> with SingleTickerProvid
           ),
         ],
       ),
+    ),
     );
   }
 }

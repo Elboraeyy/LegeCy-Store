@@ -121,6 +121,14 @@ class _OrdersAuditScreenState extends State<OrdersAuditScreen> with SingleTicker
     final extraCtrl = TextEditingController(text: initialExtra.toString());
     final notesCtrl = TextEditingController(text: order['auditNotes'] ?? '');
     String? selectedSafeId = order['auditSafeId'];
+    // Default to Cash safe if no safe is already selected
+    if (selectedSafeId == null && _safes.isNotEmpty) {
+      final cashSafe = _safes.firstWhere(
+        (s) => (s['name'] as String).toLowerCase().contains('cash'),
+        orElse: () => _safes.first,
+      );
+      selectedSafeId = cashSafe['id'] as String;
+    }
 
     double calcProfit() {
       final revenue = (order['totalPrice'] ?? 0).toDouble();
