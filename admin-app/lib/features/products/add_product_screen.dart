@@ -17,7 +17,8 @@ import '../../core/widgets/app_shimmer.dart';
 
 class AddProductScreen extends StatefulWidget {
   final Map<String, dynamic>? product;
-  const AddProductScreen({super.key, this.product});
+  final bool returnResult;
+  const AddProductScreen({super.key, this.product, this.returnResult = false});
   @override
   State<AddProductScreen> createState() => _AddProductScreenState();
 }
@@ -381,6 +382,38 @@ class _AddProductScreenState extends State<AddProductScreen> {
       final additionalC = double.tryParse(_costCtrl.text) ?? 0;
       if (supplierP + additionalC > 0) {
         body['costPrice'] = supplierP + additionalC;
+      }
+
+      if (widget.returnResult) {
+        final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+        final tempVariantId = 'temp_var_${DateTime.now().millisecondsSinceEpoch}';
+        
+        final newProductMap = {
+          'id': tempId,
+          'name': _nameCtrl.text.trim(),
+          'sku': _skuCtrl.text.trim(),
+          'price': double.tryParse(_priceCtrl.text) ?? 0.0,
+          'imageUrl': _imageUrl,
+          'status': _status,
+          'costPrice': supplierP + additionalC,
+          'isDraftProduct': true,
+          'productData': body,
+          'variants': [
+            {
+              'id': tempVariantId,
+              'sku': _skuCtrl.text.trim(),
+              'price': double.tryParse(_priceCtrl.text) ?? 0.0,
+              'costPrice': supplierP + additionalC,
+            }
+          ],
+          'defaultVariantId': tempVariantId,
+        };
+
+        if (mounted) {
+          _snack('Product drafted successfully', ok: true);
+          Navigator.pop(context, newProductMap);
+        }
+        return;
       }
 
       if (_isEdit) {
@@ -1865,7 +1898,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
               // Bottom Navigation
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   boxShadow: [
@@ -1875,6 +1908,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       offset: const Offset(0, -4),
                     ),
                   ],
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  border: Border.all(color: AppColors.cardBorder),
                 ),
                 child: Row(
                   children: [

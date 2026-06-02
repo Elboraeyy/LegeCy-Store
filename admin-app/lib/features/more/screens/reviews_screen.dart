@@ -8,6 +8,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
+import 'package:admin_app/core/services/unread_tracker.dart';
 
 class ReviewsListScreen extends StatefulWidget {
   const ReviewsListScreen({super.key});
@@ -142,37 +143,63 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
                       final rating = (r['rating'] as num?) ?? 0;
                       final bool featured = r['featured'] == true;
                       
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.cardBorder),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.cardBorder.withValues(alpha: 0.5),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            )
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        r['productName'] ?? 'Unknown Product',
-                                        style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                      final bool isUnread = !UnreadTracker.isRead('review', r['id']);
+                      
+                      return GestureDetector(
+                        onTap: () {
+                          if (isUnread) {
+                            UnreadTracker.markAsRead('review', r['id']);
+                            setState(() {});
+                          }
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: isUnread ? const Color(0xFFF59E0B).withValues(alpha: 0.3) : AppColors.cardBorder),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.cardBorder.withValues(alpha: 0.5),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                r['productName'] ?? 'Unknown Product',
+                                                style: GoogleFonts.inter(fontSize: 15, fontWeight: isUnread ? FontWeight.bold : FontWeight.w600, color: AppColors.textPrimary),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            if (isUnread) ...[
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                width: 8,
+                                                height: 8,
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xFFF59E0B),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
                                       const SizedBox(height: 4),
                                       Row(
                                         children: [
@@ -251,8 +278,9 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
                             ),
                           ],
                         ),
-                      );
-                    },
+                      ),
+                    );
+                  },
                   ),
                 ),
     );

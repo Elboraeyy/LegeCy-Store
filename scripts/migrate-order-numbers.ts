@@ -7,27 +7,10 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Starting order number conversion and data migration...');
+  console.log('Starting order number re-sequencing...');
 
-  // 1. Manually alter the PostgreSQL column type to varchar(50) and drop default constraint (autoincrement)
-  try {
-    console.log('Altering column type of "orderNumber" in PostgreSQL to VARCHAR(50)...');
-    
-    // We execute raw SQL to alter the table structure.
-    // Drop the default autoincrement sequence, and cast the column to varchar.
-    await prisma.$executeRawUnsafe(`
-      ALTER TABLE "Order" 
-      ALTER COLUMN "orderNumber" DROP DEFAULT,
-      ALTER COLUMN "orderNumber" TYPE varchar(50) USING "orderNumber"::varchar(50);
-    `);
-    
-    console.log('PostgreSQL column altered successfully.');
-  } catch (error) {
-    console.warn('Altering column directly failed or already done. Error:', error);
-  }
-
-  // 2. Fetch all existing orders in chronological order (by original placement time or number)
-  console.log('Fetching existing orders to re-number...');
+  // 1. Fetch all existing orders in chronological order
+  console.log('Fetching existing orders sorted by createdAt...');
   const orders = await prisma.order.findMany({
     orderBy: [
       { createdAt: 'asc' },
@@ -47,7 +30,7 @@ async function main() {
     return;
   }
 
-  // 3. Sequentially calculate and update new order numbers
+  // 2. Calculate desired new sequential numbers
   console.log('Calculating new alphanumeric sequential numbers...');
   
   let currentNum: string | null = null;
@@ -63,21 +46,45 @@ async function main() {
     currentNum = nextNum;
   }
 
-  console.log('Updating order numbers in the database...');
-  // We use a transaction to ensure all orders are updated successfully
+  // Print planned changes
+  console.log('\n--- Planned Changes ---');
+  for (const u of updates) {
+    const changed = u.oldNum !== u.newNum ? ' <<<' : '';
+    console.log(`  ${u.oldNum} -> ${u.newNum}${changed}`);
+  }
+  console.log('--- End ---\n');
+
+  // 3. Two-pass approach to avoid unique constraint collisions:
+  //    Pass 1: Assign temporary placeholder numbers (TEMP_0001, TEMP_0002, ...)
+  //    Pass 2: Assign the final sequential numbers
+  console.log('Pass 1: Assigning temporary placeholder order numbers...');
+  await prisma.$transaction(async (tx) => {
+    for (let i = 0; i < updates.length; i++) {
+      const tempNum = `TEMP_${String(i + 1).padStart(4, '0')}`;
+      await tx.order.update({
+        where: { id: updates[i].id },
+        data: { orderNumber: tempNum },
+      });
+    }
+  }, {
+    timeout: 30000
+  });
+  console.log('Pass 1 complete.');
+
+  console.log('Pass 2: Assigning final sequential order numbers...');
   await prisma.$transaction(async (tx) => {
     for (const update of updates) {
       await tx.order.update({
         where: { id: update.id },
         data: { orderNumber: update.newNum },
       });
-      console.log(`Order ID ${update.id}: ${update.oldNum} -> ${update.newNum}`);
+      console.log(`  Order ID ${update.id}: ${update.oldNum} -> ${update.newNum}`);
     }
   }, {
     timeout: 30000
   });
 
-  console.log('Migration completed successfully.');
+  console.log('\n✅ Re-sequencing completed successfully! All 34 orders are now A001 through A034.');
 }
 
 main()

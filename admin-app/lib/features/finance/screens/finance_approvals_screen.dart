@@ -8,6 +8,7 @@ import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_toast.dart';
 import 'package:intl/intl.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
+import 'package:admin_app/core/services/unread_tracker.dart';
 
 class FinanceApprovalsScreen extends StatefulWidget {
   const FinanceApprovalsScreen({super.key});
@@ -287,15 +288,22 @@ class _FinanceApprovalsScreenState extends State<FinanceApprovalsScreen> {
                       itemBuilder: (ctx, i) {
                         final w = _withdrawals[i];
                         final isPending = w['status'] == 'PENDING';
+                        final bool isUnread = isPending && !UnreadTracker.isRead('approval', w['id']);
                         return GestureDetector(
-                          onTap: isPending ? () => _showApproveDialog(w) : null,
+                          onTap: isPending ? () {
+                            if (isUnread) {
+                              UnreadTracker.markAsRead('approval', w['id']);
+                              setState(() {});
+                            }
+                            _showApproveDialog(w);
+                          } : null,
                           child: Container(
                             margin: const EdgeInsets.only(bottom: 10),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: AppColors.surface,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: isPending ? AppColors.warning.withValues(alpha: 0.3) : AppColors.cardBorder),
+                              border: Border.all(color: isUnread ? const Color(0xFFF59E0B) : (isPending ? AppColors.warning.withValues(alpha: 0.3) : AppColors.cardBorder)),
                             ),
                             child: Row(
                               children: [
@@ -315,7 +323,31 @@ class _FinanceApprovalsScreenState extends State<FinanceApprovalsScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(w['investorName'] ?? '', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600)),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              w['investorName'] ?? '',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 14,
+                                                fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          if (isUnread) ...[
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: const BoxDecoration(
+                                                color: Color(0xFFF59E0B),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
                                       Row(
                                         children: [
                                           Text(_formatDate(w['createdAt']), style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),

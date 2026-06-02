@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:admin_app/core/network/api_client.dart';
+import 'package:admin_app/core/services/unread_tracker.dart';
 
 import 'screens/reviews_screen.dart';
 import 'screens/messages_screen.dart';
@@ -39,6 +40,7 @@ class _MoreScreenState extends State<MoreScreen> {
   int _newReviewsCount = 0;
   int _newMessagesCount = 0;
   int _newRestockCount = 0;
+  int _newApprovalsCount = 0;
 
   @override
   void initState() {
@@ -62,15 +64,21 @@ class _MoreScreenState extends State<MoreScreen> {
         client
             .get('/api/admin/auth/stock-requests')
             .catchError((_) => {'requests': []}),
+        client
+            .get('/api/admin/auth/finance/withdrawals')
+            .catchError((_) => {'withdrawals': []}),
       ]);
 
       if (mounted) {
         setState(() {
-          // For reviews, count those not featured and created in the last 7 days as 'new' (since there's no explicit unread status)
+          // For reviews, count those not featured, created in the last 7 days and not read yet
           final reviews = results[0]['reviews'] as List?;
           _newReviewsCount =
               reviews?.where((r) {
+                final id = r['id'] as String?;
+                if (id == null) return false;
                 if (r['featured'] == true) return false;
+                if (UnreadTracker.isRead('review', id)) return false;
                 if (r['createdAt'] != null) {
                   final dt = DateTime.tryParse(r['createdAt']);
                   if (dt != null && DateTime.now().difference(dt).inDays <= 7)
@@ -87,10 +95,25 @@ class _MoreScreenState extends State<MoreScreen> {
                   .length ??
               0;
 
-          // For stock requests, status pending means waiting
+          // For stock requests, status pending means waiting and not read yet
           _newRestockCount =
               (results[2]['requests'] as List?)
-                  ?.where((r) => r['status'] == 'pending')
+                  ?.where((r) {
+                    final id = r['id'] as String?;
+                    if (id == null) return false;
+                    return r['status'] == 'pending' && !UnreadTracker.isRead('restock', id);
+                  })
+                  .length ??
+              0;
+
+          // For approvals, status PENDING and not read yet
+          _newApprovalsCount =
+              (results[3]['withdrawals'] as List?)
+                  ?.where((w) {
+                    final id = w['id'] as String?;
+                    if (id == null) return false;
+                    return w['status'] == 'PENDING' && !UnreadTracker.isRead('approval', id);
+                  })
                   .length ??
               0;
         });
@@ -361,16 +384,27 @@ class _MoreScreenState extends State<MoreScreen> {
                 const SizedBox(height: 32),
 
                 _buildSection(
-                  title: 'Marketing & Growth',
-                  icon: LucideIcons.trendingUp,
+                  title: 'Partner Area',
+                  icon: LucideIcons.users,
                   items: [
                     _MenuItem(
-                      title: 'Promos & Discounts',
-                      subtitle: 'Coupons, BOGO & flash sales',
-                      icon: LucideIcons.badgePercent,
-                      color: const Color(0xFFEF4444),
-                      screen: const PromotionsScreen(),
+                      title: 'My Wallet',
+                      subtitle: 'Earnings & withdrawals',
+                      icon: LucideIcons.wallet,
+                      color: const Color(0xFF10B981),
+                      screen: const PartnerWalletScreen(),
                     ),
+                    if (auth.role == 'SUPER_ADMIN' || auth.role == 'owner' || auth.role == 'super_admin')
+                      _MenuItem(
+                        title: 'Approvals',
+                        subtitle: 'Partner withdrawals',
+                        icon: LucideIcons.checkCircle2,
+                        color: const Color(0xFFF59E0B),
+                        screen: const FinanceApprovalsScreen(),
+                        badge: _newApprovalsCount > 0
+                            ? _newApprovalsCount.toString()
+                            : null,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -379,6 +413,13 @@ class _MoreScreenState extends State<MoreScreen> {
                   title: 'Audience & Engagement',
                   icon: LucideIcons.heart,
                   items: [
+                    _MenuItem(
+                      title: 'Promos & Discounts',
+                      subtitle: 'Coupons, BOGO & flash sales',
+                      icon: LucideIcons.badgePercent,
+                      color: const Color(0xFFEF4444),
+                      screen: const PromotionsScreen(),
+                    ),
                     _MenuItem(
                       title: 'Customers',
                       subtitle: 'Client CRM & history',
@@ -432,33 +473,18 @@ class _MoreScreenState extends State<MoreScreen> {
                       screen: const InventoryScreen(),
                     ),
                     _MenuItem(
-                      title: 'Delivery Zones',
-                      subtitle: 'Shipping rates & rules',
-                      icon: LucideIcons.map,
-                      color: const Color(0xFF0EA5E9),
-                      screen: const DeliveryZonesScreen(),
-                    ),
-                    _MenuItem(
                       title: 'Procurement',
                       subtitle: 'Supplier orders',
                       icon: LucideIcons.shoppingBag,
                       color: const Color(0xFF8B5CF6),
                       screen: const ProcurementScreen(),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                _buildSection(
-                  title: 'System Settings',
-                  icon: LucideIcons.settings,
-                  items: [
                     _MenuItem(
-                      title: 'Notifications',
-                      subtitle: 'Push alerts setup',
-                      icon: LucideIcons.bellRing,
-                      color: const Color(0xFFD946EF),
-                      screen: const NotificationsSettingsScreen(),
+                      title: 'Delivery Zones',
+                      subtitle: 'Shipping rates & rules',
+                      icon: LucideIcons.map,
+                      color: const Color(0xFF0EA5E9),
+                      screen: const DeliveryZonesScreen(),
                     ),
                   ],
                 ),
@@ -503,46 +529,34 @@ class _MoreScreenState extends State<MoreScreen> {
                 ],
 
                 _buildSection(
-                  title: 'Partner Area',
-                  icon: LucideIcons.users,
+                  title: 'System Settings',
+                  icon: LucideIcons.settings,
                   items: [
                     _MenuItem(
-                      title: 'My Wallet',
-                      subtitle: 'Earnings & withdrawals',
-                      icon: LucideIcons.wallet,
-                      color: const Color(0xFF10B981),
-                      screen: const PartnerWalletScreen(),
+                      title: 'Notifications',
+                      subtitle: 'Push alerts setup',
+                      icon: LucideIcons.bellRing,
+                      color: const Color(0xFFD946EF),
+                      screen: const NotificationsSettingsScreen(),
                     ),
-                    if (auth.role == 'SUPER_ADMIN' || auth.role == 'owner' || auth.role == 'super_admin')
-                      _MenuItem(
-                        title: 'Approvals',
-                        subtitle: 'Partner withdrawals',
-                        icon: LucideIcons.checkCircle2,
-                        color: const Color(0xFFF59E0B),
-                        screen: const FinanceApprovalsScreen(),
-                      ),
+                    _MenuItem(
+                      title: 'Web Dashboard',
+                      subtitle: 'Open legecy.store/admin',
+                      icon: LucideIcons.globe,
+                      color: AppColors.primaryDark,
+                      onTap: () async {
+                        final uri = Uri.parse('https://www.legecy.store/admin');
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
+                    ),
                   ],
                 ),
                 const SizedBox(height: 32),
-
-                // External Links
-                _buildActionCard(
-                  context,
-                  title: 'Web Dashboard',
-                  subtitle: 'Open legecy.store/admin',
-                  icon: LucideIcons.globe,
-                  color: AppColors.primaryDark,
-                  onTap: () async {
-                    final uri = Uri.parse('https://www.legecy.store/admin');
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(
-                        uri,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
 
                 // Logout Button
                 _buildActionCard(
@@ -641,7 +655,7 @@ class _MoreScreenState extends State<MoreScreen> {
               final item = entry.value;
               return Column(
                 children: [
-                  _MenuItemWidget(item: item),
+                  _MenuItemWidget(item: item, onReturn: _loadBadges),
                   if (index < items.length - 1)
                     Divider(height: 1, indent: 64, color: AppColors.divider),
                 ],
@@ -794,7 +808,8 @@ class _MenuItem {
   final String subtitle;
   final IconData icon;
   final Color color;
-  final Widget screen;
+  final Widget? screen;
+  final VoidCallback? onTap;
   final String? badge;
 
   _MenuItem({
@@ -802,26 +817,35 @@ class _MenuItem {
     required this.subtitle,
     required this.icon,
     required this.color,
-    required this.screen,
+    this.screen,
+    this.onTap,
     this.badge,
   });
 }
 
 class _MenuItemWidget extends StatelessWidget {
   final _MenuItem item;
+  final VoidCallback? onReturn;
 
-  const _MenuItemWidget({required this.item});
+  const _MenuItemWidget({required this.item, this.onReturn});
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => item.screen),
-          );
+        onTap: () async {
+          if (item.onTap != null) {
+            item.onTap!();
+          } else if (item.screen != null) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => item.screen!),
+            );
+            if (onReturn != null) {
+              onReturn!();
+            }
+          }
         },
         highlightColor: item.color.withValues(alpha: 0.05),
         splashColor: item.color.withValues(alpha: 0.1),

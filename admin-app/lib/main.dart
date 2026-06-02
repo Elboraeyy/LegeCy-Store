@@ -11,6 +11,7 @@ import 'package:admin_app/features/auth/login_screen.dart';
 import 'package:admin_app/features/home/home_shell.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:admin_app/core/services/unread_tracker.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -35,6 +36,9 @@ void main() async {
 
   // Initialize notification service
   await NotificationService.instance.initialize();
+
+  // Initialize UnreadTracker
+  await UnreadTracker.init();
 
   // Initialize Firebase and messaging
   await Firebase.initializeApp();

@@ -1514,7 +1514,7 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
     if (isClosed) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
       decoration: BoxDecoration(
         color: AppColors.surface,
         boxShadow: [
@@ -1524,6 +1524,8 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
             blurRadius: 10,
           ),
         ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: Row(
         children: [

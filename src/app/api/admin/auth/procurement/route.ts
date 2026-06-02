@@ -6,24 +6,29 @@ export async function GET() {
     try {
         const suppliers = await prisma.supplier.findMany({
             include: {
+                invoices: { select: { grandTotal: true } },
                 _count: { select: { invoices: true, products: true } }
             },
             orderBy: { name: 'asc' }
         });
 
         return NextResponse.json({
-            suppliers: suppliers.map(s => ({
-                id: s.id,
-                name: s.name,
-                contactPerson: s.contactPerson,
-                email: s.email,
-                phone: s.phone,
-                currency: s.currency,
-                paymentTerms: s.paymentTerms,
-                accountBalance: s.accountBalance.toNumber(),
-                invoiceCount: s._count.invoices,
-                productCount: s._count.products,
-            }))
+            suppliers: suppliers.map(s => {
+                const totalSpend = s.invoices.reduce((sum, inv) => sum + inv.grandTotal.toNumber(), 0);
+                return {
+                    id: s.id,
+                    name: s.name,
+                    contactPerson: s.contactPerson,
+                    email: s.email,
+                    phone: s.phone,
+                    currency: s.currency,
+                    paymentTerms: s.paymentTerms,
+                    accountBalance: s.accountBalance.toNumber(),
+                    totalSpend,
+                    invoiceCount: s._count.invoices,
+                    productCount: s._count.products,
+                };
+            })
         });
     } catch (error) {
         console.error('Procurement GET Error:', error);

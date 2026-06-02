@@ -11,6 +11,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:admin_app/core/services/unread_tracker.dart';
 
 class StockRequestsScreen extends StatefulWidget {
   const StockRequestsScreen({super.key});
@@ -332,20 +333,29 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
                         ).format(DateTime.parse(req['createdAt']))
                       : '';
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.cardBorder),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryDark.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
+                  final bool isUnread = isPending && !UnreadTracker.isRead('restock', req['id']);
+
+                  return GestureDetector(
+                    onTap: () {
+                      if (isUnread) {
+                        UnreadTracker.markAsRead('restock', req['id']);
+                        setState(() {});
+                      }
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: isUnread ? const Color(0xFF0EA5E9).withValues(alpha: 0.3) : AppColors.cardBorder),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryDark.withValues(alpha: 0.03),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -421,29 +431,44 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
                                 ),
                               ),
                               // Status badge
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isPending
-                                      ? AppColors.warning.withValues(alpha: 0.1)
-                                      : AppColors.success.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  isPending ? 'WAITING' : 'NOTIFIED',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    color: isPending
-                                        ? AppColors.warning
-                                        : AppColors.success,
+                              Row(
+                                children: [
+                                  if (isUnread) ...[
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF0EA5E9),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isPending
+                                          ? AppColors.warning.withValues(alpha: 0.1)
+                                          : AppColors.success.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      isPending ? 'WAITING' : 'NOTIFIED',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: isPending
+                                            ? AppColors.warning
+                                            : AppColors.success,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
                             ],
                           ),
@@ -577,7 +602,8 @@ class _StockRequestsScreenState extends State<StockRequestsScreen> {
                         ),
                       ],
                     ),
-                  );
+                  ),
+                );
                 }, childCount: _filteredRequests.length),
               ),
             ),

@@ -17,7 +17,8 @@ export async function GET(
                         product: true,
                         variant: true
                     }
-                }
+                },
+                payments: true
             }
         });
 
@@ -34,6 +35,16 @@ export async function GET(
                 paidAmount: Number(invoice.paidAmount),
                 remainingAmount: Number(invoice.remainingAmount),
                 exchangeRate: Number(invoice.exchangeRate),
+                items: invoice.items.map(item => ({
+                    ...item,
+                    unitCost: Number(item.unitCost),
+                    finalUnitCost: Number(item.finalUnitCost),
+                    totalCost: Number(item.totalCost),
+                })),
+                payments: invoice.payments.map(p => ({
+                    ...p,
+                    amount: Number(p.amount)
+                }))
             }
         });
     } catch (error) {

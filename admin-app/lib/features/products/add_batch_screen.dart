@@ -16,7 +16,15 @@ import '../../core/widgets/app_shimmer.dart';
 
 class AddBatchScreen extends StatefulWidget {
   final Map<String, dynamic>? initialProduct;
-  const AddBatchScreen({super.key, this.initialProduct});
+  final bool returnResult;
+  final String? supplierId;
+
+  const AddBatchScreen({
+    super.key,
+    this.initialProduct,
+    this.returnResult = false,
+    this.supplierId,
+  });
 
   @override
   State<AddBatchScreen> createState() => _AddBatchScreenState();
@@ -52,6 +60,9 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
     super.initState();
     if (widget.initialProduct != null) {
       _selectedProduct = widget.initialProduct;
+    }
+    if (widget.supplierId != null) {
+      _selectedSupplierId = widget.supplierId;
     }
     _fetchData();
   }
@@ -167,6 +178,12 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             ? null
             : double.tryParse(_newExpensesCtrl.text),
       };
+
+      if (widget.returnResult) {
+        body['product'] = _selectedProduct;
+        Navigator.pop(context, body);
+        return;
+      }
 
       final response = await client.post('/api/admin/inventory/batches', body: body);
 
@@ -916,7 +933,7 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
 
   Widget _buildBottomBar() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
       decoration: BoxDecoration(
         color: AppColors.surface,
         boxShadow: [
@@ -926,6 +943,8 @@ class _AddBatchScreenState extends State<AddBatchScreen> {
             offset: const Offset(0, -4),
           ),
         ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: SafeArea(
         top: false,

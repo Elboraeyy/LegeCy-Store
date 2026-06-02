@@ -943,7 +943,7 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
 
   Widget _buildBottomBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -953,6 +953,8 @@ class _CreateManualOrderScreenState extends State<CreateManualOrderScreen> {
             offset: const Offset(0, -5),
           ),
         ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: Row(
         children: [

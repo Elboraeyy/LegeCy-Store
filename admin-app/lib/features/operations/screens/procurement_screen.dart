@@ -8,6 +8,10 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
+import 'package:intl/intl.dart';
+import 'supplier_details_screen.dart';
+import 'invoice_details_screen.dart';
+import 'create_invoice_screen.dart';
 
 class ProcurementScreen extends StatefulWidget {
   const ProcurementScreen({super.key});
@@ -16,16 +20,31 @@ class ProcurementScreen extends StatefulWidget {
   State<ProcurementScreen> createState() => _ProcurementScreenState();
 }
 
-class _ProcurementScreenState extends State<ProcurementScreen> {
+class _ProcurementScreenState extends State<ProcurementScreen> with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _suppliers = [];
   List<dynamic> _invoices = [];
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_handleTabSelection);
     _loadAllData();
+  }
+
+  void _handleTabSelection() {
+    if (_tabController.indexIsChanging || _tabController.index != _tabController.previousIndex) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAllData() async {
@@ -59,7 +78,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
       content: Text('This supplier will be permanently removed. This will fail if there are linked invoices.', style: GoogleFonts.inter(color: AppColors.textSecondary)),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted))),
-        ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0), child: const Text('Delete')),
+        ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, shape: const StadiumBorder(), elevation: 0), child: const Text('Delete')),
       ],
     ));
     if (ok != true) return;
@@ -160,7 +179,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
                         messenger.showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
                       }
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6), foregroundColor: Colors.white, shape: const StadiumBorder(), elevation: 0),
                     child: Text(supplier != null ? 'Save Changes' : 'Create Supplier', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                 ),
@@ -182,7 +201,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
       content: Text('Are you sure you want to delete this purchase invoice?', style: GoogleFonts.inter(color: AppColors.textSecondary)),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel', style: GoogleFonts.inter(color: AppColors.textMuted))),
-        ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0), child: const Text('Delete')),
+        ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, shape: const StadiumBorder(), elevation: 0), child: const Text('Delete')),
       ],
     ));
     if (ok != true) return;
@@ -201,114 +220,14 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
     }
   }
 
-  void _showAddInvoiceDialog() {
-    final numberCtrl = TextEditingController();
-    final totalCtrl = TextEditingController();
-    final notesCtrl = TextEditingController();
-    String? selectedSupplierId;
-    String status = 'DRAFT';
-    String paymentStatus = 'UNPAID';
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(builder: (ctx, setModalState) {
-        return Container(
-          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
-          decoration: const BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.textMuted.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(2)))),
-                const SizedBox(height: 16),
-                Text('Record Purchase Invoice', style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                const SizedBox(height: 20),
-                
-                Text('Supplier', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: selectedSupplierId,
-                  isExpanded: true,
-                  icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
-                  dropdownColor: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
-                  items: _suppliers.map((s) => DropdownMenuItem<String>(value: s['id'], child: Text(s['name'] ?? '', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)))).toList(),
-                  onChanged: (v) => setModalState(() => selectedSupplierId = v),
-                  decoration: InputDecoration(filled: true, fillColor: AppColors.background, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
-                  hint: Text('Select Supplier', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textMuted)),
-                ),
-                
-                const SizedBox(height: 16),
-                _modalField('Invoice Number', numberCtrl, LucideIcons.hash),
-                const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(child: _modalField('Total Amount', totalCtrl, LucideIcons.coins, isNumber: true)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Status', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          value: status,
-                          isExpanded: true,
-                          icon: const Icon(LucideIcons.chevronDown, size: 16, color: AppColors.textMuted),
-                          dropdownColor: AppColors.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
-                          items: ['DRAFT', 'POSTED'].map((r) => DropdownMenuItem(value: r, child: Text(r, style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary)))).toList(),
-                          onChanged: (v) => setModalState(() => status = v!),
-                          decoration: InputDecoration(filled: true, fillColor: AppColors.background, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ]),
-                const SizedBox(height: 12),
-                _modalField('Notes', notesCtrl, LucideIcons.stickyNote),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity, height: 50,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (selectedSupplierId == null || numberCtrl.text.isEmpty) return;
-                      final body = {
-                        'invoiceNumber': numberCtrl.text.trim(),
-                        'supplierId': selectedSupplierId,
-                        'issueDate': DateTime.now().toIso8601String(),
-                        'status': status,
-                        'paymentStatus': paymentStatus,
-                        'grandTotal': double.tryParse(totalCtrl.text) ?? 0,
-                        'notes': notesCtrl.text.trim(),
-                      };
-                      final messenger = ScaffoldMessenger.of(context);
-                      try {
-                        final token = context.read<AuthProvider>().token;
-                        final client = ApiClient(token: token);
-                        await client.post('/api/admin/auth/procurement/invoices', body: body);
-                        if (!context.mounted) return;
-                        Navigator.pop(ctx);
-                        _loadAllData();
-                      } catch (e) {
-                        if (!context.mounted) return;
-                        messenger.showAppToast(AppToast.snackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0),
-                    child: const Text('Record Invoice', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }),
+  void _showAddInvoiceDialog() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateInvoiceScreen()),
     );
+    if (result == true) {
+      _loadAllData();
+    }
   }
 
   Widget _modalField(String label, TextEditingController ctrl, IconData icon, {bool isNumber = false}) {
@@ -334,9 +253,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
           title: Text('Procurement', style: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
@@ -346,7 +263,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
             preferredSize: const Size.fromHeight(60),
             child: Container(
               height: 50,
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              margin: const EdgeInsets.fromLTRB(10, 0, 10, 12),
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -354,6 +271,8 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
                 border: Border.all(color: AppColors.cardBorder),
               ),
               child: TabBar(
+                controller: _tabController,
+                labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                 indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: Colors.transparent,
                 indicator: BoxDecoration(
@@ -362,8 +281,8 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
                 ),
                 labelColor: Colors.white,
                 unselectedLabelColor: AppColors.textMuted,
-                labelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
-                unselectedLabelStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
+                labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+                unselectedLabelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
                 tabs: const [
                   Tab(text: 'Suppliers'),
                   Tab(text: 'Invoices'),
@@ -414,34 +333,36 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
             : _error != null
                 ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(LucideIcons.alertCircle, size: 48, color: AppColors.error), const SizedBox(height: 16), ElevatedButton(onPressed: _loadAllData, child: const Text('Retry'))]))
                 : TabBarView(
+                    controller: _tabController,
                     children: [
                       _buildSuppliersList(),
                       _buildInvoicesList(),
                       _buildPerformanceTab(),
                     ],
                   ),
-        floatingActionButton: Builder(
-          builder: (context) {
-            final tabIndex = DefaultTabController.of(context).index;
-            if (tabIndex == 2) return const SizedBox.shrink();
-            return FloatingActionButton.extended(
-              onPressed: () { 
-                HapticFeedback.lightImpact(); 
-                if (DefaultTabController.of(context).index == 0) {
-                  _showAddEditSupplierDialog();
-                } else {
-                  _showAddInvoiceDialog();
-                }
-              },
-              backgroundColor: const Color(0xFF8B5CF6),
-              icon: const Icon(LucideIcons.plus, color: Colors.white),
-              label: Text(tabIndex == 0 ? 'New Supplier' : 'New Invoice', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white)),
-            );
-          }
-        ),
-      ),
-    );
-  }
+        floatingActionButton: _tabController.index == 2
+            ? const SizedBox.shrink()
+            : FloatingActionButton.extended(
+                onPressed: () { 
+                  HapticFeedback.lightImpact(); 
+                  if (_tabController.index == 0) {
+                    _showAddEditSupplierDialog();
+                  } else {
+                    _showAddInvoiceDialog();
+                  }
+                },
+                backgroundColor: const Color(0xFF8B5CF6),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                icon: const Icon(LucideIcons.plus, color: Colors.white),
+                label: Text(
+                  _tabController.index == 0 ? 'New Supplier' : 'New Invoice',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.white),
+                ),
+              ),
+      );
+    }
 
   Widget _buildPerformanceTab() {
     double totalSpend = 0;
@@ -530,6 +451,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
         Text('No Suppliers Yet', style: GoogleFonts.playfairDisplay(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
       ]));
     }
+    final currencyFormat = NumberFormat('#,##0', 'en');
     return RefreshIndicator(
       onRefresh: _loadAllData,
       color: AppColors.primaryDark,
@@ -539,53 +461,79 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final supplier = _suppliers[index];
-          final balance = supplier['accountBalance']?.toString() ?? '0';
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFF8B5CF6).withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(LucideIcons.building, color: Color(0xFF8B5CF6), size: 20)),
-                    const SizedBox(width: 12),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(supplier['name'] ?? '', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                      Text(supplier['contactPerson'] ?? 'No contact person', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-                    ])),
-                    PopupMenuButton<String>(
-                      icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      onSelected: (v) {
-                        if (v == 'edit') {
-                          _showAddEditSupplierDialog(supplier: supplier);
-                        } else if (v == 'delete') {
-                          _deleteSupplier(supplier['id']);
-                        }
-                      },
-                      itemBuilder: (_) => [
-                        const PopupMenuItem(value: 'edit', child: Row(children: [Icon(LucideIcons.edit, size: 16), SizedBox(width: 10), Text('Edit')])),
-                        const PopupMenuDivider(),
-                        const PopupMenuItem(value: 'delete', child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
-                      ],
-                    ),
-                  ],
+          final supplierId = supplier['id'].toString();
+
+          // Calculate total spend dynamically
+          double totalSpend = 0.0;
+          for (var inv in _invoices) {
+            if (inv['supplierId'] == supplierId) {
+              totalSpend += (inv['grandTotal'] ?? 0.0).toDouble();
+            }
+          }
+
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SupplierDetailsScreen(
+                    supplier: supplier,
+                    invoices: _invoices,
+                  ),
                 ),
-                const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, color: AppColors.cardBorder)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildStat('Balance', 'EGP $balance'),
-                    _buildStat('Phone', supplier['phone'] ?? 'N/A'),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8)),
-                      child: Text(supplier['paymentTerms'] ?? 'N/A', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                    ),
-                  ],
-                ),
-              ],
+              ).then((shouldReload) {
+                if (shouldReload == true) {
+                  _loadAllData();
+                }
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFF8B5CF6).withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(LucideIcons.building, color: Color(0xFF8B5CF6), size: 20)),
+                      const SizedBox(width: 12),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(supplier['name'] ?? '', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                        Text(supplier['contactPerson'] ?? 'No contact person', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+                      ])),
+                      PopupMenuButton<String>(
+                        icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        onSelected: (v) {
+                          if (v == 'edit') {
+                            _showAddEditSupplierDialog(supplier: supplier);
+                          } else if (v == 'delete') {
+                            _deleteSupplier(supplier['id']);
+                          }
+                        },
+                        itemBuilder: (_) => [
+                          const PopupMenuItem(value: 'edit', child: Row(children: [Icon(LucideIcons.edit, size: 16), SizedBox(width: 10), Text('Edit')])),
+                          const PopupMenuDivider(),
+                          const PopupMenuItem(value: 'delete', child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, color: AppColors.cardBorder)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildStat('Total Spend', 'EGP ${currencyFormat.format(totalSpend)}'),
+                      _buildStat('Phone', supplier['phone'] ?? 'N/A'),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8)),
+                        child: Text(supplier['paymentTerms'] ?? 'N/A', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -615,48 +563,64 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
           final status = inv['status'] ?? 'DRAFT';
           final payment = inv['paymentStatus'] ?? 'UNPAID';
 
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFF8B5CF6).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: const Icon(LucideIcons.receipt, color: Color(0xFF8B5CF6), size: 20)),
-                    const SizedBox(width: 12),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(inv['invoiceNumber'] ?? '', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                      Text(supplierName, style: GoogleFonts.inter(fontSize: 12, color: AppColors.primaryDark, fontWeight: FontWeight.w600)),
-                    ])),
-                    PopupMenuButton<String>(
-                      icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      onSelected: (v) {
-                        if (v == 'delete') _deleteInvoice(inv['id']);
-                      },
-                      itemBuilder: (_) => [
-                        const PopupMenuItem(value: 'delete', child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
-                      ],
-                    ),
-                  ],
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InvoiceDetailsScreen(
+                    invoice: inv,
+                  ),
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('${date.day}/${date.month}/${date.year}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
-                      Text('EGP ${inv['grandTotal']}', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    ]),
-                    Row(children: [
-                      _statusBadge(status),
-                      const SizedBox(width: 8),
-                      _paymentBadge(payment),
-                    ]),
-                  ],
-                ),
-              ],
+              ).then((shouldReload) {
+                if (shouldReload == true) {
+                  _loadAllData();
+                }
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.cardBorder)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFF8B5CF6).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: const Icon(LucideIcons.receipt, color: Color(0xFF8B5CF6), size: 20)),
+                      const SizedBox(width: 12),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(inv['invoiceNumber'] ?? '', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                        Text(supplierName, style: GoogleFonts.inter(fontSize: 12, color: AppColors.primaryDark, fontWeight: FontWeight.w600)),
+                      ])),
+                      PopupMenuButton<String>(
+                        icon: const Icon(LucideIcons.moreVertical, color: AppColors.textMuted),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        onSelected: (v) {
+                          if (v == 'delete') _deleteInvoice(inv['id']);
+                        },
+                        itemBuilder: (_) => [
+                          const PopupMenuItem(value: 'delete', child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text('${date.day}/${date.month}/${date.year}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted)),
+                        Text('EGP ${inv['grandTotal']}', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      ]),
+                      Row(children: [
+                        _statusBadge(status),
+                        const SizedBox(width: 8),
+                        _paymentBadge(payment),
+                      ]),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },
