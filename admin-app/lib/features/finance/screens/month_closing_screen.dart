@@ -364,7 +364,14 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
                               _buildPdfRow(pdfText, 'Man. Adjustment', 'EGP ${_formatCurrency(_closing['manualAdjustment'])}'),
                             pw.Spacer(),
                             pw.Divider(color: PdfColors.grey300),
-                            _buildPdfRow(pdfText, 'Net Profit', 'EGP ${_formatCurrency(_closing['netProfit'])}', isBold: true, color: PdfColors.green800),
+                            _buildPdfRow(
+                              pdfText,
+                              'Net Profit',
+                              'EGP ${_formatCurrency(_closing['netProfit'])}',
+                              isBold: true,
+                              isNegative: ((_closing['netProfit'] ?? 0).toDouble() < 0),
+                              color: ((_closing['netProfit'] ?? 0).toDouble() >= 0) ? PdfColors.green800 : null,
+                            ),
                             pw.SizedBox(height: 6),
                             // Distribution Summary
                             pw.Container(
@@ -372,8 +379,20 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
                               color: lightBg,
                               child: pw.Column(
                                 children: [
-                                  _buildPdfRow(pdfText, 'Brand (40%)', 'EGP ${_formatCurrency(_closing['reinvestmentAmount'])}', color: primaryColor),
-                                  _buildPdfRow(pdfText, 'Partners (60%)', 'EGP ${_formatCurrency(_closing['distributionAmount'])}', color: accentColor),
+                                  _buildPdfRow(
+                                    pdfText,
+                                    'Brand (40%)',
+                                    'EGP ${_formatCurrency(_closing['reinvestmentAmount'])}',
+                                    isNegative: ((_closing['reinvestmentAmount'] ?? 0).toDouble() < 0),
+                                    color: ((_closing['reinvestmentAmount'] ?? 0).toDouble() >= 0) ? primaryColor : null,
+                                  ),
+                                  _buildPdfRow(
+                                    pdfText,
+                                    'Partners (60%)',
+                                    'EGP ${_formatCurrency(_closing['distributionAmount'])}',
+                                    isNegative: ((_closing['distributionAmount'] ?? 0).toDouble() < 0),
+                                    color: ((_closing['distributionAmount'] ?? 0).toDouble() >= 0) ? accentColor : null,
+                                  ),
                                 ],
                               ),
                             ),
@@ -976,10 +995,10 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
           ),
           child: Column(
             children: [
-              _buildFinanceRow('Project Net Profit', netProfit, isPrimary: true),
+              _buildFinanceRow('Project Net Profit', netProfit, isPrimary: true, color: netProfit >= 0 ? AppColors.success : AppColors.error),
               const Divider(height: 20),
-              _buildFinanceRow('Brand Reinvestment (40%)', reinvestment, color: AppColors.info),
-              _buildFinanceRow('Partner Distributions (60%)', distribution, color: AppColors.accent),
+              _buildFinanceRow('Brand Reinvestment (40%)', reinvestment, color: reinvestment >= 0 ? AppColors.info : AppColors.error),
+              _buildFinanceRow('Partner Distributions (60%)', distribution, color: distribution >= 0 ? AppColors.accent : AppColors.error),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1243,15 +1262,30 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
                         _buildInvoiceDetailRow('Operating Exp.', -(_closing['totalOperatingExpenses'] ?? 0), isNegative: true),
                         _buildInvoiceDetailRow('Amortized Exp.', -(_closing['totalAmortizedExpenses'] ?? 0), isNegative: true),
                         const Divider(height: 12),
-                        _buildInvoiceDetailRow('Net Profit', _closing['netProfit'], isBold: true, color: AppColors.success),
+                        _buildInvoiceDetailRow(
+                          'Net Profit',
+                          _closing['netProfit'],
+                          isBold: true,
+                          color: ((_closing['netProfit'] ?? 0).toDouble() >= 0) ? AppColors.success : AppColors.error,
+                        ),
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(6)),
                           child: Column(
                             children: [
-                              _buildInvoiceDetailRow('Brand (40%)', _closing['reinvestmentAmount'], size: 10),
-                              _buildInvoiceDetailRow('Partners (60%)', _closing['distributionAmount'], size: 10),
+                              _buildInvoiceDetailRow(
+                                'Brand (40%)',
+                                _closing['reinvestmentAmount'],
+                                size: 10,
+                                color: ((_closing['reinvestmentAmount'] ?? 0).toDouble() >= 0) ? AppColors.primaryDark : AppColors.error,
+                              ),
+                              _buildInvoiceDetailRow(
+                                'Partners (60%)',
+                                _closing['distributionAmount'],
+                                size: 10,
+                                color: ((_closing['distributionAmount'] ?? 0).toDouble() >= 0) ? AppColors.primaryDark : AppColors.error,
+                              ),
                             ],
                           ),
                         ),
@@ -1372,6 +1406,7 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
 
   Widget _buildInvoiceDetailRow(String label, dynamic value, {bool isNegative = false, bool isBold = false, Color? color, double size = 11}) {
     final double val = (value ?? 0).toDouble();
+    final bool showAsNegative = isNegative || val < 0;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -1387,11 +1422,11 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
           ),
           const SizedBox(width: 8),
           Text(
-            '${isNegative ? "-" : ""}EGP ${_formatCurrency(val.abs())}',
+            '${showAsNegative ? "-" : ""}EGP ${_formatCurrency(val.abs())}',
             style: GoogleFonts.inter(
               fontSize: size,
               fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
-              color: color ?? (isNegative ? AppColors.error : AppColors.textPrimary),
+              color: color ?? (showAsNegative ? AppColors.error : AppColors.textPrimary),
             ),
           ),
         ],
@@ -1484,6 +1519,7 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
   }
 
   Widget _buildFinanceRow(String label, double value, {bool isNegative = false, bool isBold = false, Color? color, bool isPrimary = false, bool isSecondarySub = false}) {
+    final bool showAsNegative = isNegative || value < 0;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1498,11 +1534,11 @@ class _MonthClosingScreenState extends State<MonthClosingScreen> {
             ),
           ),
           Text(
-            '${isNegative ? "-" : ""}EGP ${_formatCurrency(value.abs())}',
+            '${showAsNegative ? "-" : ""}EGP ${_formatCurrency(value.abs())}',
             style: GoogleFonts.inter(
               fontSize: isPrimary ? 13 : (isSecondarySub ? 11 : 12),
               fontWeight: (isBold || isPrimary) ? FontWeight.bold : FontWeight.w600,
-              color: color ?? (isNegative ? AppColors.error : AppColors.textPrimary),
+              color: color ?? (showAsNegative ? AppColors.error : AppColors.textPrimary),
             ),
           ),
         ],

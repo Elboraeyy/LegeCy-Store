@@ -386,25 +386,38 @@ export async function POST(request: NextRequest) {
             if (oldTx) {
                 await tx.safe.update({
                     where: { id: oldTx.safeId },
-                    data: { balance: { decrement: oldTx.amount } }
+                    data: {
+                        balance: oldTx.type === 'CREDIT'
+                            ? { decrement: oldTx.amount }
+                            : { increment: oldTx.amount }
+                    }
                 });
                 await tx.safeTransaction.delete({ where: { id: oldTx.id } });
             }
 
-            // Deposit reinvestment amount (brand money) to selected safe
-            if (brandSafeId && reinvestmentAmount > 0) {
+            // Deposit/deduct reinvestment amount (brand profit/loss) to/from selected safe
+            if (brandSafeId && reinvestmentAmount !== 0) {
+                const isLoss = reinvestmentAmount < 0;
+                const absoluteAmount = Math.abs(reinvestmentAmount);
+
                 const safe = await tx.safe.update({
                     where: { id: brandSafeId },
-                    data: { balance: { increment: reinvestmentAmount } }
+                    data: {
+                        balance: isLoss
+                            ? { decrement: absoluteAmount }
+                            : { increment: absoluteAmount }
+                    }
                 });
 
                 await tx.safeTransaction.create({
                     data: {
                         safeId: brandSafeId,
-                        type: 'CREDIT',
-                        amount: reinvestmentAmount,
+                        type: isLoss ? 'DEBIT' : 'CREDIT',
+                        amount: absoluteAmount,
                         balanceAfter: safe.balance.toNumber(),
-                        description: `إعادة استثمار (أرباح البراند) لشهر ${month}/${year}`,
+                        description: isLoss
+                            ? `Brand reinvestment loss for month ${month}/${year}`
+                            : `Brand reinvestment profit for month ${month}/${year}`,
                         referenceType: 'MONTH_CLOSING',
                         referenceId: closing.id,
                         createdBy: admin.id

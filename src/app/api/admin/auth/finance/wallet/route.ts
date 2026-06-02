@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
                 id: md.id,
                 type: 'EARNING',
                 amount: md.totalShare.toNumber(),
-                description: `أرباح شهر ${md.monthClosing.month}/${md.monthClosing.year} (ربح: ${md.profitShare.toNumber()} + مرتب: ${md.salaryShare.toNumber()})`,
+                description: `Monthly Earnings ${md.monthClosing.month}/${md.monthClosing.year} (Profit: ${md.profitShare.toNumber()} + Salary: ${md.salaryShare.toNumber()})`,
                 status: 'COMPLETED',
                 date: md.createdAt.toISOString(),
             });
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
                 id: w.id,
                 type: 'WITHDRAWAL',
                 amount: -w.amount.toNumber(),
-                description: w.notes || `سحب${w.safe ? ` من ${w.safe.name}` : ''}`,
+                description: w.notes || `Withdrawal${w.safe ? ` from ${w.safe.name}` : ''}`,
                 status: w.status,
                 date: w.createdAt.toISOString(),
             });
