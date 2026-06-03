@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { getPartnersInsights } from '@/lib/services/mobileInsightsService';
 
 /**
  * GET /api/admin/auth/partners
@@ -122,40 +123,23 @@ export async function GET(request: NextRequest) {
             };
         });
 
-        // ── Business P&L for share calculation ──
-        const [totalRevenue, totalExpenses] = await Promise.all([
-            prisma.order.aggregate({
-                where: { status: 'delivered' },
-                _sum: { totalPrice: true },
-            }),
-            prisma.expense.aggregate({
-                where: { status: 'APPROVED' },
-                _sum: { amount: true },
-            }),
-        ]);
+        const sourceOfTruth = await getPartnersInsights();
 
-        const rev = totalRevenue._sum.totalPrice?.toNumber() || 0;
-        const exp = totalExpenses._sum.amount?.toNumber() || 0;
-        const netProfit = rev - exp;
-
-        // Calculate each investor's profit share
-        // If currentShare is set, use it. Otherwise, distribute by net contribution ratio, or equally.
         const totalContributed = investorStats.reduce((s, i) => s + Math.max(0, i.netContributed), 0);
-        const investorProfitShares = investorStats.map(inv => {
-            let sharePercent: number;
-            if (totalShares > 0) {
-                sharePercent = inv.currentShare / totalShares;
-            } else if (totalContributed > 0) {
-                sharePercent = Math.max(0, inv.netContributed) / totalContributed;
-            } else {
-                sharePercent = 1 / investorStats.length;
-            }
-            return {
-                name: inv.name,
-                share: sharePercent,
-                profitShare: sharePercent * netProfit,
-            };
-        });
+        const netProfit = sourceOfTruth.monthClosingCumulativeNet;
+        const rev = sourceOfTruth.auditedRevenueThisMonth;
+        const investorProfitShares = investorStats
+            .filter((inv) => inv.type === 'PARTNER')
+            .map((inv) => {
+                const sharePercent = inv.currentShare > 0 ? inv.currentShare : 0;
+                const row = sourceOfTruth.investors.find((i) => i.name === inv.name);
+                return {
+                    name: inv.name,
+                    share: sharePercent,
+                    profitShare: row?.cumulativeDistributions ?? sharePercent * netProfit,
+                    walletBalance: row?.walletBalance ?? 0,
+                };
+            });
 
         // ── Partner Alerts ──
         const alerts = await prisma.partnerAlert.findMany({
@@ -165,16 +149,21 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json({
+            sourceOfTruth,
             overview: {
                 totalCapital,
                 totalShares,
                 netProfit,
                 totalRevenue: rev,
-                totalExpenses: exp,
+                totalExpenses: 0,
                 investorCount: investors.length,
                 partnerCount: partners.length,
                 activeInvestors: investors.filter(i => i.isActive).length,
                 activePartners: partners.filter(p => p.isActive).length,
+                totalWalletBalance: sourceOfTruth.totalWalletBalance,
+                pendingWithdrawals: sourceOfTruth.pendingWithdrawalCount,
+                pendingWithdrawalAmount: sourceOfTruth.pendingWithdrawalAmount,
+                auditedNetProfitThisMonth: sourceOfTruth.auditedNetProfitThisMonth,
             },
             investors: investorStats,
             investorProfitShares,

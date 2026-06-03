@@ -10,6 +10,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
+import 'package:admin_app/features/reports/insights_widgets.dart';
 
 class FinanceScreen extends StatefulWidget {
   const FinanceScreen({super.key});
@@ -382,6 +383,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
   }
 
   List<Widget> _buildContent() {
+    final insights = _data!['insights'] as Map<String, dynamic>?;
     final o = _data!['overview'] as Map<String, dynamic>;
     final thisMonth = _data!['thisMonth'] as Map<String, dynamic>? ?? {};
     final lastMonth = _data!['lastMonth'] as Map<String, dynamic>? ?? {};
@@ -393,7 +395,31 @@ class _FinanceScreenState extends State<FinanceScreen> {
     final expenses = (_data!['recentExpenses'] as List?) ?? [];
 
     return [
-      // ── Net Profit Hero ──
+      if (insights != null) ...[
+        FinancialTruthHero(
+          treasury: Map<String, dynamic>.from(insights['treasury'] as Map? ?? {}),
+          audited: Map<String, dynamic>.from(insights['auditedOrders'] as Map? ?? {}),
+          cashFlow: Map<String, dynamic>.from(insights['cashFlow'] as Map? ?? {}),
+        ),
+        const SizedBox(height: 14),
+        if ((insights['cashFlow']?['dailyTrend'] as List?)?.isNotEmpty == true) ...[
+          CashFlowBarChart(dailyTrend: insights['cashFlow']['dailyTrend'] as List),
+          const SizedBox(height: 14),
+        ],
+        if (insights['cashFlow']?['byReference'] != null) ...[
+          CashReferenceTable(items: insights['cashFlow']['byReference'] as List),
+          const SizedBox(height: 14),
+        ],
+        if (insights['expenses']?['byType'] != null) ...[
+          ExpenseTypePieChart(byType: Map<String, dynamic>.from(insights['expenses']['byType'] as Map)),
+          const SizedBox(height: 14),
+        ],
+        _buildMonthClosingChart(insights['monthClosing'] as Map<String, dynamic>?),
+        const SizedBox(height: 14),
+        _buildReconciliationCard(insights['reconciliation'] as Map<String, dynamic>?),
+        const SizedBox(height: 14),
+      ],
+
       _buildProfitHero(o),
       const SizedBox(height: 14),
 
@@ -402,19 +428,41 @@ class _FinanceScreenState extends State<FinanceScreen> {
         children: [
           Expanded(
             child: _kpiCard(
-              'Revenue',
-              _fmt(o['totalRevenue']),
-              LucideIcons.trendingUp,
-              AppColors.success,
+              'Cash on hand',
+              _fmt(o['cashOnHand'] ?? insights?['treasury']?['totalBalance'] ?? 0),
+              LucideIcons.landmark,
+              AppColors.primaryDark,
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: _kpiCard(
-              'Expenses',
-              _fmt(o['totalExpenses']),
-              LucideIcons.trendingDown,
+              'Audited profit',
+              _fmt(o['auditedNetProfit'] ?? 0),
+              LucideIcons.circleCheck,
+              AppColors.success,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      Row(
+        children: [
+          Expanded(
+            child: _kpiCard(
+              'Expense cash out',
+              _fmt(o['expenseCashOut'] ?? 0),
+              LucideIcons.receipt,
               AppColors.error,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _kpiCard(
+              'Inventory',
+              _fmt(o['inventoryBookValue'] ?? 0),
+              LucideIcons.package,
+              const Color(0xFF7C3AED),
             ),
           ),
         ],
@@ -1403,6 +1451,117 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
   String _fmtK(double v) =>
       v >= 1000 ? '${(v / 1000).toStringAsFixed(1)}K' : v.toStringAsFixed(0);
+
+  Widget _buildMonthClosingChart(Map<String, dynamic>? mc) {
+    final months = (mc?['months'] as List?) ?? [];
+    if (months.isEmpty) return const SizedBox.shrink();
+
+    final spots = months.asMap().entries.map((e) {
+      final m = e.value as Map<String, dynamic>;
+      return FlSpot(e.key.toDouble(), (m['netProfit'] as num?)?.toDouble() ?? 0);
+    }).toList();
+    final maxAbs = spots.fold<double>(0, (m, s) => max(m, s.y.abs()));
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader('MONTH CLOSING NET PROFIT', LucideIcons.calendarCheck, const Color(0xFF6366F1)),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 160,
+            child: BarChart(
+              BarChartData(
+                maxY: maxAbs * 1.2 + 50,
+                minY: -maxAbs * 1.2 - 50,
+                gridData: FlGridData(show: true, drawVerticalLine: false),
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (v, _) {
+                        final i = v.toInt();
+                        if (i < 0 || i >= months.length) return const SizedBox.shrink();
+                        final m = months[i] as Map<String, dynamic>;
+                        return Text('${m['month']}/${m['year']}', style: GoogleFonts.inter(fontSize: 8, color: AppColors.textMuted));
+                      },
+                    ),
+                  ),
+                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: false),
+                barGroups: spots.map((s) => BarChartGroupData(
+                  x: s.x.toInt(),
+                  barRods: [
+                    BarChartRodData(
+                      toY: s.y,
+                      width: 16,
+                      color: s.y >= 0 ? AppColors.success : AppColors.error,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                    ),
+                  ],
+                )).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReconciliationCard(Map<String, dynamic>? r) {
+    if (r == null) return const SizedBox.shrink();
+    final gap = (r['unexplainedGap'] as num?)?.toDouble() ?? 0;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.info.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(LucideIcons.info, size: 18, color: AppColors.info),
+              const SizedBox(width: 8),
+              Text('Cash reconciliation', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _reconRow('Audited revenue − expense cash', fmtEgp(r['impliedNet'] ?? 0)),
+          _reconRow('Actual cash net (period)', fmtEgp(r['actualCashNet'] ?? 0)),
+          _reconRow('Gap', fmtEgp(gap), highlight: gap.abs() > 100),
+          if (r['note'] != null) ...[
+            const SizedBox(height: 8),
+            Text(r['note'].toString(), style: GoogleFonts.inter(fontSize: 10, color: AppColors.textMuted, height: 1.4)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _reconRow(String l, String v, {bool highlight = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(l, style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted)),
+          Text(v, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: highlight ? AppColors.warning : AppColors.textPrimary)),
+        ],
+      ),
+    );
+  }
 
   Widget _financeKpiSkeleton() {
     return Container(

@@ -9,6 +9,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
+import 'package:admin_app/features/reports/insights_widgets.dart';
 
 class DailyReportScreen extends StatefulWidget {
   const DailyReportScreen({super.key});
@@ -600,6 +601,7 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
     final newCustomers = (d['newCustomers'] as num?)?.toInt() ?? 0;
     final revGrowth = (growth['revenueGrowth'] as num?)?.toDouble() ?? 0;
     final ordGrowth = (growth['ordersGrowth'] as num?)?.toDouble() ?? 0;
+    final sot = d['sourceOfTruth'] as Map<String, dynamic>?;
 
     return [
       // ── Date Navigation ──
@@ -609,6 +611,37 @@ class _DailyReportScreenState extends State<DailyReportScreen> {
       // ── Hero Summary ──
       _buildHeroCard(totalOrders, totalRevenue, revGrowth, ordGrowth),
       const SizedBox(height: 14),
+
+      if (sot != null) ...[
+        FinancialTruthHero(
+          treasury: Map<String, dynamic>.from(sot['treasury'] as Map? ?? {}),
+          audited: Map<String, dynamic>.from(sot['auditedOrders'] as Map? ?? {}),
+          cashFlow: Map<String, dynamic>.from(sot['cashFlow'] as Map? ?? {}),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _kpiMini(
+                'Cash in',
+                fmtEgp((sot['cashFlow']?['periodIn'] as num?) ?? 0),
+                LucideIcons.arrowDownLeft,
+                AppColors.success,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _kpiMini(
+                'Cash out',
+                fmtEgp((sot['cashFlow']?['periodOut'] as num?) ?? 0),
+                LucideIcons.arrowUpRight,
+                AppColors.error,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+      ],
 
       // ── KPI Row 1 ──
       Row(

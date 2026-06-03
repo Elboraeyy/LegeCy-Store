@@ -3,6 +3,15 @@ import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
 import { cancellationOrderStatusFilter, revenueOrderStatusFilter } from '@/lib/order-metrics';
+import {
+    getTreasuryInsights,
+    getCashFlowInsights,
+    getAuditedOrdersInsights,
+    getExpensesInsights,
+    getInventoryInsights,
+    getProcurementInsights,
+    parseInsightsRange,
+} from '@/lib/services/mobileInsightsService';
 
 /**
  * GET /api/admin/auth/statistics
@@ -259,7 +268,36 @@ export async function GET(request: NextRequest) {
             avgFulfillmentDays = Math.round((totalDays / fulfillmentOrders.length) * 10) / 10;
         }
 
+        const insightsRange = parseInsightsRange(
+            startParam,
+            endParam,
+            String(now.getMonth() + 1),
+            String(now.getFullYear())
+        );
+        if (startParam && endParam) {
+            insightsRange.start = trendStart;
+            insightsRange.end = trendEnd;
+        }
+
+        const [treasury, cashFlow, auditedOrders, expensesInsights, inventory, procurement] =
+            await Promise.all([
+                getTreasuryInsights(),
+                getCashFlowInsights(insightsRange),
+                getAuditedOrdersInsights(insightsRange),
+                getExpensesInsights(insightsRange),
+                getInventoryInsights(),
+                getProcurementInsights(),
+            ]);
+
         return NextResponse.json({
+            sourceOfTruth: {
+                treasury,
+                cashFlow,
+                auditedOrders,
+                expenses: expensesInsights,
+                inventory,
+                procurement,
+            },
             overview: {
                 totalOrders,
                 totalRevenue: totRevNum,

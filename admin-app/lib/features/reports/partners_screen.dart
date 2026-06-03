@@ -9,6 +9,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
+import 'package:admin_app/features/reports/insights_widgets.dart';
 
 class PartnersScreen extends StatefulWidget {
   const PartnersScreen({super.key});
@@ -295,13 +296,43 @@ class _PartnersScreenState extends State<PartnersScreen> {
     final profitShares = (_data!['investorProfitShares'] as List?) ?? [];
     final partners = (_data!['partners'] as List?) ?? [];
     final alerts = (_data!['alerts'] as List?) ?? [];
+    final sot = _data!['sourceOfTruth'] as Map<String, dynamic>?;
 
     return [
-      // ── Hero ──
+      if (sot != null) ...[
+        PartnerWalletsHero(sot: sot),
+        const SizedBox(height: 14),
+        if (sot['monthClosingChart'] != null) ...[
+          MonthClosingBarChart(months: sot['monthClosingChart'] as List),
+          const SizedBox(height: 14),
+        ],
+        Row(
+          children: [
+            Expanded(
+              child: _kpi(
+                'Audited profit (mo)',
+                fmtEgp(sot['auditedNetProfitThisMonth'] ?? 0),
+                LucideIcons.circleCheck,
+                AppColors.success,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _kpi(
+                'MC cumulative',
+                fmtEgp(sot['monthClosingCumulativeNet'] ?? 0),
+                LucideIcons.calendarCheck,
+                const Color(0xFF8B5CF6),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+      ],
+
       _buildHero(o),
       const SizedBox(height: 14),
 
-      // ── KPIs ──
       Row(
         children: [
           Expanded(
@@ -315,10 +346,10 @@ class _PartnersScreenState extends State<PartnersScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: _kpi(
-              'Net Profit',
-              _fmt(o['netProfit']),
-              LucideIcons.trendingUp,
-              AppColors.success,
+              'Wallet total',
+              fmtEgp(o['totalWalletBalance'] ?? sot?['totalWalletBalance'] ?? 0),
+              LucideIcons.wallet,
+              const Color(0xFF8B5CF6),
             ),
           ),
         ],
@@ -328,19 +359,19 @@ class _PartnersScreenState extends State<PartnersScreen> {
         children: [
           Expanded(
             child: _kpi(
-              'Investors',
-              '${o['activeInvestors']}/${o['investorCount']}',
-              LucideIcons.users,
-              const Color(0xFF0EA5E9),
+              'Pending payout',
+              '${o['pendingWithdrawals'] ?? 0}',
+              LucideIcons.clock,
+              AppColors.warning,
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: _kpi(
-              'Revenue',
-              _fmt(o['totalRevenue']),
-              LucideIcons.banknote,
-              AppColors.accent,
+              'Partners',
+              '${o['activeInvestors']}/${o['investorCount']}',
+              LucideIcons.users,
+              const Color(0xFF0EA5E9),
             ),
           ),
         ],

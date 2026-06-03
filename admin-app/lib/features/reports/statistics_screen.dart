@@ -9,6 +9,7 @@ import 'package:admin_app/core/theme/app_theme.dart';
 import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/reports/stats_widgets.dart';
+import 'package:admin_app/features/reports/insights_widgets.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
 
 class StatisticsScreen extends StatefulWidget {
@@ -17,16 +18,25 @@ class StatisticsScreen extends StatefulWidget {
   State<StatisticsScreen> createState() => _StatisticsScreenState();
 }
 
-class _StatisticsScreenState extends State<StatisticsScreen> {
+class _StatisticsScreenState extends State<StatisticsScreen>
+    with SingleTickerProviderStateMixin {
   Map<String, dynamic>? _data;
   bool _loading = true;
   String? _error;
   DateTimeRange? _selectedRange;
+  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
     _load();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -60,8 +70,104 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     }
   }
 
+  PreferredSizeWidget? get _statisticsTabBar => (_loading || _error != null)
+      ? null
+      : TabBar(
+          controller: _tabController,
+          labelColor: AppColors.primaryDark,
+          unselectedLabelColor: AppColors.textMuted,
+          indicatorColor: AppColors.accent,
+          labelStyle: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+          tabs: const [
+            Tab(text: 'Finance'),
+            Tab(text: 'Sales'),
+            Tab(text: 'Operations'),
+          ],
+        );
+
+  SliverAppBar _statisticsSliverAppBar({PreferredSizeWidget? bottom}) {
+    return SliverAppBar(
+      pinned: true,
+      backgroundColor: AppColors.background,
+      surfaceTintColor: Colors.transparent,
+      toolbarHeight: 64,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+      ),
+      leading: IconButton(
+        icon: const Icon(LucideIcons.arrowLeft, color: AppColors.primaryDark),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: Text(
+        'Statistics',
+        style: GoogleFonts.playfairDisplay(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          color: AppColors.primaryDark,
+        ),
+      ),
+      actions: [
+        if (_selectedRange != null)
+          IconButton(
+            icon: const Icon(LucideIcons.xCircle, size: 20, color: AppColors.error),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              setState(() => _selectedRange = null);
+              _load();
+            },
+          ),
+        IconButton(
+          icon: Icon(
+            LucideIcons.calendar,
+            size: 20,
+            color: _selectedRange != null ? AppColors.accent : AppColors.primaryDark,
+          ),
+          onPressed: _pickDate,
+        ),
+        IconButton(
+          icon: const Icon(LucideIcons.refreshCw, size: 20, color: AppColors.primaryDark),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            _load();
+          },
+        ),
+        const SizedBox(width: 8),
+      ],
+      bottom: bottom,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_loading && _error == null && _data != null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: RefreshIndicator(
+          color: AppColors.primaryDark,
+          onRefresh: _load,
+          child: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              SliverOverlapAbsorber(
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                sliver: _statisticsSliverAppBar(bottom: _statisticsTabBar),
+              ),
+            ],
+            body: TabBarView(
+              controller: _tabController,
+              children: [
+                _statisticsTabBody(_buildFinanceTab()),
+                _statisticsTabBody(_buildSalesTab()),
+                _statisticsTabBody(_buildOpsTab()),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: RefreshIndicator(
@@ -70,69 +176,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: AppColors.background,
-              surfaceTintColor: Colors.transparent,
-              toolbarHeight: 64,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(20),
-                ),
-              ),
-              leading: IconButton(
-                icon: const Icon(
-                  LucideIcons.arrowLeft,
-                  color: AppColors.primaryDark,
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-              title: Text(
-                'Statistics',
-                style: GoogleFonts.playfairDisplay(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primaryDark,
-                ),
-              ),
-              actions: [
-                if (_selectedRange != null)
-                  IconButton(
-                    icon: const Icon(
-                      LucideIcons.xCircle,
-                      size: 20,
-                      color: AppColors.error,
-                    ),
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      setState(() => _selectedRange = null);
-                      _load();
-                    },
-                  ),
-                IconButton(
-                  icon: Icon(
-                    LucideIcons.calendar,
-                    size: 20,
-                    color: _selectedRange != null
-                        ? AppColors.accent
-                        : AppColors.primaryDark,
-                  ),
-                  onPressed: _pickDate,
-                ),
-                IconButton(
-                  icon: const Icon(
-                    LucideIcons.refreshCw,
-                    size: 20,
-                    color: AppColors.primaryDark,
-                  ),
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    _load();
-                  },
-                ),
-                const SizedBox(width: 8),
-              ],
-            ),
+            _statisticsSliverAppBar(),
             if (_loading)
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -217,17 +261,31 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 ),
               )
             else if (_error != null)
-              SliverFillRemaining(child: _buildError())
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate(_buildContent()),
-                ),
-              ),
+              SliverFillRemaining(child: _buildError()),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _statisticsTabBody(List<Widget> children) {
+    return Builder(
+      builder: (context) {
+        return CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverOverlapInjector(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate(children),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -266,7 +324,102 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  List<Widget> _buildContent() {
+  List<Widget> _buildFinanceTab() {
+    final sot = _data!['sourceOfTruth'] as Map<String, dynamic>?;
+    if (sot == null) {
+      return [
+        Text(
+          'Finance insights unavailable. Pull to refresh.',
+          style: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 13),
+        ),
+      ];
+    }
+    return [
+      FinancialTruthHero(
+        treasury: Map<String, dynamic>.from(sot['treasury'] as Map? ?? {}),
+        audited: Map<String, dynamic>.from(sot['auditedOrders'] as Map? ?? {}),
+        cashFlow: Map<String, dynamic>.from(sot['cashFlow'] as Map? ?? {}),
+      ),
+      const SizedBox(height: 16),
+      if ((sot['cashFlow']?['dailyTrend'] as List?)?.isNotEmpty == true) ...[
+        CashFlowBarChart(dailyTrend: sot['cashFlow']['dailyTrend'] as List),
+        const SizedBox(height: 16),
+      ],
+      if (sot['cashFlow']?['byReference'] != null) ...[
+        CashReferenceTable(items: sot['cashFlow']['byReference'] as List),
+        const SizedBox(height: 16),
+      ],
+      if (sot['expenses']?['byType'] != null) ...[
+        ExpenseTypePieChart(
+          byType: Map<String, dynamic>.from(sot['expenses']['byType'] as Map),
+        ),
+        const SizedBox(height: 16),
+      ],
+      const SizedBox(height: 24),
+    ];
+  }
+
+  List<Widget> _buildOpsTab() {
+    final sot = _data!['sourceOfTruth'] as Map<String, dynamic>?;
+    final inv = sot?['inventory'] as Map<String, dynamic>?;
+    final proc = sot?['procurement'] as Map<String, dynamic>?;
+    final suppliers = (proc?['topSuppliersByBalance'] as List?) ?? [];
+
+    return [
+      Text(
+        'INVENTORY & PROCUREMENT',
+        style: GoogleFonts.inter(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textMuted,
+          letterSpacing: 1.5,
+        ),
+      ),
+      const SizedBox(height: 12),
+      OpsKpiRow(items: [
+        (
+          label: 'Inventory value',
+          value: fmtEgp((inv?['bookValue'] as num?) ?? 0),
+          icon: LucideIcons.package,
+          color: const Color(0xFF7C3AED),
+        ),
+        (
+          label: 'Low / OOS',
+          value: '${inv?['lowStock'] ?? 0} / ${inv?['outOfStock'] ?? 0}',
+          icon: LucideIcons.alertTriangle,
+          color: AppColors.warning,
+        ),
+      ]),
+      const SizedBox(height: 10),
+      OpsKpiRow(items: [
+        (
+          label: 'Posted invoices',
+          value: fmtEgp((proc?['postedInvoicesTotal'] as num?) ?? 0),
+          icon: LucideIcons.fileText,
+          color: const Color(0xFF0EA5E9),
+        ),
+        (
+          label: 'Payables open',
+          value: fmtEgp((proc?['outstandingPayables'] as num?) ?? 0),
+          icon: LucideIcons.receipt,
+          color: AppColors.warning,
+        ),
+      ]),
+      const SizedBox(height: 16),
+      if (suppliers.isNotEmpty)
+        RankedListCard(
+          title: 'TOP SUPPLIER BALANCES',
+          icon: LucideIcons.truck,
+          color: const Color(0xFF059669),
+          items: suppliers,
+          getName: (i) => i['name'] ?? '',
+          getValue: (i) => fmtEgp((i['balance'] as num?) ?? 0),
+        ),
+      const SizedBox(height: 24),
+    ];
+  }
+
+  List<Widget> _buildSalesTab() {
     final o = _data!['overview'] as Map<String, dynamic>;
     final g = _data!['growth'] as Map<String, dynamic>;
     final status = _data!['statusDistribution'] as Map<String, dynamic>;
@@ -354,7 +507,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       ),
       const SizedBox(height: 10),
 
-      // ── NEW KPI Row: Cancellation + Out of Stock ──
       Row(
         children: [
           Expanded(
@@ -368,43 +520,15 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: KpiCard(
-              label: 'Out of Stock',
-              value: '${o['outOfStockCount'] ?? 0}',
-              icon: LucideIcons.packageX,
-              color: const Color(0xFFDC2626),
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 10),
-
-      // ── NEW KPI Row: Fulfillment + Discounted Orders ──
-      Row(
-        children: [
-          Expanded(
-            child: KpiCard(
               label: 'Avg Delivery',
-              value: '${o['avgFulfillmentDays'] ?? 0} days',
+              value: '${o['avgFulfillmentDays'] ?? 0} d',
               icon: LucideIcons.truck,
               color: const Color(0xFF059669),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: KpiCard(
-              label: 'Discounted',
-              value: '${o['discountedOrderCount'] ?? 0} orders',
-              icon: LucideIcons.tag,
-              color: const Color(0xFFF97316),
             ),
           ),
         ],
       ),
       const SizedBox(height: 20),
-
-      // ── NEW: Shipping & Discount Impact ──
-      _buildFinancialInsights(o),
-      const SizedBox(height: 16),
 
       // ── Revenue Chart ──
       RevenueChart(data: trend),
@@ -483,6 +607,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
       // ── Peak Hours ──
       if (hourly.isNotEmpty) _buildPeakHours(hourly),
+      const SizedBox(height: 16),
+
+      _buildFinancialInsights(o),
       const SizedBox(height: 16),
 
       // ── Repeat Customers ──

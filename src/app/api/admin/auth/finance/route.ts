@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import {
+    getFullMobileInsights,
+    parseInsightsRange,
+} from '@/lib/services/mobileInsightsService';
 
 /**
  * GET /api/admin/auth/finance
@@ -12,7 +16,19 @@ export async function GET(request: NextRequest) {
     if (!admin) return unauthorizedResponse();
 
     try {
+        const { searchParams } = new URL(request.url);
         const now = new Date();
+        const range = parseInsightsRange(
+            searchParams.get('startDate'),
+            searchParams.get('endDate'),
+            searchParams.get('month'),
+            searchParams.get('year')
+        );
+        const insights = await getFullMobileInsights({
+            month: String(range.end.getMonth() + 1),
+            year: String(range.end.getFullYear()),
+        });
+
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
@@ -44,9 +60,9 @@ export async function GET(request: NextRequest) {
                 where: { status: 'delivered' },
                 _sum: { totalPrice: true },
             }),
-            // All-time expenses (approved)
+            // All-time expenses (PAID — matches Expenses screen)
             prisma.expense.aggregate({
-                where: { status: 'APPROVED' },
+                where: { status: 'PAID' },
                 _sum: { amount: true },
             }),
             prisma.order.count({ where: { status: 'delivered' } }),
@@ -63,19 +79,19 @@ export async function GET(request: NextRequest) {
             }),
             // This month expenses
             prisma.expense.aggregate({
-                where: { status: 'APPROVED', date: { gte: startOfMonth } },
+                where: { status: 'PAID', date: { gte: startOfMonth } },
                 _sum: { amount: true },
             }),
             // Last month expenses
             prisma.expense.aggregate({
-                where: { status: 'APPROVED', date: { gte: startOfLastMonth, lte: endOfLastMonth } },
+                where: { status: 'PAID', date: { gte: startOfLastMonth, lte: endOfLastMonth } },
                 _sum: { amount: true },
             }),
 
             // Expenses by category
             prisma.expense.groupBy({
                 by: ['categoryId'],
-                where: { status: 'APPROVED' },
+                where: { status: 'PAID' },
                 _sum: { amount: true },
                 _count: true,
                 orderBy: { _sum: { amount: 'desc' } },
@@ -195,6 +211,7 @@ export async function GET(request: NextRequest) {
             : totRev - totExp;
 
         return NextResponse.json({
+            insights,
             overview: {
                 totalRevenue: totRev,
                 totalExpenses: totExp,
@@ -202,8 +219,12 @@ export async function GET(request: NextRequest) {
                 profitMargin: totRev > 0 ? Math.round((trueNetProfit / totRev) * 100) : 0,
                 deliveredOrdersCount: deliveredCount,
                 averageOrderValue: avgOrderValue._avg.totalPrice?.toNumber() || 0,
-                
-                // NEW
+                cashOnHand: insights.treasury.totalBalance,
+                cashSafeBalance: insights.cashFlow.currentBalance,
+                auditedRevenue: insights.auditedOrders.revenue,
+                auditedNetProfit: insights.auditedOrders.netProfit,
+                expenseCashOut: insights.expenses.totalCashOut,
+                inventoryBookValue: insights.inventory.bookValue,
                 cogs: totalCogs,
                 grossProfit: totalGrossProfit,
                 grossMargin: totRev > 0 ? Math.round((totalGrossProfit / totRev) * 100) : 0,

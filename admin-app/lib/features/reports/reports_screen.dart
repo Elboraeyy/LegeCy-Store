@@ -360,10 +360,16 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
     try {
       final token = context.read<AuthProvider>().token;
       final client = ApiClient(token: token);
-      final data = await client.get('/api/admin/auth/dashboard');
+      final results = await Future.wait([
+        client.get('/api/admin/auth/dashboard'),
+        client.get('/api/admin/auth/insights?month=${DateTime.now().month}&year=${DateTime.now().year}'),
+      ]);
       if (mounted)
         setState(() {
-          _stats = data;
+          _stats = {
+            ...Map<String, dynamic>.from(results[0] as Map),
+            'insights': results[1],
+          };
           _loading = false;
         });
     } catch (_) {
@@ -427,27 +433,27 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
             child: Row(
               children: [
                 _miniStat(
+                  'Cash\n(Treasury)',
+                  _fmt((_stats!['insights']?['treasury']?['totalBalance'] as num?) ?? 0),
+                  AppColors.primaryDark,
+                ),
+                _divider(),
+                _miniStat(
+                  'Audited\nProfit',
+                  _fmt((_stats!['insights']?['auditedOrders']?['netProfit'] as num?) ?? 0),
+                  AppColors.success,
+                ),
+                _divider(),
+                _miniStat(
                   "Today's\nOrders",
                   '${_stats!['todayOrders'] ?? 0}',
                   AppColors.info,
                 ),
                 _divider(),
                 _miniStat(
-                  'Revenue\n(EGP)',
-                  (_stats!['todayRevenue'] as num?)?.toStringAsFixed(0) ?? '0',
-                  AppColors.success,
-                ),
-                _divider(),
-                _miniStat(
-                  'Pending',
-                  '${_stats!['pendingOrders'] ?? 0}',
+                  'Pending\nAudit',
+                  '${_stats!['insights']?['auditedOrders']?['pendingAuditInPeriod'] ?? 0}',
                   AppColors.warning,
-                ),
-                _divider(),
-                _miniStat(
-                  'Low\nStock',
-                  '${_stats!['lowStockCount'] ?? 0}',
-                  AppColors.error,
                 ),
               ],
             ),
@@ -485,4 +491,9 @@ class _QuickStatsPreviewState extends State<_QuickStatsPreview> {
 
   Widget _divider() =>
       Container(width: 1, height: 40, color: AppColors.cardBorder);
+
+  String _fmt(num v) {
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
+    return v.toStringAsFixed(0);
+  }
 }

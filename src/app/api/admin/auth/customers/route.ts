@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { getCustomersInsights } from '@/lib/services/mobileInsightsService';
 
 /**
  * GET /api/admin/auth/customers
@@ -208,7 +209,10 @@ export async function GET(request: NextRequest) {
             ? Math.round(((newThisMonth - newLastMonth) / newLastMonth) * 100)
             : 0;
 
+        const sourceOfTruth = await getCustomersInsights();
+
         return NextResponse.json({
+            sourceOfTruth,
             overview: {
                 totalUsers,
                 newThisMonth,
@@ -221,8 +225,12 @@ export async function GET(request: NextRequest) {
                 cancelledOrders,
                 returnRequests,
                 disputeCount,
-                totalRevenue: Math.round(totalRevenue),
-                avgOrderValue: Math.round(avgOrderValue),
+                totalRevenue: sourceOfTruth.auditedRevenue,
+                deliveredRevenue: sourceOfTruth.deliveredRevenue,
+                revenueNotAudited: sourceOfTruth.revenueNotInAudit,
+                pendingFinancialAudit: sourceOfTruth.pendingAuditCount,
+                auditedNetProfit: sourceOfTruth.auditedNetProfit,
+                avgOrderValue: sourceOfTruth.avgAuditedOrder || Math.round(avgOrderValue),
                 avgCLV: Math.round(avgCLV),
                 repeatCustomers,
                 oneTimeCustomers,

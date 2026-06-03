@@ -8,6 +8,7 @@ import 'package:admin_app/core/network/api_client.dart';
 import 'package:admin_app/features/auth/auth_provider.dart';
 import 'package:admin_app/features/reports/customer_widgets.dart';
 import 'package:admin_app/core/widgets/app_shimmer.dart';
+import 'package:admin_app/features/reports/insights_widgets.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -177,8 +178,52 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final coupons = _data!['coupons'] as Map<String, dynamic>? ?? {};
     final geo = (_data!['geography'] as List?) ?? [];
     final regTrend = (_data!['registrationTrend'] as List?) ?? [];
+    final sot = _data!['sourceOfTruth'] as Map<String, dynamic>?;
 
     return [
+      if (sot != null) ...[
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.warning.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(LucideIcons.info, color: AppColors.warning, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Revenue in KPIs uses audited orders (Orders Audit), not all delivered.',
+                  style: GoogleFonts.inter(fontSize: 11, color: AppColors.textPrimary, height: 1.35),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(child: custKpi('Delivered rev.', fmtEgp(sot['deliveredRevenue'] ?? 0), LucideIcons.package, AppColors.info)),
+            const SizedBox(width: 10),
+            Expanded(child: custKpi('Audited rev.', fmtEgp(sot['auditedRevenue'] ?? 0), LucideIcons.circleCheck, AppColors.success)),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(child: custKpi('Not audited', fmtEgp(sot['revenueNotInAudit'] ?? 0), LucideIcons.alertTriangle, AppColors.warning)),
+            const SizedBox(width: 10),
+            Expanded(child: custKpi('Pending audit', '${sot['pendingAuditCount'] ?? 0} orders', LucideIcons.clipboardList, AppColors.error)),
+          ],
+        ),
+        const SizedBox(height: 14),
+        if (sot['monthlyComparison'] != null)
+          AuditedVsDeliveredChart(monthlyComparison: sot['monthlyComparison'] as List),
+        const SizedBox(height: 16),
+      ],
+
       _buildHero(o),
       const SizedBox(height: 14),
 

@@ -3,6 +3,12 @@ import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
 import { cancellationOrderStatusFilter, revenueOrderStatusFilter } from '@/lib/order-metrics';
+import {
+    getCashFlowInsights,
+    getAuditedOrdersInsights,
+    getExpensesInsights,
+    getTreasuryInsights,
+} from '@/lib/services/mobileInsightsService';
 
 /**
  * GET /api/admin/auth/daily
@@ -151,6 +157,14 @@ export async function GET(request: NextRequest) {
         const periodShipping = shippingData._sum.shippingCost?.toNumber() || 0;
         const periodDiscounts = discountData._sum.discountAmount?.toNumber() || 0;
 
+        const periodRange = { start: startOfDay, end: endOfDay };
+        const [treasury, cashFlow, auditedOrders, expensesPeriod] = await Promise.all([
+            getTreasuryInsights(),
+            getCashFlowInsights(periodRange),
+            getAuditedOrdersInsights(periodRange),
+            getExpensesInsights(periodRange),
+        ]);
+
         return NextResponse.json({
             date: startOfDay.toISOString().split('T')[0],
             totalOrders: orders,
@@ -195,6 +209,7 @@ export async function GET(request: NextRequest) {
                 city: c.shippingCity,
                 count: (c._count as number) || 0,
             })),
+            sourceOfTruth: { treasury, cashFlow, auditedOrders, expenses: expensesPeriod },
             recentOrders: recentOrders.map(o => ({
                 id: o.id,
                 orderNumber: o.orderNumber,
