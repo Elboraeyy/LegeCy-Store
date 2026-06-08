@@ -4,7 +4,6 @@ import { revenueOrderStatusFilter } from '@/lib/order-metrics';
 function n(v: unknown): number {
   if (v == null) return 0;
   if (typeof v === 'number') return v;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const d = v as { toNumber?: () => number };
   if (typeof d.toNumber === 'function') return d.toNumber();
   return Number(v) || 0;

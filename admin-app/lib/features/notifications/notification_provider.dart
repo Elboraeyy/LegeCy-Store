@@ -83,8 +83,6 @@ class NotificationProvider extends ChangeNotifier {
   bool _isLoading = false;
   Timer? _pollTimer;
   String? _token;
-  int _lastKnownCount = 0;
-  bool _hasFetchedOnce = false;
 
   // Settings (persisted to SharedPreferences)
   Map<String, bool> _pushEnabled = {
@@ -212,9 +210,6 @@ class NotificationProvider extends ChangeNotifier {
 
       _notifications = list.map((j) => AppNotification.fromJson(j)).toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-      _lastKnownCount = _notifications.length;
-      _hasFetchedOnce = true;
     } catch (e) {
       // Silent fail - notifications are non-critical
     }

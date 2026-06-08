@@ -37,11 +37,10 @@ export async function GET(request: NextRequest) {
         ]);
 
         // ── Revenue Stats ──
-        const [totalRevenueAgg, avgOrderAgg] = await Promise.all([
-            prisma.order.aggregate({ where: { status: 'delivered' }, _sum: { totalPrice: true } }),
-            prisma.order.aggregate({ where: { status: 'delivered' }, _avg: { totalPrice: true } }),
-        ]);
-        const totalRevenue = totalRevenueAgg._sum.totalPrice?.toNumber() || 0;
+        const avgOrderAgg = await prisma.order.aggregate({
+            where: { status: 'delivered' },
+            _avg: { totalPrice: true },
+        });
         const avgOrderValue = avgOrderAgg._avg.totalPrice?.toNumber() || 0;
 
         // ── Repeat vs One-time Customers ──

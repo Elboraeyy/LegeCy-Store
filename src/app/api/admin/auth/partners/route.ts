@@ -125,7 +125,6 @@ export async function GET(request: NextRequest) {
 
         const sourceOfTruth = await getPartnersInsights();
 
-        const totalContributed = investorStats.reduce((s, i) => s + Math.max(0, i.netContributed), 0);
         const netProfit = sourceOfTruth.monthClosingCumulativeNet;
         const rev = sourceOfTruth.auditedRevenueThisMonth;
         const investorProfitShares = investorStats

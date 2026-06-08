@@ -121,14 +121,14 @@ class _GeneralOffersScreenState extends State<GeneralOffersScreen> {
 
     bool _hasChanges() {
       if (!isEdit) return nameCtrl.text.isNotEmpty && valueCtrl.text.isNotEmpty;
-      return nameCtrl.text != (existing?['name'] ?? '') ||
-             descCtrl.text != (existing?['description'] ?? '') ||
-             valueCtrl.text != (existing?['discountValue']?.toString() ?? '') ||
-             priorityCtrl.text != (existing?['priority'] ?? 0).toString() ||
-             offerType != (existing?['offerType'] ?? 'ALL_PRODUCTS') ||
-             discountType != (existing?['discountType'] ?? 'PERCENTAGE') ||
-             isActive != (existing?['isActive'] ?? true) ||
-             targetId != existing?['targetId'];
+      return nameCtrl.text != (existing['name'] ?? '') ||
+             descCtrl.text != (existing['description'] ?? '') ||
+             valueCtrl.text != (existing['discountValue']?.toString() ?? '') ||
+             priorityCtrl.text != (existing['priority'] ?? 0).toString() ||
+             offerType != (existing['offerType'] ?? 'ALL_PRODUCTS') ||
+             discountType != (existing['discountType'] ?? 'PERCENTAGE') ||
+             isActive != (existing['isActive'] ?? true) ||
+             targetId != existing['targetId'];
     }
 
     showModalBottomSheet(
