@@ -1,6 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# Dependencies
 node_modules/
 /.pnp
 .pnp.*
@@ -10,38 +8,87 @@ node_modules/
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# Testing
 coverage/
 
-# next.js
+# Next.js and Vercel build outputs
 .next/
 out/
-
-# production
 build/
+dist/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
 
-# flutter / mobile
+# Flutter / Dart / Mobile specific
 .dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+/build/
+/admin-app/build/
+/admin-app/.dart_tool/
+/admin-app/.flutter-plugins
+/admin-app/.flutter-plugins-dependencies
+/admin-app/android/.gradle/
+/admin-app/android/app/build/
+/admin-app/ios/.symlinks/
+/admin-app/ios/Pods/
+/admin-app/ios/build/
 
-# misc
+# Mobile Builds and Keystores
+*.apk
+*.aab
+*.ipa
+*.keystore
+*.jks
+*.p12
+*.pfx
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.iml
+.metadata
+admin_app.iml
+
+# OS files
 .DS_Store
-*.pem
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# debug
+# Environment files and credentials
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+!.env.example
+
+# Databases and validation outputs
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+validate_output.txt
+
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# Firebase Admin SDK
+# Secrets and Firebase
+*-firebase-adminsdk.json
 legacy-firebase-adminsdk.json
+*credentials*.json
+*secret*.json
