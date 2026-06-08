@@ -4,51 +4,43 @@
 [![Shorebird](https://img.shields.io/badge/Shorebird-OTA_Code_Push-orange?style=for-the-badge)](https://shorebird.dev/)
 [![Firebase](https://img.shields.io/badge/Firebase-FCM-yellow?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
 
-A premium, feature-rich administrative mobile portal built for **Legacy Store** (luxury watches & timepieces brand). Powered by **Flutter**, this native application provides administrators, managers, and partners with full-spectrum control over the store catalog, real-time multi-warehouse inventory, orders, marketing campaigns, cashier POS, expense ledgers, and live business analytics directly from their iOS and Android devices.
+A premium, feature-rich administrative mobile portal built for **Legacy Store** (luxury watches & timepieces brand). Serving as the mobile frontend of a customized **Enterprise Resource Planning (ERP)** system, this native **Flutter** application provides administrators, managers, and partners with full-spectrum control over the store catalog, real-time multi-warehouse inventory, orders, marketing campaigns, cashier POS, expense ledgers, and live business analytics directly from their iOS and Android devices.
 
----
-
-## 📖 Arabic Overview | نبذة عن التطبيق بالعربية
-تطبيق **ليجاسي الإداري (Legacy Admin)** هو تطبيق هاتف ذكي متطور مبني باستخدام إطار العمل **Flutter** مخصص لمديري وملاك منصة **Legacy Store** للساعات الفاخرة. يتيح التطبيق تحكماً كاملاً وشاملاً في كافة العمليات اليومية من أي مكان:
-1. **لوحة معلومات ذكية (Dashboard):** لمتابعة المبيعات اليومية، نسب الأرباح، والمهام الإدارية المعلقة (Todo list).
-2. **إدارة المنتجات والمخازن:** تتبع مستويات المخزون عبر مخازن متعددة، وعمليات التحويل بين المخازن، والتحذيرات من نقص الكميات.
-3. **الفواتير والمبيعات السريعة (POS):** تسجيل الطلبات الفورية يدوياً للعملاء داخل المعرض، وطباعة فواتير PDF لاسلكياً.
-4. **المراجعة المالية (Finance Audit):** متابعة الخزائن، نسب عمولات الشركاء، ودفع رواتب الموظفين.
-5. **التسويق والعروض:** التحكم في كوبونات الخصم، عروض BOGO، مبيعات الفلاش، وحملات الشحن المجاني.
-6. **دعم اللغة العربية والتصميم الفاخر:** تصميم باللون الأخضر الزمردي والذهبي والخطوط الراقية مع واجهة باللغتين العربية والإنجليزية.
-
-> 📝 **دليل الميزات التفصيلي بالعربية:**
-> للحصول على شرح مفصل لكل شاشة وميزة بالتطبيق باللغة العربية، يرجى مراجعة ملف **[APP_FEATURES.md](file:///e:/Dev/web/LegaCy/admin-app/APP_FEATURES.md)**.
+The system enforces strict **Role-Based Access Control (RBAC)**, dynamically adjusting the navigation menus, dashboard statistics, and operational screens based on the logged-in administrator's permissions (Owner, Stock Manager, Cashier, Financial Auditor) fetched from the backend.
 
 ---
 
 ## ✨ Application Feature Modules
 
-*   **📊 Live Dashboard & Task Manager:** Real-time metrics of daily sales, orders count, and partner commissions. Includes a local-first offline task manager with priority setting and remote server synchronization.
+*   **📊 Live ERP Dashboard & Task Manager:** Real-time metrics of daily sales, orders count, and partner commissions. Includes a local-first offline task manager with priority setting and remote server synchronization.
+*   **🔐 Dynamic Role-Based Permissions (RBAC):** Screens, actions, and API requests dynamically restrict themselves based on the user's role. Stock Managers only see inventory-related screens, Cashiers are redirected to the POS module, and Financial Auditors have sole access to treasury and payout approvals.
 *   **📦 Inventory & Multi-Warehouse Tracking:** Check variant stock levels, request stock transfers between warehouses, manage product procurement batches, and receive automatic alerts for low stock levels.
 *   **🧾 Order Management & Mobile POS:** Inspect customer purchases, update fulfillment statuses (Pending, Shipped, Delivered, Cancelled), generate official PDF invoices locally, and process offline showroom sales with the Mobile POS wizard.
 *   **💰 Financial Control & Auditing:** Audit orders for accurate COGS (Cost of Goods Sold), approve partner payouts, document operational store expenses, track treasury liquidity, and perform month-end financial closures.
 *   **🎯 Promotions & Marketing Hub:** Create and control coupons, configure Flash Sales, bundle products for discounts, run Buy One Get One (BOGO) campaigns, and monitor active affiliate marketers.
 *   **💬 CRM, Support & Reviews:** Respond to customer inquiry forms, moderate reviews before displaying them on the storefront, and check restock requests for high-end watch variants.
-*   **🔔 Push Notifications:** Automated push notifications powered by FCM alerting admins instantly of new orders, critical inventory drops, or pending payout requests.
+*   **🔔 Live Push Notifications:** Automated push notifications powered by Firebase Cloud Messaging (FCM) alerting admins instantly of new orders, critical inventory drops, or pending payout requests.
 
 ---
 
 ## 🛠️ Technology Stack & Architecture
 
-### Core Architecture
+### Core Architecture & Cloud Services
 *   **Design Pattern:** Feature-driven modular architecture. Each feature contains its screen UI, providers/controllers, and data models to ensure high maintainability and scalability.
+*   **Database Backend:** Connects to a serverless **Neon PostgreSQL** database through the Next.js secure REST API endpoints.
 *   **State Management:** `provider` (version `^6.1.5+1`) for clean state promotion and reactive UI updates.
 *   **Secure Offline Caching:**
     *   `shared_preferences` for non-sensitive local storage (e.g. task manager caching).
     *   `flutter_secure_storage` for storing encrypted access tokens, passwords, and server cookies.
+*   **Push Notifications:** **Firebase Cloud Messaging (FCM)** using `firebase_messaging` & `flutter_local_notifications` for background and foreground alerts.
+*   **Instant Updates (OTA):** **Shorebird Code Push** integration to publish hot-fixes, UI improvements, and critical updates directly to active user devices without App Store/Play Store review delays.
+*   **Payment & Financial Integration:** Interacts with the **Paymob Gateway** records for order auditing, refund confirmations, and transaction verifications.
 *   **Networking:** Custom `http` wrapper with built-in connection interceptors, timeout handling, and automatic authorization headers inject.
 
 ### Key Packages & UI Enhancements
 *   `google_fonts` (using *Playfair Display* for brand elegance & *Inter* for administrative clarity).
 *   `fl_chart` for highly configurable, premium visual charts representing financial analytics.
 *   `pdf` & `printing` for on-device PDF rendering, wireless printing, and file sharing.
-*   `firebase_messaging` & `flutter_local_notifications` for background and foreground system notifications.
 *   `shimmer` for premium shimmer loading animations.
 *   `arabic_reshaper` for clean Right-to-Left (RTL) Arabic text rendering in PDF layouts.
 
