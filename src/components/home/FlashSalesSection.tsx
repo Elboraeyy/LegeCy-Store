@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ProductCarousel from '@/components/ProductCarousel';
-import ModernProductCarousel from '@/components/ModernProductCarousel';
 import { trackGAEvent } from '@/components/GoogleAnalytics';
 import { Product } from '@/types/product';
 import { useLanguage } from '@/context/LanguageContext';
@@ -129,22 +128,12 @@ export function FlashSalesSection({ sales }: { sales: FlashSale[] }) {
                             </motion.div>
                             
                             <div className="text-[#FCF8F3]">
-                                <div className="md:hidden">
-                                    <ModernProductCarousel
-                                        products={carouselProducts}
-                                        title={sale.name}
-                                        subtitle={t.home.promotions.limited_time_deals}
-                                        viewAllLink={`/flash-sale/${sale.id}`}
-                                    />
-                                </div>
-                                <div className="hidden md:block">
-                                    <ProductCarousel
-                                        products={carouselProducts}
-                                        title={sale.name}
-                                        subtitle={t.home.promotions.limited_time_deals}
-                                        viewAllLink={`/flash-sale/${sale.id}`}
-                                    />
-                                </div>
+                                <ProductCarousel
+                                    products={carouselProducts}
+                                    title={sale.name}
+                                    subtitle={t.home.promotions.limited_time_deals}
+                                    viewAllLink={`/flash-sale/${sale.id}`}
+                                />
                             </div>
                         </div>
                     </section>

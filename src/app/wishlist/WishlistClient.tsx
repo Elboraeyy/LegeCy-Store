@@ -1,28 +1,17 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/context/StoreContext";
 import { motion } from "framer-motion";
 import { fadeUpSlow, staggerContainerSlow } from "@/lib/motion";
-import ModernProductCard from "@/components/ModernProductCard";
+import ProductCard from "@/components/ProductCard";
 import { WishlistSkeleton } from "@/components/skeletons/wishlist-skeleton";
 import { useIsClient } from "@/hooks/useIsClient";
 import { Reveal } from "@/components/ui/Reveal";
 import { useLanguage } from "@/context/LanguageContext";
 import { toast } from "sonner";
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  img?: string;
-  imageUrl?: string | null;
-  category?: string;
-  brand?: string;
-}
+import { Product } from "@/types/product";
 
 interface WishlistClientProps {
   initialProducts?: Product[];
@@ -30,7 +19,7 @@ interface WishlistClientProps {
 
 export default function WishlistClient({ initialProducts }: WishlistClientProps) {
   const router = useRouter();
-  const { fav, products, addToCart, toggleFav, isLoading: storeLoading } = useStore();
+  const { fav, products, toggleFav, isLoading: storeLoading } = useStore();
   const isClient = useIsClient();
   const { t } = useLanguage();
 
@@ -38,8 +27,6 @@ export default function WishlistClient({ initialProducts }: WishlistClientProps)
   const displayProducts = isSharedView
     ? initialProducts
     : products.filter((p) => fav.includes(p.id));
-
-  const formatPrice = (p: number) => `$${p.toFixed(2)}`;
 
   const copyToMyWishlist = () => {
     if (!initialProducts) return;
@@ -104,92 +91,8 @@ export default function WishlistClient({ initialProducts }: WishlistClientProps)
             variants={staggerContainerSlow}
           >
               {displayProducts.map((p) => (
-              <motion.div key={p.id} className="product-card premium" variants={fadeUpSlow}>
-                {/* Mobile View */}
-                <div className="md:hidden">
-                  <ModernProductCard product={p} />
-                </div>
-
-                {/* Desktop View - Original */}
-                <div className="hidden md:block h-full"> 
-                  <div className="product-media" style={{ cursor: "pointer" }}>
-                    <Link href={`/product/${p.id}`}>
-                      <Image
-                        src={p.imageUrl || p.img || '/placeholder.jpg'}
-                        alt={p.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
-                    </Link>
-                  </div>
-                  <div className="product-body">
-                    <h3
-                      className="product-title"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => router.push(`/product/${p.id}`)}
-                    >
-                      {p.name}
-                    </h3>
-                    <p className="product-price">{formatPrice(p.price)}</p>
-                    <div className="product-actions">
-                      <Link
-                        href={`/product/${p.id}`}
-                        className="btn-icon"
-                        title={t.wishlist.view_details}
-                      >
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        >
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                          <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                      </Link>
-                      <button
-                        className="btn-icon"
-                        title={t.common.addToCart}
-                        onClick={() => addToCart(String(p.id))}
-                      >
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        >
-                          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                          <line x1="3" y1="6" x2="21" y2="6"></line>
-                          <path d="M16 10a4 4 0 0 1-8 0"></path>
-                        </svg>
-                      </button>
-
-                        {!isSharedView && (
-                          <button
-                            className="btn-icon"
-                            title={t.wishlist.remove}
-                            onClick={() => toggleFav(String(p.id))}
-                          >
-                            <svg
-                              width="20"
-                              height="20"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                            >
-                              <path d="M18 6L6 18M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        )}
-                    </div>
-                  </div>
-                </div>
+              <motion.div key={p.id} className="h-full animate-fade-in" variants={fadeUpSlow}>
+                <ProductCard product={p} />
               </motion.div>
             ))}
           </motion.div>

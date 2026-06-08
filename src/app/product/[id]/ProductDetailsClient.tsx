@@ -23,9 +23,7 @@ import {
   ReviewDTO,
 } from "@/lib/actions/reviews";
 import { getStoreSettings } from "@/lib/actions/settings";
-// import ProductCard from "@/components/ProductCard";
-// import ModernProductCard from "@/components/ModernProductCard";
-import ModernProductCarousel from "@/components/ModernProductCarousel";
+import ProductCarousel from "@/components/ProductCarousel";
 
 import { CartIcon } from "@/components/icons/CartIcon";
 import { CompareIcon } from "@/components/icons/CompareIcon";
@@ -2030,7 +2028,7 @@ export default function ProductDetailsClient({
             if (filteredProducts.length === 0) return null;
             return (
               <section className="related-section mt-16 px-0 md:px-4">
-                <ModernProductCarousel
+                <ProductCarousel
                   products={filteredProducts}
                   title={
                     product.similarProducts &&

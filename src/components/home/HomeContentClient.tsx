@@ -6,7 +6,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { fadeUpSlow, staggerContainerSlow } from "@/lib/motion";
 import { Reveal } from "@/components/ui/Reveal";
-import ModernProductCarousel from "@/components/ModernProductCarousel";
+import ProductCarousel from "@/components/ProductCarousel";
 import { PromotionsHub, FlashSale, BOGODeal, Bundle } from "@/components/home/PromotionsHub";
 import type { HomepageSettings } from "@/lib/settings";
 import type { Product } from "@/types/product";
@@ -82,7 +82,7 @@ export function HomeContentClient({
 
       {/* Featured Products Carousel (Admin-controlled via showInForYou) */}
       {randomizedForYou.length > 0 && (
-        <ModernProductCarousel
+        <ProductCarousel
           products={randomizedForYou}
           title={t.home.featured_collection}
           subtitle={t.home.handpicked}
@@ -144,7 +144,7 @@ export function HomeContentClient({
 
       {/* New Arrivals Carousel */}
       {randomizedNewArrivals.length > 0 && (
-        <ModernProductCarousel
+        <ProductCarousel
           products={randomizedNewArrivals}
           title={t.home.new_arrivals}
           subtitle={t.home.just_dropped}
