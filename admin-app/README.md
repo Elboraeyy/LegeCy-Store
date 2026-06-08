@@ -1,87 +1,87 @@
 # ⚜️ Legacy Admin Mobile Application
+[![Flutter](https://img.shields.io/badge/Flutter-3.10.3-blue?style=for-the-badge&logo=flutter)](https://flutter.dev/)
+[![Dart](https://img.shields.io/badge/Dart-3.0.0-teal?style=for-the-badge&logo=dart)](https://dart.dev/)
+[![Shorebird](https://img.shields.io/badge/Shorebird-OTA_Code_Push-orange?style=for-the-badge)](https://shorebird.dev/)
+[![Firebase](https://img.shields.io/badge/Firebase-FCM-yellow?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
 
-A premium, feature-rich mobile administrative portal for the **Legacy Store** (luxury timepieces & watches brand). Built with **Flutter**, this application provides store administrators, managers, and partners with complete control over storefront catalog, inventory, orders, marketing promotions, finance ledger, operations, support tickets, and advanced reports, all directly from their mobile devices.
-
-The design utilizes a luxury color palette featuring **Emerald Green (`#12403C`)** and **Gold (`#D4AF37`)** combined with premium typography (**Playfair Display & Inter** via Google Fonts) and micro-animations to align with the brand's aesthetic.
-
----
-
-## 📖 Arabic Documentation
-For a fully detailed, feature-by-feature breakdown in Arabic, please refer to:
-👉 **[APP_FEATURES.md](file:///e:/Dev/web/LegaCy/admin-app/APP_FEATURES.md)**
+A premium, feature-rich administrative mobile portal built for **Legacy Store** (luxury watches & timepieces brand). Powered by **Flutter**, this native application provides administrators, managers, and partners with full-spectrum control over the store catalog, real-time multi-warehouse inventory, orders, marketing campaigns, cashier POS, expense ledgers, and live business analytics directly from their iOS and Android devices.
 
 ---
 
-## ✨ Features Overview
+## 📖 Arabic Overview | نبذة عن التطبيق بالعربية
+تطبيق **ليجاسي الإداري (Legacy Admin)** هو تطبيق هاتف ذكي متطور مبني باستخدام إطار العمل **Flutter** مخصص لمديري وملاك منصة **Legacy Store** للساعات الفاخرة. يتيح التطبيق تحكماً كاملاً وشاملاً في كافة العمليات اليومية من أي مكان:
+1. **لوحة معلومات ذكية (Dashboard):** لمتابعة المبيعات اليومية، نسب الأرباح، والمهام الإدارية المعلقة (Todo list).
+2. **إدارة المنتجات والمخازن:** تتبع مستويات المخزون عبر مخازن متعددة، وعمليات التحويل بين المخازن، والتحذيرات من نقص الكميات.
+3. **الفواتير والمبيعات السريعة (POS):** تسجيل الطلبات الفورية يدوياً للعملاء داخل المعرض، وطباعة فواتير PDF لاسلكياً.
+4. **المراجعة المالية (Finance Audit):** متابعة الخزائن، نسب عمولات الشركاء، ودفع رواتب الموظفين.
+5. **التسويق والعروض:** التحكم في كوبونات الخصم، عروض BOGO، مبيعات الفلاش، وحملات الشحن المجاني.
+6. **دعم اللغة العربية والتصميم الفاخر:** تصميم باللون الأخضر الزمردي والذهبي والخطوط الراقية مع واجهة باللغتين العربية والإنجليزية.
 
-1. **Dashboard & Tasks Manager**: Live overview of daily sales, active store status, and an advanced local-first Todo list with deadlines, priorities, and backend synchronization.
-2. **Catalog & Inventory Management**: Add or edit luxury products, handle multi-option variants (colors, sizes), manage product images, and track incoming stock batches.
-3. **Order Management & POS**: Track order fulfillment (Pending, Shipped, Delivered, Canceled), change statuses, print PDF invoices directly, and register physical/offline orders via a mobile POS (Manual Order screen).
-4. **Finance, Treasury & Audits**: View treasury liquidity, approve partner payouts, track store expenses, perform financial order audits, and execute month-end closings.
-5. **Marketing & Promotions Hub**: Manage discount coupon codes, buy-one-get-one (BOGO) deals, flash sales, shipping discounts, product bundles, custom announcements, loyalty programs, and affiliate marketers.
-6. **Operations & Logistics**: Set up delivery zones with flat/custom shipping rates, manage suppliers, and record procurement logs.
-7. **Storefront Customization (Merchandising)**: Rearrange store homepage banners, catalog categories, brands, and premium materials (e.g., Sapphire Crystal, Rose Gold, Crocodile Leather).
-8. **CRM, Reviews & Support**: View user accounts, read and respond to support/contact messages, moderate product reviews, and inspect restock requests.
-9. **Advanced Reports & Analytics**: Dynamic interactive charts (powered by `fl_chart`) representing daily sales, revenue metrics, cost of goods, partner commissions, and machine-learning-inspired inventory insights.
-10. **Push Notifications**: Real-time admin alerts (powered by Firebase Cloud Messaging) for new orders, financial actions, and critical inventory drops.
-
----
-
-## 🛠️ Technology Stack & Dependencies
-
-The project relies on a clean, scalable architectural layout utilizing standard Dart packages:
-
-* **Framework**: Flutter SDK (compatible with version `^3.10.3`)
-* **State Management**: `provider` (version `^6.1.5+1`)
-* **Database & Storage**: 
-  * `shared_preferences` (for general offline task storage & app state caching)
-  * `flutter_secure_storage` (for encrypted storage of credentials and auth tokens)
-* **Networking**: `http` (for REST API communication with the backend server)
-* **UI/UX & Enhancements**:
-  * `google_fonts` (Playfair Display & Inter typography)
-  * `lucide_icons` & `lucide_icons_flutter` (modern icons)
-  * `shimmer` (premium shimmer-loading effects)
-  * `fl_chart` (highly configurable data visualizations)
-  * `cached_network_image` & `flutter_cache_manager` (efficient caching of product graphics)
-* **Document Generation & Utilities**:
-  * `pdf` & `printing` (local PDF invoice generation and wireless printing)
-  * `share_plus` (sharing invoices or reports)
-  * `gal` (saving generated images/invoices to gallery)
-  * `intl` (date/currency formatting)
-  * `arabic_reshaper` (correct RTL rendering for Arabic strings)
-* **Push Notifications**: `firebase_core` & `firebase_messaging` with `flutter_local_notifications`
-* **Over-The-Air (OTA) Updates**: **Shorebird Code Push** integration for issuing instantaneous bug-fixes and patches without App Store/Play Store review delays.
+> 📝 **دليل الميزات التفصيلي بالعربية:**
+> للحصول على شرح مفصل لكل شاشة وميزة بالتطبيق باللغة العربية، يرجى مراجعة ملف **[APP_FEATURES.md](file:///e:/Dev/web/LegaCy/admin-app/APP_FEATURES.md)**.
 
 ---
 
-## 📁 Directory Structure
+## ✨ Application Feature Modules
+
+*   **📊 Live Dashboard & Task Manager:** Real-time metrics of daily sales, orders count, and partner commissions. Includes a local-first offline task manager with priority setting and remote server synchronization.
+*   **📦 Inventory & Multi-Warehouse Tracking:** Check variant stock levels, request stock transfers between warehouses, manage product procurement batches, and receive automatic alerts for low stock levels.
+*   **🧾 Order Management & Mobile POS:** Inspect customer purchases, update fulfillment statuses (Pending, Shipped, Delivered, Cancelled), generate official PDF invoices locally, and process offline showroom sales with the Mobile POS wizard.
+*   **💰 Financial Control & Auditing:** Audit orders for accurate COGS (Cost of Goods Sold), approve partner payouts, document operational store expenses, track treasury liquidity, and perform month-end financial closures.
+*   **🎯 Promotions & Marketing Hub:** Create and control coupons, configure Flash Sales, bundle products for discounts, run Buy One Get One (BOGO) campaigns, and monitor active affiliate marketers.
+*   **💬 CRM, Support & Reviews:** Respond to customer inquiry forms, moderate reviews before displaying them on the storefront, and check restock requests for high-end watch variants.
+*   **🔔 Push Notifications:** Automated push notifications powered by FCM alerting admins instantly of new orders, critical inventory drops, or pending payout requests.
+
+---
+
+## 🛠️ Technology Stack & Architecture
+
+### Core Architecture
+*   **Design Pattern:** Feature-driven modular architecture. Each feature contains its screen UI, providers/controllers, and data models to ensure high maintainability and scalability.
+*   **State Management:** `provider` (version `^6.1.5+1`) for clean state promotion and reactive UI updates.
+*   **Secure Offline Caching:**
+    *   `shared_preferences` for non-sensitive local storage (e.g. task manager caching).
+    *   `flutter_secure_storage` for storing encrypted access tokens, passwords, and server cookies.
+*   **Networking:** Custom `http` wrapper with built-in connection interceptors, timeout handling, and automatic authorization headers inject.
+
+### Key Packages & UI Enhancements
+*   `google_fonts` (using *Playfair Display* for brand elegance & *Inter* for administrative clarity).
+*   `fl_chart` for highly configurable, premium visual charts representing financial analytics.
+*   `pdf` & `printing` for on-device PDF rendering, wireless printing, and file sharing.
+*   `firebase_messaging` & `flutter_local_notifications` for background and foreground system notifications.
+*   `shimmer` for premium shimmer loading animations.
+*   `arabic_reshaper` for clean Right-to-Left (RTL) Arabic text rendering in PDF layouts.
+
+---
+
+## 📁 Project Directory Structure
 
 ```text
 lib/
 ├── core/
-│   ├── config/       # API configuration and endpoints
-│   ├── constants/    # Style constants, asset paths, and hardcoded values
-│   ├── network/      # API client wrapper and error interceptors
-│   ├── services/     # Printing, Notification, and UnreadTracker helpers
-│   ├── theme/        # Dark/Light theme specifications (AppColors and AppTheme)
-│   └── widgets/      # Shared components (buttons, text fields, cards)
+│   ├── config/       # API base URLs, timeouts, and route definitions (e.g. api_config.dart)
+│   ├── constants/    # Theme styling tokens, brand assets, and local configurations
+│   ├── network/      # API communication wrapper and error interceptors
+│   ├── services/     # System-level features (Notification helper, PDF generator, Print service)
+│   ├── theme/        # Light/Dark luxury theme configurations
+│   └── widgets/      # Shared reusable UI elements (buttons, inputs, status badges)
 │
-├── features/         # Modular feature-driven directory structure
-│   ├── auth/         # Login screen, authentication providers, and state
-│   ├── dashboard/    # Main stats dashboard and Todo task manager
-│   ├── finance/      # Treasury, expenses, payouts, audits, and closings
-│   ├── home/         # Navigation shell & overall layout
-│   ├── marketing/    # Coupons, flash sales, affiliates, and bundle offers
-│   ├── more/         # Extended menu including CRM, reviews, and support
-│   ├── notifications/# System alert tray & notifications history
-│   ├── operations/   # Suppliers, zones, invoices, and procurement
-│   ├── orders/       # Order tracking lists, details, and manual order POS
-│   ├── products/     # Product grid, creation forms, and batch additions
-│   ├── reports/      # Daily charts, financial analytics, and insights
-│   ├── settings/     # Administrative preferences and notification templates
-│   └── storefront/   # Categories, brands, materials, and merchandising tools
+├── features/         # Modular business domains
+│   ├── auth/         # Login interface, session validation, and auto-login logic
+│   ├── dashboard/    # Primary analytics hub and administrative Todo tasks
+│   ├── finance/      # Treasury levels, operational expenses, and partner payouts
+│   ├── home/         # Persistent bottom navigation shell and app drawer
+│   ├── marketing/    # Coupon, flash sales, bundles, and affiliate settings
+│   ├── more/         # CRM lists, review moderation, and customer inquiry support
+│   ├── notifications/# Alerts history and templates
+│   ├── operations/   # Suppliers, shipping zones, and invoices list
+│   ├── orders/       # Order tracking, details page, and mobile POS checkout
+│   ├── products/     # Product grid, creation form, variant generator, and image uploads
+│   ├── reports/      # Sales graphs, COGS analysis, and data reports
+│   ├── settings/     # App configurations and system notifications templates
+│   └── storefront/   # Categories hierarchy, brand lists, and merchandising assets
 │
-└── main.dart         # Splash screen and application entry point
+└── main.dart         # Entry point (Splash screen dispatcher, MultiProvider initialization)
 ```
 
 ---
@@ -89,70 +89,78 @@ lib/
 ## 🚀 Setting Up & Getting Started
 
 ### 📋 Prerequisites
-Ensure you have the following installed on your system:
-* [Flutter SDK](https://docs.flutter.dev/get-started/install) (version `^3.10.3`)
-* [Dart SDK](https://dart.dev/get-started)
-* Java Development Kit (JDK) & Android Studio (for Android build)
-* Xcode (for iOS build - macOS required)
+Ensure you have the following installed on your machine:
+*   [Flutter SDK](https://docs.flutter.dev/get-started/install) (version `^3.10.3`)
+*   [Dart SDK](https://dart.dev/get-started) (version `^3.0.0`)
+*   Android Studio & Android SDK (for Android builds)
+*   Xcode (version `^14.0` or higher, macOS required for iOS builds)
 
-### ⚙️ Installation
-1. Clone the repository and navigate to the admin-app directory:
-   ```bash
-   cd admin-app
-   ```
+### ⚙️ Local Configuration
 
-2. Retrieve project dependencies:
-   ```bash
-   flutter pub get
-   ```
+1.  **Configure API Connection:**
+    Open [lib/core/config/api_config.dart](file:///e:/Dev/web/LegaCy/admin-app/lib/core/config/api_config.dart).
+    *   By default, it connects to the production deployment: `https://www.legecy.store`.
+    *   For local testing, uncomment the local IP address option matching your machine's network IP (e.g. `http://192.168.x.x:8080` or `http://10.0.2.2:8080` for Android emulator).
 
-3. Ensure you have the Firebase configuration files setup:
-   * **Android**: `android/app/google-services.json`
-   * **iOS**: `ios/Runner/GoogleService-Info.plist`
+2.  **Add Firebase Credentials:**
+    Create project credentials in your Firebase Console and place them in the following paths:
+    *   **Android:** `admin-app/android/app/google-services.json`
+    *   **iOS:** `admin-app/ios/Runner/GoogleService-Info.plist`
 
-4. Run the project in development mode:
-   ```bash
-   flutter run
-   ```
+3.  **Install Dependencies:**
+    Run this command in the `admin-app` directory:
+    ```bash
+    flutter pub get
+    ```
+
+4.  **Run Development Mode:**
+    Ensure you have an active emulator or physical device connected, then run:
+    ```bash
+    flutter run
+    ```
 
 ---
 
 ## 📦 Building for Production
 
-### Android
-* Build an APK for direct installation:
-  ```bash
-  flutter build apk --release
-  ```
-* Build a secure App Bundle for Google Play Store release:
-  ```bash
-  flutter build appbundle --release
-  ```
+### Android Release
+*   **Generate direct APK:**
+    ```bash
+    flutter build apk --release
+    ```
+*   **Generate Google Play App Bundle (.aab):**
+    ```bash
+    flutter build appbundle --release
+    ```
 
-### iOS
-* Build the app bundle for iOS devices:
-  ```bash
-  flutter build ipa --release
-  ```
+### iOS Release (macOS required)
+*   **Generate iOS App Bundle:**
+    ```bash
+    flutter build ipa --release
+    ```
 
 ---
 
-## 🦅 Shorebird Integration (Code Push)
+## 🦅 Shorebird Over-The-Air (OTA) Code Push
 
-The app is pre-configured with Shorebird for OTA updates.
+This application is fully integrated with **Shorebird** for immediate hot-patching. This allows the development team to push bug-fixes and UI refinements instantly to active users without passing through App Store or Google Play Store reviews.
 
-* **Configuration File**: [shorebird.yaml](file:///e:/Dev/web/LegaCy/admin-app/shorebird.yaml)
-* **Check Shorebird status**:
-  ```bash
-  shorebird doctor
-  ```
-* **Build a release version via Shorebird**:
-  ```bash
-  shorebird release android
-  ```
-* **Push an instantaneous patch (fix) to live users**:
-  ```bash
-  shorebird patch android
-  ```
+*   **Configuration file:** [shorebird.yaml](file:///e:/Dev/web/LegaCy/admin-app/shorebird.yaml)
+*   **Diagnostic check:** Verify your Shorebird configuration:
+    ```bash
+    shorebird doctor
+    ```
+*   **Release a new base version:**
+    ```bash
+    shorebird release android
+    # or
+    shorebird release ios
+    ```
+*   **Deploy an instant patch to live devices:**
+    ```bash
+    shorebird patch android
+    # or
+    shorebird patch ios
+    ```
 
-For more details on managing code push, refer to the [Shorebird Documentation](https://docs.shorebird.dev).
+*Note: Base releases must be created using `shorebird release` rather than `flutter build` for patches to apply successfully.*
