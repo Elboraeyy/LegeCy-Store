@@ -26,12 +26,12 @@ export default function WishlistClient({ initialProducts }: WishlistClientProps)
   const isSharedView = !!initialProducts;
   const displayProducts = isSharedView
     ? initialProducts
-    : products.filter((p) => fav.includes(p.id));
+    : products.filter((p) => fav.includes(String(p.id)));
 
   const copyToMyWishlist = () => {
     if (!initialProducts) return;
     initialProducts.forEach(p => {
-      if (!fav.includes(p.id)) toggleFav(p.id);
+      if (!fav.includes(String(p.id))) toggleFav(String(p.id));
     });
     toast.success("Added all items to your wishlist!");
     router.push('/wishlist');

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import CartClient from "./CartClient";
+import { fetchRandomProducts } from "@/lib/actions/shop";
 
 export const metadata: Metadata = {
   title: "Shopping Cart | Legacy Store",
@@ -7,7 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default async function Cart() {
+  const initialRecommendations = await fetchRandomProducts(8);
   return (
-    <CartClient />
+    <CartClient initialRecommendations={initialRecommendations} />
   );
 }

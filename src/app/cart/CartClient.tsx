@@ -23,8 +23,9 @@ import {
   ArrowRight
 } from "lucide-react";
 import { getStoreSettings } from "@/lib/actions/settings";
+import { ShopProduct } from "@/lib/actions/shop";
 
-export default function CartClient() {
+export default function CartClient({ initialRecommendations = [] }: { initialRecommendations?: ShopProduct[] }) {
   const { cart, addToCart, decFromCart, removeFromCart, isLoading: storeLoading, setBuyNowItem } = useStore();
   const isClient = useIsClient();
   const { t, language } = useLanguage();
@@ -160,7 +161,7 @@ export default function CartClient() {
           </Reveal>
 
           {/* Recommendations even if empty */}
-          <CartRecommendations />
+          <CartRecommendations initialProducts={initialRecommendations} />
         </div>
       </main>
     );
@@ -278,7 +279,7 @@ export default function CartClient() {
 
             {/* Cross-Sell Recommendations - Desktop Only */}
             <div className="hidden md:block">
-              <CartRecommendations />
+              <CartRecommendations initialProducts={initialRecommendations} />
             </div>
           </div>
 
@@ -357,26 +358,20 @@ export default function CartClient() {
                       <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-500 group-hover:left-[100%]"></div>
                     </Link>
 
-                    {/* Trust Badges */}
-                  {/* Trust Badges */}
-                  <div className="pt-6 mt-2 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-[#d4af37]" />
-                      <span className="text-[10px] text-gray-500 font-medium">{t.cart.trust.secure}</span>
-                      </div>
-                    <div className="flex flex-col items-center gap-2">
-                        <Truck className="w-5 h-5 text-[#d4af37]" />
-                      <span className="text-[10px] text-gray-500 font-medium">{t.cart.trust.shipping}</span>
-                      </div>
-                    <div className="flex flex-col items-center gap-2">
-                      <RotateCcw className="w-5 h-5 text-[#d4af37]" />
-                      <span className="text-[10px] text-gray-500 font-medium">{t.cart.trust.returns}</span>
+                  <div className="pt-6 mt-2 flex justify-around items-start text-center w-full">
+                    <div className="flex flex-col items-center gap-1.5 w-[75px] flex-shrink-0">
+                      <ShieldCheck className="w-5 h-5 text-[#d4af37] flex-shrink-0" />
+                      <span className="text-[10px] text-gray-500 font-medium leading-tight">{t.cart.trust.secure}</span>
                     </div>
-                    <div className="flex flex-col items-center gap-2">
-                      <BadgeCheck className="w-5 h-5 text-[#d4af37]" />
-                      <span className="text-[10px] text-gray-500 font-medium">{t.cart.trust.authentic}</span>
-                      </div>
+                    <div className="flex flex-col items-center gap-1.5 w-[75px] flex-shrink-0">
+                      <Truck className="w-5 h-5 text-[#d4af37] flex-shrink-0" />
+                      <span className="text-[10px] text-gray-500 font-medium leading-tight">{t.cart.trust.shipping}</span>
                     </div>
+                    <div className="flex flex-col items-center gap-1.5 w-[75px] flex-shrink-0">
+                      <RotateCcw className="w-5 h-5 text-[#d4af37] flex-shrink-0" />
+                      <span className="text-[10px] text-gray-500 font-medium leading-tight">{t.cart.trust.returns}</span>
+                    </div>
+                  </div>
                   </div>
                 </div>
 
@@ -393,7 +388,7 @@ export default function CartClient() {
 
       {/* Cross-Sell Recommendations - Mobile Only (Moved outside padded container) */}
       <div className="block md:hidden mt-8">
-        <CartRecommendations />
+        <CartRecommendations initialProducts={initialRecommendations} />
       </div>
     </main>
   );

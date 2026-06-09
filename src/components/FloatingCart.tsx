@@ -89,7 +89,7 @@ export default function FloatingCart() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed left-4 right-4 z-[90] lg:hidden"
+          className="fixed left-4 right-4 z-[50] lg:hidden"
           style={{ bottom: `${bottomOffset}px` }}
         >
           <Link

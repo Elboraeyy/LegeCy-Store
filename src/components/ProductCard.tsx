@@ -276,15 +276,19 @@ export default React.memo(function ProductCard({
             </h3>
           </div>
 
-          <div className="flex flex-row items-baseline justify-center gap-1.5 sm:gap-2 md:gap-2.5 mt-2 sm:mt-2.5 flex-nowrap overflow-hidden w-full">
-            <span className="text-[clamp(13px,4.5vw,16px)] md:text-[18px] font-bold text-[#12403C] whitespace-nowrap flex-shrink-0 tracking-tight">
-              {formatPrice(displayPrice)}
-            </span>
-            {isOnSale && displayComparePrice && (
+          <div className="flex flex-col items-center justify-center gap-0.5 mt-1 sm:mt-1.5 w-full overflow-hidden">
+            {isOnSale && displayComparePrice ? (
               <span className="text-[clamp(10px,3vw,12px)] md:text-[14px] text-gray-400 line-through decoration-gray-400/50 whitespace-nowrap underline-offset-[3px] truncate min-w-0">
                 {formatPrice(displayComparePrice)}
               </span>
+            ) : (
+              <span className="text-[clamp(10px,3vw,12px)] md:text-[14px] text-transparent select-none whitespace-nowrap truncate min-w-0">
+                &nbsp;
+              </span>
             )}
+            <span className="text-[clamp(13px,4.5vw,16px)] md:text-[18px] font-bold text-[#12403C] whitespace-nowrap flex-shrink-0 tracking-tight">
+              {formatPrice(displayPrice)}
+            </span>
           </div>
         </div>
       </div>

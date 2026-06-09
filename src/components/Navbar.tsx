@@ -375,10 +375,10 @@ export default function Navbar({
                 </Link>
               )}
 
-              {/* Compare Icon */}
+              {/* Compare Icon (Desktop only) */}
               <Link
                 href="/compare"
-                className="relative p-1 lg:p-2 text-[#12403C] hover:text-[#d4af37] transition-colors group"
+                className="hidden lg:block relative p-1 lg:p-2 text-[#12403C] hover:text-[#d4af37] transition-colors group"
                 title="Compare"
               >
                 <CompareIcon
@@ -674,10 +674,18 @@ export default function Navbar({
           {/* Navigation */}
           <div className="flex-1 overflow-y-auto overscroll-contain p-5">
             <nav className="flex flex-col space-y-1">
-              <MobileNavLink href="/" onClick={() => setIsOpen(false)}>
+              <MobileNavLink 
+                href="/" 
+                onClick={() => setIsOpen(false)}
+                icon={<HomeIcon className="w-5 h-5" />}
+              >
                 {t.nav.home}
               </MobileNavLink>
-              <MobileNavLink href="/shop" onClick={() => setIsOpen(false)}>
+              <MobileNavLink 
+                href="/shop" 
+                onClick={() => setIsOpen(false)}
+                icon={<ShopIcon className="w-5 h-5" />}
+              >
                 {t.nav.shop}
               </MobileNavLink>
               <div className="pl-4 border-l-2 border-[#12403C]/20 ml-3 space-y-2">
@@ -692,10 +700,32 @@ export default function Navbar({
                   </Link>
                 ))}
               </div>
-              <MobileNavLink href="/about" onClick={() => setIsOpen(false)}>
+              <MobileNavLink 
+                href="/compare" 
+                onClick={() => setIsOpen(false)}
+                icon={<CompareIcon className="w-5 h-5" strokeWidth={1.5} />}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span>{t.common.compare}</span>
+                  {isClient && selectedProducts.length > 0 && (
+                    <span className="flex h-5 min-w-[20px] px-1.5 items-center justify-center rounded-full bg-[#d4af37] text-[11px] font-bold text-white shadow-sm ring-1 ring-white">
+                      {selectedProducts.length}
+                    </span>
+                  )}
+                </div>
+              </MobileNavLink>
+              <MobileNavLink 
+                href="/about" 
+                onClick={() => setIsOpen(false)}
+                icon={<AboutIcon className="w-5 h-5" />}
+              >
                 {t.nav.about}
               </MobileNavLink>
-              <MobileNavLink href="/help" onClick={() => setIsOpen(false)}>
+              <MobileNavLink 
+                href="/help" 
+                onClick={() => setIsOpen(false)}
+                icon={<ContactIcon className="w-5 h-5" />}
+              >
                 {t.nav.contact}
               </MobileNavLink>
 
@@ -845,5 +875,73 @@ function MobileNavLink({
       {icon && <span className="text-[#12403C]/60">{icon}</span>}
       {children}
     </Link>
+  );
+}
+
+function HomeIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
+function ShopIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect x="3" y="8" width="18" height="13" rx="2" ry="2" />
+      <path d="M16 8a4 4 0 0 0-8 0" />
+    </svg>
+  );
+}
+
+function AboutIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  );
+}
+
+function ContactIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
   );
 }

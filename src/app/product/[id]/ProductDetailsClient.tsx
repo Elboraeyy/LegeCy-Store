@@ -359,6 +359,7 @@ export default function ProductDetailsClient({
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
   const [showLightbox, setShowLightbox] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
   const [activeAccordion, setActiveAccordion] = useState<string | null>(
     "description",
   );
@@ -382,6 +383,8 @@ export default function ProductDetailsClient({
   const [notifyLoading, setNotifyLoading] = useState(false);
   const [notifyDone, setNotifyDone] = useState(false);
   const shareMenuRef = React.useRef<HTMLDivElement>(null);
+  const touchStartX = React.useRef<number | null>(null);
+  const touchStartY = React.useRef<number | null>(null);
 
   // Close share menu on click outside
   React.useEffect(() => {
@@ -414,6 +417,11 @@ export default function ProductDetailsClient({
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Reset zoom when image changes or lightbox opens/closes
+  useEffect(() => {
+    setZoomScale(1);
+  }, [selectedImageIndex, showLightbox]);
 
   // Carousel scroll sync is now handled by Framer Motion animate prop
 
@@ -756,6 +764,60 @@ export default function ProductDetailsClient({
       </main>
     );
   }
+
+  // Lightbox swipe gesture and tap-to-zoom handlers
+  const handleLightboxTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleLightboxTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    
+    const diffX = e.touches[0].clientX - touchStartX.current;
+    const diffY = e.touches[0].clientY - touchStartY.current;
+
+    // If swiping horizontally and not zoomed, block default page scroll
+    if (Math.abs(diffX) > Math.abs(diffY) && zoomScale === 1) {
+      if (e.cancelable) e.preventDefault();
+    }
+  };
+
+  const handleLightboxTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const diffX = e.changedTouches[0].clientX - touchStartX.current;
+    const diffY = e.changedTouches[0].clientY - touchStartY.current;
+
+    // Only trigger swipe transition if scale is 1 (not zoomed) to avoid swipe conflict during zoom panning
+    if (zoomScale === 1 && Math.abs(diffX) > 50 && Math.abs(diffY) < 60) {
+      if (diffX > 0) {
+        // Swipe Right -> Prev Image
+        if (selectedImageIndex > 0) {
+          setSelectedImageIndex(selectedImageIndex - 1);
+        }
+      } else {
+        // Swipe Left -> Next Image
+        if (selectedImageIndex < allImages.length - 1) {
+          setSelectedImageIndex(selectedImageIndex + 1);
+        }
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
+  let lastClickTime = 0;
+  const handleImageTap = () => {
+    const currentTime = new Date().getTime();
+    const timeDiff = currentTime - lastClickTime;
+    if (timeDiff < 300) {
+      // Toggle zoom: 1x -> 2.5x
+      setZoomScale(prev => prev === 1 ? 2.5 : 1);
+    }
+    lastClickTime = currentTime;
+  };
 
   return (
     <>
@@ -2014,44 +2076,44 @@ export default function ProductDetailsClient({
               </div>
             )}
           </section>
-
-          {/* Similar Products (Manual or Fallback) */}
-          {(() => {
-            const rawProducts =
-              product.similarProducts && product.similarProducts.length > 0
-                ? product.similarProducts
-                : relatedProducts;
-            // Filter out the current product from recommendations
-            const filteredProducts = rawProducts.filter(
-              (p) => p.id !== product.id,
-            );
-            if (filteredProducts.length === 0) return null;
-            return (
-              <section className="related-section mt-16 px-0 md:px-4">
-                <ProductCarousel
-                  products={filteredProducts}
-                  title={
-                    product.similarProducts &&
-                    product.similarProducts.length > 0
-                      ? t.product.similar_products ||
-                        (language === "ar"
-                          ? "منتجات مشابهة"
-                          : "Similar Products")
-                      : t.product.related_products ||
-                        (language === "ar"
-                          ? "مقترحات لنا"
-                          : "Recommended For You")
-                  }
-                  subtitle={
-                    language === "ar" ? "قد يعجبك أيضاً" : "You might also like"
-                  }
-                  viewAllLink={`/shop?category=${product.categorySlug || product.categoryId || ""}`}
-                />
-              </section>
-            );
-          })()}
         </div>
       </main>
+
+      {/* Similar Products (Manual or Fallback) */}
+      {(() => {
+        const rawProducts =
+          product.similarProducts && product.similarProducts.length > 0
+            ? product.similarProducts
+            : relatedProducts;
+        // Filter out the current product from recommendations
+        const filteredProducts = rawProducts.filter(
+          (p) => p.id !== product.id,
+        );
+        if (filteredProducts.length === 0) return null;
+        return (
+          <section className="related-section mt-16 px-0 md:px-4 md:max-w-[1300px] md:mx-auto">
+            <ProductCarousel
+              products={filteredProducts}
+              title={
+                product.similarProducts &&
+                product.similarProducts.length > 0
+                  ? t.product.similar_products ||
+                    (language === "ar"
+                      ? "منتجات مشابهة"
+                      : "Similar Products")
+                  : t.product.related_products ||
+                    (language === "ar"
+                      ? "مقترحات لنا"
+                      : "Recommended For You")
+              }
+              subtitle={
+                language === "ar" ? "قد يعجبك أيضاً" : "You might also like"
+              }
+              viewAllLink={`/shop?category=${product.categorySlug || product.categoryId || ""}`}
+            />
+          </section>
+        );
+      })()}
 
       {/* Lightbox Modal */}
       <AnimatePresence>
@@ -2062,113 +2124,173 @@ export default function ProductDetailsClient({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowLightbox(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.95)",
+              backdropFilter: "blur(8px)",
+              zIndex: 99999,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "20px 16px",
+              touchAction: zoomScale === 1 ? "none" : "pan-x pan-y",
+            }}
           >
-            <button
-              className="lightbox-close"
-              onClick={() => setShowLightbox(false)}
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-            </button>
-            <div
-              className="lightbox-content"
+            {/* Top Toolbar */}
+            <div 
+              className="w-full max-w-[800px] flex items-center justify-between text-white pb-2"
               onClick={(e) => e.stopPropagation()}
             >
-              <button
-                className="lightbox-arrow left"
-                onClick={() =>
-                  setSelectedImageIndex(Math.max(0, selectedImageIndex - 1))
-                }
-                disabled={selectedImageIndex === 0}
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
+              {/* Image Counter */}
+              <span className="text-sm font-semibold tracking-wider opacity-80">
+                {selectedImageIndex + 1} / {allImages.length}
+              </span>
+
+              {/* Action Buttons Group */}
+              <div className="flex items-center gap-3">
+                {/* Zoom Button */}
+                {!allImages[selectedImageIndex].match(/\.(mp4|webm|mov)$/i) && !allImages[selectedImageIndex].includes("/video/") && (
+                  <button
+                    onClick={() => setZoomScale(prev => prev === 1 ? 2.5 : 1)}
+                    className="w-10 h-10 bg-white/10 hover:bg-white/20 active:scale-95 rounded-full flex items-center justify-center transition-all text-white border-0 cursor-pointer"
+                    title={zoomScale === 1 ? "Zoom In" : "Zoom Out"}
+                  >
+                    {zoomScale === 1 ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        <line x1="11" y1="8" x2="11" y2="14" />
+                        <line x1="8" y1="11" x2="14" y2="11" />
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        <line x1="8" y1="11" x2="14" y2="11" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowLightbox(false)}
+                  className="w-10 h-10 bg-white/10 hover:bg-white/20 active:scale-95 rounded-full flex items-center justify-center transition-all text-white border-0 cursor-pointer"
+                  title={t.common.close || "Close"}
                 >
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
-              {allImages[selectedImageIndex].match(/\.(mp4|webm|mov)$/i) ||
-              allImages[selectedImageIndex].includes("/video/") ? (
-                <video
-                  src={allImages[selectedImageIndex]}
-                  style={{
-                    objectFit: "contain",
-                    maxHeight: "80vh",
-                    maxWidth: "100%",
-                  }}
-                  controls
-                  autoPlay
-                  playsInline
-                />
-              ) : (
-                <Image
-                  src={allImages[selectedImageIndex]}
-                  alt={product.name}
-                  width={800}
-                  height={800}
-                  quality={90}
-                  style={{
-                    objectFit: "contain",
-                    maxHeight: "80vh",
-                    width: "auto",
-                  }}
-                  loading="eager"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/placeholder.jpg";
-                  }}
-                />
-              )}
-              <button
-                className="lightbox-arrow right"
-                onClick={() =>
-                  setSelectedImageIndex(
-                    Math.min(allImages.length - 1, selectedImageIndex + 1),
-                  )
-                }
-                disabled={selectedImageIndex === allImages.length - 1}
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </button>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
             </div>
-            <div className="lightbox-thumbnails">
+
+            {/* Central Media Container with Swipe handlers */}
+            <div
+              className="flex-1 w-full max-w-[1000px] flex items-center justify-center relative overflow-hidden"
+              onClick={() => setShowLightbox(false)}
+            >
+              {/* Left Arrow (Desktop only, hidden when zoomed) */}
+              {zoomScale === 1 && selectedImageIndex > 0 && (
+                <button
+                  className="hidden md:flex absolute left-4 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full items-center justify-center transition-all border-none cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedImageIndex(selectedImageIndex - 1);
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Scrollable Zoom Area */}
+              <div
+                className="w-full h-full max-h-[70vh] overflow-auto flex items-center justify-center overscroll-contain hide-scrollbar"
+                onClick={(e) => e.stopPropagation()}
+                onTouchStart={handleLightboxTouchStart}
+                onTouchMove={handleLightboxTouchMove}
+                onTouchEnd={handleLightboxTouchEnd}
+              >
+                {allImages[selectedImageIndex].match(/\.(mp4|webm|mov)$/i) ||
+                allImages[selectedImageIndex].includes("/video/") ? (
+                  <video
+                    src={allImages[selectedImageIndex]}
+                    style={{
+                      objectFit: "contain",
+                      maxHeight: "70vh",
+                      maxWidth: "100%",
+                    }}
+                    controls
+                    autoPlay
+                    playsInline
+                  />
+                ) : (
+                  <Image
+                    src={allImages[selectedImageIndex]}
+                    alt={product.name}
+                    width={1200}
+                    height={1200}
+                    quality={100}
+                    className="select-none pointer-events-auto transition-all duration-300 ease-out"
+                    style={{
+                      objectFit: "contain",
+                      maxHeight: zoomScale === 1 ? "70vh" : "175vh",
+                      maxWidth: zoomScale === 1 ? "100%" : "250%",
+                      width: "auto",
+                      height: "auto",
+                      cursor: zoomScale === 1 ? "zoom-in" : "zoom-out",
+                    }}
+                    onClick={handleImageTap}
+                    loading="eager"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/placeholder.jpg";
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* Right Arrow (Desktop only, hidden when zoomed) */}
+              {zoomScale === 1 && selectedImageIndex < allImages.length - 1 && (
+                <button
+                  className="hidden md:flex absolute right-4 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full items-center justify-center transition-all border-none cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedImageIndex(selectedImageIndex + 1);
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Bottom Thumbnails */}
+            <div 
+              className="w-full flex justify-center gap-3 overflow-x-auto py-2 shrink-0 hide-scrollbar"
+              onClick={(e) => e.stopPropagation()}
+            >
               {allImages.map((img, idx) => (
                 <button
                   key={idx}
-                  className={`lightbox-thumb ${selectedImageIndex === idx ? "active" : ""}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedImageIndex(idx);
-                  }}
+                  className={`w-[60px] h-[60px] rounded-lg overflow-hidden cursor-pointer border-2 transition-all p-0 bg-transparent flex-shrink-0 ${
+                    selectedImageIndex === idx 
+                      ? "border-[#d4af37] opacity-100 scale-105" 
+                      : "border-transparent opacity-50 hover:opacity-85"
+                  }`}
+                  onClick={() => setSelectedImageIndex(idx)}
                 >
-                  {img.match(/\.(mp4|webm|mov)$/i) ||
-                  img.includes("/video/") ? (
+                  {img.match(/\.(mp4|webm|mov)$/i) || img.includes("/video/") ? (
                     <video
                       src={img}
                       style={{
-                        width: "60px",
-                        height: "60px",
+                        width: "100%",
+                        height: "100%",
                         objectFit: "cover",
                       }}
                       muted
@@ -2180,8 +2302,12 @@ export default function ProductDetailsClient({
                       alt=""
                       width={60}
                       height={60}
-                      quality={50}
-                      style={{ objectFit: "cover" }}
+                      quality={60}
+                      style={{ 
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover" 
+                      }}
                       loading="eager"
                     />
                   )}

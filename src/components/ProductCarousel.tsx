@@ -74,10 +74,9 @@ export default function ProductCarousel({
 
     return (
         <section className="py-4 md:py-8 bg-transparent relative group/carousel overflow-hidden">
-            <div className={`px-0 md:px-4 mb-6 ${!useContainer ? '!p-0' : ''}`}>
-                <div className={`px-4 md:px-0 mb-6 ${!useContainer ? '!p-0 !min-w-0 !w-full' : ''}`}>
-                    <div className="flex flex-col items-center text-center md:flex-row md:items-end md:justify-between md:text-left gap-4">
-                        <div className="flex flex-col items-center md:items-start gap-2">
+            <div className={`${useContainer ? 'px-4 md:px-6 md:max-w-[1300px] md:mx-auto' : 'px-4'} mb-6`}>
+                <div className="flex flex-col items-center text-center md:flex-row md:items-end md:justify-between md:text-left gap-4">
+                    <div className="flex flex-col items-center md:items-start gap-2">
                         {subtitle && (
                             <span className={`section-subtitle text-[#d4af37] text-xs font-bold ${isRTL ? '' : 'uppercase tracking-[0.2em]'}`}>
                                 {subtitle}
@@ -88,15 +87,14 @@ export default function ProductCarousel({
                         </h2>
                     </div>
                     {viewAllLink && (
-                            <Link href={viewAllLink} className={`text-[11px] font-bold text-[#12403C] hover:text-[#d4af37] transition-colors mb-1 flex items-center gap-1 group ${isRTL ? '' : 'uppercase tracking-widest'}`}>
-                                {t.home.view_all} <span className={`transition-transform ${isRTL ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`}>→</span>
+                        <Link href={viewAllLink} className={`text-[11px] font-bold text-[#12403C] hover:text-[#d4af37] transition-colors mb-1 flex items-center gap-1 group ${isRTL ? '' : 'uppercase tracking-widest'}`}>
+                            {t.home.view_all} <span className={`transition-transform ${isRTL ? 'group-hover:-translate-x-1 rotate-180' : 'group-hover:translate-x-1'}`}>→</span>
                         </Link>
                     )}
                 </div>
             </div>
-            </div>
 
-            <div className={`relative w-full ${useContainer ? 'md:container md:mx-auto' : ''} px-0 md:px-4`}>
+            <div className={`relative w-full ${useContainer ? 'md:max-w-[1300px] md:mx-auto md:px-6' : ''} px-0`}>
                 {/* Navigation Arrows */}
                 {/* PREV BUTTON (Scrolls to start) */}
                 {canScrollLeft && (
