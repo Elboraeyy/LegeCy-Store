@@ -9,6 +9,7 @@ import MetaPixel from "@/components/MetaPixel";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import Clarity from "@/components/Clarity";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { LenisProvider } from "@/components/ui/LenisProvider";
 import { getGeneralSettings, getSEOSettings, getCSSVariables, getAppearanceSettings } from "@/lib/settings";
 
 const geistSans = Geist({
@@ -82,11 +83,14 @@ export default async function RootLayout({
         <GoogleAnalytics />
         <Clarity />
         <LanguageProvider>
-          <ClientLayout navbar={<NavbarWrapper />} footer={<Footer />}>
-            {children}
-          </ClientLayout>
+          <LenisProvider>
+            <ClientLayout navbar={<NavbarWrapper />} footer={<Footer />}>
+              {children}
+            </ClientLayout>
+          </LenisProvider>
         </LanguageProvider>
       </body>
     </html>
   );
 }
+
