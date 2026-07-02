@@ -34,6 +34,7 @@ export interface OrderHistoryItem {
 
 export interface Order {
   id: string; // UUID
+  userId?: string | null;
   orderNumber: string;
   totalPrice: number;
   status: OrderStatus;

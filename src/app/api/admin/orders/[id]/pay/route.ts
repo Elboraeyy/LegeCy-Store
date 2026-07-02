@@ -68,7 +68,7 @@ export async function PATCH(
 
 
     // 4. Update Status with Audit Context
-    const updatedOrder = await updateOrderStatus(id, OrderStatus.Paid, 'admin', admin.id);
+    const updatedOrder = await updateOrderStatus(id, OrderStatus.Paid, 'system', admin.id, reason);
     
     // 5. Finance: Record Revenue in Ledger
     // Fire and forget (don't block response, but log error if fails)

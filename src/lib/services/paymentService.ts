@@ -190,6 +190,8 @@ export async function failPaymentIntent(intentId: string, reason: string = 'Paym
         });
         
         return { success: true };
+    }, {
+        timeout: 30000
     });
 }
 

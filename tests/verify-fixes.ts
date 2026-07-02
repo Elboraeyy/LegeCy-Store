@@ -15,6 +15,16 @@ async function main() {
     if (!product) throw new Error('No product found. Run seed.');
     const variant = product.variants[0];
 
+    const warehouseId = await prisma.warehouse.findFirst().then(w => w?.id);
+    if (!warehouseId) throw new Error("No warehouse found");
+
+    // Ensure variant has available stock
+    await prisma.inventory.upsert({
+        where: { warehouseId_variantId: { warehouseId, variantId: variant.id } },
+        create: { warehouseId, variantId: variant.id, available: 10, reserved: 0 },
+        update: { available: 10 }
+    });
+
     // ====================================================
     // TEST 1: Amount Validation in confirmPaymentIntent
     // ====================================================
@@ -61,9 +71,6 @@ async function main() {
     // ====================================================
     console.log('\n🧪 Test 2: Zombie Order Cleanup (Transaction Check)');
 
-    const warehouseId = await prisma.warehouse.findFirst().then(w => w?.id);
-    if (!warehouseId) throw new Error("No warehouse found");
-
     const order2 = await prisma.$transaction(async (tx) => {
         // Reserve Stock
         await inventoryService.reserveStock(tx, warehouseId, variant.id, 1);
@@ -86,6 +93,8 @@ async function main() {
             },
             include: { items: true }
         });
+    }, {
+        timeout: 30000
     });
     console.log(`Created potential zombie order: ${order2.id}`);
 

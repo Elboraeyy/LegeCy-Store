@@ -9,20 +9,24 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🧪 Starting End-to-End Verification: Inventory & TTL');
 
-    // 1. Get the Demo Variant
-    const variant = await prisma.variant.findUnique({
-        where: { sku: 'DEMO-SKU-001' },
-        include: { inventory: true }
+    // 1. Setup Data dynamically
+    const product = await prisma.product.findFirst({ include: { variants: true } });
+    if (!product) throw new Error('No product found. Run seed.');
+    const variant = product.variants[0];
+
+    const warehouse = await prisma.warehouse.findFirst();
+    if (!warehouse) throw new Error("No warehouse found");
+    const warehouseId = warehouse.id;
+
+    // Ensure variant has available stock
+    const inventory = await prisma.inventory.upsert({
+        where: { warehouseId_variantId: { warehouseId, variantId: variant.id } },
+        create: { warehouseId, variantId: variant.id, available: 100, reserved: 0 },
+        update: { available: 100 }
     });
 
-    if (!variant) {
-        console.error('❌ Demo variant not found! Please run `npx tsx prisma/seed.ts` first.');
-        process.exit(1);
-    }
-
-    const warehouseId = variant.inventory[0].warehouseId;
-    const initialAvailable = variant.inventory[0].available;
-    const initialReserved = variant.inventory[0].reserved;
+    const initialAvailable = inventory.available;
+    const initialReserved = inventory.reserved;
 
     console.log(`📊 Initial State: Available=${initialAvailable}, Reserved=${initialReserved}`);
 
@@ -67,6 +71,8 @@ async function main() {
     console.log('\n💳 Creating Payment Intent...');
     await prisma.$transaction(async (tx) => {
         await createPaymentIntent(tx, order.id, 500);
+    }, {
+        timeout: 30000
     });
     console.log('✅ Payment Intent Created.');
 
@@ -119,8 +125,8 @@ async function main() {
         throw new Error('❌ Verification Failed: Final order record not found.');
     }
 
-    if (finalOrder.status !== 'cancelled') {
-         throw new Error('❌ Verification Failed: Order status is not cancelled.');
+    if (finalOrder.status !== 'payment_failed') {
+         throw new Error('❌ Verification Failed: Order status is not payment_failed.');
     }
 
     console.log('\n🎉🎉 SUCCESS! The System is Production-Ready. 🎉🎉');

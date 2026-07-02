@@ -213,6 +213,14 @@ export async function POST(request: NextRequest) {
 // Get transactions
 export async function GET(request: NextRequest) {
     try {
+        const sessionResult = await validateAdminSession();
+        if (!sessionResult || !sessionResult.user) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
         const { searchParams } = new URL(request.url);
         const sessionId = searchParams.get('sessionId');
         const limit = parseInt(searchParams.get('limit') || '50');

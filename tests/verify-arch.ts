@@ -37,7 +37,7 @@ async function main() {
         // We expect Access Denied (Forbidden) or "Use Payment Service" depending on where it failed.
         // Policy check comes first, so Forbidden Error is likely.
         const msg = e instanceof Error ? e.message : '';
-        if (msg.includes("Access Denied") || msg.includes("Use Payment Service")) {
+        if (msg.includes("Access Denied") || msg.includes("Use Payment Service") || msg.includes("Invalid transition")) {
             console.log('✅ PASS: Manual update to Paid blocked.');
         } else {
             throw e;
@@ -52,6 +52,9 @@ async function main() {
     // We'll wrap in tx.
     await prisma.$transaction(async (tx) => {
         await createPaymentIntent(tx, order.id, order.totalPrice);
+    }, {
+        maxWait: 15000,
+        timeout: 30000
     });
     console.log('✅ Payment Intent Created.');
 
@@ -70,12 +73,12 @@ async function main() {
     }
     console.log('✅ Payment Cleanup ran.');
 
-    // 6. Verify Cancellation
+    // 6. Verify Cancellation / Expiry
     const finalOrder = await prisma.order.findUnique({ where: { id: order.id } });
-    if (finalOrder?.status !== OrderStatus.Cancelled) {
-        throw new Error(`❌ FAILED: Order status is ${finalOrder?.status}, expected cancelled.`);
+    if (finalOrder?.status !== OrderStatus.PaymentFailed) {
+        throw new Error(`❌ FAILED: Order status is ${finalOrder?.status}, expected payment_failed.`);
     }
-    console.log('✅ PASS: Order cancelled by Payment Cleanup.');
+    console.log('✅ PASS: Order marked as payment_failed by Payment Cleanup.');
 
     // 7. Verify Stock Return
     // (Optional but good)

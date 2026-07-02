@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { validateAdminSession } from '@/lib/auth/session';
 
 export async function GET(request: NextRequest) {
     try {
+        const sessionResult = await validateAdminSession();
+        if (!sessionResult || !sessionResult.user) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
         const category = searchParams.get('category') || '';

@@ -21,7 +21,7 @@ export const ORDER_POLICIES: { transitions: Partial<Record<OrderStatus, Transiti
     [OrderStatus.Pending]: {
       allowedTo: [OrderStatus.Confirmed, OrderStatus.Paid, OrderStatus.Cancelled],
       roles: {
-        [OrderStatus.Paid]: ['admin', 'system'], // Admin can manually mark as Paid (Online verification)
+        [OrderStatus.Paid]: ['system'], // Only system (or authorized endpoints using system context) can mark as Paid
         [OrderStatus.Confirmed]: ['admin'], // Admin confirms COD orders
         [OrderStatus.Cancelled]: ['admin', 'customer', 'system'],
       },

@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { sendOrderConfirmationEmail } from "@/lib/services/emailService";
 import { createAdminNotification } from "@/lib/services/notification";
 import { resolveDefaultVariantsMap } from "@/lib/products/resolve-default-variant";
+import { generateNextOrderNumber } from "@/lib/utils/orderNumberGenerator";
 interface CartItemInput {
   id: string;
   name: string;
@@ -476,8 +477,16 @@ export async function placeOrderWithShipping(
 
         // variantCostMap already populated in batched loop above
 
+        // Generate sequential order number
+        const lastOrder = await tx.order.findFirst({
+          orderBy: { createdAt: "desc" },
+          select: { orderNumber: true },
+        });
+        const orderNumber = generateNextOrderNumber(lastOrder?.orderNumber || null);
+
         const newOrder = await tx.order.create({
           data: {
+            orderNumber: orderNumber,
             // CRITICAL: Store all financial components for accurate reporting
             subtotal: new Prisma.Decimal(subtotalAmount),
             discountAmount: new Prisma.Decimal(

@@ -12,8 +12,8 @@ import { Decimal } from '@prisma/client/runtime/library';
  * NEVER use == or === with floats for money.
  */
 export function moneyEquals(a: number | Decimal, b: number | Decimal): boolean {
-  const aDecimal = new Decimal(a.toString());
-  const bDecimal = new Decimal(b.toString());
+  const aDecimal = moneyRound(a);
+  const bDecimal = moneyRound(b);
   return aDecimal.equals(bDecimal);
 }
 
