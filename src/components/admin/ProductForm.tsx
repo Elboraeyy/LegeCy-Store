@@ -403,7 +403,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 </button>
             </div>
 
-            <div className={`grid grid-cols-1 lg:grid-cols-[2fr_1fr] items-start gap-6 max-w-[1200px] ${activeTab === 'basic' ? '' : 'hidden'}`}>
+            <div className={`${activeTab === 'basic' ? 'grid' : 'hidden'} grid-cols-1 lg:grid-cols-[2fr_1fr] items-start gap-6 max-w-[1200px]`}>
                 {/* Left Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     
@@ -570,7 +570,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             </div>
 
             {/* Merchandising Tab */}
-            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 items-start ${activeTab === 'merchandising' ? '' : 'hidden'}`}>
+            <div className={`${activeTab === 'merchandising' ? 'grid' : 'hidden'} grid-cols-1 md:grid-cols-2 gap-6 items-start`}>
                 <div className="admin-card">
                     <h3 className="stat-label flex items-center gap-2 mb-6" style={{ marginBottom: '24px' }}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>

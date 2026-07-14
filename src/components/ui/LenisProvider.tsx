@@ -1,10 +1,20 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 
 export function LenisProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
   useEffect(() => {
+    const isAdmin = pathname?.startsWith("/admin");
+    const isPOS = pathname?.startsWith("/pos");
+
+    if (isAdmin || isPOS) {
+      return;
+    }
+
     // Initialize Lenis smooth scroll
     const lenis = new Lenis({
       duration: 1.4,
@@ -30,8 +40,11 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
     return () => {
       lenis.destroy();
       cancelAnimationFrame(rafId);
+      if (typeof window !== "undefined") {
+        delete (window as unknown as { lenis?: typeof lenis }).lenis;
+      }
     };
-  }, []);
+  }, [pathname]);
 
   return <>{children}</>;
 }

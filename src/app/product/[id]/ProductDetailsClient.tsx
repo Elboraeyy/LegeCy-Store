@@ -34,7 +34,7 @@ import { trackGAEvent } from "@/components/GoogleAnalytics";
 import { setClarityTag } from "@/components/Clarity";
 
 // Types
-interface ProductData {
+export interface ProductData {
   id: string;
   name: string;
   nameAr?: string | null;
@@ -80,8 +80,13 @@ interface ProductData {
   }>;
 }
 
-interface ProductDetailsClientProps {
+export interface ProductDetailsClientProps {
   id: string;
+  initialProduct: ProductData | null;
+  initialReviews: ReviewDTO[];
+  initialRelatedProducts: Product[];
+  initialShowFreeShipping: boolean;
+  initialShippingThreshold: string;
 }
 
 // Fetch product data
@@ -344,6 +349,11 @@ function MobileImageCarousel({
 
 export default function ProductDetailsClient({
   id,
+  initialProduct,
+  initialReviews,
+  initialRelatedProducts,
+  initialShowFreeShipping,
+  initialShippingThreshold,
 }: ProductDetailsClientProps) {
   const router = useRouter();
   const { addToCart, toggleFav, isFav, setBuyNowItem } = useStore();
@@ -352,8 +362,8 @@ export default function ProductDetailsClient({
   const { t, language } = useLanguage();
 
   // State
-  const [product, setProduct] = useState<ProductData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [product, setProduct] = useState<ProductData | null>(initialProduct);
+  const [loading, setLoading] = useState(!initialProduct);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -363,8 +373,8 @@ export default function ProductDetailsClient({
   const [activeAccordion, setActiveAccordion] = useState<string | null>(
     "description",
   );
-  const [reviews, setReviews] = useState<ReviewDTO[]>([]);
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<ReviewDTO[]>(initialReviews);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>(initialRelatedProducts);
   const [addingToCart, setAddingToCart] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -374,8 +384,8 @@ export default function ProductDetailsClient({
     text: "",
   });
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [showFreeShipping, setShowFreeShipping] = useState(false);
-  const [shippingThreshold, setShippingThreshold] = useState("1000");
+  const [showFreeShipping, setShowFreeShipping] = useState(initialShowFreeShipping);
+  const [shippingThreshold, setShippingThreshold] = useState(initialShippingThreshold);
   const [notifyChannel, setNotifyChannel] = useState<"whatsapp" | "email">(
     "whatsapp",
   );
@@ -425,72 +435,58 @@ export default function ProductDetailsClient({
 
   // Carousel scroll sync is now handled by Framer Motion animate prop
 
-  // Load data
+  // Sync state with props when client-side navigation or props change
   useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      const [productData, reviewsData] = await Promise.all([
-        getProductData(id),
-        fetchProductReviews(id),
-      ]);
-
-      setProduct(productData);
-      setReviews(reviewsData);
-
-      // Always fetch internal related products as fallback
-      const related = await getRelatedProducts(
-        productData?.categoryId || null,
-        id,
-      );
-      setRelatedProducts(related);
-
-      // Check settings
-      const settings = await getStoreSettings([
-        "FREE_SHIPPING_ENABLED",
-        "FREE_SHIPPING_THRESHOLD",
-      ]);
-      setShowFreeShipping(settings["FREE_SHIPPING_ENABLED"] === "true");
-      if (settings["FREE_SHIPPING_THRESHOLD"]) {
-        setShippingThreshold(settings["FREE_SHIPPING_THRESHOLD"]);
-      }
+    if (initialProduct) {
+      setProduct(initialProduct);
+      setReviews(initialReviews);
+      setRelatedProducts(initialRelatedProducts);
+      setShowFreeShipping(initialShowFreeShipping);
+      setShippingThreshold(initialShippingThreshold);
+      setLoading(false);
+      setSelectedImageIndex(0); // reset image index on product change!
+      setQuantity(1); // reset quantity on product change!
 
       // Meta Pixel: Track ViewContent event
-      if (productData) {
-        trackMetaEvent("ViewContent", {
-          content_ids: [productData.id],
-          content_name: productData.name,
-          content_type: "product",
-          value: productData.price,
-          currency: "EGP",
-          content_category: productData.category || undefined,
-        });
+      trackMetaEvent("ViewContent", {
+        content_ids: [initialProduct.id],
+        content_name: initialProduct.name,
+        content_type: "product",
+        value: initialProduct.price,
+        currency: "EGP",
+        content_category: initialProduct.category || undefined,
+      });
 
-        // GA4: Track view_item event
-        trackGAEvent("view_item", {
-          currency: "EGP",
-          value: productData.price,
-          items: [
-            {
-              item_id: productData.id,
-              item_name: productData.name,
-              item_category: productData.category || undefined,
-              price: productData.price,
-              quantity: 1,
-            },
-          ],
-        });
+      // GA4: Track view_item event
+      trackGAEvent("view_item", {
+        currency: "EGP",
+        value: initialProduct.price,
+        items: [
+          {
+            item_id: initialProduct.id,
+            item_name: initialProduct.name,
+            item_category: initialProduct.category || undefined,
+            price: initialProduct.price,
+            quantity: 1,
+          },
+        ],
+      });
 
-        // Clarity: Set custom tags
-        setClarityTag("Language", language);
-        if (productData.category) {
-          setClarityTag("Category", productData.category);
-        }
+      // Clarity: Set custom tags
+      setClarityTag("Language", language);
+      if (initialProduct.category) {
+        setClarityTag("Category", initialProduct.category);
       }
-
-      setLoading(false);
     }
-    loadData();
-  }, [id, language]);
+  }, [
+    id,
+    language,
+    initialProduct,
+    initialReviews,
+    initialRelatedProducts,
+    initialShowFreeShipping,
+    initialShippingThreshold,
+  ]);
 
   // All images
   const allImages = product
