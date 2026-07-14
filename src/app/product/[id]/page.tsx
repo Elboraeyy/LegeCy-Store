@@ -30,6 +30,9 @@ async function getProduct(id: string): Promise<ProductData | null> {
         categoryRel: { select: { id: true, name: true, slug: true, nameAr: true } },
         images: { select: { url: true } },
         similarProducts: {
+          where: {
+            status: "active"
+          },
           select: {
             id: true,
             name: true,
@@ -40,7 +43,12 @@ async function getProduct(id: string): Promise<ProductData | null> {
             brand: { select: { name: true, slug: true } },
             variants: {
               take: 1,
-              select: { price: true }
+              select: {
+                price: true,
+                inventory: {
+                  select: { available: true }
+                }
+              }
             }
           }
         }
@@ -102,17 +110,22 @@ async function getProduct(id: string): Promise<ProductData | null> {
           .filter((p): p is typeof product.similarProducts[0] => !!p)
       : product.similarProducts;
 
-    const mappedSimilar = rawSimilar.map((p) => ({
-      id: p.id,
-      name: p.name,
-      imageUrl: p.imageUrl,
-      price: p.variants?.[0]?.price ? Number(p.variants[0].price) : 0,
-      compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
-      category: p.category,
-      brand: p.brand?.name || null,
-      detailTags: p.detailTags,
-      inStock: true,
-    }));
+    const mappedSimilar = rawSimilar.map((p) => {
+      const variant = p.variants?.[0];
+      const stock = variant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ?? 0;
+
+      return {
+        id: p.id,
+        name: p.name,
+        imageUrl: p.imageUrl,
+        price: variant?.price ? Number(variant.price) : 0,
+        compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+        category: p.category,
+        brand: p.brand?.name || null,
+        detailTags: p.detailTags,
+        inStock: stock > 0,
+      };
+    });
 
     if (mappedSimilar.length > 0) {
       finalProduct.similarProducts = await applyActiveOffersToProducts(mappedSimilar);
