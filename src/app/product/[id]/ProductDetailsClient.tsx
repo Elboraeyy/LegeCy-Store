@@ -22,7 +22,6 @@ import {
   submitReview,
   ReviewDTO,
 } from "@/lib/actions/reviews";
-import { getStoreSettings } from "@/lib/actions/settings";
 import ProductCarousel from "@/components/ProductCarousel";
 
 import { CartIcon } from "@/components/icons/CartIcon";
@@ -87,41 +86,6 @@ export interface ProductDetailsClientProps {
   initialRelatedProducts: Product[];
   initialShowFreeShipping: boolean;
   initialShippingThreshold: string;
-}
-
-// Fetch product data
-async function getProductData(id: string): Promise<ProductData | null> {
-  try {
-    const res = await fetch(`/api/products/${id}`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
-
-// Fetch related products
-async function getRelatedProducts(
-  categoryId: string | null,
-  productId: string,
-): Promise<Product[]> {
-  try {
-    // Fetch more products to have a good pool for randomization
-    const params = new URLSearchParams({ limit: "20" });
-    if (categoryId) params.set("categoryId", categoryId);
-    params.set("excludeId", productId);
-    const res = await fetch(`/api/products?${params.toString()}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const allRelated = data.products || [];
-
-    // Randomize and take 8
-    return allRelated.sort(() => Math.random() - 0.5).slice(0, 8);
-  } catch {
-    return [];
-  }
 }
 
 // Mobile Image Carousel with smooth finger swipe

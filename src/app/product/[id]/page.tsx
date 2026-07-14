@@ -52,9 +52,8 @@ async function getProduct(id: string): Promise<ProductData | null> {
     const firstVariant = product.variants[0];
     const price = firstVariant ? Number(firstVariant.price) : 0;
     const totalStock = firstVariant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ?? 0;
-    const minStock = firstVariant?.inventory?.[0]?.minStock ?? 5;
 
-    const transformedProduct = {
+    const transformedProduct: ProductData = {
       id: product.id,
       name: product.name,
       nameAr: product.nameAr,
@@ -69,7 +68,7 @@ async function getProduct(id: string): Promise<ProductData | null> {
       category: product.categoryRel?.name || product.category,
       categoryAr: product.categoryRel?.nameAr || null,
       categoryId: product.categoryRel?.id || product.categoryId,
-      categorySlug: product.categoryRel?.slug,
+      categorySlug: product.categoryRel?.slug || undefined,
       brand: product.brand ? {
         id: product.brand.id,
         name: product.brand.name,
@@ -89,20 +88,21 @@ async function getProduct(id: string): Promise<ProductData | null> {
         stock: v.inventory?.reduce((sum, inv) => sum + inv.available, 0) ?? 0,
         sku: v.sku,
       })),
-      similarProducts: [] as any[],
+      similarProducts: [] as Product[],
+      specs: product.specs as ProductData["specs"],
     };
 
     const productsWithOffers = await applyActiveOffersToProducts([transformedProduct]);
     const finalProduct = productsWithOffers[0];
 
     // Build similar products
-    const rawSimilar = ((product as any).orderedSimilarIds && (product as any).orderedSimilarIds.length > 0)
-      ? (product as any).orderedSimilarIds
-          .map((sId: string) => product.similarProducts.find(p => p.id === sId))
-          .filter((p: any): p is typeof product.similarProducts[0] => !!p)
+    const rawSimilar = (product.orderedSimilarIds && product.orderedSimilarIds.length > 0)
+      ? product.orderedSimilarIds
+          .map((sId) => product.similarProducts.find(p => p.id === sId))
+          .filter((p): p is typeof product.similarProducts[0] => !!p)
       : product.similarProducts;
 
-    const mappedSimilar: Product[] = rawSimilar.map((p: any) => ({
+    const mappedSimilar = rawSimilar.map((p) => ({
       id: p.id,
       name: p.name,
       imageUrl: p.imageUrl,
@@ -115,12 +115,12 @@ async function getProduct(id: string): Promise<ProductData | null> {
     }));
 
     if (mappedSimilar.length > 0) {
-      finalProduct.similarProducts = await applyActiveOffersToProducts(mappedSimilar as any);
+      finalProduct.similarProducts = await applyActiveOffersToProducts(mappedSimilar);
     } else {
       finalProduct.similarProducts = [];
     }
 
-    return finalProduct as any;
+    return finalProduct;
   } catch (error) {
     console.error("Server fetch product error:", error);
     return null;
