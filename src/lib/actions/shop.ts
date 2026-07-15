@@ -38,6 +38,8 @@ export interface ShopProduct {
   variants?: { id: string; sku: string; price: number; stock: number }[];
   specs?: ProductSpecs;
   detailTags?: string[];
+  rating?: number;
+  reviewsCount?: number;
 }
 
 type MerchandisingSection = {
@@ -148,6 +150,11 @@ const productInclude = {
   categoryRel: true,
   brand: true,
   material: true,
+  reviews: {
+    select: {
+      rating: true,
+    },
+  },
 } satisfies Prisma.ProductInclude;
 
 type ProductWithRelations = Prisma.ProductGetPayload<{ include: typeof productInclude }>;
@@ -158,6 +165,12 @@ function mapShopProduct(product: ProductWithRelations): ShopProduct {
     (acc, v) => acc + v.inventory.reduce((sum, i) => sum + i.available, 0),
     0,
   );
+
+  const reviewsList = product.reviews || [];
+  const reviewsCount = reviewsList.length;
+  const rating = reviewsCount > 0 
+    ? reviewsList.reduce((sum, r) => sum + r.rating, 0) / reviewsCount 
+    : 5;
 
   return {
     id: product.id,
@@ -197,6 +210,8 @@ function mapShopProduct(product: ProductWithRelations): ShopProduct {
       price: Number(v.price),
       stock: v.inventory.reduce((sum, i) => sum + i.available, 0),
     })),
+    rating,
+    reviewsCount,
   };
 }
 

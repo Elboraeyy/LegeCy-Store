@@ -9,6 +9,7 @@ import { fetchAllBrands } from "@/lib/actions/brand";
 import { fetchAllMaterials } from "@/lib/actions/material";
 import { fetchWarehouses } from "@/lib/actions/warehouse-actions";
 // import { createPurchaseInvoiceAction } from "@/lib/actions/procurement-actions"; 
+import { createReviewAction, deleteReviewAction } from "@/lib/actions/reviews";
 import { toast } from "sonner";
 import Link from 'next/link';
 import NextImage from "next/image";
@@ -80,13 +81,65 @@ interface ProductFormProps {
             lowStockThreshold?: number;
             videoUrl?: string;
         };
+        reviews?: any[];
     } | null;
 }
 
 export default function ProductForm({ initialData }: ProductFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<'basic' | 'merchandising' | 'sourcing'>('basic');
+    const [activeTab, setActiveTab] = useState<'basic' | 'merchandising' | 'sourcing' | 'seo' | 'reviews'>('basic');
+
+    // Reviews & Ratings States
+    const [reviews, setReviews] = useState<any[]>(initialData?.reviews || []);
+    const [newReviewName, setNewReviewName] = useState("Customer");
+    const [newReviewRating, setNewReviewRating] = useState(5);
+    const [newReviewText, setNewReviewText] = useState("");
+    const [addingReview, setAddingReview] = useState(false);
+
+    const handleAddReview = async () => {
+        if (!initialData?.id) return;
+        setAddingReview(true);
+        try {
+            const result = await createReviewAction({
+                name: newReviewName.trim() || "Customer",
+                rating: newReviewRating,
+                text: newReviewText.trim(),
+                productId: initialData.id,
+                featured: true
+            });
+            if (result && result.id) {
+                toast.success("Rating/Review added successfully");
+                setReviews([result, ...reviews]);
+                setNewReviewName("Customer");
+                setNewReviewRating(5);
+                setNewReviewText("");
+            } else {
+                toast.error("Failed to add rating/review");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Error adding rating/review");
+        } finally {
+            setAddingReview(false);
+        }
+    };
+
+    const handleDeleteReview = async (id: string) => {
+        if (!confirm("Are you sure you want to delete this rating/review?")) return;
+        try {
+            const result = await deleteReviewAction(id);
+            if (result.success) {
+                toast.success("Rating/Review deleted");
+                setReviews(reviews.filter(r => r.id !== id));
+            } else {
+                toast.error(result.error || "Failed to delete");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Error deleting rating/review");
+        }
+    };
 
     // Data Sources
     const [categories, setCategories] = useState<Category[]>([]);
@@ -376,31 +429,14 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             </div>
 
             {/* Tabs */}
-            <div style={{ marginBottom: '20px', borderBottom: '1px solid var(--admin-border)', display: 'flex', gap: '10px' }}>
+            <div style={{ marginBottom: '20px', borderBottom: '1px solid var(--admin-border)', display: 'flex', gap: '10px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
                 <TabButton id="basic" label="Basic Info" />
                 <TabButton id="merchandising" label="Merchandising & Visibility" />
                 <TabButton id="sourcing" label="Sourcing & Pricing" />
-                <button
-                    type="button"
-                     
-                    onClick={() => setActiveTab('seo' as any)}
-                     
-                    className={`admin-tab-btn ${activeTab === 'seo' as any ? 'active' : ''}`}
-                    style={{
-                        padding: '10px 20px',
-                        border: 'none',
-                        background: 'transparent',
-                         
-                        borderBottom: activeTab === 'seo' as any ? '2px solid var(--admin-primary)' : '2px solid transparent',
-                         
-                        color: activeTab === 'seo' as any ? 'var(--admin-primary)' : 'var(--admin-text-muted)',
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                    }}
-                >
-                    SEO & Metadata
-                </button>
+                <TabButton id="seo" label="SEO & Metadata" />
+                {initialData && (
+                    <TabButton id="reviews" label="Ratings & Reviews" />
+                )}
             </div>
 
             <div className={`${activeTab === 'basic' ? 'grid' : 'hidden'} grid-cols-1 lg:grid-cols-[2fr_1fr] items-start gap-6 max-w-[1200px]`}>
@@ -953,6 +989,158 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Reviews & Ratings Tab */}
+            {initialData && (
+                <div style={{ display: activeTab === 'reviews' ? 'block' : 'none', maxWidth: '800px' }}>
+                    <div className="admin-card">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '10px', background: '#fcf8f3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <span style={{ fontSize: '20px' }}>⭐</span>
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--admin-text)' }}>Ratings & Reviews</h3>
+                                <p style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginTop: '2px' }}>Manage customer feedback and add custom ratings</p>
+                            </div>
+                        </div>
+
+                        {/* Summary Stats */}
+                        {(() => {
+                            const total = reviews.length;
+                            const avg = total > 0 
+                                ? (reviews.reduce((sum, r) => sum + r.rating, 0) / total).toFixed(1)
+                                : '5.0';
+                            return (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>Average Rating</div>
+                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--admin-primary)', marginTop: '4px' }}>⭐ {avg}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>Total Ratings/Reviews</div>
+                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--admin-primary)', marginTop: '4px' }}>{total}</div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* Add Rating/Review Form */}
+                        <div style={{ borderTop: '1px solid var(--admin-border)', paddingTop: '20px', marginBottom: '24px' }}>
+                            <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--admin-text)', marginBottom: '16px' }}>Add Rating or Review</h4>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Reviewer Name</label>
+                                    <input 
+                                        type="text" 
+                                        className="form-input" 
+                                        value={newReviewName} 
+                                        onChange={(e) => setNewReviewName(e.target.value)} 
+                                        placeholder="Customer Name"
+                                    />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="stat-label" style={{ fontSize: '11px' }}>Rating Stars</label>
+                                    <div style={{ display: 'flex', gap: '8px', height: '42px', alignItems: 'center' }}>
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                                key={star}
+                                                type="button"
+                                                onClick={() => setNewReviewRating(star)}
+                                                style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '24px', padding: '0 4px', transition: 'transform 0.1s' }}
+                                                className="hover:scale-110"
+                                            >
+                                                {star <= newReviewRating ? '★' : '☆'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="admin-form-group" style={{ marginBottom: '16px' }}>
+                                <label className="stat-label" style={{ fontSize: '11px' }}>Review Text (Optional - leave empty for rating only)</label>
+                                <textarea 
+                                    className="form-input" 
+                                    style={{ height: '80px', resize: 'vertical' }}
+                                    value={newReviewText} 
+                                    onChange={(e) => setNewReviewText(e.target.value)} 
+                                    placeholder="Write a comment... (optional)"
+                                />
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={handleAddReview}
+                                disabled={addingReview}
+                                className="admin-btn admin-btn-primary"
+                                style={{ width: 'auto' }}
+                            >
+                                {addingReview ? "Adding..." : "Add Rating/Review"}
+                            </button>
+                        </div>
+
+                        {/* List of Reviews */}
+                        <div style={{ borderTop: '1px solid var(--admin-border)', paddingTop: '20px' }}>
+                            <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--admin-text)', marginBottom: '16px' }}>Existing Ratings & Reviews</h4>
+                            {reviews.length === 0 ? (
+                                <p style={{ fontSize: '13px', color: 'var(--admin-text-muted)', textAlign: 'center', padding: '20px' }}>No ratings or reviews yet for this product.</p>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {reviews.map((rev) => (
+                                        <div 
+                                            key={rev.id} 
+                                            style={{ 
+                                                display: 'flex', 
+                                                justifyContent: 'space-between', 
+                                                alignItems: 'flex-start', 
+                                                padding: '12px', 
+                                                background: '#f8fafc', 
+                                                borderRadius: '8px',
+                                                border: '1px solid #edf2f7'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--admin-text)' }}>{rev.name || 'Anonymous'}</span>
+                                                    <span style={{ fontSize: '11px', color: 'var(--admin-text-muted)' }}>
+                                                        {new Date(rev.createdAt).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '2px', color: '#d4af37', fontSize: '12px' }}>
+                                                    {'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}
+                                                </div>
+                                                {rev.text && (
+                                                    <p style={{ fontSize: '13px', color: 'var(--admin-text)', margin: '4px 0 0 0', lineHeight: 1.4 }}>
+                                                        {rev.text}
+                                                    </p>
+                                                )}
+                                                {!rev.text && (
+                                                    <span style={{ fontSize: '11px', color: 'var(--admin-text-muted)', fontStyle: 'italic' }}>Rating only (No comment)</span>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteReview(rev.id)}
+                                                style={{ 
+                                                    border: 'none', 
+                                                    background: 'transparent', 
+                                                    color: '#e53e3e', 
+                                                    cursor: 'pointer',
+                                                    padding: '4px'
+                                                }}
+                                                className="hover:scale-110 transition-transform"
+                                                title="Delete Rating/Review"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </form>
     );
 }

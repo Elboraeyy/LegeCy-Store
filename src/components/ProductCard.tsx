@@ -270,6 +270,28 @@ export default React.memo(function ProductCard({
           className="p-2.5 sm:p-3 md:p-4 bg-white text-center"
           onClick={handleCardClick}
         >
+          {/* Rating Stars - Centered, under image and above name */}
+          <div className="flex items-center justify-center gap-0.5 mb-1.5" aria-label={`Rating: ${(product.rating ?? 5).toFixed(1)} out of 5`}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <svg
+                key={star}
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill={star <= Math.round(product.rating ?? 5) ? "var(--accent, #d4af37)" : "none"}
+                stroke="var(--accent, #d4af37)"
+                strokeWidth="2"
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+            ))}
+            {product.reviewsCount !== undefined && product.reviewsCount > 0 && (
+              <span className="text-[10px] text-gray-400 ms-1">
+                ({product.reviewsCount})
+              </span>
+            )}
+          </div>
+
           <div className="mb-1 flex items-center justify-center min-h-[2.5em]">
             <h3 className="text-xs sm:text-[13px] md:text-[15px] font-medium text-gray-900 leading-tight line-clamp-2 group-hover:text-[#d4af37] transition-colors cursor-pointer">
               {product.name}

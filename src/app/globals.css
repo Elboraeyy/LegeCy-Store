@@ -5274,14 +5274,47 @@ select:disabled {
 
 .reviews-list {
   display: flex;
-  flex-direction: column;
-  gap: 24px;
+  flex-direction: row;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 4px 20px 4px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.reviews-list::-webkit-scrollbar {
+  display: none;
 }
 
 .review-card {
-  padding: 24px;
+  flex: 0 0 85%;
+  scroll-snap-align: start;
+  padding: 20px;
   background: var(--surface);
   border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(18, 64, 60, 0.05);
+  border: 1px solid rgba(18, 64, 60, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.review-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(18, 64, 60, 0.08);
+}
+
+@media (min-width: 768px) {
+  .reviews-list {
+    gap: 24px;
+  }
+  .review-card {
+    flex: 0 0 380px;
+    padding: 24px;
+  }
 }
 
 .review-header {

@@ -77,6 +77,8 @@ export interface ProductData {
     stock: number;
     sku: string;
   }>;
+  rating?: number;
+  reviewsCount?: number;
 }
 
 export interface ProductDetailsClientProps {
@@ -1970,8 +1972,10 @@ export default function ProductDetailsClient({
 
                 {/* Reviews List */}
                 <div className="reviews-list">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="review-card">
+                  {reviews
+                    .filter((r) => r.text && r.text.trim() !== "")
+                    .map((review) => (
+                      <div key={review.id} className="review-card">
                       <div className="review-header">
                         <div className="review-author">
                           <div className="author-avatar">

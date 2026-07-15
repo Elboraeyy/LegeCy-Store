@@ -1144,7 +1144,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 TextField(
                   controller: nameController,
                   decoration: InputDecoration(
-                    labelText: 'Reviewer Name',
+                    labelText: 'Reviewer Name (Optional - defaults to Customer)',
                     labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
                     enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(color: AppColors.cardBorder),
@@ -1175,7 +1175,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 TextField(
                   controller: commentController,
                   decoration: InputDecoration(
-                    labelText: 'Comment',
+                    labelText: 'Comment (Optional - leave empty for rating only)',
                     labelStyle: GoogleFonts.inter(color: AppColors.textMuted),
                     enabledBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.cardBorder),
@@ -1203,12 +1203,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             ),
             ElevatedButton(
               onPressed: () async {
-                final name = nameController.text.trim();
+                final name = nameController.text.trim().isEmpty 
+                    ? 'Customer' 
+                    : nameController.text.trim();
                 final comment = commentController.text.trim();
-                if (name.isEmpty || comment.isEmpty) {
-                  _snack('Please fill all fields');
-                  return;
-                }
                 Navigator.pop(ctx);
 
                 setState(() => _isLoading = true);

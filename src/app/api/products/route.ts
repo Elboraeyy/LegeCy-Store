@@ -133,6 +133,11 @@ export async function GET(request: NextRequest) {
         },
         brand: { select: { name: true } },
         categoryRel: { select: { name: true, nameAr: true, slug: true } },
+        reviews: {
+          select: {
+            rating: true,
+          },
+        },
       },
     });
 
@@ -142,6 +147,12 @@ export async function GET(request: NextRequest) {
       const price = firstVariant ? Number(firstVariant.price) : 0;
       const totalStock = getPrimaryVariantStock(p.variants);
       const inStockStatus = totalStock > 0;
+
+      const reviewsList = p.reviews || [];
+      const reviewsCount = reviewsList.length;
+      const rating = reviewsCount > 0 
+        ? reviewsList.reduce((sum, r) => sum + r.rating, 0) / reviewsCount 
+        : 5;
 
       return {
         id: p.id,
@@ -162,6 +173,8 @@ export async function GET(request: NextRequest) {
         totalStock,
         createdAt: p.createdAt.toISOString(),
         detailTags: p.detailTags,
+        rating,
+        reviewsCount,
       };
     });
 

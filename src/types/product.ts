@@ -60,6 +60,8 @@ export interface Product {
   brandName?: string | null;
   categoryName?: string | null;
   detailTags?: string[];
+  rating?: number;
+  reviewsCount?: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

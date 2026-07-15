@@ -28,6 +28,9 @@ export default async function EditProductPage({ params }: PageProps) {
             images: true,
             similarProducts: {
                 select: { id: true, name: true, imageUrl: true, images: { take: 1, select: { url: true } } }
+            },
+            reviews: {
+                orderBy: { createdAt: 'desc' }
             }
         }
     });
@@ -74,6 +77,10 @@ export default async function EditProductPage({ params }: PageProps) {
             ...v,
             price: Number(v.price),
             costPrice: v.costPrice ? Number(v.costPrice) : null
+        })),
+        reviews: product.reviews.map((r) => ({
+            ...r,
+            createdAt: r.createdAt.toISOString()
         }))
     };
 

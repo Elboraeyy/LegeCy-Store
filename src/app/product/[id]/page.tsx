@@ -29,6 +29,7 @@ async function getProduct(id: string): Promise<ProductData | null> {
         material: { select: { id: true, name: true } },
         categoryRel: { select: { id: true, name: true, slug: true, nameAr: true } },
         images: { select: { url: true } },
+        reviews: { select: { rating: true } },
         similarProducts: {
           where: {
             status: "active"
@@ -49,7 +50,8 @@ async function getProduct(id: string): Promise<ProductData | null> {
                   select: { available: true }
                 }
               }
-            }
+            },
+            reviews: { select: { rating: true } }
           }
         }
       },
@@ -60,6 +62,12 @@ async function getProduct(id: string): Promise<ProductData | null> {
     const firstVariant = product.variants[0];
     const price = firstVariant ? Number(firstVariant.price) : 0;
     const totalStock = firstVariant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ?? 0;
+
+    const reviewsList = product.reviews || [];
+    const reviewsCount = reviewsList.length;
+    const rating = reviewsCount > 0 
+      ? reviewsList.reduce((sum, r) => sum + r.rating, 0) / reviewsCount 
+      : 5;
 
     const transformedProduct: ProductData = {
       id: product.id,
@@ -98,6 +106,8 @@ async function getProduct(id: string): Promise<ProductData | null> {
       })),
       similarProducts: [] as Product[],
       specs: product.specs as ProductData["specs"],
+      rating,
+      reviewsCount,
     };
 
     const productsWithOffers = await applyActiveOffersToProducts([transformedProduct]);
@@ -114,6 +124,12 @@ async function getProduct(id: string): Promise<ProductData | null> {
       const variant = p.variants?.[0];
       const stock = variant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ?? 0;
 
+      const simReviewsList = p.reviews || [];
+      const simReviewsCount = simReviewsList.length;
+      const simRating = simReviewsCount > 0 
+        ? simReviewsList.reduce((sum, r) => sum + r.rating, 0) / simReviewsCount 
+        : 5;
+
       return {
         id: p.id,
         name: p.name,
@@ -124,6 +140,8 @@ async function getProduct(id: string): Promise<ProductData | null> {
         brand: p.brand?.name || null,
         detailTags: p.detailTags,
         inStock: stock > 0,
+        rating: simRating,
+        reviewsCount: simReviewsCount,
       };
     });
 
@@ -161,6 +179,7 @@ async function getRelatedProducts(categoryId: string | null, productId: string):
         },
         brand: { select: { name: true } },
         categoryRel: { select: { name: true, nameAr: true, slug: true } },
+        reviews: { select: { rating: true } },
       },
     });
 
@@ -168,6 +187,12 @@ async function getRelatedProducts(categoryId: string | null, productId: string):
       const firstVariant = p.variants[0];
       const price = firstVariant ? Number(firstVariant.price) : 0;
       const totalStock = firstVariant?.inventory?.reduce((sum, inv) => sum + inv.available, 0) ?? 0;
+
+      const reviewsList = p.reviews || [];
+      const reviewsCount = reviewsList.length;
+      const rating = reviewsCount > 0 
+        ? reviewsList.reduce((sum, r) => sum + r.rating, 0) / reviewsCount 
+        : 5;
 
       return {
         id: p.id,
@@ -179,6 +204,8 @@ async function getRelatedProducts(categoryId: string | null, productId: string):
         category: p.categoryRel?.name || p.category,
         brand: p.brand?.name || null,
         inStock: totalStock > 0,
+        rating,
+        reviewsCount,
       };
     });
 
