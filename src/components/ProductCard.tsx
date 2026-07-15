@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Product } from "@/types/product";
 import { useStore } from "@/context/StoreContext";
 import { useIsClient } from "@/hooks/useIsClient";
@@ -83,9 +83,9 @@ export default React.memo(function ProductCard({
       ? sitewideTier1Percent
       : 0;
 
-  const router = useRouter();
 
-  const handleCardClick = () => {
+
+  const handleLinkClick = () => {
     trackGAEvent("select_item", {
       item_list_id: "product_grid",
       item_list_name: "Product Grid",
@@ -98,8 +98,6 @@ export default React.memo(function ProductCard({
         },
       ],
     });
-    // setShowQuickView(true); // Disable Quick View
-    router.push(`/product/${product.id}`); // Navigate directly
   };
 
   return (
@@ -110,14 +108,10 @@ export default React.memo(function ProductCard({
       >
         {/* 1. Image Area - Aspect 3:4 */}
         <div className="relative aspect-[3/4] w-full overflow-hidden bg-gray-50">
-          <div
+          <Link
+            href={`/product/${product.id}`}
             className="block w-full h-full cursor-pointer"
-            onClick={handleCardClick}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleCardClick();
-            }}
+            onClick={handleLinkClick}
           >
             <Image
               src={imgSrc}
@@ -128,7 +122,7 @@ export default React.memo(function ProductCard({
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               onError={() => setImgSrc("/placeholder.jpg")}
             />
-          </div>
+          </Link>
 
           {/* Badges */}
           <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">
@@ -266,9 +260,10 @@ export default React.memo(function ProductCard({
         </div>
 
         {/* 2. Content Area */}
-        <div
-          className="p-2.5 sm:p-3 md:p-4 bg-white text-center"
-          onClick={handleCardClick}
+        <Link
+          href={`/product/${product.id}`}
+          className="block p-2.5 sm:p-3 md:p-4 bg-white text-center hover:no-underline"
+          onClick={handleLinkClick}
         >
           {/* Rating Stars - Centered, under image and above name */}
           <div className="flex items-center justify-center gap-0.5 mb-1.5" aria-label={`Rating: ${(product.rating ?? 5).toFixed(1)} out of 5`}>
@@ -312,7 +307,7 @@ export default React.memo(function ProductCard({
               {formatPrice(displayPrice)}
             </span>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Quick View Modal */}

@@ -15,6 +15,7 @@ const config: Config = {
       fontFamily: {
         heading: ['var(--font-heading)', 'serif'],
         body: ['var(--font-body)', 'sans-serif'],
+        logo: ['var(--font-great-vibes)', 'cursive'],
       },
     },
   },

@@ -31,7 +31,6 @@ interface UserData {
 }
 
 export default function Navbar({
-  generalSettings,
   headerSettings,
 }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -192,30 +191,11 @@ export default function Navbar({
         <div className="container mx-auto px-4 lg:px-8">
           <nav className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="relative z-50 flex-shrink-0 group flex items-center gap-2">
-              {generalSettings?.logoUrl ? (
-                <Image
-                  src={generalSettings.logoUrl}
-                  alt={generalSettings.storeName}
-                  width={140}
-                  height={50}
-                  className="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                  priority
-                />
-              ) : (
-                <>
-                  <Image
-                    src="/image/logoo.png"
-                    alt="Legacy"
-                    width={24}
-                    height={24}
-                    className="h-6 w-6 object-contain transition-transform duration-300 group-hover:scale-110"
-                  />
-                  <span className="text-2xl font-bold tracking-wider text-[#12403C] font-heading uppercase transition-colors">
-                    LEGACY
-                  </span>
-                </>
-              )}
+            <Link href="/" className="relative z-50 flex-shrink-0 group flex items-center py-1">
+              <div className="flex flex-col items-start leading-[0.75] pt-[2px] flex-shrink-0 transition-transform duration-300 group-hover:scale-105 select-none">
+                <span className="font-logo text-[1.4rem] sm:text-[1.85rem] md:text-[2.35rem] font-normal text-[#12403C] leading-none">Lega</span>
+                <span className="font-logo text-[1.4rem] sm:text-[1.85rem] md:text-[2.35rem] font-normal text-[#12403C] leading-none mt-[-4.5px] sm:mt-[-6px] md:mt-[-8px] ms-[6px] sm:ms-[9px] md:ms-[11px]">Cy</span>
+              </div>
             </Link>
 
             {/* Desktop Navigation */}

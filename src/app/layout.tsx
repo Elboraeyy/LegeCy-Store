@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Inter, Playfair_Display, Cairo } from "next/font/google"; // Removed Geist_Mono due to build error
+import { Geist, Inter, Playfair_Display, Cairo, Great_Vibes } from "next/font/google"; // Removed Geist_Mono due to build error
 import "./globals.css";
 import "./mobile-fixes.css";
 import NavbarWrapper from "@/components/NavbarWrapper";
@@ -35,6 +35,12 @@ const playfair = Playfair_Display({
 const cairo = Cairo({
   variable: "--font-cairo",
   subsets: ["arabic"],
+});
+
+const greatVibes = Great_Vibes({
+  weight: "400",
+  variable: "--font-great-vibes",
+  subsets: ["latin"],
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -78,7 +84,7 @@ export default async function RootLayout({
       <head>
         <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: cssVars }} />
       </head>
-      <body className={`${geistSans.variable} ${inter.variable} ${playfair.variable} ${cairo.variable}`}>
+      <body className={`${geistSans.variable} ${inter.variable} ${playfair.variable} ${cairo.variable} ${greatVibes.variable}`}>
         <MetaPixel />
         <GoogleAnalytics />
         <Clarity />
