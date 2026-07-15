@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { revalidatePath } from 'next/cache';
 
 /**
  * DELETE /api/admin/auth/reviews/[id]
@@ -16,9 +17,21 @@ export async function DELETE(
 
     try {
         const { id } = await params;
+        const review = await prisma.review.findUnique({
+            where: { id },
+            select: { productId: true }
+        });
+
         await prisma.review.delete({
             where: { id },
         });
+
+        revalidatePath('/');
+        revalidatePath('/shop');
+        revalidatePath('/admin/reviews');
+        if (review?.productId) {
+            revalidatePath(`/product/${review.productId}`);
+        }
 
         return NextResponse.json({ message: 'Review deleted successfully' });
     } catch (error) {
@@ -47,6 +60,13 @@ export async function PUT(
             where: { id },
             data: { featured },
         });
+
+        revalidatePath('/');
+        revalidatePath('/shop');
+        revalidatePath('/admin/reviews');
+        if (updated.productId) {
+            revalidatePath(`/product/${updated.productId}`);
+        }
 
         return NextResponse.json({ message: 'Review updated successfully', review: updated });
     } catch (error) {

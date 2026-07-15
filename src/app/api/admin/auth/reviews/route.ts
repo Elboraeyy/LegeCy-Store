@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prisma';
 const prisma = prismaClient!;
 import { validateMobileToken, unauthorizedResponse } from '@/lib/auth/mobile-auth';
+import { revalidatePath } from 'next/cache';
 
 /**
  * GET /api/admin/auth/reviews
@@ -73,6 +74,11 @@ export async function POST(request: NextRequest) {
                 featured: featured || false,
             },
         });
+
+        revalidatePath('/');
+        revalidatePath('/shop');
+        revalidatePath(`/product/${productId}`);
+        revalidatePath('/admin/reviews');
 
         return NextResponse.json({ success: true, review });
     } catch (error) {

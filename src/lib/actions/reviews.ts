@@ -117,6 +117,11 @@ export async function createReviewAction(data: CreateReviewInput) {
     });
 
     revalidatePath('/admin/reviews');
+    revalidatePath('/');
+    revalidatePath('/shop');
+    if (data.productId) {
+        revalidatePath(`/product/${data.productId}`);
+    }
     return review;
 }
 
@@ -139,6 +144,11 @@ export async function updateReviewAction(id: string, data: Partial<CreateReviewI
     });
 
     revalidatePath('/admin/reviews');
+    revalidatePath('/');
+    revalidatePath('/shop');
+    if (data.productId) {
+        revalidatePath(`/product/${data.productId}`);
+    }
 }
 
 /**
@@ -156,6 +166,11 @@ export async function toggleReviewFeaturedAction(id: string) {
     });
 
     revalidatePath('/admin/reviews');
+    revalidatePath('/');
+    revalidatePath('/shop');
+    if (review.productId) {
+        revalidatePath(`/product/${review.productId}`);
+    }
 }
 
 /**
@@ -165,9 +180,18 @@ export async function deleteReviewAction(id: string): Promise<{ success: boolean
     try {
         await requireAdminPermission(AdminPermissions.PRODUCTS.MANAGE);
 
+        const review = await (prisma as any).review.findUnique({
+            where: { id },
+            select: { productId: true }
+        });
         await (prisma as any).review.delete({ where: { id } });
 
         revalidatePath('/admin/reviews');
+        revalidatePath('/');
+        revalidatePath('/shop');
+        if (review?.productId) {
+            revalidatePath(`/product/${review.productId}`);
+        }
         return { success: true };
     } catch (error) {
         console.error('Delete Review Error:', error);
@@ -232,6 +256,8 @@ export async function submitReview(data: SubmitReviewInput): Promise<{ success: 
             referenceType: 'Review'
         });
 
+        revalidatePath('/');
+        revalidatePath('/shop');
         revalidatePath(`/product/${data.productId}`);
         return { success: true };
 
