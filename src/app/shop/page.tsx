@@ -73,6 +73,8 @@ export default async function Shop() {
         brandName: p.brand,
         categoryName: p.category,
         detailTags: p.detailTags,
+        rating: p.rating,
+        reviewsCount: p.reviewsCount,
       }))}
       categories={categories.map((c) => ({
         id: c.id,

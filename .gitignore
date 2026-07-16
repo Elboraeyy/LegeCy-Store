@@ -92,3 +92,9 @@ yarn-error.log*
 legacy-firebase-adminsdk.json
 *credentials*.json
 *secret*.json
+
+# Large original media files
+public/Packaging/Packaging.mp4
+
+# Scratch scripts and temporary files
+scratch/

@@ -11,6 +11,8 @@ import { PromotionsHub, FlashSale, BOGODeal, Bundle } from "@/components/home/Pr
 import type { HomepageSettings } from "@/lib/settings";
 import type { Product } from "@/types/product";
 import { useLanguage } from "@/context/LanguageContext";
+import { FeedbackSection } from "@/components/home/FeedbackSection";
+import { PackagingSection } from "@/components/home/PackagingSection";
 
 type Props = {
   homepage: HomepageSettings;
@@ -20,6 +22,8 @@ type Props = {
   flashSales?: FlashSale[];
   bundles?: Bundle[];
   bogos?: BOGODeal[];
+  feedbackImages?: string[];
+  reviewStats?: { rating: number; count: number };
 };
 
 export function HomeContentClient({ 
@@ -29,7 +33,9 @@ export function HomeContentClient({
   forYouProducts,
   flashSales,
   bundles,
-  bogos
+  bogos,
+  feedbackImages = [],
+  reviewStats = { rating: 5.0, count: 0 }
 }: Props) {
   const { t, language } = useLanguage();
 
@@ -73,6 +79,11 @@ export function HomeContentClient({
         </section>
       )}
 
+      {/* Client Feedback Section */}
+      {feedbackImages.length > 0 && (
+        <FeedbackSection images={feedbackImages} reviewStats={reviewStats} />
+      )}
+
       {/* Promotions Hub (Flash Sales, BOGO, Bundles) */}
       <PromotionsHub 
           flashSales={flashSales || []} 
@@ -86,6 +97,19 @@ export function HomeContentClient({
           products={randomizedForYou}
           title={t.home.featured_collection}
           subtitle={t.home.handpicked}
+          viewAllLink="/shop"
+        />
+      )}
+
+      {/* Luxury Packaging Section */}
+      <PackagingSection />
+
+      {/* New Arrivals Carousel */}
+      {randomizedNewArrivals.length > 0 && (
+        <ProductCarousel
+          products={randomizedNewArrivals}
+          title={t.home.new_arrivals}
+          subtitle={t.home.just_dropped}
           viewAllLink="/shop"
         />
       )}
@@ -139,18 +163,6 @@ export function HomeContentClient({
           </motion.div>
         </motion.div>
       </section>
-
-
-
-      {/* New Arrivals Carousel */}
-      {randomizedNewArrivals.length > 0 && (
-        <ProductCarousel
-          products={randomizedNewArrivals}
-          title={t.home.new_arrivals}
-          subtitle={t.home.just_dropped}
-          viewAllLink="/shop"
-        />
-      )}
 
       {/* Trust Section */}
       <section className="py-24 bg-[#12403C] text-[#FCF8F3] trust-badges-section">

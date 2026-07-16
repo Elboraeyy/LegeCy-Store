@@ -720,6 +720,11 @@ export async function fetchRandomProducts(
       brand: true,
       categoryRel: true,
       material: true,
+      reviews: {
+        select: {
+          rating: true,
+        },
+      },
     },
   });
 
@@ -734,6 +739,12 @@ export async function fetchRandomProducts(
       (acc, v) => acc + v.inventory.reduce((sum, i) => sum + i.available, 0),
       0,
     );
+
+    const reviewsList = product.reviews || [];
+    const reviewsCount = reviewsList.length;
+    const rating = reviewsCount > 0 
+      ? reviewsList.reduce((sum, r) => sum + r.rating, 0) / reviewsCount 
+      : 5;
 
     return {
       id: product.id,
@@ -759,6 +770,8 @@ export async function fetchRandomProducts(
         5 * 24 * 60 * 60 * 1000,
       specs: (product.specs ?? undefined) as ProductSpecs | undefined,
       detailTags: product.detailTags,
+      rating,
+      reviewsCount,
       variants: product.variants.map((v) => ({
         id: v.id,
         sku: v.sku,

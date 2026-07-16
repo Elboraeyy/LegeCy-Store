@@ -267,3 +267,20 @@ export async function submitReview(data: SubmitReviewInput): Promise<{ success: 
     }
 }
 
+/**
+ * Fetch total review statistics (aggregate rating and count) across all products
+ */
+export async function fetchAllReviewsStats(): Promise<{ rating: number; count: number }> {
+    try {
+        const count = await (prisma as any).review.count();
+        const aggregate = await (prisma as any).review.aggregate({
+            _avg: { rating: true }
+        });
+        const rating = aggregate._avg.rating ? parseFloat(aggregate._avg.rating.toFixed(1)) : 5.0;
+        return { rating, count };
+    } catch (error) {
+        console.error("Error fetching all reviews statistics:", error);
+        return { rating: 5.0, count: 0 };
+    }
+}
+

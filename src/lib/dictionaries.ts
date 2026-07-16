@@ -65,7 +65,17 @@ export const dictionary = {
         title: "Built on Time. Made for Legacy.",
         subtitle: "Since our inception, we've remained devoted to one pursuit — curating premium accessories that honour tradition while embracing modern elegance.",
       },
-      hero_btn: "Discover Our Legacy",
+      hero_btn: "Explore Collection",
+      feedback: {
+        title: "Client Feedback",
+        subtitle: "Excerpts from real conversations with our clients about their experience.",
+      },
+      packaging_section: {
+        title: "Elegance in Every Box",
+        subtitle: "Every Detail Matters",
+        description: "We believe the excitement of luxury begins the moment you receive it. Every piece is delivered in our custom-designed signature box, crafted to protect your watch and elevate the unboxing moment.",
+        btn: "Get The Experience",
+      },
       featured_collection: "Featured Collection",
       handpicked: "Handpicked for You",
       view_all: "View All",
@@ -1430,7 +1440,17 @@ export const dictionary = {
       },
     },
     home: {
-      hero_btn: "اكتشف إرثنا",
+      hero_btn: "اكتشف تشكيلتنا",
+      feedback: {
+        title: "آراء عملائنا",
+        subtitle: "مقتطفات من محادثات حقيقية مع عملائنا حول تجربتهم معنا.",
+      },
+      packaging_section: {
+        title: "تغليف يعكس فخامة اختيارك",
+        subtitle: "الاهتمام بأدق التفاصيل",
+        description: "لأن مقتنياتك الثمينة تستحق الأفضل، تصلك كل قطعة من ليجاسي في علبة فاخرة مصممة بعناية لتمنحك شعوراً بالتميز والرضا منذ اللحظة الأولى للفتح.",
+        btn: "ابدأ تجربتك الفاخرة",
+      },
       featured_collection: "تشكيلة مميزة",
       handpicked: "اخترناها لك بعناية",
       view_all: "عرض الكل",
