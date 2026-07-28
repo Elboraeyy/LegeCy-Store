@@ -9,7 +9,7 @@ import { ActorRole } from '@/lib/policies/orderPolicy';
 import { createOrderSchema } from '@/lib/validators/order';
 import { z } from 'zod';
 import { resolveDefaultVariantsMap } from '@/lib/products/resolve-default-variant';
-import { generateNextOrderNumber } from '@/lib/utils/orderNumberGenerator';
+import { generateNextOrderNumber, generateNextOrderNumberFromList } from '@/lib/utils/orderNumberGenerator';
 
 export type CreateOrderServiceParams = z.infer<typeof createOrderSchema>;
 
@@ -61,11 +61,10 @@ export async function createOrder(input: CreateOrderServiceParams): Promise<Orde
         }
 
         // 3. Generate sequential order number
-        const lastOrder = await tx.order.findFirst({
-            orderBy: { createdAt: 'desc' },
+        const existingOrders = await tx.order.findMany({
             select: { orderNumber: true }
         });
-        const nextOrderNumber = generateNextOrderNumber(lastOrder?.orderNumber || null);
+        const nextOrderNumber = generateNextOrderNumberFromList(existingOrders.map(o => o.orderNumber));
 
         // 4. Create Order
         const order = await tx.order.create({
