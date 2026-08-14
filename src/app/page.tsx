@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   keywords: "accessories, watches, wallets, sunglasses, perfumes, handbags, belts, bracelets, legacy store, egypt",
 };
 
+export const revalidate = 60; // ISR: Revalidate every 60 seconds
+
 export default function Home() {
   return <HomeContent />;
 }

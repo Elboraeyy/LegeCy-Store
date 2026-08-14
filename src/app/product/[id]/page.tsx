@@ -7,6 +7,8 @@ import { getStoreSettings } from "@/lib/actions/settings";
 import { notFound } from "next/navigation";
 import { Product } from "@/types/product";
 
+export const revalidate = 60; // ISR: Revalidate every 60 seconds
+
 type Props = {
   params: Promise<{ id: string }>;
 };

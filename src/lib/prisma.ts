@@ -9,12 +9,22 @@ import { PrismaClient } from '@prisma/client';
  * - Proper connection handling for serverless
  */
 
+const getDatabaseUrl = () => {
+  const url = process.env.DATABASE_URL;
+  if (!url) return undefined;
+  if (!url.includes('connection_limit=')) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}connection_limit=3&pool_timeout=30`;
+  }
+  return url;
+};
+
 const prismaClientSingleton = () => {
   return new PrismaClient({
+    datasourceUrl: getDatabaseUrl(),
     log: process.env.NODE_ENV === 'development' 
       ? ['query', 'error', 'warn'] 
       : ['error'],
-    // Datasource configuration is handled via DATABASE_URL
   });
 };
 
@@ -28,10 +38,8 @@ const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
 export default prisma;
 
-// Only cache in development to avoid memory leaks in serverless
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
+// Cache globally to reuse client and prevent connection exhaustion across requests/workers
+globalForPrisma.prisma = prisma;
 
 /**
  * Utility function to check database connection

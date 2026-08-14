@@ -243,8 +243,8 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
-         * - public images/assets
+         * - static assets folders and media extensions
          */
-        '/((?!_next/static|_next/image|favicon.ico|images|public).*)',
+        '/((?!_next/static|_next/image|favicon.ico|image|images|Feedback|Packaging|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|mp4|webm|ico|woff|woff2)$).*)',
     ],
 };

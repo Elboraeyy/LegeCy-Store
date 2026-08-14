@@ -32,12 +32,35 @@ const securityHeaders = [
   }
 ];
 
+const staticCacheHeaders = [
+  {
+    key: 'Cache-Control',
+    value: 'public, max-age=31536000, immutable',
+  },
+];
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
       {
         source: '/:path*',
         headers: securityHeaders,
+      },
+      {
+        source: '/image/:path*',
+        headers: staticCacheHeaders,
+      },
+      {
+        source: '/Feedback/:path*',
+        headers: staticCacheHeaders,
+      },
+      {
+        source: '/Packaging/:path*',
+        headers: staticCacheHeaders,
+      },
+      {
+        source: '/:path*.(svg|jpg|jpeg|png|webp|avif|mp4|webm|ico|woff|woff2)',
+        headers: staticCacheHeaders,
       },
     ];
   },

@@ -8,6 +8,8 @@ interface Props {
     params: Promise<{ id: string }>;
 }
 
+export const revalidate = 60;
+
 export default async function FlashSalePage({ params }: Props) {
     const { id } = await params;
     const sale = await getPublicFlashSaleById(id);

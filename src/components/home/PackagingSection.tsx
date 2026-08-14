@@ -59,13 +59,17 @@ export function PackagingSection() {
               
               <div className="relative rounded-2xl overflow-hidden aspect-video bg-black/5">
                 <video 
-                  src="/api/video/packaging" 
+                  src="https://res.cloudinary.com/dlmjlxygz/video/upload/v1786734486/legacy/videos/packaging_unboxing_video.mp4" 
                   autoPlay 
                   loop 
                   muted 
                   playsInline 
+                  preload="metadata"
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                />
+                >
+                  <source src="https://res.cloudinary.com/dlmjlxygz/video/upload/v1786734486/legacy/videos/packaging_unboxing_video.mp4" type="video/mp4" />
+                  <source src="/Packaging/Packaging_compressed.mp4" type="video/mp4" />
+                </video>
                 
                 {/* Subtle Luxury Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none z-10" />

@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Discover Legacy Store - Egypt's destination for premium accessories, watches, wallets, and more.",
 };
 
+export const revalidate = 300;
+
 export default function About() {
   return <AboutClient />;
 }
