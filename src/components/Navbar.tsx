@@ -95,6 +95,7 @@ export default function Navbar({
       observer = new ResizeObserver((entries) => {
         for (const entry of entries) {
           setHeaderHeight(entry.contentRect.height);
+          document.documentElement.style.setProperty('--header-height', `${entry.contentRect.height}px`);
         }
       });
       observer.observe(headerRef.current);

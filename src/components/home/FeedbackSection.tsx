@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -14,113 +14,15 @@ export function FeedbackSection({ images, reviewStats }: FeedbackSectionProps) {
   const { t, direction } = useLanguage();
   const isRTL = direction === "rtl";
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const requestRef = useRef<number | null>(null);
-  const isPaused = useRef(false);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeftStart = useRef(0);
-  const dragDistance = useRef(0);
-
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
-  // Duplicate images for infinite scrolling effect
-  const doubledImages = [...images, ...images];
+  if (images.length === 0) return null;
 
-  // Auto-scroll loop
-  useEffect(() => {
-    if (!containerRef.current || images.length === 0) return;
-
-    const animate = () => {
-      if (containerRef.current && !isPaused.current && !isDragging.current) {
-        const container = containerRef.current;
-        const scrollWidth = container.scrollWidth;
-        const halfWidth = scrollWidth / 2;
-
-        if (isRTL) {
-          // Decrement scrollLeft (move left in RTL, towards negative values)
-          container.scrollLeft -= 0.6;
-
-          // Reset when scrolled past halfWidth to the left
-          if (container.scrollLeft <= -halfWidth) {
-            container.scrollLeft += halfWidth;
-          }
-          // Reset when dragged right past 0
-          else if (container.scrollLeft > 0) {
-            container.scrollLeft -= halfWidth;
-          }
-        } else {
-          // Increment scrollLeft (move right in LTR, towards positive values)
-          container.scrollLeft += 0.6;
-
-          // Reset when scrolled past halfWidth to the right
-          if (container.scrollLeft >= halfWidth) {
-            container.scrollLeft -= halfWidth;
-          }
-          // Reset when dragged left past 0
-          else if (container.scrollLeft < 0) {
-            container.scrollLeft += halfWidth;
-          }
-        }
-      }
-      requestRef.current = requestAnimationFrame(animate);
-    };
-
-    requestRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current);
-      }
-    };
-  }, [images, isRTL]);
-
-  // Desktop Drag-to-Scroll implementation
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    isDragging.current = true;
-    isPaused.current = true;
-    startX.current = e.pageX - containerRef.current.offsetLeft;
-    scrollLeftStart.current = containerRef.current.scrollLeft;
-    dragDistance.current = 0;
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging.current || !containerRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - containerRef.current.offsetLeft;
-    // Invert the drag direction in RTL because scrollLeft decreases to scroll left
-    const walk = (x - startX.current) * 1.5 * (isRTL ? -1 : 1);
-    dragDistance.current = Math.abs(x - startX.current);
-    containerRef.current.scrollLeft = scrollLeftStart.current - walk;
-  };
-
-  const handleMouseUpOrLeave = () => {
-    isDragging.current = false;
-    // Brief delay before resuming auto-scroll to make interaction feel natural
-    setTimeout(() => {
-      if (!isDragging.current) {
-        isPaused.current = false;
-      }
-    }, 1500);
-  };
-
-  const handleTouchStart = () => {
-    isPaused.current = true;
-  };
-
-  const handleTouchEnd = () => {
-    setTimeout(() => {
-      isPaused.current = false;
-    }, 1500);
-  };
+  // Duplicate list to guarantee seamless continuous infinite loop
+  const displayImages = images.length < 6 ? [...images, ...images, ...images] : images;
 
   const openLightbox = (index: number) => {
-    // If the user was dragging, don't open the lightbox
-    if (dragDistance.current > 10) return;
-    // Map index of doubled array back to original index
-    const originalIndex = index % images.length;
-    setSelectedImageIndex(originalIndex);
+    setSelectedImageIndex(index % images.length);
   };
 
   const closeLightbox = () => {
@@ -158,15 +60,13 @@ export function FeedbackSection({ images, reviewStats }: FeedbackSectionProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedImageIndex, isRTL]);
 
-  if (images.length === 0) return null;
-
   return (
-    <section className="py-2 md:py-3.5 bg-[#12403C] overflow-hidden relative select-none w-full shrink-0 shadow-lg border-t border-[#d4af37]/20">
+    <section className="py-3 md:py-4 bg-[#12403C] overflow-hidden relative select-none w-full shrink-0 shadow-lg border-t border-[#d4af37]/20">
       {/* Visual background details */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-[#d4af37]/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-[#d4af37]/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="container mx-auto px-4 mb-1.5 md:mb-3 relative z-10 text-center">
+      <div className="container mx-auto px-4 mb-2 md:mb-3 relative z-10 text-center">
         {/* Rating Stars decoration */}
         <div className="flex items-center justify-center gap-1.5 mb-0.5">
           <div className="flex gap-0.5">
@@ -188,57 +88,66 @@ export function FeedbackSection({ images, reviewStats }: FeedbackSectionProps) {
               );
             })}
           </div>
-          <span className="text-[10px] md:text-xs text-[#d4af37] font-medium tracking-wide">
+          <span className="text-[11px] md:text-xs text-[#d4af37] font-medium tracking-wide">
             {reviewStats.rating.toFixed(1)} / 5 ({reviewStats.count} {isRTL ? "تقييم" : "reviews"})
           </span>
         </div>
 
         {/* Section Headings */}
-        <h2 className="text-sm md:text-lg font-heading text-white mb-0 tracking-wide">
+        <h2 className="text-base md:text-xl font-heading text-white mb-0.5 tracking-wide">
           {t.home.feedback?.title || "What Our Clients Say"}
         </h2>
-        <p className="text-[9px] md:text-xs text-[#FCF8F3]/70 max-w-xl mx-auto font-light">
+        <p className="text-[10px] md:text-xs text-[#FCF8F3]/70 max-w-xl mx-auto font-light">
           {t.home.feedback?.subtitle || "Real conversations, real trust. See what our clients say about their experience."}
         </p>
       </div>
 
-      {/* Ticker Track Container */}
-      <div className="w-full overflow-hidden relative z-10 py-0.5">
+      {/* Ticker Track Container with Hardware-Accelerated Continuous Marquee */}
+      <div className="w-full overflow-hidden relative z-10 py-0.5 feedback-marquee-track">
         {/* Left & Right gradient overlays to give a professional fade effect */}
         <div className="absolute top-0 left-0 bottom-0 w-8 md:w-32 bg-gradient-to-r from-[#12403C] to-transparent z-20 pointer-events-none" />
         <div className="absolute top-0 right-0 bottom-0 w-8 md:w-32 bg-gradient-to-l from-[#12403C] to-transparent z-20 pointer-events-none" />
 
-        <div
-          ref={containerRef}
-          className="flex gap-2 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-none cursor-grab active:cursor-grabbing px-4 md:px-32 py-0.5"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUpOrLeave}
-          onMouseLeave={handleMouseUpOrLeave}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          {doubledImages.map((src, idx) => (
-            <div
-              key={`${src}-${idx}`}
-              className="inline-block flex-shrink-0"
-              onClick={() => openLightbox(idx)}
-            >
-              <div className="h-[60px] md:h-[88px] w-auto relative rounded-xl overflow-hidden border border-[#d4af37]/15 bg-white/5 backdrop-blur-sm p-1 shadow-md transition-all duration-300 hover:scale-[1.05] hover:border-[#d4af37]/50 hover:shadow-[#d4af37]/10 group flex items-center justify-center cursor-zoom-in">
-                {/* Image element */}
-                <img
-                  src={src}
-                  alt={`Client feedback ${idx}`}
-                  draggable={false}
-                  className="h-full w-auto object-contain rounded-lg pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.02]"
-                />
+        <div className="w-full overflow-hidden whitespace-nowrap relative flex items-center select-none">
+          {/* Primary Track */}
+          <div className="inline-flex animate-feedback-marquee shrink-0 items-center gap-2.5 md:gap-4 px-1.5 md:px-2">
+            {displayImages.map((src, idx) => (
+              <div
+                key={`f1-${src}-${idx}`}
+                className="inline-block flex-shrink-0 cursor-pointer"
+                onClick={() => openLightbox(idx)}
+              >
+                <div className="h-[70px] md:h-[90px] w-auto relative rounded-xl overflow-hidden border border-[#d4af37]/15 bg-white/5 backdrop-blur-sm p-1 shadow-md transition-all duration-300 hover:scale-[1.05] hover:border-[#d4af37]/50 hover:shadow-[#d4af37]/10 group flex items-center justify-center cursor-zoom-in">
+                  <img
+                    src={src}
+                    alt={`Client feedback ${idx}`}
+                    draggable={false}
+                    className="h-full w-auto object-contain rounded-lg pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {/* Duplicate Track for Infinite Seamless Loop */}
+          <div className="inline-flex animate-feedback-marquee shrink-0 items-center gap-2.5 md:gap-4 px-1.5 md:px-2" aria-hidden="true">
+            {displayImages.map((src, idx) => (
+              <div
+                key={`f2-${src}-${idx}`}
+                className="inline-block flex-shrink-0 cursor-pointer"
+                onClick={() => openLightbox(idx)}
+              >
+                <div className="h-[70px] md:h-[90px] w-auto relative rounded-xl overflow-hidden border border-[#d4af37]/15 bg-white/5 backdrop-blur-sm p-1 shadow-md transition-all duration-300 hover:scale-[1.05] hover:border-[#d4af37]/50 hover:shadow-[#d4af37]/10 group flex items-center justify-center cursor-zoom-in">
+                  <img
+                    src={src}
+                    alt={`Client feedback duplicate ${idx}`}
+                    draggable={false}
+                    className="h-full w-auto object-contain rounded-lg pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
