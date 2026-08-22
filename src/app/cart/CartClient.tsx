@@ -19,7 +19,6 @@ import {
   ShieldCheck,
   Truck,
   RotateCcw,
-  BadgeCheck,
   ArrowRight
 } from "lucide-react";
 import { getStoreSettings } from "@/lib/actions/settings";

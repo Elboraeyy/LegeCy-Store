@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -16,30 +17,23 @@ export function FeedbackSection({ images, reviewStats }: FeedbackSectionProps) {
 
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
-  if (images.length === 0) return null;
-
-  // Duplicate list to guarantee seamless continuous infinite loop
-  const displayImages = images.length < 6 ? [...images, ...images, ...images] : images;
-
   const openLightbox = (index: number) => {
-    setSelectedImageIndex(index % images.length);
+    setSelectedImageIndex(index % (images.length || 1));
   };
 
   const closeLightbox = () => {
     setSelectedImageIndex(null);
   };
 
-  const showNextImage = (e?: React.MouseEvent) => {
+  const showNextImage = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (selectedImageIndex === null) return;
-    setSelectedImageIndex((selectedImageIndex + 1) % images.length);
-  };
+    setSelectedImageIndex((prev) => (prev === null ? null : (prev + 1) % (images.length || 1)));
+  }, [images.length]);
 
-  const showPrevImage = (e?: React.MouseEvent) => {
+  const showPrevImage = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (selectedImageIndex === null) return;
-    setSelectedImageIndex((selectedImageIndex - 1 + images.length) % images.length);
-  };
+    setSelectedImageIndex((prev) => (prev === null ? null : (prev - 1 + (images.length || 1)) % (images.length || 1)));
+  }, [images.length]);
 
   // Keyboard navigation for lightbox
   useEffect(() => {
@@ -58,7 +52,12 @@ export function FeedbackSection({ images, reviewStats }: FeedbackSectionProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedImageIndex, isRTL]);
+  }, [selectedImageIndex, isRTL, showNextImage, showPrevImage]);
+
+  if (images.length === 0) return null;
+
+  // Duplicate list to guarantee seamless continuous infinite loop
+  const displayImages = images.length < 6 ? [...images, ...images, ...images] : images;
 
   return (
     <section className="py-3 md:py-4 bg-[#12403C] overflow-hidden relative select-none w-full shrink-0 shadow-lg border-t border-[#d4af37]/20">

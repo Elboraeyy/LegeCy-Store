@@ -87,20 +87,6 @@ async function main() {
     })
   ]);
 
-  const safesById = new Map(
-    safes.map(s => [
-      s.id,
-      {
-        id: s.id,
-        name: s.name,
-        type: s.type,
-        isActive: s.isActive,
-        balance: toNumberSafe(s.balance),
-        createdAt: s.createdAt.toISOString(),
-        updatedAt: s.updatedAt.toISOString()
-      }
-    ])
-  );
 
   const txsBySafe = new Map<string, typeof txs>();
   for (const tx of txs) {

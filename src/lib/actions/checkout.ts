@@ -8,8 +8,7 @@ import { FraudCheckResult } from "@/lib/services/fraudService";
 import { logger } from "@/lib/logger";
 import { sendOrderConfirmationEmail } from "@/lib/services/emailService";
 import { createAdminNotification } from "@/lib/services/notification";
-import { resolveDefaultVariantsMap } from "@/lib/products/resolve-default-variant";
-import { generateNextOrderNumber, generateNextOrderNumberFromList } from "@/lib/utils/orderNumberGenerator";
+import { generateNextOrderNumberFromList } from "@/lib/utils/orderNumberGenerator";
 interface CartItemInput {
   id: string;
   name: string;

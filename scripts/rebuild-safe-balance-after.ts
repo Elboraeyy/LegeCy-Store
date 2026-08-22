@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Prisma, PrismaClient, SafeTransactionType } from '@prisma/client';
+import { PrismaClient, SafeTransactionType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 

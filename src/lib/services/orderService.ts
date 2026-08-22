@@ -8,8 +8,7 @@ import { logger } from '@/lib/logger';
 import { ActorRole } from '@/lib/policies/orderPolicy';
 import { createOrderSchema } from '@/lib/validators/order';
 import { z } from 'zod';
-import { resolveDefaultVariantsMap } from '@/lib/products/resolve-default-variant';
-import { generateNextOrderNumber, generateNextOrderNumberFromList } from '@/lib/utils/orderNumberGenerator';
+import { generateNextOrderNumberFromList } from '@/lib/utils/orderNumberGenerator';
 
 export type CreateOrderServiceParams = z.infer<typeof createOrderSchema>;
 
