@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { sendOrderConfirmationEmail } from "@/lib/services/emailService";
 import { createAdminNotification } from "@/lib/services/notification";
 import { generateNextOrderNumberFromList } from "@/lib/utils/orderNumberGenerator";
+import { resolveDefaultVariantsMap } from "@/lib/products/resolve-default-variant";
 interface CartItemInput {
   id: string;
   name: string;

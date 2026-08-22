@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { Order } from '@/types/order';
+import { Order, OrderStatus } from '@/types/order';
 import { generateNextOrderNumberFromList } from '@/lib/utils/orderNumberGenerator';
 
 // We reuse the types from our contract, but we need to ensure the DB shape matches or we map it.

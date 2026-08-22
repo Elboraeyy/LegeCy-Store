@@ -9,6 +9,7 @@ import { ActorRole } from '@/lib/policies/orderPolicy';
 import { createOrderSchema } from '@/lib/validators/order';
 import { z } from 'zod';
 import { generateNextOrderNumberFromList } from '@/lib/utils/orderNumberGenerator';
+import { resolveDefaultVariantsMap } from '@/lib/products/resolve-default-variant';
 
 export type CreateOrderServiceParams = z.infer<typeof createOrderSchema>;
 
