@@ -161,14 +161,14 @@ export function FeedbackSection({ images, reviewStats }: FeedbackSectionProps) {
   if (images.length === 0) return null;
 
   return (
-    <section className="py-3 md:py-5 bg-[#12403C] overflow-hidden relative select-none w-full shadow-lg border-t border-[#d4af37]/20">
+    <section className="py-2 md:py-3.5 bg-[#12403C] overflow-hidden relative select-none w-full shrink-0 shadow-lg border-t border-[#d4af37]/20">
       {/* Visual background details */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-[#d4af37]/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-[#d4af37]/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="container mx-auto px-4 mb-2.5 md:mb-4 relative z-10 text-center">
+      <div className="container mx-auto px-4 mb-1.5 md:mb-3 relative z-10 text-center">
         {/* Rating Stars decoration */}
-        <div className="flex items-center justify-center gap-2 mb-1">
+        <div className="flex items-center justify-center gap-1.5 mb-0.5">
           <div className="flex gap-0.5">
             {[...Array(5)].map((_, i) => {
               const fillPercentage = Math.max(0, Math.min(100, (reviewStats.rating - i) * 100));
@@ -194,10 +194,10 @@ export function FeedbackSection({ images, reviewStats }: FeedbackSectionProps) {
         </div>
 
         {/* Section Headings */}
-        <h2 className="text-lg md:text-xl font-heading text-white mb-0.5 tracking-wide">
+        <h2 className="text-sm md:text-lg font-heading text-white mb-0 tracking-wide">
           {t.home.feedback?.title || "What Our Clients Say"}
         </h2>
-        <p className="text-[10px] md:text-xs text-[#FCF8F3]/70 max-w-xl mx-auto font-light">
+        <p className="text-[9px] md:text-xs text-[#FCF8F3]/70 max-w-xl mx-auto font-light">
           {t.home.feedback?.subtitle || "Real conversations, real trust. See what our clients say about their experience."}
         </p>
       </div>
@@ -210,7 +210,7 @@ export function FeedbackSection({ images, reviewStats }: FeedbackSectionProps) {
 
         <div
           ref={containerRef}
-          className="flex gap-2.5 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-none cursor-grab active:cursor-grabbing px-4 md:px-32 py-1"
+          className="flex gap-2 md:gap-4 overflow-x-auto whitespace-nowrap scrollbar-none cursor-grab active:cursor-grabbing px-4 md:px-32 py-0.5"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
@@ -228,7 +228,7 @@ export function FeedbackSection({ images, reviewStats }: FeedbackSectionProps) {
               className="inline-block flex-shrink-0"
               onClick={() => openLightbox(idx)}
             >
-              <div className="h-[75px] md:h-[95px] w-auto relative rounded-xl overflow-hidden border border-[#d4af37]/15 bg-white/5 backdrop-blur-sm p-1 shadow-md transition-all duration-300 hover:scale-[1.05] hover:border-[#d4af37]/50 hover:shadow-[#d4af37]/10 group flex items-center justify-center cursor-zoom-in">
+              <div className="h-[60px] md:h-[88px] w-auto relative rounded-xl overflow-hidden border border-[#d4af37]/15 bg-white/5 backdrop-blur-sm p-1 shadow-md transition-all duration-300 hover:scale-[1.05] hover:border-[#d4af37]/50 hover:shadow-[#d4af37]/10 group flex items-center justify-center cursor-zoom-in">
                 {/* Image element */}
                 <img
                   src={src}
