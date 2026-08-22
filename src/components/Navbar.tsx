@@ -167,14 +167,39 @@ export default function Navbar({
       >
         {headerSettings?.announcementEnabled && (
           <div
-            className="w-full py-2 text-center text-xs font-medium tracking-wider uppercase"
+            className="w-full py-2.5 md:py-3 text-[13px] md:text-sm font-semibold tracking-wider uppercase leading-snug overflow-hidden"
             style={{
               color: headerSettings.announcementTextColor || "#ffffff",
             }}
           >
-            <div className="container mx-auto px-4 text-center">
-              {headerSettings.announcementText}
-            </div>
+            {headerSettings.announcementAnimated ? (
+              <div className="w-full overflow-hidden whitespace-nowrap relative flex items-center select-none">
+                <div className="inline-flex animate-announcement-marquee shrink-0 items-center">
+                  <span className="mx-6 md:mx-10">{headerSettings.announcementText}</span>
+                  <span className="mx-2 opacity-50">•</span>
+                  <span className="mx-6 md:mx-10">{headerSettings.announcementText}</span>
+                  <span className="mx-2 opacity-50">•</span>
+                  <span className="mx-6 md:mx-10">{headerSettings.announcementText}</span>
+                  <span className="mx-2 opacity-50">•</span>
+                  <span className="mx-6 md:mx-10">{headerSettings.announcementText}</span>
+                  <span className="mx-2 opacity-50">•</span>
+                </div>
+                <div className="inline-flex animate-announcement-marquee shrink-0 items-center" aria-hidden="true">
+                  <span className="mx-6 md:mx-10">{headerSettings.announcementText}</span>
+                  <span className="mx-2 opacity-50">•</span>
+                  <span className="mx-6 md:mx-10">{headerSettings.announcementText}</span>
+                  <span className="mx-2 opacity-50">•</span>
+                  <span className="mx-6 md:mx-10">{headerSettings.announcementText}</span>
+                  <span className="mx-2 opacity-50">•</span>
+                  <span className="mx-6 md:mx-10">{headerSettings.announcementText}</span>
+                  <span className="mx-2 opacity-50">•</span>
+                </div>
+              </div>
+            ) : (
+              <div className="container mx-auto px-4 text-center">
+                {headerSettings.announcementText}
+              </div>
+            )}
           </div>
         )}
       </div>

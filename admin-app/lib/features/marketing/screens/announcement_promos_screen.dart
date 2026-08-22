@@ -19,17 +19,20 @@ class AnnouncementPromosScreen extends StatefulWidget {
 class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
   bool _isLoading = true;
   bool _enabled = false;
+  bool _animated = false;
   final TextEditingController _textController = TextEditingController();
   final TextEditingController _bgColorController = TextEditingController(text: '#12403C');
   final TextEditingController _textColorController = TextEditingController(text: '#f6e5c6');
 
   bool _originalEnabled = false;
+  bool _originalAnimated = false;
   String _originalText = '';
   String _originalBgColor = '#12403C';
   String _originalTextColor = '#f6e5c6';
 
   bool get _hasChanges {
     return _enabled != _originalEnabled ||
+           _animated != _originalAnimated ||
            _textController.text != _originalText ||
            _bgColorController.text != _originalBgColor ||
            _textColorController.text != _originalTextColor;
@@ -49,11 +52,13 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
           final Map<String, dynamic> config = jsonDecode(data['header_settings']);
           setState(() {
             _enabled = config['announcementEnabled'] ?? false;
+            _animated = config['announcementAnimated'] ?? config['announcementScroll'] ?? false;
             _textController.text = config['announcementText'] ?? '';
             _bgColorController.text = config['announcementBgColor'] ?? '#12403C';
             _textColorController.text = config['announcementTextColor'] ?? '#f6e5c6';
             
             _originalEnabled = _enabled;
+            _originalAnimated = _animated;
             _originalText = _textController.text;
             _originalBgColor = _bgColorController.text;
             _originalTextColor = _textColorController.text;
@@ -75,6 +80,7 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
       
       final config = {
         'announcementEnabled': _enabled,
+        'announcementAnimated': _animated,
         'announcementText': _textController.text,
         'announcementBgColor': _bgColorController.text,
         'announcementTextColor': _textColorController.text,
@@ -88,6 +94,7 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
       if (mounted) {
         setState(() {
           _originalEnabled = _enabled;
+          _originalAnimated = _animated;
           _originalText = _textController.text;
           _originalBgColor = _bgColorController.text;
           _originalTextColor = _textColorController.text;
@@ -198,6 +205,29 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 16),
+                        Divider(color: AppColors.divider, height: 1),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Continuous Scrolling (Marquee)', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                                  const SizedBox(height: 4),
+                                  Text('Animate text to continuously move across the banner', style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted)),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _animated,
+                              onChanged: (v) => setState(() => _animated = v),
+                              activeTrackColor: color,
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 24),
                         Divider(color: AppColors.divider, height: 1),
                         const SizedBox(height: 24),
@@ -262,16 +292,50 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
                             color: _parseColor(_bgColorController.text),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(
-                            _textController.text.isEmpty ? 'Your announcement text here...' : _textController.text,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              color: _parseColor(_textColorController.text),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                              letterSpacing: 1,
-                            ),
-                          ),
+                          child: _animated
+                              ? _MarqueeWidget(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        _textController.text.isEmpty ? 'Your announcement text here...' : _textController.text,
+                                        style: GoogleFonts.inter(
+                                          color: _parseColor(_textColorController.text),
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12,
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                                        child: Text('•', style: TextStyle(color: _parseColor(_textColorController.text).withValues(alpha: 0.5))),
+                                      ),
+                                      Text(
+                                        _textController.text.isEmpty ? 'Your announcement text here...' : _textController.text,
+                                        style: GoogleFonts.inter(
+                                          color: _parseColor(_textColorController.text),
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12,
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                                        child: Text('•', style: TextStyle(color: _parseColor(_textColorController.text).withValues(alpha: 0.5))),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : Text(
+                                  _textController.text.isEmpty ? 'Your announcement text here...' : _textController.text,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.inter(
+                                    color: _parseColor(_textColorController.text),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
                         ),
                         const SizedBox(height: 24),
                         SizedBox(
@@ -296,6 +360,66 @@ class _AnnouncementPromosScreenState extends State<AnnouncementPromosScreen> {
                 ],
               ),
       ),
+    );
+  }
+}
+
+class _MarqueeWidget extends StatefulWidget {
+  final Widget child;
+
+  const _MarqueeWidget({
+    required this.child,
+  });
+
+  @override
+  State<_MarqueeWidget> createState() => _MarqueeWidgetState();
+}
+
+class _MarqueeWidgetState extends State<_MarqueeWidget> {
+  late final ScrollController _scrollController;
+  bool _isScrolling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startScrolling());
+  }
+
+  void _startScrolling() async {
+    if (_isScrolling) return;
+    _isScrolling = true;
+    while (mounted && _scrollController.hasClients) {
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      if (maxScroll > 0) {
+        await _scrollController.animateTo(
+          maxScroll,
+          duration: const Duration(seconds: 8),
+          curve: Curves.linear,
+        );
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.jumpTo(0);
+        }
+      } else {
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _isScrolling = false;
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      child: widget.child,
     );
   }
 }

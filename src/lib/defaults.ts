@@ -97,6 +97,7 @@ export const defaultHeader: HeaderSettings = {
   showWishlist: true,
   stickyHeader: true,
   announcementEnabled: false,
+  announcementAnimated: false,
   announcementText: "Free shipping on orders over 1500 EGP to Gharbia & Dakahlia",
   announcementBgColor: "#12403C",
   announcementTextColor: "#ffffff",

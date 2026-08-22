@@ -154,6 +154,15 @@ export default function DesktopComparisonView({
 
     const normalizeDisplay = (v: string | undefined | null) => (v ?? "").toString().trim().replace(/\s+/g, " ");
 
+    const normalizeForComparison = (v: string | undefined | null) => {
+        let s = (v ?? "").toString().trim().replace(/\s+/g, " ").toLowerCase();
+        s = s.replace(/\b(\d+)\s*mm\b/gi, "$1mm");
+        s = s.replace(/^(\d+)$/, "$1mm");
+        s = s.replace(/\b3\s*atm\b/gi, "3 atm");
+        s = s.replace(/\s*&\s*/g, " & ").replace(/\s+and\s+/g, " & ");
+        return s;
+    };
+
     const getSpecValue = (product: Product | undefined | null, row: { key?: string; specKey?: string; default?: string }) => {
         if (!product) return "-";
         if (row.key) {
@@ -408,7 +417,7 @@ export default function DesktopComparisonView({
 
                                     // Simple logic for desktop diff: highlight if any difference exists among active non-nulls
                                     const activeVals = [val1, val2, val3].filter(v => v !== "-" && (slot1 || slot2 || slot3));
-                                    const isDifferent = activeVals.length > 1 && new Set(activeVals).size > 1;
+                                    const isDifferent = activeVals.length > 1 && new Set(activeVals.map(normalizeForComparison)).size > 1;
 
                                     return (
                                         <div

@@ -45,43 +45,50 @@ export function HomeContentClient({
 
   return (
     <main>
-      {/* Hero Section */}
-      {homepage.heroEnabled && (
-        <section 
-          className="hero container"
+      {/* Hero & Client Feedback Section (Full Hero Viewport) */}
+      {homepage.heroEnabled ? (
+        <div 
+          className="hero-wrapper"
           style={homepage.heroBackgroundImage ? {
             backgroundImage: `url('${homepage.heroBackgroundImage}')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           } : undefined}
         >
-          <div className="hero-content">
-            <Reveal delay={0.1}>
-              <h1 className="hero-title">
-                {(language === 'ar' ? t.home.hero.title : homepage.heroTitle).split('.').map((part, i, arr) => (
-                  <React.Fragment key={i}>
-                    {part.trim()}{i < arr.length - 1 && '.'}<br />
-                  </React.Fragment>
-                ))}
-              </h1>
-            </Reveal>
-            <Reveal delay={0.3}>
-              <p className="hero-sub">
-                {language === 'ar' ? t.home.hero.subtitle : homepage.heroSubtitle}
-              </p>
-            </Reveal>
-            <Reveal delay={0.5}>
-              <Link href={homepage.heroButtonLink || "/shop"} className="btn btn-primary">
-                {t.home.hero_btn}
-              </Link>
-            </Reveal>
-          </div>
-        </section>
-      )}
+          <section className="hero container">
+            <div className="hero-content">
+              <Reveal delay={0.1}>
+                <h1 className="hero-title">
+                  {(language === 'ar' ? t.home.hero.title : homepage.heroTitle).split('.').map((part, i, arr) => (
+                    <React.Fragment key={i}>
+                      {part.trim()}{i < arr.length - 1 && '.'}<br />
+                    </React.Fragment>
+                  ))}
+                </h1>
+              </Reveal>
+              <Reveal delay={0.3}>
+                <p className="hero-sub">
+                  {language === 'ar' ? t.home.hero.subtitle : homepage.heroSubtitle}
+                </p>
+              </Reveal>
+              <Reveal delay={0.5}>
+                <Link href={homepage.heroButtonLink || "/shop"} className="btn btn-primary">
+                  {t.home.hero_btn}
+                </Link>
+              </Reveal>
+            </div>
+          </section>
 
-      {/* Client Feedback Section */}
-      {feedbackImages.length > 0 && (
-        <FeedbackSection images={feedbackImages} reviewStats={reviewStats} />
+          {/* Client Feedback Section inside Hero */}
+          {feedbackImages.length > 0 && (
+            <FeedbackSection images={feedbackImages} reviewStats={reviewStats} />
+          )}
+        </div>
+      ) : (
+        /* Fallback if Hero is disabled */
+        feedbackImages.length > 0 && (
+          <FeedbackSection images={feedbackImages} reviewStats={reviewStats} />
+        )
       )}
 
       {/* Promotions Hub (Flash Sales, BOGO, Bundles) */}

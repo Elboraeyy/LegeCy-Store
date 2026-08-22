@@ -242,6 +242,7 @@ export type HeaderSettings = {
   showWishlist: boolean;
   stickyHeader: boolean;
   announcementEnabled: boolean;
+  announcementAnimated?: boolean;
   announcementText: string;
   announcementBgColor: string;
   announcementTextColor: string;

@@ -121,6 +121,15 @@ export default function MobileComparisonView({
 
     const normalizeDisplay = (v: string | undefined | null) => (v ?? "").toString().trim().replace(/\s+/g, " ");
 
+    const normalizeForComparison = (v: string | undefined | null) => {
+        let s = (v ?? "").toString().trim().replace(/\s+/g, " ").toLowerCase();
+        s = s.replace(/\b(\d+)\s*mm\b/gi, "$1mm");
+        s = s.replace(/^(\d+)$/, "$1mm");
+        s = s.replace(/\b3\s*atm\b/gi, "3 atm");
+        s = s.replace(/\s*&\s*/g, " & ").replace(/\s+and\s+/g, " & ");
+        return s;
+    };
+
     const getSpecValue = (product: Product | undefined, row: { key?: string; specKey?: string; default?: string }) => {
         if (!product) return "-";
         if (row.key) {
@@ -471,7 +480,7 @@ export default function MobileComparisonView({
                                 {group.rows.map((row, rIdx) => {
                                     const primaryVal = getSpecValue(primary, row);
                                     const secondaryVal = getSpecValue(secondary, row);
-                                    const isDifferent = primaryVal !== secondaryVal && primaryVal !== "-" && secondaryVal !== "-";
+                                    const isDifferent = normalizeForComparison(primaryVal) !== normalizeForComparison(secondaryVal) && primaryVal !== "-" && secondaryVal !== "-";
 
                                     return (
                                         <div

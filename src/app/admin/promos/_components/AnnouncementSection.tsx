@@ -15,6 +15,7 @@ export default function AnnouncementSection() {
 
     // Settings State
     const [enabled, setEnabled] = useState(false);
+    const [animated, setAnimated] = useState(false);
     const [text, setText] = useState('');
     const [bgColor, setBgColor] = useState('#12403C');
     const [textColor, setTextColor] = useState('#ffffff');
@@ -27,6 +28,7 @@ export default function AnnouncementSection() {
                     const parsed = config as Partial<HeaderSettings>;
                     setHeaderConfig(parsed);
                     if (parsed.announcementEnabled !== undefined) setEnabled(parsed.announcementEnabled);
+                    if (parsed.announcementAnimated !== undefined) setAnimated(parsed.announcementAnimated);
                     if (parsed.announcementText) setText(parsed.announcementText);
                     if (parsed.announcementBgColor) setBgColor(parsed.announcementBgColor);
                     if (parsed.announcementTextColor) setTextColor(parsed.announcementTextColor);
@@ -48,6 +50,7 @@ export default function AnnouncementSection() {
             const updatedConfig = {
                 ...headerConfig,
                 announcementEnabled: enabled,
+                announcementAnimated: animated,
                 announcementText: text,
                 announcementBgColor: bgColor,
                 announcementTextColor: textColor,
@@ -96,13 +99,13 @@ export default function AnnouncementSection() {
 
             <div className="grid md:grid-cols-2 gap-8">
                 {/* Enable / Disable Toggle */}
-                <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100 md:col-span-2">
+                <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
                     <div className="flex-1">
                         <label className="block text-sm font-semibold text-[#12403C] mb-1">
                             {isRtl ? 'تفعيل الشريط الإعلاني' : 'Enable Announcement Bar'}
                         </label>
                         <p className="text-xs text-gray-500">
-                            {isRtl ? 'عرض أو إخفاء الشريط لجميع زوار المتجر' : 'Show or hide the warning to all store visitors'}
+                            {isRtl ? 'عرض أو إخفاء الشريط لجميع زوار المتجر' : 'Show or hide the banner to all store visitors'}
                         </p>
                     </div>
                     <div
@@ -113,6 +116,28 @@ export default function AnnouncementSection() {
                         <div
                             className="absolute top-1 left-1 bg-white w-5 h-5 rounded-full shadow-sm transition-transform"
                             style={{ transform: enabled ? (isRtl ? 'translateX(-20px)' : 'translateX(20px)') : 'translateX(0)' }}
+                        />
+                    </div>
+                </div>
+
+                {/* Animated / Marquee Toggle */}
+                <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
+                    <div className="flex-1">
+                        <label className="block text-sm font-semibold text-[#12403C] mb-1">
+                            {isRtl ? 'تحريك النص بشكل مستمر (Marquee)' : 'Continuous Scrolling (Marquee)'}
+                        </label>
+                        <p className="text-xs text-gray-500">
+                            {isRtl ? 'جعل النص يتحرك بشكل مستمر وسلس على الشريط' : 'Make text scroll continuously across the bar'}
+                        </p>
+                    </div>
+                    <div
+                        className="relative w-12 h-7 bg-gray-200 rounded-full cursor-pointer transition-colors"
+                        style={{ backgroundColor: animated ? '#12403C' : '#e5e7eb' }}
+                        onClick={() => setAnimated(!animated)}
+                    >
+                        <div
+                            className="absolute top-1 left-1 bg-white w-5 h-5 rounded-full shadow-sm transition-transform"
+                            style={{ transform: animated ? (isRtl ? 'translateX(-20px)' : 'translateX(20px)') : 'translateX(0)' }}
                         />
                     </div>
                 </div>
@@ -179,15 +204,34 @@ export default function AnnouncementSection() {
                         {isRtl ? 'معاينة مباشرة' : 'Live Preview'}
                     </label>
                     <div
-                        className="w-full py-2 text-center text-xs font-medium tracking-wider uppercase rounded overflow-hidden"
+                        className="w-full py-2.5 md:py-3 text-[13px] md:text-sm font-semibold tracking-wider uppercase rounded overflow-hidden leading-snug"
                         style={{
                             backgroundColor: bgColor || "#12403C",
                             color: textColor || "#ffffff",
                         }}
                     >
-                        <div className="container mx-auto px-4 truncate">
-                            {text || (isRtl ? 'نص الإعلان هنا...' : 'Your announcement text here...')}
-                        </div>
+                        {animated ? (
+                            <div className="w-full overflow-hidden whitespace-nowrap relative flex items-center select-none">
+                                <div className="inline-flex animate-announcement-marquee shrink-0 items-center">
+                                    <span className="mx-6">{text || (isRtl ? 'نص الإعلان هنا...' : 'Your announcement text here...')}</span>
+                                    <span className="mx-2 opacity-50">•</span>
+                                    <span className="mx-6">{text || (isRtl ? 'نص الإعلان هنا...' : 'Your announcement text here...')}</span>
+                                    <span className="mx-2 opacity-50">•</span>
+                                    <span className="mx-6">{text || (isRtl ? 'نص الإعلان هنا...' : 'Your announcement text here...')}</span>
+                                </div>
+                                <div className="inline-flex animate-announcement-marquee shrink-0 items-center" aria-hidden="true">
+                                    <span className="mx-6">{text || (isRtl ? 'نص الإعلان هنا...' : 'Your announcement text here...')}</span>
+                                    <span className="mx-2 opacity-50">•</span>
+                                    <span className="mx-6">{text || (isRtl ? 'نص الإعلان هنا...' : 'Your announcement text here...')}</span>
+                                    <span className="mx-2 opacity-50">•</span>
+                                    <span className="mx-6">{text || (isRtl ? 'نص الإعلان هنا...' : 'Your announcement text here...')}</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="container mx-auto px-4 truncate text-center">
+                                {text || (isRtl ? 'نص الإعلان هنا...' : 'Your announcement text here...')}
+                            </div>
+                        )}
                     </div>
                 </div>
 

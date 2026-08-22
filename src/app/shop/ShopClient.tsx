@@ -83,8 +83,6 @@ export default function ShopClient({
 
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "list" | "compact" | "categories">("grid");
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 12;
 
     // Fixed price bounds (0-3000)
     const absoluteMinPrice = 0;
@@ -118,13 +116,7 @@ export default function ShopClient({
             onSale: searchParams.get("onSale") === "true" ? true : null,
             isNew: searchParams.get("new") === "true" ? true : null,
         });
-        setCurrentPage(1);
     }, [searchParams, absoluteMinPrice, absoluteMaxPrice]);
-
-    // Scroll to top when page changes
-    React.useEffect(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [currentPage]);
 
     // Update URL asynchronously with a small debounce to avoid history flooding
     React.useEffect(() => {
@@ -180,7 +172,6 @@ export default function ShopClient({
     // Update local state immediately
     const updateFilters = useCallback((updates: Partial<typeof filters>) => {
         setFilters(prev => ({ ...prev, ...updates }));
-        setCurrentPage(1);
     }, []);
 
     // GA4 & Meta: Track search queries (debounced)
@@ -328,13 +319,6 @@ export default function ShopClient({
         filters.selectedMaterials.length,
         viewMode,
     ]);
-
-    // Pagination - Memoized for performance
-    const totalPages = useMemo(() => Math.ceil(filteredAndSortedProducts.length / itemsPerPage), [filteredAndSortedProducts.length, itemsPerPage]);
-    const paginatedProducts = useMemo(() => filteredAndSortedProducts.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    ), [filteredAndSortedProducts, currentPage, itemsPerPage]);
 
     // Active filters
     const activeFilters = useMemo(() => {
@@ -573,59 +557,11 @@ export default function ShopClient({
 
                         {/* Products Grid */}
                         <ProductGrid
-                            products={viewMode === "categories" ? filteredAndSortedProducts : paginatedProducts}
+                            products={filteredAndSortedProducts}
                             viewMode={viewMode}
                             isLoading={isPending}
                             categories={categories}
                         />
-
-                        {/* Pagination */}
-                        {viewMode !== "categories" && totalPages > 1 && (
-                            <div className="mt-8 flex items-center justify-center gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {t.shop.previous}
-                                </button>
-
-                                {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                                    let pageNum = i + 1;
-
-                                    if (totalPages > 5) {
-                                        if (currentPage <= 3) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i;
-                                        } else {
-                                            pageNum = currentPage - 2 + i;
-                                        }
-                                    }
-
-                                    return (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => setCurrentPage(pageNum)}
-                                            className={`px-4 py-2 rounded-lg transition-colors ${currentPage === pageNum
-                                                ? "bg-[#12403C] text-white"
-                                                : "border border-gray-200 hover:bg-gray-50"
-                                                }`}
-                                        >
-                                            {pageNum}
-                                        </button>
-                                    );
-                                })}
-
-                                <button
-                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {t.shop.next}
-                                </button>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
@@ -648,7 +584,7 @@ export default function ShopClient({
                                     <span>{t.shop.filter_btn}</span>
                                     {activeFilters.length > 0 && (
                                         <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold bg-[#d4af37] text-[#12403C] rounded-full px-1">
-                                            {activeFilters.length}
+                                             {activeFilters.length}
                                         </span>
                                     )}
                                 </button>
@@ -711,39 +647,12 @@ export default function ShopClient({
                 {/* Mobile Product Grid */}
                 <div className={viewMode === "categories" ? "" : "px-4"}>
                     <ProductGrid
-                        products={viewMode === "categories" ? filteredAndSortedProducts : paginatedProducts}
+                        products={filteredAndSortedProducts}
                         viewMode={viewMode}
                         isLoading={isPending}
                         categories={categories}
                     />
                 </div>
-
-                {/* Mobile Pagination */}
-                {viewMode !== "categories" && totalPages > 1 && (
-                    <div className="mt-8 px-4 flex items-center justify-center gap-2">
-                        <button
-                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1}
-                            className="p-2 border border-gray-200 rounded-lg disabled:opacity-50"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <span className="text-sm font-medium">
-                            {currentPage} / {totalPages}
-                        </span>
-                        <button
-                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                            disabled={currentPage === totalPages}
-                            className="p-2 border border-gray-200 rounded-lg disabled:opacity-50"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </div>
-                )}
             </div>
 
             {/* Mobile Filters */}

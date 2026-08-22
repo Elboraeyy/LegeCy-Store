@@ -10,11 +10,17 @@ interface SpecRowProps {
 }
 
 export default function SpecRow({ label, values, highlightDiff = false }: SpecRowProps) {
-    const normalize = (v: string | undefined | null) =>
-        (v ?? "")
+    const normalize = (v: string | undefined | null) => {
+        let s = (v ?? "")
             .trim()
             .replace(/\s+/g, " ")
             .toLowerCase();
+        s = s.replace(/\b(\d+)\s*mm\b/gi, "$1mm");
+        s = s.replace(/^(\d+)$/, "$1mm");
+        s = s.replace(/\b3\s*atm\b/gi, "3 atm");
+        s = s.replace(/\s*&\s*/g, " & ").replace(/\s+and\s+/g, " & ");
+        return s;
+    };
 
     // Check if values are different (ignore empty/placeholders) using normalized comparison
     const validValues = values.filter(v => v !== undefined && v !== null && v !== "");

@@ -100,6 +100,7 @@ export type HeaderSettings = {
   showWishlist: boolean;
   stickyHeader: boolean;
   announcementEnabled: boolean;
+  announcementAnimated?: boolean;
   announcementText: string;
   announcementBgColor: string;
   announcementTextColor: string;
@@ -195,6 +196,7 @@ const defaultHeader: HeaderSettings = {
   showWishlist: true,
   stickyHeader: true,
   announcementEnabled: false,
+  announcementAnimated: false,
   announcementText: "Free shipping on orders over 1500 EGP to Gharbia & Dakahlia",
   announcementBgColor: "#12403C",
   announcementTextColor: "#ffffff",
